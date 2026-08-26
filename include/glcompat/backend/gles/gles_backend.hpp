@@ -44,8 +44,10 @@ public:
     void enable(uint32_t cap) override;
     void disable(uint32_t cap) override;
     void useProgram(uint32_t prog) override;
-    void blendFunc(uint32_t sfactor, uint32_t dfactor) override;
-    void blendEquation(uint32_t mode) override;
+    void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB, uint32_t srcAlpha,
+                           uint32_t dstAlpha) override;
+    void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) override;
+    void blendColor(float r, float g, float b, float a) override;
     void depthFunc(uint32_t func) override;
     void depthMask(bool enabled) override;
     void depthRange(double nearVal, double farVal) override;

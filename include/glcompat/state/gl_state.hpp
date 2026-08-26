@@ -28,9 +28,18 @@ public:
     bool useProgram(GLObjectName prog);
     GLObjectName activeProgram() const { return activeProgram_; }
 
-    // --- Blend ---
+    // --- Blend (SPEC §10 / §17.3) ---
+    // glBlendFunc sets both RGB and alpha factors to the same pair;
+    // glBlendFuncSeparate sets them independently.
     bool setBlendFunc(GLenum sfactor, GLenum dfactor);
+    bool setBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB,
+                             GLenum srcAlpha, GLenum dstAlpha);
+    // glBlendEquation sets both RGB and alpha equations; glBlendEquationSeparate
+    // sets them independently.
     bool setBlendEquation(GLenum mode);
+    bool setBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
+    // glBlendColor sets the constant blend color (GL_CONSTANT_* factors).
+    bool setBlendColor(float r, float g, float b, float a);
 
     // --- Depth ---
     bool setDepthFunc(GLenum func);
@@ -67,11 +76,22 @@ public:
 
 private:
     struct BlendState {
-        GLenum src = 1;       // GL_ONE
-        GLenum dst = 0;       // GL_ZERO
-        GLenum equation = 0x8006; // GL_FUNC_ADD
+        GLenum srcRGB = 1;   // GL_ONE
+        GLenum dstRGB = 0;   // GL_ZERO
+        GLenum srcAlpha = 1; // GL_ONE
+        GLenum dstAlpha = 0; // GL_ZERO
+        GLenum equationRGB = 0x8006;   // GL_FUNC_ADD
+        GLenum equationAlpha = 0x8006; // GL_FUNC_ADD
         bool equal(const BlendState& o) const {
-            return src == o.src && dst == o.dst && equation == o.equation;
+            return srcRGB == o.srcRGB && dstRGB == o.dstRGB &&
+                   srcAlpha == o.srcAlpha && dstAlpha == o.dstAlpha &&
+                   equationRGB == o.equationRGB && equationAlpha == o.equationAlpha;
+        }
+    };
+    struct BlendColorState {
+        float r = 0.0f, g = 0.0f, b = 0.0f, a = 0.0f;
+        bool equal(const BlendColorState& o) const {
+            return r == o.r && g == o.g && b == o.b && a == o.a;
         }
     };
     struct DepthState {
@@ -160,6 +180,7 @@ private:
     bool programDirty_ = false;
 
     BlendState blend_, blendApplied_;
+    BlendColorState blendColor_, blendColorApplied_;
     DepthState depth_, depthApplied_;
     DepthRangeState depthRange_, depthRangeApplied_;
     StencilState stencil_, stencilApplied_;

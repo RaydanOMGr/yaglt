@@ -130,4 +130,31 @@ constexpr GLenum GL_DEPTH_BUFFER_BIT = 0x00000100;
 constexpr GLenum GL_STENCIL_BUFFER_BIT = 0x00000400;
 constexpr GLenum GL_COLOR_BUFFER_BIT = 0x00004000;
 
+// Blend enable (glEnable/glDisable capability, SPEC §17.3).
+constexpr GLenum GL_BLEND = 0x0BE2;
+
+// Blend factors (SPEC §17.3.6.2, table 17.2).
+constexpr GLenum GL_ZERO = 0x0000;
+constexpr GLenum GL_ONE = 0x0001;
+constexpr GLenum GL_SRC_COLOR = 0x0300;
+constexpr GLenum GL_ONE_MINUS_SRC_COLOR = 0x0301;
+constexpr GLenum GL_SRC_ALPHA = 0x0302;
+constexpr GLenum GL_ONE_MINUS_SRC_ALPHA = 0x0303;
+constexpr GLenum GL_DST_ALPHA = 0x0304;
+constexpr GLenum GL_ONE_MINUS_DST_ALPHA = 0x0305;
+constexpr GLenum GL_DST_COLOR = 0x0306;
+constexpr GLenum GL_ONE_MINUS_DST_COLOR = 0x0307;
+constexpr GLenum GL_SRC_ALPHA_SATURATE = 0x0308;
+constexpr GLenum GL_CONSTANT_COLOR = 0x8001;
+constexpr GLenum GL_ONE_MINUS_CONSTANT_COLOR = 0x8002;
+constexpr GLenum GL_CONSTANT_ALPHA = 0x8003;
+constexpr GLenum GL_ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+
+// Blend equations (SPEC §17.3.6.1, table 17.1).
+constexpr GLenum GL_FUNC_ADD = 0x8006;
+constexpr GLenum GL_MIN = 0x8007;
+constexpr GLenum GL_MAX = 0x8008;
+constexpr GLenum GL_FUNC_SUBTRACT = 0x800A;
+constexpr GLenum GL_FUNC_REVERSE_SUBTRACT = 0x800B;
+
 } // namespace glcompat

@@ -202,12 +202,23 @@ void GLESBackend::bindNativeObject(uint32_t name, uint32_t nativeId) {
     nativeMap_[name] = nativeId;
 }
 
-void GLESBackend::blendFunc(GLenum sfactor, GLenum dfactor) {
-    if (lib_->glBlendFunc) lib_->glBlendFunc(sfactor, dfactor);
+void GLESBackend::blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB,
+                                    uint32_t srcAlpha, uint32_t dstAlpha) {
+    if (lib_->glBlendFuncSeparate)
+        lib_->glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    else if (lib_->glBlendFunc)
+        lib_->glBlendFunc(srcRGB, dstRGB); // fall back: RGB factors (no alpha split)
 }
 
-void GLESBackend::blendEquation(GLenum mode) {
-    if (lib_->glBlendEquation) lib_->glBlendEquation(mode);
+void GLESBackend::blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) {
+    if (lib_->glBlendEquationSeparate)
+        lib_->glBlendEquationSeparate(modeRGB, modeAlpha);
+    else if (lib_->glBlendEquation)
+        lib_->glBlendEquation(modeRGB); // fall back: single equation
+}
+
+void GLESBackend::blendColor(float r, float g, float b, float a) {
+    if (lib_->glBlendColor) lib_->glBlendColor(r, g, b, a);
 }
 
 void GLESBackend::depthFunc(GLenum func) {

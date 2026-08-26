@@ -27,15 +27,48 @@ bool GLStateTracker::useProgram(GLObjectName prog) {
 }
 
 bool GLStateTracker::setBlendFunc(GLenum sfactor, GLenum dfactor) {
-    if (blend_.src == sfactor && blend_.dst == dfactor) return false;
-    blend_.src = sfactor;
-    blend_.dst = dfactor;
+    if (blend_.srcRGB == sfactor && blend_.dstRGB == dfactor &&
+        blend_.srcAlpha == sfactor && blend_.dstAlpha == dfactor)
+        return false;
+    blend_.srcRGB = blend_.srcAlpha = sfactor;
+    blend_.dstRGB = blend_.dstAlpha = dfactor;
+    return true;
+}
+
+bool GLStateTracker::setBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB,
+                                          GLenum srcAlpha, GLenum dstAlpha) {
+    if (blend_.srcRGB == srcRGB && blend_.dstRGB == dstRGB &&
+        blend_.srcAlpha == srcAlpha && blend_.dstAlpha == dstAlpha)
+        return false;
+    blend_.srcRGB = srcRGB;
+    blend_.dstRGB = dstRGB;
+    blend_.srcAlpha = srcAlpha;
+    blend_.dstAlpha = dstAlpha;
     return true;
 }
 
 bool GLStateTracker::setBlendEquation(GLenum mode) {
-    if (blend_.equation == mode) return false;
-    blend_.equation = mode;
+    if (blend_.equationRGB == mode && blend_.equationAlpha == mode) return false;
+    blend_.equationRGB = blend_.equationAlpha = mode;
+    return true;
+}
+
+bool GLStateTracker::setBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha) {
+    if (blend_.equationRGB == modeRGB && blend_.equationAlpha == modeAlpha)
+        return false;
+    blend_.equationRGB = modeRGB;
+    blend_.equationAlpha = modeAlpha;
+    return true;
+}
+
+bool GLStateTracker::setBlendColor(float r, float g, float b, float a) {
+    if (blendColor_.r == r && blendColor_.g == g && blendColor_.b == b &&
+        blendColor_.a == a)
+        return false;
+    blendColor_.r = r;
+    blendColor_.g = g;
+    blendColor_.b = b;
+    blendColor_.a = a;
     return true;
 }
 
@@ -172,9 +205,16 @@ int GLStateTracker::apply(GLStateSink& sink) {
     }
 
     if (!blend_.equal(blendApplied_)) {
-        sink.blendFunc(blend_.src, blend_.dst);
-        sink.blendEquation(blend_.equation);
+        sink.blendFuncSeparate(blend_.srcRGB, blend_.dstRGB,
+                               blend_.srcAlpha, blend_.dstAlpha);
+        sink.blendEquationSeparate(blend_.equationRGB, blend_.equationAlpha);
         blendApplied_ = blend_;
+        ++applied;
+    }
+
+    if (!blendColor_.equal(blendColorApplied_)) {
+        sink.blendColor(blendColor_.r, blendColor_.g, blendColor_.b, blendColor_.a);
+        blendColorApplied_ = blendColor_;
         ++applied;
     }
 
@@ -252,6 +292,8 @@ void GLStateTracker::reset() {
     programDirty_ = false;
     blend_ = BlendState{};
     blendApplied_ = BlendState{};
+    blendColor_ = BlendColorState{};
+    blendColorApplied_ = BlendColorState{};
     depth_ = DepthState{};
     depthApplied_ = DepthState{};
     depthRange_ = DepthRangeState{};

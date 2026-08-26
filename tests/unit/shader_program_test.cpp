@@ -10,7 +10,6 @@
 using namespace glcompat;
 
 namespace {
-constexpr GLenum GL_BLEND = 0x0BE2;
 constexpr GLenum GL_TRIANGLES = 0x0004;
 } // namespace
 

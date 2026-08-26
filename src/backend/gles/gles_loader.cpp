@@ -85,6 +85,12 @@ bool GLESLib::load() {
     ok &= resolve(gles, glUseProgram, "glUseProgram");
     ok &= resolve(gles, glBlendFunc, "glBlendFunc");
     ok &= resolve(gles, glBlendEquation, "glBlendEquation");
+    // Optional (core in ES 2.0/3.x but resolved defensively): separate blend and
+    // constant blend color. The backend falls back to glBlendFunc/glBlendEquation
+    // when these are unavailable.
+    resolve(gles, glBlendFuncSeparate, "glBlendFuncSeparate");
+    resolve(gles, glBlendEquationSeparate, "glBlendEquationSeparate");
+    resolve(gles, glBlendColor, "glBlendColor");
     ok &= resolve(gles, glDepthFunc, "glDepthFunc");
     ok &= resolve(gles, glDepthMask, "glDepthMask");
     ok &= resolve(gles, glDepthRangef, "glDepthRangef");

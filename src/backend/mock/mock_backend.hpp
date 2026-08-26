@@ -64,6 +64,11 @@ public:
 
     int blendFuncCalls = 0;
     int blendEquationCalls = 0;
+    int blendColorCalls = 0;
+    GLenum lastSrcRGB = 0, lastDstRGB = 0, lastSrcAlpha = 0, lastDstAlpha = 0;
+    GLenum lastEqRGB = 0, lastEqAlpha = 0;
+    float lastBlendR = 0.0f, lastBlendG = 0.0f, lastBlendB = 0.0f,
+          lastBlendA = 0.0f;
     int depthFuncCalls = 0;
     int depthMaskCalls = 0;
     int depthRangeCalls = 0;
@@ -110,8 +115,26 @@ public:
         ++useProgramCalls;
         lastProgram = prog;
     }
-    void blendFunc(GLenum, GLenum) override { ++blendFuncCalls; }
-    void blendEquation(GLenum) override { ++blendEquationCalls; }
+    void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB, uint32_t srcAlpha,
+                           uint32_t dstAlpha) override {
+        ++blendFuncCalls;
+        lastSrcRGB = srcRGB;
+        lastDstRGB = dstRGB;
+        lastSrcAlpha = srcAlpha;
+        lastDstAlpha = dstAlpha;
+    }
+    void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) override {
+        ++blendEquationCalls;
+        lastEqRGB = modeRGB;
+        lastEqAlpha = modeAlpha;
+    }
+    void blendColor(float r, float g, float b, float a) override {
+        ++blendColorCalls;
+        lastBlendR = r;
+        lastBlendG = g;
+        lastBlendB = b;
+        lastBlendA = a;
+    }
     void depthFunc(GLenum) override { ++depthFuncCalls; }
     void depthMask(bool) override { ++depthMaskCalls; }
     void depthRange(double n, double f) override {

@@ -133,6 +133,14 @@ void glEnable(GLenum cap);
 void glDisable(GLenum cap);
 void glBlendFunc(GLenum sfactor, GLenum dfactor);
 void glBlendEquation(GLenum mode);
+// Separate RGB/alpha blend factors and equations (SPEC §17.3). glBlendFunc and
+// glBlendEquation set both RGB and alpha; the *Separate forms set them
+// independently (RGB from the first pair, alpha from the second).
+void glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha,
+                        GLenum dstAlpha);
+void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
+// Constant blend color used by the GL_CONSTANT_* blend factors (SPEC §17.3).
+void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 void glUseProgram(GLuint prog);
 void glDepthFunc(GLenum func);
 void glDepthMask(bool flag);

@@ -9,7 +9,6 @@
 using namespace glcompat;
 
 namespace {
-constexpr GLenum GL_BLEND = 0x0BE2;
 constexpr GLenum GL_DEPTH_TEST = 0x0B71;
 } // namespace
 

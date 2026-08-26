@@ -25,8 +25,11 @@ struct RecordingSink : GLStateSink {
     void enable(GLenum c) override { caps.emplace_back(c, true); }
     void disable(GLenum c) override { caps.emplace_back(c, false); }
     void useProgram(GLObjectName p) override { programs.push_back(p); }
-    void blendFunc(GLenum, GLenum) override { ++blendFuncCalls; }
-    void blendEquation(GLenum) override { ++blendEqCalls; }
+    void blendFuncSeparate(uint32_t, uint32_t, uint32_t, uint32_t) override {
+        ++blendFuncCalls;
+    }
+    void blendEquationSeparate(uint32_t, uint32_t) override { ++blendEqCalls; }
+    void blendColor(float, float, float, float) override {}
     void depthFunc(GLenum) override { ++depthFuncCalls; }
     void depthMask(bool) override { ++depthMaskCalls; }
     void depthRange(double, double) override {}
@@ -48,7 +51,6 @@ struct RecordingSink : GLStateSink {
     void vertexAttribPointer(uint32_t, int32_t, uint32_t, bool, int32_t, intptr_t) override {}
 };
 
-constexpr GLenum GL_BLEND = 0x0BE2;
 constexpr GLenum GL_DEPTH_TEST = 0x0B71;
 } // namespace
 

@@ -516,6 +516,28 @@ OpenGL 4.6:
     `tests/unit/readpixels_test.cpp` covers forward-after-flush and invalid-size.
   - Validation: default 99/99, sanitizer 99/99, translate (Mesa) 106/106 green.
 
+- [x] Blend state completeness: separate factors/equations + constant color (SPEC
+   §10 / §17.3, this session).
+   - Extended `GLStateTracker::BlendState` to carry independent RGB/alpha factors
+     and equations; added `setBlendFuncSeparate`/`setBlendEquationSeparate`/
+     `setBlendColor`. `glBlendFunc`/`glBlendEquation` now set both RGB and alpha
+     equal (unchanged semantics). `apply()` pushes `blendFuncSeparate` +
+     `blendEquationSeparate` as one category and `blendColor` as an independent
+     category, so only changed state reaches the driver (SPEC §10).
+   - `GLStateSink` interface renamed `blendFunc`→`blendFuncSeparate`,
+     `blendEquation`→`blendEquationSeparate` and gained `blendColor` (plain int/
+     float types). `MockBackend` records all three (and the resolved RGB/alpha
+     factors + equations + constant color); `GLESBackend` drives the real driver
+     via `glBlendFuncSeparate`/`glBlendEquationSeparate`/`glBlendColor` (resolved
+     as optional symbols in `GLESLib`, with glBlendFunc/glBlendEquation fallback
+     when the separates are absent). Added the three GL constants + blend factor/
+     equation constants to `gl_types.hpp`.
+   - Public `gl_api` exposes `glBlendFuncSeparate`/`glBlendEquationSeparate`/
+     `glBlendColor`. New `tests/unit/blend_test.cpp` covers separate RGB/alpha
+     factors, `glBlendFunc` mapping to equal pairs, separate equations, constant
+     color push-only-on-change, and color-vs-func independence.
+   - Validation: default 104/104, sanitizer 104/104 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

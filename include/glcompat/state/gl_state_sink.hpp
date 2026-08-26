@@ -19,8 +19,10 @@ public:
 
     virtual void useProgram(uint32_t prog) = 0;
 
-    virtual void blendFunc(uint32_t sfactor, uint32_t dfactor) = 0;
-    virtual void blendEquation(uint32_t mode) = 0;
+    virtual void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB,
+                                   uint32_t srcAlpha, uint32_t dstAlpha) = 0;
+    virtual void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) = 0;
+    virtual void blendColor(float r, float g, float b, float a) = 0;
 
     virtual void depthFunc(uint32_t func) = 0;
     virtual void depthMask(bool enabled) = 0;

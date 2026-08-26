@@ -398,6 +398,22 @@ void glBlendEquation(GLenum mode) {
     g_current->state().setBlendEquation(mode);
 }
 
+void glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha,
+                        GLenum dstAlpha) {
+    if (g_current == nullptr) return;
+    g_current->state().setBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+}
+
+void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha) {
+    if (g_current == nullptr) return;
+    g_current->state().setBlendEquationSeparate(modeRGB, modeAlpha);
+}
+
+void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    if (g_current == nullptr) return;
+    g_current->state().setBlendColor(red, green, blue, alpha);
+}
+
 void glUseProgram(GLuint prog) {
     if (g_current == nullptr) return;
     g_current->state().useProgram(prog);
