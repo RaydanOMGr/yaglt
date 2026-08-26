@@ -162,7 +162,7 @@ Known major blockers:
 - [x] P0: Implement uniform setting (`glUniform*`) on the active program.
 - [x] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
 - [x] P1: Android platform capabilities + SDK 21 fallback abstraction.
-- [ ] P2: Capability-driven emulation selection scaffolding.
+- [x] P2: Capability-driven emulation selection scaffolding (partial — `CapabilityTable` resolves Native/Emulated/Unsupported once at init and `CapabilityTable::report()` logs the chosen path + activated fallbacks; deeper per-feature emulation wiring lands with the emulation implementations, deferred per the Emulation roadmap).
 - [x] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
 
 ## Known Issues
