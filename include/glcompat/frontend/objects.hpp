@@ -120,6 +120,15 @@ public:
     }
 };
 
+// Frontend transform-feedback object (SPEC §13.3). Owns an opaque backend TF
+// resource; capture begin/end/pause/resume are forwarded to it at draw time.
+class TransformFeedbackObject {
+public:
+    explicit TransformFeedbackObject(GLObjectName n) : name(n) {}
+    GLObjectName name = 0;
+    std::unique_ptr<BackendTransformFeedback> backend;
+};
+
 // Frontend shader object (SPEC §8). Source + compile status live here, decoupled
 // from the backend shader resource it owns.
 class ShaderObject {

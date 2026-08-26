@@ -69,6 +69,17 @@ void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
 
+// --- Transform feedback (SPEC §13.3) ---
+GLuint glGenTransformFeedback();
+void glGenTransformFeedbacks(GLsizei n, GLuint* names);
+void glBindTransformFeedback(GLuint name);
+void glDeleteTransformFeedback(GLuint name);
+void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names);
+void glBeginTransformFeedback(GLenum primitiveMode);
+void glEndTransformFeedback();
+void glPauseTransformFeedback();
+void glResumeTransformFeedback();
+
 // --- Shaders / programs (SPEC §8) ---
 // glCreateShader / glCreateProgram return the new object name (0 on failure).
 GLuint glCreateShader(GLenum stage);

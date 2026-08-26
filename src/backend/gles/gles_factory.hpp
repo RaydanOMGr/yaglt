@@ -36,6 +36,9 @@ public:
         lib_->glGenVertexArrays(1, &h);
         return std::make_unique<GLESBackendVertexArray>(lib_, h);
     }
+    std::unique_ptr<BackendTransformFeedback> createTransformFeedback() override {
+        return std::make_unique<GLESBackendTransformFeedback>(lib_);
+    }
     std::unique_ptr<BackendShader> createShader(uint32_t stage) override {
         return std::make_unique<GLESBackendShader>(lib_, stage);
     }

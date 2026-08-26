@@ -516,6 +516,118 @@ void Context::deleteVertexArrays(uint32_t n, const GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) deleteVertexArray(names[i]);
 }
 
+// --- Transform feedback (SPEC §13.3) ---
+
+GLObjectName Context::genTransformFeedback() {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    GLObjectName name = nextName_++;
+    auto obj = std::make_unique<TransformFeedbackObject>(name);
+    obj->backend = backend_.resourceFactory().createTransformFeedback();
+    transformFeedbacks_.emplace(name, std::move(obj));
+    return name;
+}
+
+void Context::genTransformFeedbacks(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genTransformFeedback();
+}
+
+void Context::bindTransformFeedback(GLObjectName name) {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (name != 0 && transformFeedbacks_.find(name) == transformFeedbacks_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    boundTransformFeedback_ = name;
+}
+
+GLObjectName Context::boundTransformFeedback() const {
+    return boundTransformFeedback_;
+}
+
+void Context::deleteTransformFeedback(GLObjectName name) {
+    auto it = transformFeedbacks_.find(name);
+    if (it == transformFeedbacks_.end()) return;
+    if (boundTransformFeedback_ == name) boundTransformFeedback_ = 0;
+    transformFeedbacks_.erase(it);
+}
+
+void Context::deleteTransformFeedbacks(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteTransformFeedback(names[i]);
+}
+
+TransformFeedbackObject* Context::getTransformFeedback(GLObjectName name) {
+    auto it = transformFeedbacks_.find(name);
+    return it == transformFeedbacks_.end() ? nullptr : it->second.get();
+}
+
+void Context::beginTransformFeedback(uint32_t primitiveMode) {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (transformFeedbackActive_) {
+        setError(GLError::InvalidOperation); // already capturing
+        return;
+    }
+    if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
+        if (tf->backend) tf->backend->begin(primitiveMode);
+    }
+    transformFeedbackActive_ = true;
+    transformFeedbackPaused_ = false;
+}
+
+void Context::endTransformFeedback() {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!transformFeedbackActive_) {
+        setError(GLError::InvalidOperation); // not capturing
+        return;
+    }
+    if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
+        if (tf->backend) tf->backend->end();
+    }
+    transformFeedbackActive_ = false;
+    transformFeedbackPaused_ = false;
+}
+
+void Context::pauseTransformFeedback() {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!transformFeedbackActive_ || transformFeedbackPaused_) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
+        if (tf->backend) tf->backend->pause();
+    }
+    transformFeedbackPaused_ = true;
+}
+
+void Context::resumeTransformFeedback() {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!transformFeedbackActive_ || !transformFeedbackPaused_) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
+        if (tf->backend) tf->backend->resume();
+    }
+    transformFeedbackPaused_ = false;
+}
+
 void Context::flushState() {
     GLStateSink* sink = backend_.stateSink();
     if (sink) {

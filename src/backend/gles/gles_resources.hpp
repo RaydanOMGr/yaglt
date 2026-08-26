@@ -107,6 +107,37 @@ struct GLESBackendVertexArray : BackendVertexArray {
     GLuint handle = 0;
 };
 
+// Real GLES transform-feedback object (SPEC §13.3). The native TF object is
+// created lazily at construction; capture state is driven through the loader.
+struct GLESBackendTransformFeedback : BackendTransformFeedback {
+    GLESBackendTransformFeedback(GLESLibPtr lib) : lib(lib) {
+        if (lib && lib->loaded && lib->glGenTransformFeedbacks)
+            lib->glGenTransformFeedbacks(1, &handle);
+    }
+    ~GLESBackendTransformFeedback() override {
+        if (lib && lib->loaded && lib->glDeleteTransformFeedbacks && handle)
+            lib->glDeleteTransformFeedbacks(1, &handle);
+    }
+    void begin(uint32_t mode) override {
+        if (lib && lib->loaded && lib->glBeginTransformFeedback)
+            lib->glBeginTransformFeedback(mode);
+    }
+    void end() override {
+        if (lib && lib->loaded && lib->glEndTransformFeedback)
+            lib->glEndTransformFeedback();
+    }
+    void pause() override {
+        if (lib && lib->loaded && lib->glPauseTransformFeedback)
+            lib->glPauseTransformFeedback();
+    }
+    void resume() override {
+        if (lib && lib->loaded && lib->glResumeTransformFeedback)
+            lib->glResumeTransformFeedback();
+    }
+    GLESLibPtr lib;
+    GLuint handle = 0;
+};
+
 // Real GLES shader object. Created at compile time and kept alive until the
 // frontend releases the owning shader object.
 struct GLESBackendShader : BackendShader {

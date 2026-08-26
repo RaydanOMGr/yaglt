@@ -58,6 +58,20 @@ public:
     // Native backend VAO id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };
+
+// Transform feedback object (SPEC §13.3). Captures primitives during drawing into
+// bound transform-feedback buffers. Defaults are no-ops so backends opt in.
+class BackendTransformFeedback {
+public:
+    virtual ~BackendTransformFeedback() = default;
+    // Begin/end a transform-feedback capture of the given primitive mode
+    // (GL_POINTS / GL_LINES / GL_TRIANGLES). pause/resume suspend/resume an
+    // active capture without ending it.
+    virtual void begin(uint32_t mode) {}
+    virtual void end() {}
+    virtual void pause() {}
+    virtual void resume() {}
+};
 class BackendShader {
 public:
     virtual ~BackendShader() = default;

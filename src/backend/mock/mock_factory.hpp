@@ -31,6 +31,11 @@ public:
         r->id = ++counter_;
         return r;
     }
+    std::unique_ptr<BackendTransformFeedback> createTransformFeedback() override {
+        auto r = std::make_unique<MockTransformFeedback>();
+        r->id = ++counter_;
+        return r;
+    }
     std::unique_ptr<BackendShader> createShader(uint32_t) override {
         auto r = std::make_unique<MockShader>();
         r->id = ++counter_;

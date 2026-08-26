@@ -163,6 +163,53 @@ void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) {
     g_current->deleteVertexArrays(static_cast<uint32_t>(n), arrays);
 }
 
+// --- Transform feedback (SPEC §13.3) ---
+
+GLuint glGenTransformFeedback() {
+    if (g_current == nullptr) return 0;
+    return g_current->genTransformFeedback();
+}
+
+void glGenTransformFeedbacks(GLsizei n, GLuint* names) {
+    if (g_current == nullptr) return;
+    g_current->genTransformFeedbacks(static_cast<uint32_t>(n), names);
+}
+
+void glBindTransformFeedback(GLuint name) {
+    if (g_current == nullptr) return;
+    g_current->bindTransformFeedback(name);
+}
+
+void glDeleteTransformFeedback(GLuint name) {
+    if (g_current == nullptr) return;
+    g_current->deleteTransformFeedback(name);
+}
+
+void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names) {
+    if (g_current == nullptr) return;
+    g_current->deleteTransformFeedbacks(static_cast<uint32_t>(n), names);
+}
+
+void glBeginTransformFeedback(GLenum primitiveMode) {
+    if (g_current == nullptr) return;
+    g_current->beginTransformFeedback(primitiveMode);
+}
+
+void glEndTransformFeedback() {
+    if (g_current == nullptr) return;
+    g_current->endTransformFeedback();
+}
+
+void glPauseTransformFeedback() {
+    if (g_current == nullptr) return;
+    g_current->pauseTransformFeedback();
+}
+
+void glResumeTransformFeedback() {
+    if (g_current == nullptr) return;
+    g_current->resumeTransformFeedback();
+}
+
 // --- Shaders / programs (SPEC §8) ---
 
 GLuint glCreateShader(GLenum stage) {

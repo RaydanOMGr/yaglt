@@ -129,6 +129,22 @@ public:
     void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
 
+    // --- Transform feedback (SPEC §13.3) ---
+    // Capability-gated by TransformFeedback. gen/bind/delete manage the frontend
+    // TF objects; begin/end/pause/resume drive capture and are validated (e.g.
+    // begin while already active is GL_INVALID_OPERATION).
+    GLObjectName genTransformFeedback();
+    void genTransformFeedbacks(uint32_t n, GLObjectName* names);
+    void bindTransformFeedback(GLObjectName name);
+    GLObjectName boundTransformFeedback() const;
+    void deleteTransformFeedback(GLObjectName name);
+    void deleteTransformFeedbacks(uint32_t n, const GLObjectName* names);
+    TransformFeedbackObject* getTransformFeedback(GLObjectName name);
+    void beginTransformFeedback(uint32_t primitiveMode);
+    void endTransformFeedback();
+    void pauseTransformFeedback();
+    void resumeTransformFeedback();
+
     // --- Shaders / programs (SPEC §8) ---
     // Capability-guarded: ShaderObjects / ProgramObjects must be supported by the
     // backend or these report GL_INVALID_OPERATION honestly. The desktop->backend
@@ -224,14 +240,19 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<VertexArrayObject>> vertexArrays_;
     std::unordered_map<GLObjectName, std::unique_ptr<ShaderObject>> shaders_;
     std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;
+    std::unordered_map<GLObjectName, std::unique_ptr<TransformFeedbackObject>>
+        transformFeedbacks_;
 
     bool vertexStateDirty_ = false;
+    bool transformFeedbackActive_ = false;
+    bool transformFeedbackPaused_ = false;
 
     std::unordered_map<uint32_t, GLObjectName> boundBuffers_;
     GLObjectName boundTexture_ = 0;
     GLObjectName boundRenderbuffer_ = 0;
     GLObjectName boundFramebuffer_ = 0;
     GLObjectName boundVertexArray_ = 0;
+    GLObjectName boundTransformFeedback_ = 0;
 };
 
 } // namespace glcompat

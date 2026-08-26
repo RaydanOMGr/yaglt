@@ -92,6 +92,16 @@ struct GLESLib {
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 
+    // Transform feedback (SPEC §13.3). ES 3.0+; resolved optionally so load()
+    // still succeeds on a driver that lacks them (capability reports unsupported).
+    void (*glGenTransformFeedbacks)(GLsizei, GLuint*) = nullptr;
+    void (*glDeleteTransformFeedbacks)(GLsizei, const GLuint*) = nullptr;
+    void (*glBindTransformFeedback)(GLenum, GLuint) = nullptr;
+    void (*glBeginTransformFeedback)(GLenum) = nullptr;
+    void (*glEndTransformFeedback)(void) = nullptr;
+    void (*glPauseTransformFeedback)(void) = nullptr;
+    void (*glResumeTransformFeedback)(void) = nullptr;
+
     void (*glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
                         GLenum, const void*) = nullptr;
     void (*glTexParameteri)(GLenum, GLenum, GLint) = nullptr;

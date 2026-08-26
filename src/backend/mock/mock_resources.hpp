@@ -116,6 +116,16 @@ class MockVertexArray : public BackendVertexArray {
 public:
     int id = 0;
 };
+class MockTransformFeedback : public BackendTransformFeedback {
+public:
+    int id = 0;
+    int beginCalls = 0, endCalls = 0, pauseCalls = 0, resumeCalls = 0;
+    uint32_t lastBeginMode = 0;
+    void begin(uint32_t mode) override { ++beginCalls; lastBeginMode = mode; }
+    void end() override { ++endCalls; }
+    void pause() override { ++pauseCalls; }
+    void resume() override { ++resumeCalls; }
+};
 class MockShader : public BackendShader {
 public:
     int id = 0;

@@ -416,6 +416,21 @@ OpenGL 4.6:
 
 ## Recent Work
 
+2026-08-26 (transform feedback API, this session)
+- Implemented transform-feedback object lifecycle + capture (SPEC §13.3), closing
+  the journal's transform-feedback item. Added `BackendTransformFeedback` resource
+  (begin/end/pause/resume, default no-op) and `IResourceFactory::
+  createTransformFeedback`; `MockTransformFeedback` records calls; `GLESBackend
+  TransformFeedback` drives the real driver via newly resolved optional loader
+  symbols (glGen/Bind/Begin/End/Pause/ResumeTransformFeedback, ES 3.0+).
+  Frontend `TransformFeedbackObject` + `Context` gen/bind/delete and begin/end/
+  pause/resume, all capability-gated by `TransformFeedback`; begin-while-active,
+  end-while-inactive, pause/resume-when-illegal → `GL_INVALID_OPERATION`. Public
+  `glGenTransformFeedback`/`glBindTransformFeedback`/`glDeleteTransformFeedback`/
+  `glBeginTransformFeedback`/`glEndTransformFeedback`/`glPauseTransformFeedback`/
+  `glResumeTransformFeedback` added. New `tests/unit/transform_feedback_test.cpp`.
+- Validation: default + sanitizer + translate (Mesa) suites green.
+
 2026-08-26 (GLSL version/profile capability check, this session)
 - Journal Next Step #3: `Context::compileShader` now rejects shaders whose
   `#version` exceeds the translatable ceiling before involving the translator or

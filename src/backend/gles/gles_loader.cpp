@@ -108,6 +108,15 @@ bool GLESLib::load() {
     resolve(gles, glDrawArraysInstanced, "glDrawArraysInstanced");
     resolve(gles, glDrawElementsInstanced, "glDrawElementsInstanced");
 
+    // Transform feedback (ES 3.0+); resolved optionally.
+    resolve(gles, glGenTransformFeedbacks, "glGenTransformFeedbacks");
+    resolve(gles, glDeleteTransformFeedbacks, "glDeleteTransformFeedbacks");
+    resolve(gles, glBindTransformFeedback, "glBindTransformFeedback");
+    resolve(gles, glBeginTransformFeedback, "glBeginTransformFeedback");
+    resolve(gles, glEndTransformFeedback, "glEndTransformFeedback");
+    resolve(gles, glPauseTransformFeedback, "glPauseTransformFeedback");
+    resolve(gles, glResumeTransformFeedback, "glResumeTransformFeedback");
+
     // Vertex attributes are ES 2.0+; resolve optionally so load() still succeeds
     // if a driver somehow lacks them.
     resolve(gles, glGetAttribLocation, "glGetAttribLocation");

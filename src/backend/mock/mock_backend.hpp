@@ -31,6 +31,9 @@ public:
     const ICapabilities& capabilities() const override { return capabilities_; }
     const IPlatformCapabilities& platform() const override { return platform_; }
 
+    // Test helper: override a capability after construction.
+    void setCapability(Feature f, FeatureSupport s) { capabilities_.set(f, s); }
+
     IResourceFactory& resourceFactory() override { return factory_; }
     IShaderCompiler& shaderCompiler() override { return compiler_; }
 
