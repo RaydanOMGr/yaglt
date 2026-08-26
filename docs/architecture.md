@@ -112,6 +112,15 @@ by `ShaderTranslator` (`src/shader/shader_translator.cpp`), built when
 selects it automatically under that flag. The library headers are consumed via
 `CMake add_subdirectory` — no vendored copies are kept in the repo.
 
+Desktop GLSL older than 4.20 omits `layout(binding=...)` on uniform/storage
+blocks, but glslang requires one to emit SPIR-V. `ShaderTranslator` therefore
+runs a small source transform (`assignDefaultBindings`) that injects a default
+`binding=` for every uniform/storage block lacking one, and enables
+`GL_ARB_shading_language_420pack` after the `#version` line. The frontend UBO
+feature mapping is thus completed by the pipeline: capability classification
+decides support (SPEC §8), and the translator makes desktop block syntax
+portable to GLSL ES 3.10.
+
 ## State management
 
 `src/state` (`GLStateTracker`, `GLStateSink`) is the centralized OpenGL pipeline

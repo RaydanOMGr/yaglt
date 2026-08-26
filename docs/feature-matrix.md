@@ -44,14 +44,13 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 |-----------|--------|-------|
 | OpenGL 4.6 API entry points | Partial | `glcompat` dispatch for buffers/textures/RBO/FBO/VAO gen-bind-delete, glBufferData, glGetError (tests pass via mock) |
 | Indexed buffer bindings | Implemented | `glBindBufferBase`/`glBindBufferRange` routed through `Context`; capability-guarded (UBO/SSBO/transform-feedback). Native on GLES backend, recorded on mock. Verification: `ubo_ssbo_test`, `capabilities_test` |
-| Shader translation | Not implemented | `IShaderCompiler` exists; pipeline pending |
+| Shader translation | Implemented (desktop→ES) | glslang + SPIRV-Cross; uniform/storage blocks get auto-assigned `binding=` (420pack) so desktop GLSL 330 translates to GLSL ES 3.10. Verified by `shader_translate_test` + Mesa e2e compile. |
 | Frontend Context (name gen / bind / delete) | Partial | `Context` in `include/glcompat/frontend/context.hpp`; tested via mock |
 | Object model (Buffer/Texture/RBO/FBO/VAO) | Partial | `src/frontend` objects hold `unique_ptr<BackendX>`; gen/bind/delete done |
 | Error handling (GLError) | Partial | `getError`/`setError`; InvalidOperation on bad bind |
 | State tracking | Implemented | `GLStateTracker` + `GLStateSink`; Mock & GLES backends flush via `Context::flushState()`/`glFlushState()` |
-| Shader translation | Not implemented | `IShaderCompiler` exists; pipeline pending |
 | GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection. Real on Android/Mesa-GLES; initializes=false honestly where no driver |
-| Shader translation | Emulated (ES) / Blocked (desktop) | `GLESShaderCompiler` compiles GLSL ES on driver; glslang headers vendored at include/glslang, but desktop→ES needs the built glslang lib + SPIRV-Cross (not yet present) |
+| Shader translation | Emulated (ES) | `GLESShaderCompiler` compiles GLSL ES on driver; `TranslatingGLESShaderCompiler` runs desktop GLSL → glslang → SPIRV-Cross → GLSL ES 3.10. Uniform/storage blocks auto-bound via 420pack. Verified end-to-end on Mesa. |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |
 
 ## Legend

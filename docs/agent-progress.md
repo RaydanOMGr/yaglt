@@ -241,14 +241,23 @@ OpenGL 4.6:
   `FeatureCount` sentinel for unknown targets. Fixed by short-circuiting
   `Feature::FeatureCount` before the table lookup.
 
+2026-08-26 (desktop→ES uniform-block translation)
+- Extended the shader pipeline (SPEC §7/§8) so desktop uniform/storage blocks
+  translate to GLSL ES. glslang requires an explicit `layout(binding=...)` to
+  emit SPIR-V, but desktop GLSL < 4.20 omits it. `ShaderTranslator` now runs a
+  source transform `assignDefaultBindings` that injects a default `binding=`
+  for every uniform/storage block lacking one and enables
+  `GL_ARB_shading_language_420pack` after the `#version` line.
+- Verified end-to-end: `shader_translate_test` translates a desktop UBO vertex
+  shader to GLSL ES (block member preserved), and `gles_e2e_shader_test`
+  compiles the translated UBO shader on the real Mesa/GLES driver (ES 3.1).
+
 ## Next Steps
 
-1. Expand desktop GLSL → GLSL ES shader-block translation (uniform/storage
-   blocks) behind `IShaderCompiler`; verify a desktop uniform-block shader
-   translates to GLSL ES and links on Mesa.
-2. Implement draw-call frontend entry points and flush tracked state at draw.
-3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
-   emulation scaffolding, geometry/tessellation honest-Unsupported paths).
+1. Implement draw-call frontend entry points and flush tracked state at draw.
+2. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
+   emulation scaffolding, geometry/tessellation honest-Unsupported paths,
+   SSBO storage-block translation / transform-feedback).
 2. Expand the public OpenGL 4.6 frontend API (draw calls) and flush state at
    draw time automatically.
 3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/

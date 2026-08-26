@@ -34,3 +34,24 @@ TEST_CASE("gles_backend_translates_and_compiles_desktop_vertex_shader") {
 
     backend.shutdown();
 }
+
+// Desktop uniform-block (UBO) shader must translate to GLSL ES and compile on
+// the real driver (SPEC §8: UBO feature mapping behind the shader pipeline).
+TEST_CASE("gles_backend_translates_and_compiles_desktop_uniform_block") {
+    GLESBackend backend;
+    if (!backend.initialize()) return;  // no driver: nothing to prove here
+
+    const char* desktopVs =
+        "#version 330 core\n"
+        "layout(std140) uniform Matrices {\n"
+        "    mat4 uMvp;\n"
+        "};\n"
+        "layout(location=0) in vec3 aPos;\n"
+        "void main(){ gl_Position = uMvp * vec4(aPos, 1.0); }\n";
+    std::string out, err;
+    bool ok = backend.shaderCompiler().compile(desktopVs, 0x8B31, out, err);
+    EXPECT_TRUE(ok);
+    if (!ok) std::fprintf(stderr, "  ubo compile error: %s\n", err.c_str());
+
+    backend.shutdown();
+}
