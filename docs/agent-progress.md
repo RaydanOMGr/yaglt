@@ -69,6 +69,13 @@ Known major blockers:
   - `tests/backend/gles_backend_test.cpp`: passes both with and without a
     driver (initialize() honest). 21/21 tests pass.
   - Builds linking only libdl; compiles where libGLESv2 dev libs are absent.
+- [x] Vendored glslang headers
+  - Copied full `glslang/` source-tree layout into `include/glslang/` so
+    `glslang/Public/ShaderLang.h` resolves its relative includes.
+  - Verified the public headers compile standalone. Full library at
+    `../glslang-main` (build with ENABLE_OPT=OFF to skip SPIRV-Tools).
+  - End-to-end desktop→ES translation still needs the built lib + SPIRV-Cross
+    (not yet vendored) — recorded as blocked.
 
 ## In Progress
 
@@ -84,6 +91,10 @@ Known major blockers:
   Android or a Mesa GLES build. This is expected, not a bug.
 - `GLESShaderCompiler` does not translate desktop GLSL → GLSL ES; glslang was
   not available. Desktop shader sources are rejected by the driver honestly.
+- Shader translation (desktop→ES) is blocked: glslang headers are vendored at
+  `include/glslang/`, but end-to-end translation needs (a) the glslang library
+  built and linked, and (b) SPIRV-Cross to emit GLSL ES source from SPIR-V.
+  SPIRV-Cross is not yet vendored.
 
 ## TODO
 

@@ -99,6 +99,21 @@ interfaces (`IGraphicsBackend`, `IResourceFactory`, `IShaderCompiler`).
   (that needs glslang, not yet available), so desktop inputs fail at the driver
   rather than being silently accepted.
 
+## Shader translation
+
+`IShaderCompiler` is the entry point for the translation pipeline (SPEC §7).
+The mock backend passes source through; the GLES backend compiles GLSL ES
+directly on the driver. Real desktop GLSL → GLSL ES translation needs a
+front-end/transform stage.
+
+glslang headers are vendored at `include/glslang/` (full `glslang/` source-tree
+layout so `glslang/Public/ShaderLang.h` resolves its relative includes). The
+complete library lives at `../glslang-main` and must be built (e.g. with
+`ENABLE_OPT=OFF` to avoid the optional SPIRV-Tools dependency) and linked to
+enable validation/compilation. Producing GLSL ES *source* from SPIR-V also
+requires SPIRV-Cross, which is not yet vendored — so end-to-end desktop→ES
+translation is currently blocked on that dependency.
+
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error

@@ -50,7 +50,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | State tracking | Not implemented | `src/state` reserved |
 | Shader translation | Not implemented | `IShaderCompiler` exists; pipeline pending |
 | GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection. Real on Android/Mesa-GLES; initializes=false honestly where no driver |
-| Shader translation | Emulated (ES) / Unsupported (desktop) | `GLESShaderCompiler` compiles GLSL ES on driver; no desktop→ES translation (glslang absent) |
+| Shader translation | Emulated (ES) / Blocked (desktop) | `GLESShaderCompiler` compiles GLSL ES on driver; glslang headers vendored at include/glslang, but desktop→ES needs the built glslang lib + SPIRV-Cross (not yet present) |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |
 
 ## Legend
