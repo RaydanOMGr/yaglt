@@ -274,6 +274,12 @@ void GLESBackend::stencilMask(GLuint mask) {
     if (lib_->glStencilMask) lib_->glStencilMask(mask);
 }
 
+void GLESBackend::colorMask(bool r, bool g, bool b, bool a) {
+    if (lib_->glColorMask)
+        lib_->glColorMask(r ? GL_TRUE : GL_FALSE, g ? GL_TRUE : GL_FALSE,
+                         b ? GL_TRUE : GL_FALSE, a ? GL_TRUE : GL_FALSE);
+}
+
 void GLESBackend::cullFace(GLenum mode) {
     if (lib_->glCullFace) lib_->glCullFace(mode);
 }

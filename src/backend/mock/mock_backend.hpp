@@ -83,6 +83,9 @@ public:
     int stencilFuncCalls = 0;
     int stencilOpCalls = 0;
     int stencilMaskCalls = 0;
+    int colorMaskCalls = 0;
+    bool lastColorMaskR = true, lastColorMaskG = true, lastColorMaskB = true,
+         lastColorMaskA = true;
     int cullFaceCalls = 0;
     int frontFaceCalls = 0;
     int pointSizeCalls = 0;
@@ -159,6 +162,13 @@ public:
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilFuncCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilOpCalls; }
     void stencilMask(GLuint) override { ++stencilMaskCalls; }
+    void colorMask(bool r, bool g, bool b, bool a) override {
+        ++colorMaskCalls;
+        lastColorMaskR = r;
+        lastColorMaskG = g;
+        lastColorMaskB = b;
+        lastColorMaskA = a;
+    }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }
     void pointSize(float size) override {

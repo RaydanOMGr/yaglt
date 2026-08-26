@@ -56,6 +56,9 @@ public:
     bool setStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass);
     bool setStencilMask(GLuint mask);
 
+    // --- Color write mask (SPEC §17.3.6, glColorMask) ---
+    bool setColorMask(bool r, bool g, bool b, bool a);
+
     // --- Rasterization ---
     bool setCullFace(GLenum mode);
     bool setFrontFace(GLenum mode);
@@ -271,6 +274,12 @@ private:
         GLenum mode = 0x1503; // GL_COPY (default logic op)
         bool equal(const LogicOpState& o) const { return mode == o.mode; }
     };
+    struct ColorMaskState {
+        bool r = true, g = true, b = true, a = true;
+        bool equal(const ColorMaskState& o) const {
+            return r == o.r && g == o.g && b == o.b && a == o.a;
+        }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -310,6 +319,7 @@ private:
     ClearDepthState clearDepth_, clearDepthApplied_;
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
     LogicOpState logicOp_, logicOpApplied_;
+    ColorMaskState colorMask_, colorMaskApplied_;
 };
 
 } // namespace glcompat

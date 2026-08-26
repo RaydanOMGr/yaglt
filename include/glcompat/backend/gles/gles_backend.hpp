@@ -54,6 +54,8 @@ public:
     void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) override;
     void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) override;
     void stencilMask(uint32_t mask) override;
+    // Color write mask (SPEC §17.3.6, glColorMask).
+    void colorMask(bool r, bool g, bool b, bool a) override;
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
     void pointSize(float size) override;

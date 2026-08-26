@@ -766,6 +766,11 @@ void glStencilMask(GLuint mask) {
     g_current->state().setStencilMask(mask);
 }
 
+void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {
+    if (g_current == nullptr) return;
+    g_current->state().setColorMask(red != 0, green != 0, blue != 0, alpha != 0);
+}
+
 void glPixelStorei(GLenum pname, GLint param) {
     if (g_current == nullptr) return;
     g_current->pixelStorei(pname, static_cast<int>(param));

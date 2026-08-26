@@ -256,6 +256,7 @@ void glPolygonOffset(GLfloat factor, GLfloat units);
 void glStencilFunc(GLenum func, GLint ref, GLuint mask);
 void glStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass);
 void glStencilMask(GLuint mask);
+void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 
 // Pixel store (SPEC §10). Affects subsequent texture/image uploads.
 void glPixelStorei(GLenum pname, GLint param);

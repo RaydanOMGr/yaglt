@@ -122,6 +122,17 @@ bool GLStateTracker::setStencilMask(GLuint mask) {
     return true;
 }
 
+bool GLStateTracker::setColorMask(bool r, bool g, bool b, bool a) {
+    if (colorMask_.r == r && colorMask_.g == g && colorMask_.b == b &&
+        colorMask_.a == a)
+        return false;
+    colorMask_.r = r;
+    colorMask_.g = g;
+    colorMask_.b = b;
+    colorMask_.a = a;
+    return true;
+}
+
 bool GLStateTracker::setCullFace(GLenum mode) {
     if (raster_.cull == mode) return false;
     raster_.cull = mode;
@@ -469,6 +480,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!colorMask_.equal(colorMaskApplied_)) {
+        sink.colorMask(colorMask_.r, colorMask_.g, colorMask_.b, colorMask_.a);
+        colorMaskApplied_ = colorMask_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -583,6 +600,10 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(kMaxTextureUnits); return 1;
     case GL_LOGIC_OP_MODE:
         out[0] = static_cast<GLint>(logicOp_.mode); return 1;
+    case GL_COLOR_WRITEMASK:
+        out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
+        out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
+        return 4;
     }
     return 0;
 }
@@ -595,6 +616,13 @@ int GLStateTracker::getBoolean(GLenum p, GLboolean* out) const {
     if (p == 0x0B72 /* GL_DEPTH_WRITEMASK */) {
         out[0] = depth_.mask ? 1 : 0;
         return 1;
+    }
+    if (p == GL_COLOR_WRITEMASK) {
+        out[0] = static_cast<GLboolean>(colorMask_.r ? 1 : 0);
+        out[1] = static_cast<GLboolean>(colorMask_.g ? 1 : 0);
+        out[2] = static_cast<GLboolean>(colorMask_.b ? 1 : 0);
+        out[3] = static_cast<GLboolean>(colorMask_.a ? 1 : 0);
+        return 4;
     }
     return 0;
 }
@@ -719,6 +747,8 @@ void GLStateTracker::reset() {
     fbBuffersApplied_ = FramebufferBufferState{};
     logicOp_ = LogicOpState{};
     logicOpApplied_ = LogicOpState{};
+    colorMask_ = ColorMaskState{};
+    colorMaskApplied_ = ColorMaskState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
     texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
     activeTextureUnit_ = 0;

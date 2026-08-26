@@ -33,6 +33,7 @@ struct UnitRecordingSink : GLStateSink {
     void stencilFunc(GLenum, GLint, GLuint) override {}
     void stencilOp(GLenum, GLenum, GLenum) override {}
     void stencilMask(GLuint) override {}
+    void colorMask(bool, bool, bool, bool) override {}
     void cullFace(GLenum) override {}
     void frontFace(GLenum) override {}
     void pointSize(float) override {}

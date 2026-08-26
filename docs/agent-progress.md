@@ -813,11 +813,25 @@ crashed agent, this session)
   Coverage now 135/490 (27.6%) full / 135/435 (31.0%) core.
 - Validation: default 199/199 green; sanitizer 199/199 green.
 
+2026-08-27 (color write mask, this session — small step)
+- SPEC §17.3.6: implemented `glColorMask`. Frontend tracks the four per-channel
+  booleans in `GLStateTracker::setColorMask`; pushed through the new
+  `GLStateSink::colorMask(bool,bool,bool,bool)` only when the set of masked
+  channels changes (SPEC §10). `MockBackend` records it; `GLESBackend` drives
+  `glColorMask` via a newly resolved (required, core in GLES 2.0) `GLESLib`
+  symbol. `glGetIntegerv`/`glGetBooleanv(GL_COLOR_WRITEMASK)` return the tracked
+  channels (4 values). `GL_COLOR_WRITEMASK` (0x0C23) added to `gl_types.hpp`.
+  Public `gl_api` exposes `glColorMask(GLboolean,GLboolean,GLboolean,GLboolean)`.
+- New `tests/unit/colormask_test.cpp` (2 cases) covers push-only-on-change +
+  channel recording and the `GL_COLOR_WRITEMASK` query. Coverage now 136/490
+  (27.8%) full / 136/435 (31.3%) core.
+- Validation: default + sanitizer suites green.
+
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-     Per `docs/coverage-core.md` (2026-08-26) now 131/490 (26.7%) have a
-     frontend entry point; core-only is 131/435 (30.1%). The standing
+     Per `docs/coverage-core.md` (2026-08-27) now 136/490 (27.8%) have a
+      frontend entry point; core-only is 136/435 (31.3%). The standing
      objective is to reach **full coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per

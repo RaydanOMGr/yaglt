@@ -32,6 +32,10 @@ public:
     virtual void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) = 0;
     virtual void stencilMask(uint32_t mask) = 0;
 
+    // Color write mask (glColorMask, SPEC §17.3.6). Each channel is an
+    // independent boolean pushed only when the set of masked channels changes.
+    virtual void colorMask(bool r, bool g, bool b, bool a) = 0;
+
     virtual void cullFace(uint32_t mode) = 0;
     virtual void frontFace(uint32_t mode) = 0;
 
