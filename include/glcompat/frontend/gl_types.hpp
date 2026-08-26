@@ -35,4 +35,9 @@ constexpr GLenum GL_READ_FRAMEBUFFER = 0x8CA8;
 constexpr GLenum GL_DRAW_FRAMEBUFFER = 0x8CA9;
 constexpr GLenum GL_VERTEX_ARRAY = 0x8074;
 
+// Indexed buffer binding points (UBO / SSBO / transform feedback).
+constexpr GLenum GL_UNIFORM_BUFFER = 0x8A11;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
+constexpr GLenum GL_SHADER_STORAGE_BUFFER = 0x90D2;
+
 } // namespace glcompat

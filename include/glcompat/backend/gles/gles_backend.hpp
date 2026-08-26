@@ -1,5 +1,6 @@
 #pragma once
 
+#include "glcompat/backend/gles/gles_capabilities.hpp"
 #include "glcompat/backend/gles/gles_loader.hpp"
 #include "glcompat/core/backend.hpp"
 #include "glcompat/core/capabilities_table.hpp"
@@ -13,9 +14,6 @@
 #include <string>
 
 namespace glcompat {
-
-// Populate a CapabilityTable from a detected GLES version/extension set.
-void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib);
 
 // Real OpenGL ES backend. Uses a headless, surfaceless EGL context so it works
 // without a window system (Linux/Mesa, Android). Symbols are resolved at
@@ -55,6 +53,9 @@ public:
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
     void pixelStorei(uint32_t pname, int32_t param) override;
+    void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override;
+    void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
+                         intptr_t offset, intptr_t size) override;
 
 private:
     GLESLibPtr lib_;

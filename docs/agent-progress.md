@@ -220,10 +220,35 @@ OpenGL 4.6:
 - Validation: default 30/30, translate (Mesa) 32/32, and an ASan/UBSan build
   all green.
 
+2026-08-26 (UBO/SSBO binding)
+- Implemented capability-driven UBO/SSBO/transform-feedback indexed bindings
+  (SPEC §8). Added `glBindBufferBase`/`glBindBufferRange` to the public API and
+  `Context::bindBufferBase`/`bindBufferRange`, which consult the capability
+  table: an unsupported target yields `GL_INVALID_OPERATION` honestly. Mapped
+  `GL_UNIFORM_BUFFER`→UniformBufferObjects, `GL_SHADER_STORAGE_BUFFER`→
+  ShaderStorageBufferObjects, `GL_TRANSFORM_FEEDBACK_BUFFER`→TransformFeedback.
+- Extended `GLStateSink` with `bindBufferBase`/`bindBufferRange` (plain int
+  types). `MockBackend` records them; `GLESBackend` issues native
+  `glBindBufferBase`/`glBindBufferRange` (added to `GLESLib` loader).
+- Added `GL_UNIFORM_BUFFER` / `GL_SHADER_STORAGE_BUFFER` /
+  `GL_TRANSFORM_FEEDBACK_BUFFER` to the frontend GL constant layer.
+- Exposed `populateGLESCapabilities` via a dedicated header so it is testable
+  without a driver; `capabilities_test` now verifies UBO=Native on ES3.0 but
+  SSBO=Unsupported on ES3.0 / Native on ES3.1.
+- New `tests/unit/ubo_ssbo_test.cpp` covers recording, name validation, and the
+  capability guard.
+- ASan caught an out-of-bounds read: indexing the capability table with the
+  `FeatureCount` sentinel for unknown targets. Fixed by short-circuiting
+  `Feature::FeatureCount` before the table lookup.
+
 ## Next Steps
 
-1. Implement remaining desktop GLSL → GLSL ES feature mapping (UBO/SSBO,
-   unsupported stages) behind `IShaderCompiler` / capability system.
+1. Expand desktop GLSL → GLSL ES shader-block translation (uniform/storage
+   blocks) behind `IShaderCompiler`; verify a desktop uniform-block shader
+   translates to GLSL ES and links on Mesa.
+2. Implement draw-call frontend entry points and flush tracked state at draw.
+3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
+   emulation scaffolding, geometry/tessellation honest-Unsupported paths).
 2. Expand the public OpenGL 4.6 frontend API (draw calls) and flush state at
    draw time automatically.
 3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/

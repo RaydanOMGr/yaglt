@@ -35,6 +35,8 @@ struct RecordingSink : GLStateSink {
     void cullFace(GLenum) override { ++cullCalls; }
     void frontFace(GLenum) override { ++frontCalls; }
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
+    void bindBufferBase(uint32_t, uint32_t, uint32_t) override {}
+    void bindBufferRange(uint32_t, uint32_t, uint32_t, intptr_t, intptr_t) override {}
 };
 
 constexpr GLenum GL_BLEND = 0x0BE2;

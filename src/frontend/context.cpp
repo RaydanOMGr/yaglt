@@ -1,5 +1,8 @@
 #include "glcompat/frontend/context.hpp"
+#include "glcompat/core/capabilities.hpp"
 #include "glcompat/core/factory.hpp"
+
+#include <cstdint>
 
 namespace glcompat {
 
@@ -83,6 +86,53 @@ void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage) {
     }
     obj->size = size;
     obj->usage = usage;
+}
+
+namespace {
+// Map an indexed buffer target to the capability that gates it.
+Feature bufferTargetFeature(uint32_t target) {
+    switch (target) {
+    case GL_UNIFORM_BUFFER: return Feature::UniformBufferObjects;
+    case GL_SHADER_STORAGE_BUFFER: return Feature::ShaderStorageBufferObjects;
+    case GL_TRANSFORM_FEEDBACK_BUFFER: return Feature::TransformFeedback;
+    default: return Feature::FeatureCount; // unknown -> unsupported
+    }
+}
+} // namespace
+
+void Context::bindBufferBase(uint32_t target, uint32_t index,
+                             GLObjectName buffer) {
+    Feature f = bufferTargetFeature(target);
+    if (f == Feature::FeatureCount ||
+        !backend_.capabilities().isSupported(f)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink()) {
+        sink->bindBufferBase(target, index, buffer);
+    }
+}
+
+void Context::bindBufferRange(uint32_t target, uint32_t index,
+                              GLObjectName buffer, intptr_t offset,
+                              intptr_t size) {
+    Feature f = bufferTargetFeature(target);
+    if (f == Feature::FeatureCount ||
+        !backend_.capabilities().isSupported(f)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink()) {
+        sink->bindBufferRange(target, index, buffer, offset, size);
+    }
 }
 
 GLObjectName Context::genTexture() {

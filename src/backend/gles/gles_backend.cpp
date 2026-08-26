@@ -205,4 +205,17 @@ void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
 }
 
+void GLESBackend::bindBufferBase(uint32_t target, uint32_t index,
+                                 uint32_t buffer) {
+    if (lib_->glBindBufferBase)
+        lib_->glBindBufferBase(target, index, buffer);
+}
+
+void GLESBackend::bindBufferRange(uint32_t target, uint32_t index,
+                                  uint32_t buffer, intptr_t offset,
+                                  intptr_t size) {
+    if (lib_->glBindBufferRange)
+        lib_->glBindBufferRange(target, index, buffer, offset, size);
+}
+
 } // namespace glcompat

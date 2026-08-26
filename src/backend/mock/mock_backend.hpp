@@ -84,6 +84,25 @@ public:
     void frontFace(GLenum) override { ++frontFaceCalls; }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
 
+    int bindBufferBaseCalls = 0;
+    int bindBufferRangeCalls = 0;
+    uint32_t lastBindTarget = 0;
+    uint32_t lastBindIndex = 0;
+    GLObjectName lastBindBuffer = 0;
+    void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override {
+        ++bindBufferBaseCalls;
+        lastBindTarget = target;
+        lastBindIndex = index;
+        lastBindBuffer = buffer;
+    }
+    void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
+                         intptr_t, intptr_t) override {
+        ++bindBufferRangeCalls;
+        lastBindTarget = target;
+        lastBindIndex = index;
+        lastBindBuffer = buffer;
+    }
+
 private:
     CapabilityTable capabilities_;
     MockPlatformCapabilities platform_;

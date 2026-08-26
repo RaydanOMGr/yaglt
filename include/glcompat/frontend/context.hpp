@@ -46,6 +46,14 @@ public:
     void bufferData(uint32_t target, intptr_t size, uint32_t usage);
     BufferObject* getBuffer(GLObjectName name);
 
+    // --- Indexed buffer bindings (SPEC §8) ---
+    // Capability-guarded: binding a target the backend does not support
+    // (e.g. SSBO on ES 3.0, UBO on ES 2.0) reports GL_INVALID_OPERATION
+    // honestly instead of issuing an unsupported native call.
+    void bindBufferBase(uint32_t target, uint32_t index, GLObjectName buffer);
+    void bindBufferRange(uint32_t target, uint32_t index, GLObjectName buffer,
+                         intptr_t offset, intptr_t size);
+
     // --- Textures ---
     GLObjectName genTexture();
     void genTextures(uint32_t n, GLObjectName* names);

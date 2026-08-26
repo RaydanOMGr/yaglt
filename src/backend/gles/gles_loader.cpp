@@ -92,6 +92,8 @@ bool GLESLib::load() {
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
+    ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
+    ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
 
     if (!ok) {
         dlclose(egl);

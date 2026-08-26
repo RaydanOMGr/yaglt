@@ -47,6 +47,17 @@ void glBufferData(GLenum target, GLsizeiptr size, const GLvoid*, GLenum usage) {
     g_current->bufferData(target, size, usage);
 }
 
+void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->bindBufferBase(target, index, buffer);
+}
+
+void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
+                       GLintptr offset, GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->bindBufferRange(target, index, buffer, offset, size);
+}
+
 void glGenTextures(GLsizei n, GLuint* textures) {
     if (g_current == nullptr) return;
     g_current->genTextures(static_cast<uint32_t>(n), textures);

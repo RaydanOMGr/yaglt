@@ -88,6 +88,8 @@ struct GLESLib {
     void (*glCullFace)(GLenum) = nullptr;
     void (*glFrontFace)(GLenum) = nullptr;
     void (*glPixelStorei)(GLenum, GLint) = nullptr;
+    void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
+    void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 
     // True only when every required symbol resolved.
     bool loaded = false;

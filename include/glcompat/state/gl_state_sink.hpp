@@ -33,6 +33,14 @@ public:
     virtual void frontFace(uint32_t mode) = 0;
 
     virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
+
+    // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
+    // `target` is the indexed buffer target, `index` the binding point.
+    virtual void bindBufferBase(uint32_t target, uint32_t index,
+                                uint32_t buffer) = 0;
+    virtual void bindBufferRange(uint32_t target, uint32_t index,
+                                 uint32_t buffer, intptr_t offset,
+                                 intptr_t size) = 0;
 };
 
 } // namespace glcompat

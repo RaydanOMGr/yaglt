@@ -26,6 +26,12 @@ void glBindBuffer(GLenum target, GLuint buffer);
 void glDeleteBuffers(GLsizei n, const GLuint* buffers);
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
 
+// Indexed buffer bindings (SPEC §8). Capability-guarded in the frontend:
+// binding an unsupported target (e.g. SSBO on ES 3.0) yields GL_INVALID_OPERATION.
+void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
+void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
+                       GLintptr offset, GLsizeiptr size);
+
 void glGenTextures(GLsizei n, GLuint* textures);
 void glBindTexture(GLenum target, GLuint texture);
 void glDeleteTextures(GLsizei n, const GLuint* textures);

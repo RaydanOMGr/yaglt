@@ -132,6 +132,16 @@ stateSink()` returns the sink (or `nullptr`); `Context::flushState()` calls
 corresponding native `gl*` calls through its runtime-loaded `GLESLib`. The public
 `glFlushState()` in `gl_api` is the explicit flush entry point.
 
+## Indexed buffer bindings (UBO / SSBO / transform feedback)
+
+`GLStateSink` also carries `bindBufferBase`/`bindBufferRange` so backends bind
+buffers to indexed targets. The frontend `Context::bindBufferBase` /
+`bindBufferRange` map the target (`GL_UNIFORM_BUFFER`, `GL_SHADER_STORAGE_BUFFER`,
+`GL_TRANSFORM_FEEDBACK_BUFFER`) to the corresponding `Feature` and consult the
+capability table first: an unsupported target yields `GL_INVALID_OPERATION`
+honestly instead of a native call the driver would reject. The GLES backend
+issues the native `glBindBufferBase` / `glBindBufferRange`; the mock records them.
+
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error

@@ -43,6 +43,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | Subsystem | Status | Notes |
 |-----------|--------|-------|
 | OpenGL 4.6 API entry points | Partial | `glcompat` dispatch for buffers/textures/RBO/FBO/VAO gen-bind-delete, glBufferData, glGetError (tests pass via mock) |
+| Indexed buffer bindings | Implemented | `glBindBufferBase`/`glBindBufferRange` routed through `Context`; capability-guarded (UBO/SSBO/transform-feedback). Native on GLES backend, recorded on mock. Verification: `ubo_ssbo_test`, `capabilities_test` |
 | Shader translation | Not implemented | `IShaderCompiler` exists; pipeline pending |
 | Frontend Context (name gen / bind / delete) | Partial | `Context` in `include/glcompat/frontend/context.hpp`; tested via mock |
 | Object model (Buffer/Texture/RBO/FBO/VAO) | Partial | `src/frontend` objects hold `unique_ptr<BackendX>`; gen/bind/delete done |
