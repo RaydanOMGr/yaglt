@@ -270,6 +270,77 @@ GLObjectName Context::boundTextureForTarget(GLenum target) const {
     return state_.boundTextureForTarget(target);
 }
 
+namespace {
+// Valid GL texture targets accepted by the DSA bind entry points (SPEC §8.1).
+bool isValidTextureTarget(GLenum target) {
+    switch (target) {
+    case GL_TEXTURE_1D:
+    case GL_TEXTURE_2D:
+    case GL_TEXTURE_3D:
+    case GL_TEXTURE_1D_ARRAY:
+    case GL_TEXTURE_2D_ARRAY:
+    case GL_TEXTURE_RECTANGLE:
+    case GL_TEXTURE_CUBE_MAP:
+    case GL_TEXTURE_CUBE_MAP_ARRAY:
+    case GL_TEXTURE_2D_MULTISAMPLE:
+    case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+        return true;
+    default:
+        return false;
+    }
+}
+} // namespace
+
+void Context::bindTextureUnit(uint32_t unit, GLObjectName texture) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (unit >= state_.maxCombinedTextureUnits()) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    GLenum target = GL_TEXTURE_2D;
+    if (texture != 0) {
+        if (TextureObject* tex = getTexture(texture)) target = tex->target;
+    }
+    state_.setTextureUnitBinding(unit, target, texture);
+}
+
+void Context::bindTextures(uint32_t first, uint32_t count, GLenum target,
+                           const GLObjectName* textures) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidTextureTarget(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (first > state_.maxCombinedTextureUnits() ||
+        first + count > state_.maxCombinedTextureUnits()) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < count; ++i) {
+        GLObjectName name = (textures != nullptr) ? textures[i] : 0;
+        if (name != 0 && textures_.find(name) == textures_.end()) {
+            setError(GLError::InvalidOperation); // ungenerated name
+            return;
+        }
+    }
+    state_.setTextureBindings(first, count, target, textures);
+}
+
+GLObjectName Context::boundTextureForUnitTarget(uint32_t unit,
+                                                GLenum target) const {
+    return state_.boundTextureForUnitTarget(unit, target);
+}
+
 void Context::deleteTexture(GLObjectName name) {
     auto it = textures_.find(name);
     if (it == textures_.end()) return;

@@ -78,6 +78,18 @@ void glActiveTexture(GLenum texture) {
     g_current->activeTexture(texture);
 }
 
+void glBindTextureUnit(GLuint unit, GLuint texture) {
+    if (g_current == nullptr) return;
+    g_current->bindTextureUnit(static_cast<uint32_t>(unit), texture);
+}
+
+void glBindTextures(GLuint first, GLsizei count, GLenum target,
+                    const GLuint* textures) {
+    if (g_current == nullptr) return;
+    g_current->bindTextures(static_cast<uint32_t>(first),
+                            static_cast<uint32_t>(count), target, textures);
+}
+
 void glDeleteTextures(GLsizei n, const GLuint* textures) {
     if (g_current == nullptr) return;
     g_current->deleteTextures(static_cast<uint32_t>(n), textures);

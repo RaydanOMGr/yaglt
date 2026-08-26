@@ -83,6 +83,23 @@ public:
     uint32_t activeTextureUnit() const { return activeTextureUnit_; }
     bool setTextureBinding(GLenum target, GLObjectName name);
     GLObjectName boundTextureForTarget(GLenum target) const;
+
+    // Direct State Access texture binding (SPEC §2.1, `glBindTextureUnit`).
+    // Binds `name` to `target` on a specific `unit` (zero-based, not the active
+    // unit) without touching the active-texture selector. Returns true when that
+    // (unit, target) binding changed. An out-of-range `unit` returns false (the
+    // caller reports GL_INVALID_VALUE); binding 0 clears every target on the
+    // unit (unbind).
+    bool setTextureUnitBinding(uint32_t unit, GLenum target, GLObjectName name);
+    // Binds an array of textures to consecutive units [first, first+count) for
+    // `target` (`glBindTextures`). `names` may be null (treated as all-zero).
+    // Returns true when any (unit, target) binding changed. Out-of-range bounds
+    // return false (caller reports GL_INVALID_VALUE).
+    bool setTextureBindings(uint32_t first, uint32_t count, GLenum target,
+                            const GLObjectName* names);
+    // Texture bound to `target` on a specific `unit` (0 when none).
+    GLObjectName boundTextureForUnitTarget(uint32_t unit, GLenum target) const;
+
     // Clears any (unit, target) binding that references `name` (used when a
     // texture object is deleted). Returns true when a binding was changed.
     bool clearTextureBinding(GLObjectName name);

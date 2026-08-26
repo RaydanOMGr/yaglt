@@ -45,6 +45,14 @@ void glDeleteTextures(GLsizei n, const GLuint* textures);
 // GL_TEXTURE0 + i within the supported unit range.
 void glActiveTexture(GLenum texture);
 
+// Direct State Access texture binding (SPEC §2.1, capability-gated by
+// DirectStateAccess). glBindTextureUnit binds a texture to a specific unit
+// without changing the active-texture selector; glBindTextures binds an array
+// of textures to consecutive units for a single target.
+void glBindTextureUnit(GLuint unit, GLuint texture);
+void glBindTextures(GLuint first, GLsizei count, GLenum target,
+                    const GLuint* textures);
+
 // Texture storage + parameters (SPEC §2.1). Operate on the bound texture.
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
                  GLsizei height, GLint border, GLenum format, GLenum type,

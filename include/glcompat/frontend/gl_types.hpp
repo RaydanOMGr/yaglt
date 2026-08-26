@@ -50,7 +50,13 @@ constexpr GLenum GL_VERTEX_ARRAY = 0x8074;
 // Texture targets / parameters / formats / filters.
 constexpr GLenum GL_TEXTURE_1D = 0x0DE0;
 constexpr GLenum GL_TEXTURE_3D = 0x806F;
+constexpr GLenum GL_TEXTURE_1D_ARRAY = 0x8C18;
+constexpr GLenum GL_TEXTURE_2D_ARRAY = 0x8C1A;
+constexpr GLenum GL_TEXTURE_RECTANGLE = 0x84F5;
 constexpr GLenum GL_TEXTURE_CUBE_MAP = 0x8513;
+constexpr GLenum GL_TEXTURE_CUBE_MAP_ARRAY = 0x9009;
+constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
+constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9102;
 constexpr GLenum GL_TEXTURE_MIN_FILTER = 0x2801;
 constexpr GLenum GL_TEXTURE_MAG_FILTER = 0x2800;
 constexpr GLenum GL_TEXTURE_WRAP_S = 0x2802;

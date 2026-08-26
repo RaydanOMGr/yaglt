@@ -144,6 +144,36 @@ Known major blockers:
 
 - [x] Sampler objects (SPEC §8.2, Next Steps item 1).
    - `BackendSampler` resource + `IResourceFactory::createSampler`; frontend
+      `SamplerObject` (params map + opaque backend). `Context` gained `genSampler`/
+      `bindSampler`/`deleteSampler`/`samplerParameteri`/`getSamplerParameteriv`/
+      `isSampler` (capability-gated by `SamplerObjects`; Native on GLES 3.0+).
+      `bindSampler(unit, sampler)` records the per-unit binding in `GLStateTracker`
+      and pushes via new `GLStateSink::bindSampler` only when changed (SPEC §10).
+      `GL_SAMPLER_BINDING` query added to the tracker; out-of-range unit →
+      `GL_INVALID_VALUE`, ungenerated name → `GL_INVALID_OPERATION`. `samplerParameteri`
+      accepts only scalar sampler pnames (table 23.23); non-scalar/unknown →
+      `GL_INVALID_ENUM`. GLES backend resolves `glGenSamplers`/`glDeleteSamplers`/
+      `glBindSampler`/`glSamplerParameteri`/`glIsSampler` (optional); `GLESBackendSampler`
+      drives the native object. `Feature::SamplerObjects` added to the capability enum
+      and marked Native in the mock + GLES (ES3) profiles. New `tests/unit/sampler_test.cpp`.
+   - Validation: default + sanitizer + translate (Mesa) suites all green.
+
+- [x] DSA texture binding (SPEC §2.1, Next Steps item 1).
+   - Direct State Access texture binds landed as a frontend emulation (no new
+     backend sink method needed — DSA bindings live in the same per-unit binding
+     table the `GLStateSink` flush already pushes, switching the driver active
+     unit only when it differs). `GLStateTracker` gained `setTextureUnitBinding`
+     / `setTextureBindings` / `boundTextureForUnitTarget`; `Context` gained
+     `bindTextureUnit` / `bindTextures` / `boundTextureForUnitTarget`, both
+     capability-gated by `DirectStateAccess` (Emulated in the mock). Validation:
+     out-of-range unit → `GL_INVALID_VALUE`; ungenerated name →
+     `GL_INVALID_OPERATION`; invalid target → `GL_INVALID_ENUM`;
+     `glBindTextureUnit(unit, 0)` clears the whole unit. `gl_types.hpp` gained the
+     remaining texture-target constants (1D/2D/3D/CUBE/RECT/ARRAY/MULTISAMPLE).
+     Public `gl_api` exposes `glBindTextureUnit` / `glBindTextures`. New
+     `tests/unit/dsa_texture_test.cpp`. Validation: default, sanitizer, and
+     translate (Mesa) builds all green.
+   - `BackendSampler` resource + `IResourceFactory::createSampler`; frontend
      `SamplerObject` (params map + opaque backend). `Context` gained `genSampler`/
      `bindSampler`/`deleteSampler`/`samplerParameteri`/`getSamplerParameteriv`/
      `isSampler` (capability-gated by `SamplerObjects`; Native on GLES 3.0+).
@@ -222,7 +252,10 @@ OpenGL 4.6:
     shaders with uniforms compile on ES.
   Uniforms: `glGetUniformLocation` + `glUniform*` (f/i, vectors, 1fv/1iv, mat4)
     implemented on the active program (SPEC §8); real path via GLES backend.
-  DSA: not implemented (marked Emulated in mock capabilities only)
+   DSA: texture binding implemented (`glBindTextureUnit` / `glBindTextures`,
+     SPEC §2.1; Emulated via the frontend per-unit binding table). Remaining DSA
+     entry points (object-specific `gl*Texture*` / `gl*Named*` and vertex-array
+     DSA) not yet implemented.
   Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
 - [x] Draw-call frontend entry points (SPEC §2.1, task 2 from next-agent-prompt).
@@ -632,10 +665,12 @@ OpenGL 4.6:
 
 ## Next Steps
 
-1. **Texture units done.** Sampler objects implemented (SPEC §8.2; see Completed
-    above). Next texture-correctness items: direct-state `glBindTextures`/
-    `glBindTextureUnit` (DSA), plus `glActiveTexture` interaction with the
-    FBO/texture-completeness queries.
+1. **Texture units + DSA done.** Sampler objects and DSA texture binding
+     (`glBindTextureUnit` / `glBindTextures`, SPEC §2.1) implemented (see
+     Completed above). Next texture-correctness item: `glActiveTexture`
+     interaction with the FBO / texture-completeness queries (e.g. resolve a
+     texture's per-unit binding when attaching to an FBO, and surface
+     `GL_FRAMEBUFFER_INCOMPLETE_*` reasons beyond the structural check).
 2. Continue SPEC phases (§5 Android platform capabilities + SDK 21 fallback
    abstraction, §6 compatibility/emulation scaffolding, geometry/tessellation
    honest-Unsupported paths, SSBO storage-block translation / transform-feedback).

@@ -14,6 +14,7 @@ add_executable(yaglt_tests
     unit/shader_program_test.cpp
     unit/texture_fbo_test.cpp
     unit/texture_unit_test.cpp
+    unit/dsa_texture_test.cpp
     unit/uniform_test.cpp
     unit/android_capabilities_test.cpp
     unit/getstring_test.cpp

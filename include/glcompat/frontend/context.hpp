@@ -70,6 +70,18 @@ public:
     // name that was not generated reports GL_INVALID_OPERATION (SPEC §2.1).
     void bindTexture(GLenum target, GLObjectName name);
     GLObjectName boundTextureForTarget(GLenum target) const;
+    // DSA texture binding (SPEC §2.1, capability-gated by DirectStateAccess).
+    // glBindTextureUnit binds `texture` to `target` on a specific `unit` (zero
+    // based) without modifying the active-texture selector. glBindTextures binds
+    // an array of textures to consecutive units [first, first+count) for one
+    // `target`. Out-of-range units report GL_INVALID_VALUE; an ungenerated
+    // texture name reports GL_INVALID_OPERATION; an invalid target reports
+    // GL_INVALID_ENUM. When DirectStateAccess is unsupported these report
+    // GL_INVALID_OPERATION honestly.
+    void bindTextureUnit(uint32_t unit, GLObjectName texture);
+    void bindTextures(uint32_t first, uint32_t count, GLenum target,
+                      const GLObjectName* textures);
+    GLObjectName boundTextureForUnitTarget(uint32_t unit, GLenum target) const;
     void deleteTexture(GLObjectName name);
     void deleteTextures(uint32_t n, const GLObjectName* names);
     TextureObject* getTexture(GLObjectName name);
