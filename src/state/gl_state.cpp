@@ -133,6 +133,14 @@ bool GLStateTracker::setColorMask(bool r, bool g, bool b, bool a) {
     return true;
 }
 
+bool GLStateTracker::setSampleCoverage(float value, bool invert) {
+    if (sampleCoverage_.value == value && sampleCoverage_.invert == invert)
+        return false;
+    sampleCoverage_.value = value;
+    sampleCoverage_.invert = invert;
+    return true;
+}
+
 bool GLStateTracker::setCullFace(GLenum mode) {
     if (raster_.cull == mode) return false;
     raster_.cull = mode;
@@ -486,6 +494,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!sampleCoverage_.equal(sampleCoverageApplied_)) {
+        sink.sampleCoverage(sampleCoverage_.value, sampleCoverage_.invert);
+        sampleCoverageApplied_ = sampleCoverage_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -624,6 +638,10 @@ int GLStateTracker::getBoolean(GLenum p, GLboolean* out) const {
         out[3] = static_cast<GLboolean>(colorMask_.a ? 1 : 0);
         return 4;
     }
+    if (p == GL_SAMPLE_COVERAGE_INVERT) {
+        out[0] = static_cast<GLboolean>(sampleCoverage_.invert ? 1 : 0);
+        return 1;
+    }
     return 0;
 }
 
@@ -664,6 +682,8 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[2] = static_cast<GLfloat>(scissor_.width);
         out[3] = static_cast<GLfloat>(scissor_.height);
         return 4;
+    case GL_SAMPLE_COVERAGE_VALUE: // 0x80B9
+        out[0] = sampleCoverage_.value; return 1;
     }
     return 0;
 }
@@ -749,6 +769,8 @@ void GLStateTracker::reset() {
     logicOpApplied_ = LogicOpState{};
     colorMask_ = ColorMaskState{};
     colorMaskApplied_ = ColorMaskState{};
+    sampleCoverage_ = SampleCoverageState{};
+    sampleCoverageApplied_ = SampleCoverageState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
     texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
     activeTextureUnit_ = 0;

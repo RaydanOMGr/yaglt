@@ -280,6 +280,11 @@ void GLESBackend::colorMask(bool r, bool g, bool b, bool a) {
                          b ? GL_TRUE : GL_FALSE, a ? GL_TRUE : GL_FALSE);
 }
 
+void GLESBackend::sampleCoverage(float value, bool invert) {
+    if (lib_->glSampleCoverage)
+        lib_->glSampleCoverage(value, invert ? GL_TRUE : GL_FALSE);
+}
+
 void GLESBackend::cullFace(GLenum mode) {
     if (lib_->glCullFace) lib_->glCullFace(mode);
 }

@@ -827,11 +827,26 @@ crashed agent, this session)
   (27.8%) full / 136/435 (31.3%) core.
 - Validation: default + sanitizer suites green.
 
+2026-08-27 (sample coverage, this session — small step)
+- SPEC §17.3.6 multisample: implemented `glSampleCoverage`. Frontend tracks the
+  coverage value (float, default 1.0) + invert flag in `GLStateTracker::
+  setSampleCoverage`; pushed through the new `GLStateSink::sampleCoverage(float,
+  bool)` only when the value or invert changes (SPEC §10). `MockBackend` records
+  it; `GLESBackend` drives `glSampleCoverage` via a newly resolved (core in GLES
+  2.0) `GLESLib` symbol. `glGetFloatv(GL_SAMPLE_COVERAGE_VALUE)` /
+  `glGetBooleanv(GL_SAMPLE_COVERAGE_INVERT)` return the tracked state. Query
+  constants added to `gl_types.hpp`. Public `gl_api` exposes
+  `glSampleCoverage(GLfloat, GLboolean)`.
+- New `tests/unit/samplecoverage_test.cpp` (2 cases) covers push-only-on-change
+  + recording and the tracked-state queries. Coverage now 137/490 (28.0%) full /
+  137/435 (31.5%) core.
+- Validation: default + sanitizer suites green.
+
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-     Per `docs/coverage-core.md` (2026-08-27) now 136/490 (27.8%) have a
-      frontend entry point; core-only is 136/435 (31.3%). The standing
+     Per `docs/coverage-core.md` (2026-08-27) now 137/490 (28.0%) have a
+      frontend entry point; core-only is 137/435 (31.5%). The standing
      objective is to reach **full coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per

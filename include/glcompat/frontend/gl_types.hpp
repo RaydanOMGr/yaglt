@@ -292,6 +292,8 @@ constexpr GLenum GL_POLYGON_OFFSET_UNITS = 0x2A00;
 // Depth func already has GL_LESS etc. above; add writemask + range.
 constexpr GLenum GL_DEPTH_WRITEMASK = 0x0B72;
 constexpr GLenum GL_COLOR_WRITEMASK = 0x0C23;
+constexpr GLenum GL_SAMPLE_COVERAGE_VALUE = 0x80B9;
+constexpr GLenum GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
 constexpr GLenum GL_DEPTH_RANGE = 0x0B70;
 constexpr GLenum GL_DEPTH_FUNC = 0x0B74;
 

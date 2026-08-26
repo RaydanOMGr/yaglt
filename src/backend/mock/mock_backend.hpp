@@ -86,6 +86,9 @@ public:
     int colorMaskCalls = 0;
     bool lastColorMaskR = true, lastColorMaskG = true, lastColorMaskB = true,
          lastColorMaskA = true;
+    int sampleCoverageCalls = 0;
+    float lastSampleCoverageValue = 1.0f;
+    bool lastSampleCoverageInvert = false;
     int cullFaceCalls = 0;
     int frontFaceCalls = 0;
     int pointSizeCalls = 0;
@@ -168,6 +171,11 @@ public:
         lastColorMaskG = g;
         lastColorMaskB = b;
         lastColorMaskA = a;
+    }
+    void sampleCoverage(float value, bool invert) override {
+        ++sampleCoverageCalls;
+        lastSampleCoverageValue = value;
+        lastSampleCoverageInvert = invert;
     }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }

@@ -56,6 +56,8 @@ public:
     void stencilMask(uint32_t mask) override;
     // Color write mask (SPEC §17.3.6, glColorMask).
     void colorMask(bool r, bool g, bool b, bool a) override;
+    // Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage).
+    void sampleCoverage(float value, bool invert) override;
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
     void pointSize(float size) override;

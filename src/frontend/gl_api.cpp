@@ -771,6 +771,11 @@ void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha
     g_current->state().setColorMask(red != 0, green != 0, blue != 0, alpha != 0);
 }
 
+void glSampleCoverage(GLfloat value, GLboolean invert) {
+    if (g_current == nullptr) return;
+    g_current->state().setSampleCoverage(value, invert != 0);
+}
+
 void glPixelStorei(GLenum pname, GLint param) {
     if (g_current == nullptr) return;
     g_current->pixelStorei(pname, static_cast<int>(param));

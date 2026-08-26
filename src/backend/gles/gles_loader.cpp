@@ -107,6 +107,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilOp, "glStencilOp");
     ok &= resolve(gles, glStencilMask, "glStencilMask");
     ok &= resolve(gles, glColorMask, "glColorMask");
+    ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
     ok &= resolve(gles, glPointSize, "glPointSize");

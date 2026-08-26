@@ -37,6 +37,7 @@ struct RecordingSink : GLStateSink {
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilCalls; }
     void stencilMask(GLuint) override { ++stencilCalls; }
     void colorMask(bool, bool, bool, bool) override {}
+    void sampleCoverage(float, bool) override {}
     void cullFace(GLenum) override { ++cullCalls; }
     void frontFace(GLenum) override { ++frontCalls; }
     void pointSize(float) override {}

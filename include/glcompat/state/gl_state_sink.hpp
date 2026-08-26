@@ -36,6 +36,10 @@ public:
     // independent boolean pushed only when the set of masked channels changes.
     virtual void colorMask(bool r, bool g, bool b, bool a) = 0;
 
+    // Sample coverage (glSampleCoverage, SPEC §17.3.6 multisample). Pushed only
+    // when the value or invert flag changes.
+    virtual void sampleCoverage(float value, bool invert) = 0;
+
     virtual void cullFace(uint32_t mode) = 0;
     virtual void frontFace(uint32_t mode) = 0;
 
