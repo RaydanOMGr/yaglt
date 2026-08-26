@@ -79,9 +79,9 @@ Known major blockers:
 
 ## In Progress
 
-- [ ] State tracking subsystem (`src/state`).
-- [ ] Real desktop GLSL → GLSL ES translation validation through a live GLES
-      driver (needs a host libGLESv2; see mesa blocker below).
+- [ ] Wire `GLStateTracker::apply()` into a backend: make `GLESBackend` (and
+      `MockBackend`) implement `GLStateSink` and push tracked state on draw /
+      state flush, so redundant native calls are actually skipped.
 
 ## Completed (this session)
 
@@ -109,11 +109,17 @@ Known major blockers:
       (desktop → glslang → SPIRV-Cross → GLSL ES → Mesa driver). Passes with
       the Mesa libs on `LD_LIBRARY_PATH`. Skips cleanly where no driver exists.
 
+- [x] Centralized state tracking subsystem (`src/state`, `include/glcompat/state`).
+      `GLStateTracker` tracks capabilities, active program, blend, depth,
+      stencil, rasterization and pixel-store state; `set*` returns whether the
+      value changed and `apply(sink)` pushes only categories that differ from
+      the last applied state (SPEC §10: avoid redundant backend calls). `Context`
+      owns one and routes `glEnable`/`glDisable`/`glBlendFunc`/`glUseProgram`/
+      `glDepthFunc`/`glDepthMask`/`glCullFace`/`glFrontFace` through it.
+      `tests/unit/state_test.cpp` verifies change detection and no-op applies.
+
 ## Known Issues
 
-- Host Linux/WSL box has no `libGLESv2` (only `libEGL.so.1`), so the GLES
-  backend `initialize()` returns false here. It will initialize for real on
-  Android or a Mesa GLES build. This is expected, not a bug.
 - Host previously had no `libGLESv2`, so the GLES backend returned false.
   **Resolved**: Mesa 26 (softpipe/surfaceless) is now built locally and the
   backend initializes on host (ES 3.1, renderer softpipe). Run tests with
@@ -200,7 +206,9 @@ OpenGL 4.6:
 1. Mesa built and the GLES backend initializes on host. End-to-end shader
    compile test added. Run the translate build's tests with the Mesa
    `LD_LIBRARY_PATH`/`LIBGL_DRIVERS_PATH` to exercise the real driver path.
-2. Add state-tracking subsystem (buffers/textures/bindings) in `src/state`.
+2. Wire `GLStateTracker::apply()` into backends: make `GLESBackend` (and
+   `MockBackend`) implement `GLStateSink` and flush tracked state on draw /
+   state changes, so redundant native calls are actually skipped.
 3. Implement remaining desktop GLSL → GLSL ES feature mapping (UBO/SSBO,
    unsupported stages) as needed by real apps.
 4. Commit each coherent step; update this journal.

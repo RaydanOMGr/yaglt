@@ -3,6 +3,7 @@
 #include "glcompat/core/backend.hpp"
 #include "glcompat/frontend/error.hpp"
 #include "glcompat/frontend/objects.hpp"
+#include "glcompat/state/gl_state.hpp"
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
@@ -18,6 +19,11 @@ public:
     explicit Context(IGraphicsBackend& backend) : backend_(backend) {}
 
     IGraphicsBackend& backend() { return backend_; }
+
+    // Centralized pipeline state (SPEC §10). glEnable/glDisable/glBlendFunc/
+    // glUseProgram/etc. route through here so a backend can avoid redundant
+    // native calls via GLStateTracker::apply().
+    GLStateTracker& state() { return state_; }
 
     // --- Error (SPEC §19) ---
     GLError getError();          // returns and clears the pending error
@@ -74,6 +80,7 @@ private:
 
     IGraphicsBackend& backend_;
     GLError error_ = GLError::NoError;
+    GLStateTracker state_;
 
     std::unordered_map<GLObjectName, std::unique_ptr<BufferObject>> buffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<TextureObject>> textures_;

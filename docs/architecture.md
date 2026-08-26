@@ -95,29 +95,40 @@ interfaces (`IGraphicsBackend`, `IResourceFactory`, `IShaderCompiler`).
   SSBO/compute/indirect/image-load native; geometry/tessellation Unsupported
   (no GLES equivalent); DSA Unsupported unless `GL_EXT_direct_state_access`.
 - **Shader compiler.** `GLESShaderCompiler` compiles GLSL ES on the real driver
-  and surfaces the driver log. It does **not** translate desktop GLSL → GLSL ES
-  (that needs glslang, not yet available), so desktop inputs fail at the driver
-  rather than being silently accepted.
+  and surfaces the driver log. Under `YAGLT_SHADER_TRANSLATE`, the backend uses
+  `TranslatingGLESShaderCompiler` instead, which translates desktop GLSL → GLSL
+  ES via glslang (GLSL→SPIR-V) + SPIRV-Cross (SPIR-V→GLSL ES) before compiling
+  on the driver. Already-GLSL-ES input is passed through without translation.
 
 ## Shader translation
 
 `IShaderCompiler` is the entry point for the translation pipeline (SPEC §7).
 The mock backend passes source through; the GLES backend compiles GLSL ES
-directly on the driver. Real desktop GLSL → GLSL ES translation needs a
-front-end/transform stage.
+directly on the driver. Real desktop GLSL → GLSL ES translation is implemented
+by `ShaderTranslator` (`src/shader/shader_translator.cpp`), built when
+`YAGLT_SHADER_TRANSLATE=ON`. It uses glslang (from `../glslang-main`, built with
+`ENABLE_OPT=OFF` to skip SPIRV-Tools) to produce SPIR-V, then SPIRV-Cross (from
+`../SPIRV-Cross-main`) to emit GLSL ES 3.10. `TranslatingGLESShaderCompiler`
+selects it automatically under that flag. The library headers are consumed via
+`CMake add_subdirectory` — no vendored copies are kept in the repo.
 
-glslang headers are vendored at `include/glslang/` (full `glslang/` source-tree
-layout so `glslang/Public/ShaderLang.h` resolves its relative includes). The
-complete library lives at `../glslang-main` and must be built (e.g. with
-`ENABLE_OPT=OFF` to avoid the optional SPIRV-Tools dependency) and linked to
-enable validation/compilation. Producing GLSL ES *source* from SPIR-V also
-requires SPIRV-Cross, which is not yet vendored — so end-to-end desktop→ES
-translation is currently blocked on that dependency.
+## State management
+
+`src/state` (`GLStateTracker`, `GLStateSink`) is the centralized OpenGL pipeline
+state (SPEC §10). It tracks capabilities, the active program, and blend/depth/
+stencil/rasterization/pixel-store state. `set*` methods report whether a value
+changed; `apply(sink)` pushes only the categories whose state differs from the
+last applied snapshot, so backends avoid redundant native calls. `Context` owns
+a tracker and routes `glEnable`/`glDisable`/`glBlendFunc`/`glUseProgram`/
+`glDepthFunc`/`glDepthMask`/`glCullFace`/`glFrontFace` through it. A backend that
+implements `GLStateSink` can flush the tracker's dirty state at draw/flush time.
 
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error
-path). Real GLES backend, shader translation pipeline, and most object/state
-subsystems are not yet implemented. Phase 1 establishes the interfaces, the
-mock backend, the capability system, and the headless test harness so
-subsequent phases build on a verified foundation.
+path + state routing). The GLES backend, shader translation pipeline, and
+centralized state tracking are implemented; backends do not yet flush the
+tracker to the driver, and most of the OpenGL 4.6 draw/object API surface
+remains to be built. Phase 1 establishes the interfaces, the mock backend, the
+capability system, and the headless test harness so subsequent phases build on
+a verified foundation.

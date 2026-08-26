@@ -7,6 +7,7 @@ add_library(yaglt_core STATIC
     core/capabilities_table.cpp
     frontend/context.cpp
     frontend/gl_api.cpp
+    state/gl_state.cpp
 )
 
 target_include_directories(yaglt_core PUBLIC

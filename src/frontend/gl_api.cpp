@@ -107,4 +107,51 @@ void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) {
     g_current->deleteVertexArrays(static_cast<uint32_t>(n), arrays);
 }
 
+// --- State management (SPEC §10) ---
+
+void glEnable(GLenum cap) {
+    if (g_current == nullptr) return;
+    g_current->state().setCapability(cap, true);
+}
+
+void glDisable(GLenum cap) {
+    if (g_current == nullptr) return;
+    g_current->state().setCapability(cap, false);
+}
+
+void glBlendFunc(GLenum sfactor, GLenum dfactor) {
+    if (g_current == nullptr) return;
+    g_current->state().setBlendFunc(sfactor, dfactor);
+}
+
+void glBlendEquation(GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->state().setBlendEquation(mode);
+}
+
+void glUseProgram(GLuint prog) {
+    if (g_current == nullptr) return;
+    g_current->state().useProgram(prog);
+}
+
+void glDepthFunc(GLenum func) {
+    if (g_current == nullptr) return;
+    g_current->state().setDepthFunc(func);
+}
+
+void glDepthMask(bool flag) {
+    if (g_current == nullptr) return;
+    g_current->state().setDepthMask(flag);
+}
+
+void glCullFace(GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->state().setCullFace(mode);
+}
+
+void glFrontFace(GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->state().setFrontFace(mode);
+}
+
 } // namespace glcompat
