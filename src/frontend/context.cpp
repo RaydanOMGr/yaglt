@@ -612,6 +612,49 @@ void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
     if (tex->backend) tex->backend->texParameteri(target, pname, param);
 }
 
+void Context::texParameterf(uint32_t target, uint32_t pname, float param) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    tex->target = target;
+    tex->paramsf[pname] = param;
+    if (tex->backend) tex->backend->texParameterf(target, pname, param);
+}
+
+void Context::texParameterfv(uint32_t target, uint32_t pname,
+                             const float* params, int count) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->paramsfv[pname].assign(params, params + count);
+    if (tex->backend) tex->backend->texParameterfv(target, pname, params, count);
+}
+
+void Context::texParameteriv(uint32_t target, uint32_t pname, const int* params,
+                             int count) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->paramsiv[pname].assign(params, params + count);
+    if (tex->backend) tex->backend->texParameteriv(target, pname, params, count);
+}
+
 void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
@@ -624,6 +667,29 @@ void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
     }
     auto it = tex->params.find(pname);
     *params = (it != tex->params.end()) ? it->second : 0;
+}
+
+void Context::getTexParameterfv(GLenum target, GLenum pname, float* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    auto fi = tex->paramsf.find(pname);
+    if (fi != tex->paramsf.end()) {
+        *params = fi->second;
+        return;
+    }
+    auto fv = tex->paramsfv.find(pname);
+    if (fv != tex->paramsfv.end() && !fv->second.empty()) {
+        *params = fv->second[0];
+        return;
+    }
+    *params = 0.0f; // GL default for an unset parameter
 }
 
 namespace {

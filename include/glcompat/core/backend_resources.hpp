@@ -46,8 +46,14 @@ public:
     virtual void texImage2D(uint32_t target, int level, uint32_t internalFormat,
                             int width, int height, uint32_t format, uint32_t type,
                             const void* data) {}
-    // Set a texture parameter (filter / wrap), SPEC §2.1 glTexParameteri.
+    // Set a texture parameter (SPEC §2.1 glTexParameter*). The frontend keeps the
+    // authoritative value and forwards the native call; backends opt in.
     virtual void texParameteri(uint32_t target, uint32_t pname, int param) {}
+    virtual void texParameterf(uint32_t target, uint32_t pname, float param) {}
+    virtual void texParameterfv(uint32_t target, uint32_t pname,
+                                const float* params, int count) {}
+    virtual void texParameteriv(uint32_t target, uint32_t pname,
+                                const int* params, int count) {}
     // Upload a sub-region of an existing texture level (SPEC §8.6 TexSubImage*D).
     // The frontend validates bounds and that the level was allocated by a prior
     // TexImage; backends with native storage forward the call to the driver.

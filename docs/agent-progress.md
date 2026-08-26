@@ -263,9 +263,9 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 OpenGL 4.6:
   Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
      Measurement (2026-08-26): of the 490 command prototypes the spec declares,
-      105 (21.4%) have a frontend entry point; restricting to the core profile
+      109 (22.2%) have a frontend entry point; restricting to the core profile
       (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
-       gives 105/435 ≈ 24.1% core prototype coverage. True core entry-point coverage
+       gives 109/435 ≈ 25.1% core prototype coverage. True core entry-point coverage
     is lower (the spec text undercounts type/vector variants, and geometry/
     tessellation/compute are honestly Unsupported). Implemented slice: object
     lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
@@ -752,8 +752,21 @@ OpenGL 4.6:
   on GLES, which has no 1D textures). `TextureObject` records subimage metadata.
   New `tests/unit/texsubimage_test.cpp` (10 cases) covers upload recording,
   missing-level / no-texture / negative-dim / out-of-region errors, and copy
-  paths. Coverage bumped to 105/490 (21.4%) full / 105/435 (24.1%) core.
-- Validation: default 174/174 green; sanitizer pending.
+   paths. Coverage bumped to 105/490 (21.4%) full / 105/435 (24.1%) core.
+- Validation: default 174/174 green; sanitizer 174/174 green.
+
+2026-08-26 (texture parameter float/vector expansion, this session)
+- Expanded texture parameter setting to full SPEC §8 surface: `glTexParameterf`,
+  `glTexParameterfv`, `glTexParameteriv`, and `glGetTexParameterfv`. `BackendTexture`
+  gained `texParameterf`/`texParameterfv`/`texParameteriv` virtuals; `MockTexture`
+  records each; `GLESBackendTexture` drives `glTexParameterf`/`glTexParameterfv`/
+  `glTexParameteriv` via newly resolved `GLESLib` loader symbols. `TextureObject`
+  now stores scalar-float, float-vector and int-vector params. Frontend validates
+  (bound texture required, null/non-positive count → GL_INVALID_VALUE). `glGetTexParameterfv`
+  reads the stored float scalar or first component of a float vector (0.0f default).
+  Extended `tests/unit/texparam_query_test.cpp` (10 new cases). Coverage now
+  109/490 (22.2%) full / 109/435 (25.1%) core.
+- Validation: default 180/180 green; sanitizer 180/180 green.
 
 ## Next Steps
 

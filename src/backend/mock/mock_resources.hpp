@@ -116,6 +116,32 @@ public:
         lastParamPname = pname;
         lastParam = param;
     }
+    int texParameterfCalls = 0;
+    float lastParamf = 0.0f;
+    int texParameterfvCalls = 0;
+    int texParameterivCalls = 0;
+    std::vector<float> lastParamfv;
+    std::vector<int> lastParamiv;
+    void texParameterf(uint32_t target, uint32_t pname, float param) override {
+        ++texParameterfCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamf = param;
+    }
+    void texParameterfv(uint32_t target, uint32_t pname, const float* params,
+                        int count) override {
+        ++texParameterfvCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamfv.assign(params, params + count);
+    }
+    void texParameteriv(uint32_t target, uint32_t pname, const int* params,
+                        int count) override {
+        ++texParameterivCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamiv.assign(params, params + count);
+    }
     int texSubImage1DCalls = 0;
     int texSubImage2DCalls = 0;
     int texSubImage3DCalls = 0;

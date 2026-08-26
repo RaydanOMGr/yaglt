@@ -124,6 +124,10 @@ bool GLESLib::load() {
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");
     ok &= resolve(gles, glTexParameteri, "glTexParameteri");
+    // Parameter setters (float / vector) are core in GLES but resolved defensively.
+    resolve(gles, glTexParameterf, "glTexParameterf");
+    resolve(gles, glTexParameterfv, "glTexParameterfv");
+    resolve(gles, glTexParameteriv, "glTexParameteriv");
     // Sub-image / copy-from-framebuffer are core in GLES but resolved defensively.
     resolve(gles, glTexSubImage1D, "glTexSubImage1D");
     resolve(gles, glTexSubImage2D, "glTexSubImage2D");

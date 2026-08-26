@@ -92,6 +92,23 @@ struct GLESBackendTexture : BackendTexture {
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameteri(target, pname, param);
     }
+    void texParameterf(uint32_t target, uint32_t pname, float param) override {
+        if (!lib || !lib->loaded || !lib->glTexParameterf) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexParameterf(target, pname, param);
+    }
+    void texParameterfv(uint32_t target, uint32_t pname, const float* params,
+                        int count) override {
+        if (!lib || !lib->loaded || !lib->glTexParameterfv || !params) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexParameterfv(target, pname, params, count);
+    }
+    void texParameteriv(uint32_t target, uint32_t pname, const int* params,
+                        int count) override {
+        if (!lib || !lib->loaded || !lib->glTexParameteriv || !params) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexParameteriv(target, pname, params, count);
+    }
     void texSubImage1D(uint32_t target, int level, int xoffset, int width,
                        uint32_t format, uint32_t type, const void* data) override {
         // OpenGL ES has no 1D textures; the call is a no-op on this backend.

@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 105 | **21.4%** |
-| Core profile only (spec − 55 removed commands) | 435 | 105 | **24.1%** |
+| Full spec (compat + core) | 490 | 109 | **22.2%** |
+| Core profile only (spec − 55 removed commands) | 435 | 109 | **25.1%** |
 
 All 100 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
@@ -58,7 +58,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled` |
 | §6 Buffer objects | 🟡 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`. Missing: `BufferSubData`, `BufferStorage` (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, `InvalidateBuffer*`, `GetBufferSubData`, buffer queries |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate. Missing: `BindAttribLocation`, program **pipelines** (§7.4), **subroutines**, **compute** shaders, shader binaries |
-| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri` (scalar pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries. Missing: 1D/3D/cube/array/rect targets (texImage), `TexParameterf`/vector pnames + full param coverage, `GetTexImage`, **multisample textures**, **buffer textures**, texture views, full **Named* (DSA object) surface** |
+| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`). Missing: 1D/3D/cube/array/rect targets (texImage), full param coverage, `GetTexImage`, **multisample textures**, **buffer textures**, texture views, full **Named* (DSA object) surface** |
 | §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced). Missing: `DrawRangeElements`, `MultiDraw*`, **`DrawElementsBaseVertex`**, **indirect draw**, **primitive restart** (core `GL_PRIMITIVE_RESTART`), vertex attrib divisor, `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
@@ -83,7 +83,7 @@ BindFramebuffer, BindRenderbuffer,
 CopyTexImage1D, CopyTexImage2D,
 BindSampler, BindTexture, BindTextureUnit, BindTextures, BindTransformFeedback,
 BindVertexArray, BlendColor, BlendEquation, BlendEquationSeparate, BlendFunc,
-BlendFuncSeparate, BufferData, Clear, ClearColor, ClearDepth, ClearDepthf,
+BlendFuncSeparate, BufferData, Clear, ClearColor, ClearDepth, ClearDepthf, CopyTexImage1D, CopyTexImage2D,
 CompileShader, CopyBufferSubData, CullFace, DeleteBuffers, DeleteFramebuffers,
 DeleteProgram, DeleteRenderbuffers, DeleteSamplers, DeleteShader, DeleteTextures,
 DeleteTransformFeedbacks, DeleteVertexArrays, DepthFunc, DepthMask, DepthRange,
@@ -97,8 +97,8 @@ GetDoublev, GetFloatv, GetIntegerv, GetProgramInfoLog, GetProgramiv,
 GetShaderInfoLog, GetShaderiv, LinkProgram, MapBuffer, MapBufferRange,
 PauseTransformFeedback, ReadPixels, RenderbufferStorage,
 ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
-StencilOp, TexImage2D, TexSubImage1D, TexSubImage2D, TexSubImage3D,
-Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
+StencilOp, TexImage2D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
+TexParameteriv, Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
 Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
 
 (Plus the type/vector variants already present in `gl_api`: `glUniform1fv`,

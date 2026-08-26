@@ -122,6 +122,14 @@ public:
                     int width, int height, uint32_t format, uint32_t type,
                     const void* data);
     void texParameteri(uint32_t target, uint32_t pname, int param);
+    // Texture parameter setters (SPEC §8). glTexParameterf sets a float scalar;
+    // glTexParameterfv/iv set vector parameters (e.g. GL_TEXTURE_BORDER_COLOR).
+    // Each records the value on the bound texture and forwards to the backend.
+    void texParameterf(uint32_t target, uint32_t pname, float param);
+    void texParameterfv(uint32_t target, uint32_t pname, const float* params,
+                        int count);
+    void texParameteriv(uint32_t target, uint32_t pname, const int* params,
+                        int count);
     // Texture sub-image uploads (SPEC §8.6 TexSubImage*D). Require a bound texture
     // (else GL_INVALID_OPERATION) and a previously allocated `level` (else
     // GL_INVALID_OPERATION). Non-negative level/dimensions/offset are required
@@ -149,6 +157,7 @@ public:
     // texture reports GL_INVALID_OPERATION. Unknown pnames return 0 (the GL
     // default), matching the driver's initial parameter state.
     void getTexParameteriv(GLenum target, GLenum pname, int32_t* params);
+    void getTexParameterfv(GLenum target, GLenum pname, float* params);
     void getTextureParameteriv(GLObjectName texture, GLenum pname,
                                int32_t* params);
 

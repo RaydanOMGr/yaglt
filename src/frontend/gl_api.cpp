@@ -151,6 +151,28 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
     g_current->texParameteri(target, pname, static_cast<int>(param));
 }
 
+void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
+    if (g_current == nullptr) return;
+    g_current->texParameterf(target, pname, param);
+}
+
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params,
+                      GLsizei count) {
+    if (g_current == nullptr) return;
+    g_current->texParameterfv(target, pname, params, static_cast<int>(count));
+}
+
+void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
+                      GLsizei count) {
+    if (g_current == nullptr) return;
+    g_current->texParameteriv(target, pname, params, static_cast<int>(count));
+}
+
+void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexParameterfv(target, pname, params);
+}
+
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width,
                      GLenum format, GLenum type, const GLvoid* pixels) {
     if (g_current == nullptr) return;

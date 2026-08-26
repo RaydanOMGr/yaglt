@@ -77,6 +77,16 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                  GLsizei height, GLint border, GLenum format, GLenum type,
                  const GLvoid* data);
 void glTexParameteri(GLenum target, GLenum pname, GLint param);
+// Texture parameter setters (SPEC §8). glTexParameterf sets a float scalar;
+// glTexParameterfv/iv set vector parameters (e.g. GL_TEXTURE_BORDER_COLOR).
+void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params,
+                      GLsizei count);
+void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
+                      GLsizei count);
+// Texture parameter queries (SPEC §8.1). glGetTexParameterfv reads a float
+// scalar or the first component of a float vector parameter.
+void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params);
 // Texture sub-image specification (SPEC §8.6 TexSubImage*D).
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width,
                      GLenum format, GLenum type, const GLvoid* pixels);
