@@ -80,21 +80,48 @@ Known major blockers:
 ## In Progress
 
 - [ ] State tracking subsystem (`src/state`).
-- [ ] Shader translation pipeline behind `IShaderCompiler` (needs glslang,
-      which is not yet vendored; current compiler handles GLSL ES only).
-- [ ] Real desktop GLSL → GLSL ES translation (Phase 4 per SPEC).
+- [ ] Real desktop GLSL → GLSL ES translation validation through a live GLES
+      driver (needs a host libGLESv2; see mesa blocker below).
+
+## Completed (this session)
+
+- [x] Shader translation pipeline behind `IShaderCompiler` (Phase 4 per SPEC).
+  - glslang (desktop GLSL → SPIR-V) + SPIRV-Cross (SPIR-V → GLSL ES 3.10)
+    wired in via `YAGLT_SHADER_TRANSLATE=ON` (`src/CMakeLists.txt`).
+  - `ShaderTranslator` (`src/shader/shader_translator.cpp`) uses the real
+    glslang + SPIRV-Cross libraries (built from `../glslang-main` and
+    `../SPIRV-Cross-main` via `add_subdirectory`, `ENABLE_OPT=OFF`).
+  - `TranslatingGLESShaderCompiler` (`src/backend/gles/gles_translating_compiler.*`)
+    passes already-ES sources straight to the driver and translates desktop
+    sources first. Selected automatically when `YAGLT_SHADER_TRANSLATE=ON`.
+  - `tests/backend/shader_translate_test.cpp` translates a `#version 330 core`
+    vertex shader to GLSL ES and verifies `gl_Position` survives. Passes.
+- [x] Removed conflicting partial vendored headers (`include/glslang`,
+      `include/shaderc`, `include/spirv-tools`, top-level `include/spirv*.hpp`)
+      that shadowed the real library headers and broke the translator build.
+- [x] Built Mesa 26 (softpipe, surfaceless EGL, GLESv2) into a local prefix
+      (`../mesa-26.2.1/build-mesa`, installed to `../mesa-26.2.1/install`).
+      Provides host `libEGL.so.1` + `libGLESv2.so.2` so the GLES backend now
+      initializes for real on this headless Linux box (renderer: softpipe,
+      ES 3.1) — no Android device or GPU needed.
+- [x] End-to-end GLES shader test (`tests/backend/gles_e2e_shader_test.cpp`):
+      compiles a `#version 330 core` vertex shader through the GLES backend
+      (desktop → glslang → SPIRV-Cross → GLSL ES → Mesa driver). Passes with
+      the Mesa libs on `LD_LIBRARY_PATH`. Skips cleanly where no driver exists.
 
 ## Known Issues
 
 - Host Linux/WSL box has no `libGLESv2` (only `libEGL.so.1`), so the GLES
   backend `initialize()` returns false here. It will initialize for real on
   Android or a Mesa GLES build. This is expected, not a bug.
-- `GLESShaderCompiler` does not translate desktop GLSL → GLSL ES; glslang was
-  not available. Desktop shader sources are rejected by the driver honestly.
-- Shader translation (desktop→ES) is blocked: glslang headers are vendored at
-  `include/glslang/`, but end-to-end translation needs (a) the glslang library
-  built and linked, and (b) SPIRV-Cross to emit GLSL ES source from SPIR-V.
-  SPIRV-Cross is not yet vendored.
+- Host previously had no `libGLESv2`, so the GLES backend returned false.
+  **Resolved**: Mesa 26 (softpipe/surfaceless) is now built locally and the
+  backend initializes on host (ES 3.1, renderer softpipe). Run tests with
+  `LD_LIBRARY_PATH=../mesa-26.2.1/install/lib/x86_64-linux-gnu
+  LIBGL_DRIVERS_PATH=../mesa-26.2.1/install/lib/x86_64-linux-gnu/dri
+  GALLIUM_DRIVER=softpipe`.
+- SPIRV-Tools / shaderc not built: not needed for the current pipeline. Add
+  later only if shader optimization or shaderc's higher-level API is wanted.
 
 ## TODO
 
@@ -134,13 +161,15 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 OpenGL 4.6:
   Core API: not implemented
   Compatibility profile: not implemented
-  Shader stages: not implemented (interface only)
+  Shader stages: desktop GLSL → GLSL ES translation implemented (glslang +
+    SPIRV-Cross), exercised by `shader_translate_test`. Driver-side compile
+    needs a real GLES backend (see mesa blocker).
   DSA: not implemented (marked Emulated in mock capabilities only)
-  Backend: Mock only (headless). GLES/Vulkan reserved.
+  Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
 ## Recent Work
 
-2026-08-26
+2026-08-26 (prior agent)
 - Repository + Git identity.
 - CMake build + tests wiring.
 - Backend abstraction interfaces.
@@ -152,13 +181,26 @@ OpenGL 4.6:
   `GLError` handling, object lifecycle tests.
 - Public GL dispatch surface (`gl_api`) over `Context`; gl_types layer.
 - Vendored Khronos native headers (GL/GLES/EGL/Vulkan) + KHR/khrplatform.h.
+- GLES backend foundation (runtime-loaded `GLESLib`, surfaceless EGL context).
 - Architecture / feature-matrix / README docs.
+
+2026-08-26 (continued)
+- Wired shader translation pipeline: glslang + SPIRV-Cross via
+  `YAGLT_SHADER_TRANSLATE=ON`. Fixed glslang C-API usage in
+  `src/shader/shader_translator.cpp` (global `EShLanguage`/`EShMessages`,
+  `TProgram` + `addShader`, `GlslangToSpv(*interm,...)`, `ResourceLimits.h`
+  + `SPIRV/GlslangToSpv.h` includes). Fixed SPIRV-Cross options via
+  `get_common_options`/`set_common_options`.
+- Removed conflicting partial vendored headers (`include/glslang`,
+  `include/shaderc`, `include/spirv-tools`, top-level `include/spirv*.hpp`).
+- `build_tx` (translate) + `build` (default) both compile and pass tests.
 
 ## Next Steps
 
-1. Begin GLES backend foundation: consume `GLES3`/`EGL` headers, create a
-   headless surfaceless EGL context on Linux/Mesa, populate CapabilityTable
-   from real version/extension detection.
+1. Mesa built and the GLES backend initializes on host. End-to-end shader
+   compile test added. Run the translate build's tests with the Mesa
+   `LD_LIBRARY_PATH`/`LIBGL_DRIVERS_PATH` to exercise the real driver path.
 2. Add state-tracking subsystem (buffers/textures/bindings) in `src/state`.
-3. Implement shader translation pipeline behind `IShaderCompiler`.
+3. Implement remaining desktop GLSL → GLSL ES feature mapping (UBO/SSBO,
+   unsupported stages) as needed by real apps.
 4. Commit each coherent step; update this journal.

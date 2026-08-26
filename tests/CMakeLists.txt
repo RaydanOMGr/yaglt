@@ -10,6 +10,13 @@ add_executable(yaglt_tests
     backend/gles_backend_test.cpp
 )
 
+if(YAGLT_SHADER_TRANSLATE)
+    target_sources(yaglt_tests PRIVATE
+        backend/shader_translate_test.cpp
+        backend/gles_e2e_shader_test.cpp
+    )
+endif()
+
 target_include_directories(yaglt_tests PRIVATE
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}

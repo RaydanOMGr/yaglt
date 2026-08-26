@@ -60,5 +60,34 @@ endif()
 
 target_compile_features(yaglt_core PUBLIC cxx_std_17)
 
+# Optional: desktop GLSL -> GLSL ES translation via glslang (GLSL->SPIR-V)
+# and SPIRV-Cross (SPIR-V->GLSL ES). Builds those libraries from the local
+# checkouts at ../glslang-main and ../SPIRV-Cross-main. OFF by default so the
+# main build stays self-contained. glslang is built without SPIRV-Tools
+# (ENABLE_OPT=OFF).
+option(YAGLT_SHADER_TRANSLATE "Build glslang + SPIRV-Cross for shader translation" OFF)
+if(YAGLT_SHADER_TRANSLATE)
+    set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
+    set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+    set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_STATIC ON CACHE BOOL "" FORCE)
+    set(SPIRV_CROSS_CLI OFF CACHE BOOL "" FORCE)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/../glslang-main
+                     ${CMAKE_BINARY_DIR}/glslang_build)
+    add_subdirectory(${CMAKE_SOURCE_DIR}/../SPIRV-Cross-main
+                     ${CMAKE_BINARY_DIR}/spirv-cross_build)
+    target_sources(yaglt_core PRIVATE
+        shader/shader_translator.cpp
+        backend/gles/gles_translating_compiler.cpp
+    )
+    target_link_libraries(yaglt_core PUBLIC
+        glslang
+        glslang-default-resource-limits
+        spirv-cross-core
+        spirv-cross-glsl
+    )
+    target_compile_definitions(yaglt_core PUBLIC YAGLT_SHADER_TRANSLATE=1)
+endif()
+
 install(TARGETS yaglt_core ARCHIVE DESTINATION lib)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/glcompat DESTINATION include)

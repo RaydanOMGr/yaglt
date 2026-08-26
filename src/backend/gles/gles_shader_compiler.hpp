@@ -13,7 +13,7 @@ class GLESShaderCompiler : public IShaderCompiler {
 public:
     explicit GLESShaderCompiler(GLESLibPtr lib) : lib_(lib) {}
 
-    bool compile(const std::string& source, std::string& output,
+    bool compile(const std::string& source, uint32_t stage, std::string& output,
                  std::string& error) override;
 
 private:

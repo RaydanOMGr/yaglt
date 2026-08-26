@@ -10,6 +10,7 @@ namespace glcompat {
 class MockShaderCompiler : public IShaderCompiler {
 public:
     bool compile(const std::string& source,
+                 uint32_t /*stage*/,
                  std::string& output,
                  std::string& error) override {
         if (source.empty()) {

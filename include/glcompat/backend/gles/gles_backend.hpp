@@ -3,10 +3,13 @@
 #include "glcompat/backend/gles/gles_loader.hpp"
 #include "glcompat/core/backend.hpp"
 #include "glcompat/core/capabilities_table.hpp"
+#include "glcompat/core/factory.hpp"
 #include "glcompat/core/platform.hpp"
 #include "src/backend/gles/gles_factory.hpp"
 #include "src/backend/gles/gles_shader_compiler.hpp"
 #include "src/platform/linux/linux_capabilities.hpp"
+#include <memory>
+#include <string>
 
 namespace glcompat {
 
@@ -27,7 +30,7 @@ public:
     const IPlatformCapabilities& platform() const override { return platform_; }
 
     IResourceFactory& resourceFactory() override { return factory_; }
-    IShaderCompiler& shaderCompiler() override { return compiler_; }
+    IShaderCompiler& shaderCompiler() override { return *compiler_; }
 
     bool initialize() override;
     void shutdown() override;
@@ -39,7 +42,7 @@ private:
     LinuxCapabilities platform_;
     CapabilityTable caps_;
     GLESResourceFactory factory_;
-    GLESShaderCompiler compiler_;
+    std::unique_ptr<IShaderCompiler> compiler_;
 
     EGLDisplay display_ = EGL_NO_DISPLAY;
     EGLContext context_ = EGL_NO_CONTEXT;

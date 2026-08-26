@@ -1,5 +1,9 @@
 #include "glcompat/backend/gles/gles_backend.hpp"
 
+#ifdef YAGLT_SHADER_TRANSLATE
+#include "src/backend/gles/gles_translating_compiler.hpp"
+#endif
+
 #include <EGL/eglext.h>
 
 #include <cstdlib>
@@ -24,7 +28,11 @@ namespace glcompat {
 GLESBackend::GLESBackend()
     : lib_(std::make_shared<GLESLib>()),
       factory_(lib_),
-      compiler_(lib_) {}
+      compiler_(std::make_unique<GLESShaderCompiler>(lib_)) {
+#ifdef YAGLT_SHADER_TRANSLATE
+    compiler_ = std::make_unique<TranslatingGLESShaderCompiler>(lib_);
+#endif
+}
 
 GLESBackend::~GLESBackend() {
     if (initialized_) shutdown();

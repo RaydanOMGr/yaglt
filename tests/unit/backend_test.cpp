@@ -35,11 +35,11 @@ TEST_CASE("mock_backend_resource_factory_unique_ids") {
 TEST_CASE("mock_backend_shader_compiler_passthrough") {
     MockBackend backend;
     std::string out, err;
-    EXPECT_TRUE(backend.shaderCompiler().compile("void main(){}", out, err));
+    EXPECT_TRUE(backend.shaderCompiler().compile("void main(){}", 0x8B31, out, err));
     EXPECT_EQ(out, std::string("void main(){}"));
     EXPECT_TRUE(err.empty());
 
-    EXPECT_FALSE(backend.shaderCompiler().compile("", out, err));
+    EXPECT_FALSE(backend.shaderCompiler().compile("", 0x8B31, out, err));
     EXPECT_FALSE(err.empty());
 }
 

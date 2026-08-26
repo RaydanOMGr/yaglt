@@ -4,8 +4,8 @@
 
 namespace glcompat {
 
-bool GLESShaderCompiler::compile(const std::string& source, std::string& output,
-                                 std::string& error) {
+bool GLESShaderCompiler::compile(const std::string& source, uint32_t /*stage*/,
+                                 std::string& output, std::string& error) {
     output.clear();
     error.clear();
 
