@@ -486,6 +486,31 @@ void glFlushState() {
     g_current->flushState();
 }
 
+void glGetBooleanv(GLenum pname, GLboolean* params) {
+    if (g_current == nullptr) return;
+    g_current->getBooleanv(pname, params);
+}
+
+void glGetIntegerv(GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getIntegerv(pname, params);
+}
+
+void glGetFloatv(GLenum pname, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getFloatv(pname, params);
+}
+
+void glGetDoublev(GLenum pname, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getDoublev(pname, params);
+}
+
+GLboolean glIsEnabled(GLenum cap) {
+    if (g_current == nullptr) return 0;
+    return g_current->isEnabled(cap) ? 1 : 0;
+}
+
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
     if (g_current == nullptr) return;
     g_current->setClearColor(red, green, blue, alpha);

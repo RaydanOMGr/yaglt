@@ -251,6 +251,18 @@ public:
     void uniform1iv(int loc, const int* v, int count);
     void uniformMatrix4fv(int loc, const float* m, int count, bool transpose);
 
+    // --- State queries (SPEC §22) ---
+    // Read tracked pipeline state (the frontend owns these values, so glGet
+    // never queries the backend driver, SPEC §10). An unknown pname sets
+    // GL_INVALID_ENUM; a null `params` sets GL_INVALID_VALUE.
+    void getBooleanv(uint32_t pname, unsigned char* params);
+    void getIntegerv(uint32_t pname, int32_t* params);
+    void getFloatv(uint32_t pname, float* params);
+    void getDoublev(uint32_t pname, double* params);
+    // Returns true iff `cap` is an enabled, tracked capability; an untracked cap
+    // sets GL_INVALID_ENUM and returns false (mirrors desktop GL glIsEnabled).
+    bool isEnabled(uint32_t cap);
+
 private:
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.

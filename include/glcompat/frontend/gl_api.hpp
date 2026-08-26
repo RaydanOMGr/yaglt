@@ -186,6 +186,17 @@ void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format
 // unchanged state. Call this at draw / state-flush time.
 void glFlushState();
 
+// State queries (SPEC §22). glGet* read the frontend-owned tracked state, so
+// they never round-trip to the backend driver (SPEC §10). An unknown pname
+// yields GL_INVALID_ENUM; a null buffer yields GL_INVALID_VALUE. glIsEnabled
+// returns the enabled state of a tracked capability (GL_INVALID_ENUM for an
+// untracked one).
+void glGetBooleanv(GLenum pname, GLboolean* params);
+void glGetIntegerv(GLenum pname, GLint* params);
+void glGetFloatv(GLenum pname, GLfloat* params);
+void glGetDoublev(GLenum pname, GLdouble* params);
+GLboolean glIsEnabled(GLenum cap);
+
 // --- Draw commands (SPEC §2.1) ---
 // The frontend flushes tracked pipeline state to the backend immediately before
 // issuing the draw, so redundant native state calls are skipped. Drawing with no

@@ -179,4 +179,39 @@ constexpr GLenum GL_INVERT = 0x150A;
 constexpr GLenum GL_INCR_WRAP = 0x8507;
 constexpr GLenum GL_DECR_WRAP = 0x8508;
 
+// Rasterization state (SPEC §17.3 / §14.
+constexpr GLenum GL_CULL_FACE = 0x0B44;
+constexpr GLenum GL_DEPTH_TEST = 0x0B71;
+constexpr GLenum GL_DITHER = 0x0BD0;
+constexpr GLenum GL_POLYGON_OFFSET_FILL = 0x8037;
+constexpr GLenum GL_CULL_FACE_MODE = 0x0B45;
+constexpr GLenum GL_FRONT_FACE = 0x0B46;
+constexpr GLenum GL_CW = 0x0900;
+constexpr GLenum GL_CCW = 0x0901;
+
+// Depth func already has GL_LESS etc. above; add writemask + range.
+constexpr GLenum GL_DEPTH_WRITEMASK = 0x0B72;
+constexpr GLenum GL_DEPTH_RANGE = 0x0B70;
+constexpr GLenum GL_DEPTH_FUNC = 0x0B74;
+
+// Viewport / scissor box queries (SPEC §22).
+constexpr GLenum GL_VIEWPORT = 0x0BA2;
+constexpr GLenum GL_SCISSOR_BOX = 0x0C10;
+
+// Clear value queries (SPEC §22).
+constexpr GLenum GL_COLOR_CLEAR_VALUE = 0x0C22;
+constexpr GLenum GL_DEPTH_CLEAR_VALUE = 0x0B73;
+
+// Active program query (SPEC §7.14).
+constexpr GLenum GL_CURRENT_PROGRAM = 0x8B8D;
+
+// Blend query pnames (SPEC §17.3.6).
+constexpr GLenum GL_BLEND_SRC_RGB = 0x80C9;
+constexpr GLenum GL_BLEND_DST_RGB = 0x80CA;
+constexpr GLenum GL_BLEND_SRC_ALPHA = 0x80CB;
+constexpr GLenum GL_BLEND_DST_ALPHA = 0x80CC;
+constexpr GLenum GL_BLEND_EQUATION_RGB = 0x8009;
+constexpr GLenum GL_BLEND_EQUATION_ALPHA = 0x883D;
+constexpr GLenum GL_BLEND_COLOR = 0x8005;
+
 } // namespace glcompat

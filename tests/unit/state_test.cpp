@@ -51,7 +51,6 @@ struct RecordingSink : GLStateSink {
     void vertexAttribPointer(uint32_t, int32_t, uint32_t, bool, int32_t, intptr_t) override {}
 };
 
-constexpr GLenum GL_DEPTH_TEST = 0x0B71;
 } // namespace
 
 TEST_CASE("state_tracker_initial_apply_is_noop") {

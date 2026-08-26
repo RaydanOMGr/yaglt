@@ -74,6 +74,20 @@ public:
     // Reset both current and applied state (e.g. on context (re)init).
     void reset();
 
+    // --- State queries (glGet*, glIsEnabled; SPEC §22) ---
+    // Return the number of values written for `pname`, or 0 when the pname is
+    // not tracked here (the caller then reports GL_INVALID_ENUM). The frontend
+    // owns these values so glGet never has to query the backend driver (SPEC
+    // §10: avoid redundant backend calls).
+    int getInteger(GLenum pname, GLint* out) const;
+    int getBoolean(GLenum pname, GLboolean* out) const;
+    int getFloat(GLenum pname, GLfloat* out) const;
+    int getDouble(GLenum pname, GLdouble* out) const;
+    // Returns true when `cap` is a tracked capability; the result is written to
+    // `*enabled`. For an untracked cap the return is false (caller reports
+    // GL_INVALID_ENUM, mirroring desktop GL).
+    bool isCapabilityEnabled(GLenum cap, bool* enabled) const;
+
 private:
     struct BlendState {
         GLenum srcRGB = 1;   // GL_ONE

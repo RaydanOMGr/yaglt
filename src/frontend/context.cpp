@@ -823,6 +823,71 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
     }
 }
 
+void Context::getIntegerv(uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int32_t buf[4] = {0, 0, 0, 0};
+    int n = state_.getInteger(static_cast<GLenum>(pname), buf);
+    if (n == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (int i = 0; i < n; ++i) params[i] = buf[i];
+}
+
+void Context::getBooleanv(uint32_t pname, unsigned char* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    unsigned char buf[4] = {0, 0, 0, 0};
+    int n = state_.getBoolean(static_cast<GLenum>(pname), buf);
+    if (n == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (int i = 0; i < n; ++i) params[i] = buf[i];
+}
+
+void Context::getFloatv(uint32_t pname, float* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    float buf[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    int n = state_.getFloat(static_cast<GLenum>(pname), buf);
+    if (n == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (int i = 0; i < n; ++i) params[i] = buf[i];
+}
+
+void Context::getDoublev(uint32_t pname, double* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    double buf[4] = {0.0, 0.0, 0.0, 0.0};
+    int n = state_.getDouble(static_cast<GLenum>(pname), buf);
+    if (n == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (int i = 0; i < n; ++i) params[i] = buf[i];
+}
+
+bool Context::isEnabled(uint32_t cap) {
+    bool enabled = false;
+    if (!state_.isCapabilityEnabled(static_cast<GLenum>(cap), &enabled)) {
+        setError(GLError::InvalidEnum);
+        return false;
+    }
+    return enabled;
+}
+
 namespace {
 // Copy `log` into `out` (up to bufSize-1 chars, nul-terminated). Sets *length to
 // the number of characters written, excluding the nul. Honors bufSize==0.

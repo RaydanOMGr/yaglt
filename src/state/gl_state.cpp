@@ -283,6 +283,134 @@ int GLStateTracker::apply(GLStateSink& sink) {
     return applied;
 }
 
+namespace {
+
+// Caps whose on/off state the tracker owns. Other capabilities (e.g. DITHER)
+// are not tracked and are reported as unsupported pnames by the getters.
+bool isTrackedCap(GLenum cap) {
+    return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0B44 /* GL_CULL_FACE */ ||
+           cap == 0x0B71 /* GL_DEPTH_TEST */ ||
+           cap == 0x0B90 /* GL_STENCIL_TEST */ ||
+           cap == 0x0C11 /* GL_SCISSOR_TEST */;
+}
+
+GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
+    auto it = caps.find(cap);
+    return (it != caps.end() && it->second) ? 1 /* GL_TRUE */ : 0 /* GL_FALSE */;
+}
+
+} // namespace
+
+int GLStateTracker::getInteger(GLenum p, GLint* out) const {
+    switch (p) {
+    case 0x0BE2: case 0x0B44: case 0x0B71: case 0x0B90: case 0x0C11: // caps
+        if (!isTrackedCap(p)) return 0;
+        out[0] = capValue(capsCurrent_, p);
+        return 1;
+    case 0x0BA2: // GL_VIEWPORT
+        out[0] = viewport_.x; out[1] = viewport_.y;
+        out[2] = viewport_.width; out[3] = viewport_.height;
+        return 4;
+    case 0x0C10: // GL_SCISSOR_BOX
+        out[0] = scissor_.x; out[1] = scissor_.y;
+        out[2] = scissor_.width; out[3] = scissor_.height;
+        return 4;
+    case 0x80C9: out[0] = static_cast<GLint>(blend_.srcRGB); return 1;   // BLEND_SRC_RGB
+    case 0x80CA: out[0] = static_cast<GLint>(blend_.dstRGB); return 1;   // BLEND_DST_RGB
+    case 0x80CB: out[0] = static_cast<GLint>(blend_.srcAlpha); return 1; // BLEND_SRC_ALPHA
+    case 0x80CC: out[0] = static_cast<GLint>(blend_.dstAlpha); return 1; // BLEND_DST_ALPHA
+    case 0x8009: out[0] = static_cast<GLint>(blend_.equationRGB); return 1;   // BLEND_EQUATION_RGB
+    case 0x883D: out[0] = static_cast<GLint>(blend_.equationAlpha); return 1; // BLEND_EQUATION_ALPHA
+    case GL_DEPTH_WRITEMASK: out[0] = depth_.mask ? 1 : 0; return 1;
+    case GL_DEPTH_FUNC: out[0] = static_cast<GLint>(depth_.func); return 1;
+    case GL_CULL_FACE_MODE: out[0] = static_cast<GLint>(raster_.cull); return 1;
+    case GL_FRONT_FACE: out[0] = static_cast<GLint>(raster_.front); return 1;
+    case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
+    }
+    return 0;
+}
+
+int GLStateTracker::getBoolean(GLenum p, GLboolean* out) const {
+    if (isTrackedCap(p)) {
+        out[0] = static_cast<GLboolean>(capValue(capsCurrent_, p));
+        return 1;
+    }
+    if (p == 0x0B72 /* GL_DEPTH_WRITEMASK */) {
+        out[0] = depth_.mask ? 1 : 0;
+        return 1;
+    }
+    return 0;
+}
+
+int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
+    switch (p) {
+    case 0x0C22: // GL_COLOR_CLEAR_VALUE
+        out[0] = clearColor_.r; out[1] = clearColor_.g;
+        out[2] = clearColor_.b; out[3] = clearColor_.a;
+        return 4;
+    case 0x0B73: // GL_DEPTH_CLEAR_VALUE
+        out[0] = static_cast<GLfloat>(clearDepth_.depth);
+        return 1;
+    case 0x0B70: // GL_DEPTH_RANGE
+        out[0] = static_cast<GLfloat>(depthRange_.nearVal);
+        out[1] = static_cast<GLfloat>(depthRange_.farVal);
+        return 2;
+    case 0x8005: // GL_BLEND_COLOR
+        out[0] = blendColor_.r; out[1] = blendColor_.g;
+        out[2] = blendColor_.b; out[3] = blendColor_.a;
+        return 4;
+    case 0x0BA2: // GL_VIEWPORT (cast int -> float)
+        out[0] = static_cast<GLfloat>(viewport_.x);
+        out[1] = static_cast<GLfloat>(viewport_.y);
+        out[2] = static_cast<GLfloat>(viewport_.width);
+        out[3] = static_cast<GLfloat>(viewport_.height);
+        return 4;
+    case 0x0C10: // GL_SCISSOR_BOX (cast)
+        out[0] = static_cast<GLfloat>(scissor_.x);
+        out[1] = static_cast<GLfloat>(scissor_.y);
+        out[2] = static_cast<GLfloat>(scissor_.width);
+        out[3] = static_cast<GLfloat>(scissor_.height);
+        return 4;
+    }
+    return 0;
+}
+
+int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
+    switch (p) {
+    case 0x0C22:
+        out[0] = clearColor_.r; out[1] = clearColor_.g;
+        out[2] = clearColor_.b; out[3] = clearColor_.a;
+        return 4;
+    case 0x0B73:
+        out[0] = clearDepth_.depth;
+        return 1;
+    case 0x0B70:
+        out[0] = depthRange_.nearVal;
+        out[1] = depthRange_.farVal;
+        return 2;
+    case 0x8005:
+        out[0] = blendColor_.r; out[1] = blendColor_.g;
+        out[2] = blendColor_.b; out[3] = blendColor_.a;
+        return 4;
+    case 0x0BA2:
+        out[0] = viewport_.x; out[1] = viewport_.y;
+        out[2] = viewport_.width; out[3] = viewport_.height;
+        return 4;
+    case 0x0C10:
+        out[0] = scissor_.x; out[1] = scissor_.y;
+        out[2] = scissor_.width; out[3] = scissor_.height;
+        return 4;
+    }
+    return 0;
+}
+
+bool GLStateTracker::isCapabilityEnabled(GLenum cap, bool* enabled) const {
+    if (!isTrackedCap(cap)) return false;
+    auto it = capsCurrent_.find(cap);
+    *enabled = (it != capsCurrent_.end() && it->second);
+    return true;
+}
+
 void GLStateTracker::reset() {
     capsCurrent_.clear();
     capsApplied_.clear();

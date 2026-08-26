@@ -256,6 +256,21 @@ OpenGL 4.6:
 
 ## Recent Work
 
+2026-08-26 (glGet* state queries, this session)
+- SPEC §22: implemented `glGetBooleanv`/`glGetIntegerv`/`glGetFloatv`/
+  `glGetDoublev`/`glIsEnabled` against the centralized `GLStateTracker`
+  (frontend owns these values, so glGet never round-trips to the backend driver,
+  SPEC §10). Tracked caps (BLEND/CULL_FACE/DEPTH_TEST/STENCIL_TEST/SCISSOR_TEST),
+  VIEWPORT, SCISSOR_BOX, blend src/dst factors + equations + color, DEPTH_FUNC/
+  WRITEMASK/RANGE, COLOR/DEPTH_CLEAR_VALUE, CULL_FACE_MODE, FRONT_FACE,
+  CURRENT_PROGRAM. Unknown pname -> GL_INVALID_ENUM (honest); null buffer ->
+  GL_INVALID_VALUE; untracked cap in glIsEnabled -> GL_INVALID_ENUM. New GL
+  query constants added to `gl_types.hpp`; `GLStateTracker` gained
+  `getInteger/getBoolean/getFloat/getDouble/isCapabilityEnabled`. New
+  `tests/unit/getstate_test.cpp`. Validation: default + sanitizer 113/113 green;
+  translate (Mesa) all tests pass (pre-existing Mesa atexit segfault unrelated
+  to this change, confirmed by stash baseline).
+
 2026-08-26 (structured logging subsystem, this session)
 - SPEC §20: implemented a structured logging subsystem. New
   `include/glcompat/core/log.hpp` + `src/core/log.cpp` provide categories
