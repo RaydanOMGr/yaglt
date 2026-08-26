@@ -42,9 +42,9 @@ void glDeleteBuffers(GLsizei n, const GLuint* buffers) {
     g_current->deleteBuffers(static_cast<uint32_t>(n), buffers);
 }
 
-void glBufferData(GLenum target, GLsizeiptr size, const GLvoid*, GLenum usage) {
+void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) {
     if (g_current == nullptr) return;
-    g_current->bufferData(target, size, usage);
+    g_current->bufferData(target, size, usage, data);
 }
 
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
@@ -71,6 +71,21 @@ void glBindTexture(GLenum, GLuint texture) {
 void glDeleteTextures(GLsizei n, const GLuint* textures) {
     if (g_current == nullptr) return;
     g_current->deleteTextures(static_cast<uint32_t>(n), textures);
+}
+
+void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                 GLsizei height, GLint, GLenum format, GLenum type,
+                 const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->texImage2D(target, level, static_cast<uint32_t>(internalFormat),
+                         static_cast<int>(width), static_cast<int>(height),
+                         static_cast<uint32_t>(format),
+                         static_cast<uint32_t>(type), data);
+}
+
+void glTexParameteri(GLenum target, GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->texParameteri(target, pname, static_cast<int>(param));
 }
 
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers) {
@@ -101,6 +116,23 @@ void glBindFramebuffer(GLenum, GLuint framebuffer) {
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers) {
     if (g_current == nullptr) return;
     g_current->deleteFramebuffers(static_cast<uint32_t>(n), framebuffers);
+}
+
+void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level) {
+    if (g_current == nullptr) return;
+    g_current->framebufferTexture2D(target, attachment, texTarget, texture, level);
+}
+
+void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
+                               GLuint renderbuffer) {
+    if (g_current == nullptr) return;
+    g_current->framebufferRenderbuffer(target, attachment, rbTarget, renderbuffer);
+}
+
+GLenum glCheckFramebufferStatus(GLenum target) {
+    if (g_current == nullptr) return GL_FRAMEBUFFER_COMPLETE;
+    return g_current->checkFramebufferStatus(target);
 }
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays) {
@@ -265,6 +297,11 @@ void glCullFace(GLenum mode) {
 void glFrontFace(GLenum mode) {
     if (g_current == nullptr) return;
     g_current->state().setFrontFace(mode);
+}
+
+void glPixelStorei(GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->pixelStorei(pname, static_cast<int>(param));
 }
 
 void glFlushState() {

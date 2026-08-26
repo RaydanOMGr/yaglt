@@ -5,12 +5,12 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 4 — GLES Backend Foundation (runtime-loaded)
-Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend)
+Current milestone: Phase 2/3 — OpenGL object + state API (texture/FBO/pixel-store/buffer)
+Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API)
 Last updated: 2026-08-26
 Known major blockers:
-- Real GLES backend not yet implemented (interfaces reserved).
-- Shader translation pipeline not yet implemented.
+- Uniform setting and renderbuffer storage not yet exposed (next step).
+- Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
 ## Toolchain & Environment
 
@@ -156,10 +156,12 @@ Known major blockers:
 
 ## TODO
 
-- [ ] P0: Implement OpenGL 4.6 frontend API entry points (Phase 2 start).
-- [ ] P0: Implement core object model (buffers, textures, VAO, FBO, RBO).
-- [ ] P1: Implement GLES backend foundation + headless EGL validation.
-- [ ] P1: Implement shader translation pipeline behind `IShaderCompiler`.
+- [x] P0: Implement OpenGL 4.6 frontend API entry points (gen/bind/delete, buffer, texture, FBO, VAO, draw, shader/program).
+- [x] P0: Implement core object model (buffers, textures, VAO, FBO, RBO).
+- [x] P1: Implement GLES backend foundation + headless EGL validation.
+- [x] P1: Implement shader translation pipeline behind `IShaderCompiler`.
+- [ ] P0: Implement uniform setting (`glUniform*`) on the active program.
+- [ ] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
 - [ ] P1: Android platform capabilities + SDK 21 fallback abstraction.
 - [ ] P2: Capability-driven emulation selection scaffolding.
 - [ ] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
@@ -190,11 +192,14 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 ## Compatibility Progress
 
 OpenGL 4.6:
-  Core API: not implemented
+  Core API: partial. Object gen/bind/delete for buffers, textures, RBO, FBO, VAO;
+    buffer data upload; texture image storage + parameters; FBO attachments +
+    completeness; pixel store; draw calls; shader/program/attrib API all wired.
+    (SPEC §2.1 surface implemented against backend abstraction + mock; GLES path
+    real against Mesa softpipe.)
   Compatibility profile: not implemented
   Shader stages: desktop GLSL → GLSL ES translation implemented (glslang +
-    SPIRV-Cross), exercised by `shader_translate_test`. Driver-side compile
-    needs a real GLES backend (see mesa blocker).
+    SPIRV-Cross), exercised by `shader_translate_test` + e2e program/shader tests.
   DSA: not implemented (marked Emulated in mock capabilities only)
   Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
@@ -210,9 +215,36 @@ OpenGL 4.6:
   - Public `gl_api` exposes `glDrawArrays`/`glDrawElements`/`glDrawArraysInstanced`/
     `glDrawElementsInstanced`. New `tests/unit/draw_test.cpp` covers flush-before-draw,
     recording, capability gating, and the no-program error path.
-  - Validation: default 37/37, sanitizer 37/37, translate (Mesa) all green.
+   - Validation: default 37/37, sanitizer 37/37, translate (Mesa) all green.
+
+- [x] Texture / FBO / pixel-store / buffer-data API (SPEC §2.1, Next Steps item 1).
+  - Frontend `Context` gained `texImage2D`, `texParameteri`, `framebufferTexture2D`,
+    `framebufferRenderbuffer`, `checkFramebufferStatus`, `pixelStorei`, and a
+    data-carrying `bufferData`. `TextureObject`/`FramebufferObject` now record
+    per-level image storage, texture params, and FBO attachments (with a structural
+    completeness check). `BackendBuffer`/`BackendTexture`/`BackendFramebuffer`/
+    `BackendRenderbuffer` gained real virtual ops; default no-op so backends opt in.
+  - GLES backend implements all of them via the runtime loader (`glTexImage2D`,
+    `glTexParameteri`, `glFramebufferTexture2D`, `glFramebufferRenderbuffer`,
+    `glCheckFramebufferStatus`); FBO attach resolves the frontend texture name to
+    the native id before calling the driver.
+  - Mock backend records every call (observable in tests). `pixelStorei` pushes to
+    the backend only when the value changed (SPEC §10: no redundant native calls).
+  - New `tests/unit/texture_fbo_test.cpp` (mock path) covers texImage params,
+    negative-size `GL_INVALID_VALUE`, no-texture-bound `GL_INVALID_OPERATION`,
+    buffer upload push, FBO texture + renderbuffer attachment + completeness, and
+    the `gl*` surface. All suites green: default 52/52, sanitizer 52/52,
+    translate (Mesa) all pass.
 
 ## Recent Work
+
+2026-08-26 (this session)
+- Texture / FBO / pixel-store / buffer-data frontend API (SPEC §2.1). Added
+  `texImage2D`, `texParameteri`, `framebufferTexture2D`, `framebufferRenderbuffer`,
+  `checkFramebufferStatus`, `pixelStorei`, and data-carrying `bufferData` to
+  `Context` + `gl_api`. Backend resource virtuals implemented in mock (record) and
+  GLES (real, via loader). New `tests/unit/texture_fbo_test.cpp` green.
+- All suites pass: default 52/52, sanitizer 52/52, translate (Mesa) all pass.
 
 2026-08-26 (prior agent)
 - Repository + Git identity.
@@ -292,12 +324,13 @@ OpenGL 4.6:
 
 ## Next Steps
 
-1. Expand remaining OpenGL 4.6 object/state API (textures, FBO attachments,
-   pixel store, buffer data upload, uniform setting) so draws are fully
-   provisioned end-to-end. Build the mock path tests first, then GLES e2e.
-2. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
-   emulation scaffolding, geometry/tessellation honest-Unsupported paths,
-   SSBO storage-block translation / transform-feedback).
+1. Continue the object/state API: uniform setting (`glUniform*` on the active
+   program), renderbuffer storage (`glRenderbufferStorage`), and an end-to-end GLES
+   FBO completeness test against Mesa. Then drive a full draw with bound
+   texture+program through the GLES backend.
+2. Continue SPEC phases (§5 Android platform capabilities + SDK 21 fallback
+   abstraction, §6 compatibility/emulation scaffolding, geometry/tessellation
+   honest-Unsupported paths, SSBO storage-block translation / transform-feedback).
 3. Add a GLSL `version`/`profile` capability check so the frontend can reject
    unsupported desktop features before translation rather than at link time.
 4. Commit each coherent step; update this journal.

@@ -37,6 +37,30 @@ constexpr GLenum GL_READ_FRAMEBUFFER = 0x8CA8;
 constexpr GLenum GL_DRAW_FRAMEBUFFER = 0x8CA9;
 constexpr GLenum GL_VERTEX_ARRAY = 0x8074;
 
+// Texture targets / parameters / formats / filters.
+constexpr GLenum GL_TEXTURE_1D = 0x0DE0;
+constexpr GLenum GL_TEXTURE_3D = 0x806F;
+constexpr GLenum GL_TEXTURE_CUBE_MAP = 0x8513;
+constexpr GLenum GL_TEXTURE_MIN_FILTER = 0x2801;
+constexpr GLenum GL_TEXTURE_MAG_FILTER = 0x2800;
+constexpr GLenum GL_TEXTURE_WRAP_S = 0x2802;
+constexpr GLenum GL_TEXTURE_WRAP_T = 0x2803;
+constexpr GLenum GL_NEAREST = 0x2600;
+constexpr GLenum GL_LINEAR = 0x2601;
+constexpr GLenum GL_NEAREST_MIPMAP_NEAREST = 0x2700;
+constexpr GLenum GL_LINEAR_MIPMAP_LINEAR = 0x2703;
+constexpr GLenum GL_REPEAT = 0x2901;
+constexpr GLenum GL_CLAMP_TO_EDGE = 0x812F;
+constexpr GLenum GL_MIRRORED_REPEAT = 0x8370;
+constexpr GLenum GL_RED = 0x1903;
+constexpr GLenum GL_RG = 0x8227;
+constexpr GLenum GL_RGB = 0x1907;
+constexpr GLenum GL_RGBA = 0x1908;
+constexpr GLenum GL_UNSIGNED_BYTE = 0x1401;
+constexpr GLenum GL_UNSIGNED_SHORT = 0x1403;
+constexpr GLenum GL_HALF_FLOAT = 0x140B;
+constexpr GLenum GL_TEXTURE0 = 0x84C0;
+
 // Indexed buffer binding points (UBO / SSBO / transform feedback).
 constexpr GLenum GL_UNIFORM_BUFFER = 0x8A11;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
@@ -63,6 +87,17 @@ constexpr GLenum GL_FLOAT = 0x1406;
 constexpr GLenum GL_FLOAT_VEC2 = 0x8B50;
 constexpr GLenum GL_FLOAT_VEC3 = 0x8B51;
 constexpr GLenum GL_FLOAT_VEC4 = 0x8B52;
-constexpr GLenum GL_UNSIGNED_BYTE = 0x1401;
+
+// Framebuffer attachment points and status (SPEC §2.1).
+constexpr GLenum GL_COLOR_ATTACHMENT0 = 0x8CE0;
+constexpr GLenum GL_DEPTH_ATTACHMENT = 0x8D00;
+constexpr GLenum GL_STENCIL_ATTACHMENT = 0x8D20;
+constexpr GLenum GL_DEPTH_STENCIL_ATTACHMENT = 0x821A;
+constexpr GLenum GL_FRAMEBUFFER_COMPLETE = 0x8CD5;
+constexpr GLenum GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+constexpr GLenum GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+constexpr GLenum GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER = 0x8CDB;
+constexpr GLenum GL_FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+constexpr GLenum GL_UNPACK_ALIGNMENT = 0x0CF5;
 
 } // namespace glcompat

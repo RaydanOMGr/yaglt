@@ -12,6 +12,7 @@ add_executable(yaglt_tests
     unit/ubo_ssbo_test.cpp
     unit/draw_test.cpp
     unit/shader_program_test.cpp
+    unit/texture_fbo_test.cpp
     backend/gles_backend_test.cpp
 )
 

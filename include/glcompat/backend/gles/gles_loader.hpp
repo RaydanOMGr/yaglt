@@ -91,6 +91,13 @@ struct GLESLib {
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 
+    void (*glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
+                        GLenum, const void*) = nullptr;
+    void (*glTexParameteri)(GLenum, GLenum, GLint) = nullptr;
+    void (*glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint) = nullptr;
+    void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
+    GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;
+
     // Draw commands.
     void (*glDrawArrays)(GLenum, GLint, GLsizei) = nullptr;
     void (*glDrawElements)(GLenum, GLsizei, GLenum, const void*) = nullptr;

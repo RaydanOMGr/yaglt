@@ -43,7 +43,8 @@ public:
     GLObjectName boundBuffer(uint32_t target) const;
     void deleteBuffer(GLObjectName name);
     void deleteBuffers(uint32_t n, const GLObjectName* names);
-    void bufferData(uint32_t target, intptr_t size, uint32_t usage);
+    void bufferData(uint32_t target, intptr_t size, uint32_t usage,
+                    const void* data);
     BufferObject* getBuffer(GLObjectName name);
 
     // --- Indexed buffer bindings (SPEC §8) ---
@@ -63,6 +64,15 @@ public:
     void deleteTextures(uint32_t n, const GLObjectName* names);
     TextureObject* getTexture(GLObjectName name);
 
+    // --- Textures (SPEC §2.1) ---
+    // Operate on the currently bound texture. glTexImage2D allocates storage on
+    // the backend resource; glTexParameteri records the parameter and pushes it to
+    // the backend resource. Wrong/unknown targets are ignored like desktop GL.
+    void texImage2D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, int height, uint32_t format, uint32_t type,
+                    const void* data);
+    void texParameteri(uint32_t target, uint32_t pname, int param);
+
     // --- Renderbuffers ---
     GLObjectName genRenderbuffer();
     void genRenderbuffers(uint32_t n, GLObjectName* names);
@@ -80,6 +90,23 @@ public:
     void deleteFramebuffer(GLObjectName name);
     void deleteFramebuffers(uint32_t n, const GLObjectName* names);
     FramebufferObject* getFramebuffer(GLObjectName name);
+
+    // --- Framebuffers (SPEC §2.1) ---
+    // Operate on the currently bound framebuffer. Attachment points are recorded
+    // on the Frontend framebuffer object and forwarded to the backend resource.
+    // Attaching a non-existent object reports GL_INVALID_OPERATION honestly.
+    void framebufferTexture2D(uint32_t target, uint32_t attachment,
+                              uint32_t texTarget, GLObjectName texture, int level);
+    void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
+                                 uint32_t rbTarget, GLObjectName renderbuffer);
+    // Returns a GL_FRAMEBUFFER_* status code. Combines the structural check with
+    // the backend resource's driver-level checkStatus().
+    uint32_t checkFramebufferStatus(uint32_t target);
+
+    // --- Pixel store (SPEC §10) ---
+    // Records global pixel-store state in the tracker and pushes it to the
+    // backend immediately (it affects subsequent texture/image uploads).
+    void pixelStorei(uint32_t pname, int param);
 
     // --- Vertex arrays ---
     GLObjectName genVertexArray();

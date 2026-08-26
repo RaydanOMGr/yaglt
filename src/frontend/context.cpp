@@ -73,7 +73,8 @@ void Context::deleteBuffers(uint32_t n, const GLObjectName* names) {
     }
 }
 
-void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage) {
+void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage,
+                          const void* data) {
     GLObjectName bound = boundBuffer(target);
     if (bound == 0) {
         setError(GLError::InvalidOperation);
@@ -86,6 +87,9 @@ void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage) {
     }
     obj->size = size;
     obj->usage = usage;
+    if (obj->backend) {
+        obj->backend->bufferData(target, size, usage, data);
+    }
 }
 
 namespace {
@@ -172,6 +176,54 @@ void Context::deleteTextures(uint32_t n, const GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) deleteTexture(names[i]);
 }
 
+void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
+                         int width, int height, uint32_t format, uint32_t type,
+                         const void* data) {
+    TextureObject* tex = getTexture(boundTexture_);
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    // Desktop GL rejects non-power-of-two / invalid sizes depending on feature;
+    // we record storage and forward to the backend. Negative dimensions are an
+    // INVALID_VALUE on the real API.
+    if (width < 0 || height < 0 || level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = height;
+    img.format = format;
+    img.type = type;
+    img.hasData = (data != nullptr);
+    // Replace existing level or append.
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    if (tex->backend) {
+        tex->backend->texImage2D(target, level, internalFormat, width, height,
+                                 format, type, data);
+    }
+}
+
+void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
+    TextureObject* tex = getTexture(boundTexture_);
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    tex->target = target;
+    tex->params[pname] = param;
+    if (tex->backend) tex->backend->texParameteri(target, pname, param);
+}
+
 GLObjectName Context::genRenderbuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<RenderbufferObject>(name);
@@ -237,6 +289,83 @@ void Context::deleteFramebuffer(GLObjectName name) {
 FramebufferObject* Context::getFramebuffer(GLObjectName name) {
     auto it = framebuffers_.find(name);
     return it == framebuffers_.end() ? nullptr : it->second.get();
+}
+
+void Context::framebufferTexture2D(uint32_t target, uint32_t attachment,
+                                   uint32_t texTarget, GLObjectName texture,
+                                   int level) {
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation); // no framebuffer bound
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Record / replace the attachment for this attachment point.
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 0; // texture
+    att.name = texture;
+    att.texTarget = texTarget;
+    att.level = level;
+    for (auto& a : fbo->attachments) {
+        if (a.attachment == attachment) { a = att; goto applied; }
+    }
+    fbo->attachments.push_back(att);
+applied:
+    if (fbo->backend) {
+        uint32_t nativeTex = 0;
+        if (texture != 0) {
+            if (auto* t = getTexture(texture)) nativeTex = t->backend ? t->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferTexture2D(target, attachment, texTarget,
+                                           nativeTex, level);
+    }
+}
+
+void Context::framebufferRenderbuffer(uint32_t target, uint32_t attachment,
+                                      uint32_t rbTarget, GLObjectName renderbuffer) {
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (renderbuffer != 0 &&
+        renderbuffers_.find(renderbuffer) == renderbuffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 1; // renderbuffer
+    att.name = renderbuffer;
+    att.texTarget = rbTarget;
+    att.level = 0;
+    for (auto& a : fbo->attachments) {
+        if (a.attachment == attachment) { a = att; goto applied; }
+    }
+    fbo->attachments.push_back(att);
+applied:
+    if (fbo->backend) {
+        uint32_t nativeRb = 0;
+        if (renderbuffer != 0) {
+            if (auto* r = getRenderbuffer(renderbuffer))
+                nativeRb = r->backend ? r->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferRenderbuffer(target, attachment, rbTarget,
+                                              nativeRb);
+    }
+}
+
+uint32_t Context::checkFramebufferStatus(uint32_t target) {
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
+    if (fbo == nullptr) return GL_FRAMEBUFFER_COMPLETE; // default FBO
+    if (!fbo->isStructurallyComplete())
+        return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+    if (fbo->backend) return fbo->backend->checkStatus(target);
+    return GL_FRAMEBUFFER_COMPLETE;
 }
 
 void Context::genFramebuffers(uint32_t n, GLObjectName* names) {
@@ -544,6 +673,17 @@ void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
     a.offset = offset;
     a.enabled = true;
     vertexStateDirty_ = true;
+}
+
+void Context::pixelStorei(uint32_t pname, int param) {
+    // Push only when the value actually changed (SPEC §10: avoid redundant
+    // backend calls). The backend's initial pixel-store state matches the GL
+    // default, so an unchanged value needs no push before a texImage upload.
+    if (state_.setPixelStorei(pname, param)) {
+        if (GLStateSink* sink = backend_.stateSink()) {
+            sink->pixelStorei(pname, param);
+        }
+    }
 }
 
 } // namespace glcompat

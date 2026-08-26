@@ -16,6 +16,11 @@ struct GLESBackendBuffer : BackendBuffer {
     ~GLESBackendBuffer() override {
         if (lib && lib->loaded && lib->glDeleteBuffers) lib->glDeleteBuffers(1, &handle);
     }
+    void bufferData(uint32_t target, intptr_t size, uint32_t usage,
+                    const void* data) override {
+        if (lib && lib->loaded && lib->glBufferData)
+            lib->glBufferData(target, size, data, usage);
+    }
     GLESLibPtr lib;
     GLuint handle = 0;
 };
@@ -25,6 +30,20 @@ struct GLESBackendTexture : BackendTexture {
     ~GLESBackendTexture() override {
         if (lib && lib->loaded && lib->glDeleteTextures) lib->glDeleteTextures(1, &handle);
     }
+    void texImage2D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, int height, uint32_t format, uint32_t type,
+                    const void* data) override {
+        if (lib && lib->loaded && lib->glTexImage2D)
+            lib->glTexImage2D(target, level, static_cast<GLint>(internalFormat),
+                             static_cast<GLsizei>(width),
+                             static_cast<GLsizei>(height), 0,
+                             format, type, data);
+    }
+    void texParameteri(uint32_t target, uint32_t pname, int param) override {
+        if (lib && lib->loaded && lib->glTexParameteri)
+            lib->glTexParameteri(target, pname, param);
+    }
+    uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
 };
@@ -44,6 +63,25 @@ struct GLESBackendFramebuffer : BackendFramebuffer {
     ~GLESBackendFramebuffer() override {
         if (lib && lib->loaded && lib->glDeleteFramebuffers)
             lib->glDeleteFramebuffers(1, &handle);
+    }
+    void framebufferTexture2D(uint32_t target, uint32_t attachment,
+                              uint32_t texTarget, uint32_t nativeTexture,
+                              int level) override {
+        if (lib && lib->loaded && lib->glFramebufferTexture2D)
+            lib->glFramebufferTexture2D(target, attachment, texTarget, nativeTexture,
+                                      level);
+    }
+    void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
+                                 uint32_t rbTarget,
+                                 uint32_t nativeRenderbuffer) override {
+        if (lib && lib->loaded && lib->glFramebufferRenderbuffer)
+            lib->glFramebufferRenderbuffer(target, attachment, rbTarget,
+                                          nativeRenderbuffer);
+    }
+    uint32_t checkStatus(uint32_t target) const override {
+        if (lib && lib->loaded && lib->glCheckFramebufferStatus)
+            return lib->glCheckFramebufferStatus(target);
+        return 0x8CD5; // GL_FRAMEBUFFER_COMPLETE
     }
     GLESLibPtr lib;
     GLuint handle = 0;

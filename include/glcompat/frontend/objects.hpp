@@ -1,9 +1,11 @@
 #pragma once
 
 #include "glcompat/core/backend_resources.hpp"
+#include "glcompat/frontend/gl_types.hpp"
 #include <cstdint>
 #include <memory>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace glcompat {
@@ -27,7 +29,24 @@ public:
 class TextureObject {
 public:
     explicit TextureObject(GLObjectName n) : name(n) {}
+
+    // Texture state tracked on the frontend (decoupled from backend storage).
+    // The backend resource only sees the resolved native calls.
+    struct Image {
+        int level = 0;
+        uint32_t internalFormat = 0;
+        int width = 0;
+        int height = 0;
+        uint32_t format = 0;
+        uint32_t type = 0;
+        bool hasData = false;
+    };
+
     GLObjectName name = 0;
+    uint32_t target = GL_TEXTURE_2D;        // last bound/targeted target
+    std::unordered_map<uint32_t, int> params; // pname -> param
+    std::vector<Image> images;              // allocated levels (glTexImage2D)
+    bool storageSet = false;
     std::unique_ptr<BackendTexture> backend;
 };
 
@@ -41,8 +60,31 @@ public:
 class FramebufferObject {
 public:
     explicit FramebufferObject(GLObjectName n) : name(n) {}
+
+    // An attachment point on this framebuffer (SPEC §2.1).
+    struct Attachment {
+        uint32_t attachment = 0; // GL_COLOR_ATTACHMENT0 / GL_DEPTH_ATTACHMENT / ...
+        uint32_t type = 0;      // 0=texture, 1=renderbuffer
+        GLObjectName name = 0;  // frontend object name
+        uint32_t texTarget = 0; // relevant for texture attachments
+        int level = 0;
+    };
+
     GLObjectName name = 0;
+    std::vector<Attachment> attachments;
     std::unique_ptr<BackendFramebuffer> backend;
+
+    // Frontend-side completeness check (SPEC §2.1): an FBO is complete only when
+    // it has at least one attachment and every attachment references an existing
+    // object. Backend completeness (format support) is queried via the backend
+    // resource's checkStatus(); this is the structural precondition.
+    bool isStructurallyComplete() const {
+        if (attachments.empty()) return false;
+        for (const auto& a : attachments) {
+            if (a.name == 0) return false;
+        }
+        return true;
+    }
 };
 
 class VertexArrayObject {

@@ -36,6 +36,12 @@ void glGenTextures(GLsizei n, GLuint* textures);
 void glBindTexture(GLenum target, GLuint texture);
 void glDeleteTextures(GLsizei n, const GLuint* textures);
 
+// Texture storage + parameters (SPEC §2.1). Operate on the bound texture.
+void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                 GLsizei height, GLint border, GLenum format, GLenum type,
+                 const GLvoid* data);
+void glTexParameteri(GLenum target, GLenum pname, GLint param);
+
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);
 void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
@@ -43,6 +49,13 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers);
 void glBindFramebuffer(GLenum target, GLuint framebuffer);
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers);
+
+// Framebuffer attachments (SPEC §2.1).
+void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level);
+void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
+                               GLuint renderbuffer);
+GLenum glCheckFramebufferStatus(GLenum target);
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
@@ -84,6 +97,9 @@ void glDepthFunc(GLenum func);
 void glDepthMask(bool flag);
 void glCullFace(GLenum mode);
 void glFrontFace(GLenum mode);
+
+// Pixel store (SPEC §10). Affects subsequent texture/image uploads.
+void glPixelStorei(GLenum pname, GLint param);
 
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for

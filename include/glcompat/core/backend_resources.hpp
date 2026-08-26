@@ -10,18 +10,44 @@ namespace glcompat {
 class BackendBuffer {
 public:
     virtual ~BackendBuffer() = default;
+    // Allocate/stream buffer storage (SPEC §2.1 glBufferData). `data` may be null.
+    virtual void bufferData(uint32_t target, intptr_t size, uint32_t usage,
+                           const void* data) {}
 };
 class BackendTexture {
 public:
     virtual ~BackendTexture() = default;
+    // Allocate storage for a 2D texture level (SPEC §2.1 glTexImage2D).
+    // `data` may be null.
+    virtual void texImage2D(uint32_t target, int level, uint32_t internalFormat,
+                            int width, int height, uint32_t format, uint32_t type,
+                            const void* data) {}
+    // Set a texture parameter (filter / wrap), SPEC §2.1 glTexParameteri.
+    virtual void texParameteri(uint32_t target, uint32_t pname, int param) {}
+    // Native backend texture id (e.g. driver GLuint). 0 when not applicable.
+    virtual uint32_t nativeId() const { return 0; }
 };
 class BackendRenderbuffer {
 public:
     virtual ~BackendRenderbuffer() = default;
+    // Native backend renderbuffer id (e.g. driver GLuint). 0 when not applicable.
+    virtual uint32_t nativeId() const { return 0; }
 };
 class BackendFramebuffer {
 public:
     virtual ~BackendFramebuffer() = default;
+    // Attach a texture level (SPEC §2.1 glFramebufferTexture2D). `nativeTexture`
+    // is the backend-native texture id resolved by the frontend.
+    virtual void framebufferTexture2D(uint32_t target, uint32_t attachment,
+                                      uint32_t texTarget, uint32_t nativeTexture,
+                                      int level) {}
+    // Attach a renderbuffer (SPEC §2.1 glFramebufferRenderbuffer).
+    virtual void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
+                                         uint32_t rbTarget,
+                                         uint32_t nativeRenderbuffer) {}
+    // Returns a GL_FRAMEBUFFER_* status code. Defaults to Complete; real backends
+    // query driver completeness.
+    virtual uint32_t checkStatus(uint32_t /*target*/) const { return 0x8CD5; }
 };
 class BackendVertexArray {
 public:

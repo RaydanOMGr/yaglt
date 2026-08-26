@@ -12,7 +12,6 @@ namespace {
 constexpr GLenum GL_BLEND = 0x0BE2;
 constexpr GLenum GL_TRIANGLES = 0x0004;
 constexpr GLenum GL_UNSIGNED_INT = 0x1405;
-constexpr GLenum GL_UNSIGNED_SHORT = 0x1403;
 } // namespace
 
 TEST_CASE("draw_arrays_flushes_state_then_records") {

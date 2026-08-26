@@ -94,6 +94,11 @@ bool GLESLib::load() {
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
+    ok &= resolve(gles, glTexImage2D, "glTexImage2D");
+    ok &= resolve(gles, glTexParameteri, "glTexParameteri");
+    ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
+    ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
+    ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");
     ok &= resolve(gles, glDrawArrays, "glDrawArrays");
     ok &= resolve(gles, glDrawElements, "glDrawElements");
     // Instanced draws are ES 3.0+; resolve optionally so load() still succeeds
