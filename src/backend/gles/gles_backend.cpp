@@ -40,21 +40,55 @@ GLESBackend::~GLESBackend() {
 }
 
 bool GLESBackend::createContext() {
-    if (!lib_->eglGetPlatformDisplay && !lib_->eglGetDisplay) return false;
+    if (!lib_->eglGetPlatformDisplay && !lib_->eglGetDisplay) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: neither eglGetPlatformDisplay nor eglGetDisplay resolved";
+        return false;
+    }
 
-    // Prefer a surfaceless display (no window system needed).
-    if (lib_->eglGetPlatformDisplay) {
+    // Prefer the plain eglGetDisplay(EGL_DEFAULT_DISPLAY) path. On Mesa's
+    // surfaceless/headless build this yields a usable display with no window
+    // system and avoids _eglFindDisplay entirely. The platform-display entry
+    // points below route through _eglFindDisplay, which on the local Mesa 26
+    // reads past a single-element attrib list and overflows the stack under
+    // ASan; they are kept only as a fallback for drivers that lack a default
+    // display.
+    if (lib_->eglGetDisplay) {
+        display_ = lib_->eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    }
+    // Fallback: try the EXT platform-display entry point (surfaceless).
+    if (display_ == EGL_NO_DISPLAY && lib_->eglGetPlatformDisplayEXT) {
+        display_ = lib_->eglGetPlatformDisplayEXT(EGL_PLATFORM_SURFACELESS_MESA,
+                                                  EGL_DEFAULT_DISPLAY, nullptr);
+        if (display_ == EGL_NO_DISPLAY) {
+            log(LogCategory::GLES, LogLevel::Debug)
+                << "createContext: eglGetPlatformDisplayEXT(surfaceless) failed ("
+                << lib_->eglGetError() << ")";
+        }
+    }
+    // Fallback for drivers that expose only the core eglGetPlatformDisplay.
+    if (display_ == EGL_NO_DISPLAY && lib_->eglGetPlatformDisplay) {
         EGLint attrs[] = {EGL_NONE};
         display_ = lib_->eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA,
                                                EGL_DEFAULT_DISPLAY, attrs);
+        if (display_ == EGL_NO_DISPLAY) {
+            log(LogCategory::GLES, LogLevel::Debug)
+                << "createContext: eglGetPlatformDisplay(surfaceless) failed ("
+                << lib_->eglGetError() << ")";
+        }
     }
-    if (display_ == EGL_NO_DISPLAY && lib_->eglGetDisplay) {
-        display_ = lib_->eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    if (display_ == EGL_NO_DISPLAY) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: no EGL display available";
+        return false;
     }
-    if (display_ == EGL_NO_DISPLAY) return false;
 
     EGLint major = 0, minor = 0;
-    if (!lib_->eglInitialize(display_, &major, &minor)) return false;
+    if (!lib_->eglInitialize(display_, &major, &minor)) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: eglInitialize failed (" << lib_->eglGetError() << ")";
+        return false;
+    }
 
     // Choose a config suitable for offscreen rendering.
     static const EGLint cfgAttrs[] = {
@@ -66,6 +100,9 @@ bool GLESBackend::createContext() {
     EGLConfig config = nullptr;
     EGLint num = 0;
     if (!lib_->eglChooseConfig(display_, cfgAttrs, &config, 1, &num) || num == 0) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: eglChooseConfig failed (" << lib_->eglGetError()
+            << ", num=" << num << ")";
         return false;
     }
 
@@ -74,10 +111,16 @@ bool GLESBackend::createContext() {
         EGL_CONTEXT_MINOR_VERSION, 0,
         EGL_NONE};
     context_ = lib_->eglCreateContext(display_, config, EGL_NO_CONTEXT, ctxAttrs);
-    if (context_ == EGL_NO_CONTEXT) return false;
+    if (context_ == EGL_NO_CONTEXT) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: eglCreateContext failed (" << lib_->eglGetError() << ")";
+        return false;
+    }
 
     // Surfaceless: bind with no draw/read surfaces.
     if (!lib_->eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, context_)) {
+        log(LogCategory::GLES, LogLevel::Error)
+            << "createContext: eglMakeCurrent failed (" << lib_->eglGetError() << ")";
         return false;
     }
     return true;
@@ -225,6 +268,13 @@ void GLESBackend::vertexAttribPointer(uint32_t index, int32_t size, uint32_t typ
 
 void GLESBackend::bindNativeObject(uint32_t name, uint32_t nativeId) {
     nativeMap_[name] = nativeId;
+}
+
+void GLESBackend::bindFramebuffer(uint32_t target, uint32_t framebuffer) {
+    // Resolve the frontend framebuffer name to the native driver id when known.
+    auto it = nativeMap_.find(framebuffer);
+    GLuint native = it != nativeMap_.end() ? it->second : framebuffer;
+    if (lib_->glBindFramebuffer) lib_->glBindFramebuffer(target, native);
 }
 
 void GLESBackend::blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB,

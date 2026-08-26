@@ -7,6 +7,27 @@
 
 namespace glcompat {
 
+// GLES 3.x requires a *sized* internal format for texture/renderbuffer storage to
+// be color-/depth-renderable (and therefore FBO-complete). Desktop OpenGL accepts
+// unsized formats (GL_RGBA, GL_DEPTH_COMPONENT, ...); the GLES backend promotes them
+// to their sized equivalents so frontend callers (and the compatibility surface)
+// need not know about GLES specifics (SPEC §2.1: backend-specific decisions behind
+// the abstraction). Already-sized formats and formats with no sized mapping pass
+// through unchanged.
+inline uint32_t glesSizedInternalFormat(uint32_t internalFormat) {
+    switch (internalFormat) {
+        case 0x1908: return 0x8058; // GL_RGBA  -> GL_RGBA8
+        case 0x1907: return 0x8051; // GL_RGB   -> GL_RGB8
+        case 0x8227: return 0x822B; // GL_RG    -> GL_RG8
+        case 0x1903: return 0x8229; // GL_RED   -> GL_R8
+        case 0x1902: return 0x81A5; // GL_DEPTH_COMPONENT -> GL_DEPTH_COMPONENT16
+        case 0x1906: return 0x8058; // GL_ALPHA -> GL_RGBA8 (no ALPHA in GLES3)
+        case 0x1909: return 0x8229; // GL_LUMINANCE -> GL_R8
+        case 0x190A: return 0x822B; // GL_LUMINANCE_ALPHA -> GL_RG8
+        default:     return internalFormat;
+    }
+}
+
 // Backend resource handles wrapping a real GLES object name. Deletion goes
 // through the loader so the GLES object is freed when the frontend releases
 // the (opaque) frontend object. The loader is held by shared_ptr so handles
@@ -82,10 +103,11 @@ struct GLESBackendTexture : BackendTexture {
         // unit, so bind our handle first (SPEC §2.1 correctness: the driver's
         // currently bound texture must be ours, not whatever was bound before).
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexImage2D(target, level, static_cast<GLint>(internalFormat),
-                         static_cast<GLsizei>(width),
-                         static_cast<GLsizei>(height), 0,
-                         format, type, data);
+        lib->glTexImage2D(target, level,
+                          static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
+                          static_cast<GLsizei>(width),
+                          static_cast<GLsizei>(height), 0,
+                          format, type, data);
     }
     void texParameteri(uint32_t target, uint32_t pname, int param) override {
         if (!lib || !lib->loaded || !lib->glTexParameteri) return;
@@ -136,14 +158,15 @@ struct GLESBackendTexture : BackendTexture {
                         int x, int y, int width, int border) override {
         if (!lib || !lib->loaded || !lib->glCopyTexImage1D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
+        lib->glCopyTexImage1D(target, level, glesSizedInternalFormat(internalFormat),
+                              x, y, width, border);
     }
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int height, int border) override {
         if (!lib || !lib->loaded || !lib->glCopyTexImage2D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glCopyTexImage2D(target, level, internalFormat, x, y, width, height,
-                              border);
+        lib->glCopyTexImage2D(target, level, glesSizedInternalFormat(internalFormat),
+                              x, y, width, height, border);
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
@@ -165,6 +188,7 @@ struct GLESBackendRenderbuffer : BackendRenderbuffer {
                                   static_cast<GLsizei>(width),
                                   static_cast<GLsizei>(height));
     }
+    uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
 };
@@ -194,6 +218,7 @@ struct GLESBackendFramebuffer : BackendFramebuffer {
             return lib->glCheckFramebufferStatus(target);
         return 0x8CD5; // GL_FRAMEBUFFER_COMPLETE
     }
+    uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
 };

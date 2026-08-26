@@ -20,6 +20,13 @@ struct GLESLib {
     EGLBoolean (*eglInitialize)(EGLDisplay, EGLint*, EGLint*) = nullptr;
     EGLint (*eglGetError)(void) = nullptr;
     EGLDisplay (*eglGetPlatformDisplay)(EGLenum, void*, const EGLint*) = nullptr;
+    // eglGetPlatformDisplayEXT is the correct entry for platform-specific displays
+    // such as surfaceless (EGL_PLATFORM_SURFACELESS_MESA). The core
+    // eglGetPlatformDisplay routes the same platform enum through _eglFindDisplay,
+    // which reads past a single-element attrib list and corrupts the stack; the
+    // EXT entry handles the surfaceless platform cleanly. Resolved optionally so
+    // load() still succeeds where only the core entry exists.
+    EGLDisplay (*eglGetPlatformDisplayEXT)(EGLenum, void*, const EGLint*) = nullptr;
     EGLDisplay (*eglGetDisplay)(EGLNativeDisplayType) = nullptr;
     EGLBoolean (*eglChooseConfig)(EGLDisplay, const EGLint*, EGLConfig*,
                                   EGLint, EGLint*) = nullptr;

@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <string>
 #include <type_traits>
@@ -60,8 +61,11 @@ inline void fail(const char* file, int line, const std::string& expr,
 }
 
 inline int runAll() {
+    const char* filter = std::getenv("YAGLT_TEST_FILTER");
     int passed = 0;
     for (auto& tc : g_registry) {
+        if (filter && std::strstr(tc.name.c_str(), filter) == nullptr) continue;
+        std::printf("[ RUN ] %s\n", tc.name.c_str());
         try {
             tc.fn();
             ++passed;

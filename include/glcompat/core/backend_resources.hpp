@@ -86,6 +86,8 @@ public:
 class BackendFramebuffer {
 public:
     virtual ~BackendFramebuffer() = default;
+    // Native driver framebuffer id (resolved by the frontend via the native map).
+    virtual uint32_t nativeId() const { return 0; }
     // Attach a texture level (SPEC §2.1 glFramebufferTexture2D). `nativeTexture`
     // is the backend-native texture id resolved by the frontend.
     virtual void framebufferTexture2D(uint32_t target, uint32_t attachment,

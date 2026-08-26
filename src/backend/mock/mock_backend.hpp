@@ -55,6 +55,12 @@ public:
         nativeMap_[name] = nativeId;
     }
 
+    void bindFramebuffer(uint32_t target, uint32_t framebuffer) override {
+        lastBindFramebufferTarget = target;
+        lastBindFramebuffer = framebuffer;
+        ++bindFramebufferCalls;
+    }
+
     std::string describe() const override {
         return "MockBackend(" + platform_.describe() + ")";
     }
@@ -255,6 +261,9 @@ public:
 
     int bindVertexArrayCalls = 0;
     uint32_t lastBindVertexArray = 0;
+    int bindFramebufferCalls = 0;
+    uint32_t lastBindFramebufferTarget = 0;
+    uint32_t lastBindFramebuffer = 0;
     int enableVertexAttribArrayCalls = 0;
     int disableVertexAttribArrayCalls = 0;
     int vertexAttribPointerCalls = 0;

@@ -40,6 +40,12 @@ public:
     // for backends that do not need the translation (e.g. the mock backend).
     virtual void bindNativeObject(uint32_t /*name*/, uint32_t /*nativeId*/) {}
 
+    // Bind a framebuffer object on the driver (SPEC §9.4 / §15). `framebuffer` is
+    // the native id; backends resolve the frontend name through the native map.
+    // The frontend only records the bound framebuffer, so it must push the bind
+    // to the backend here, otherwise draws/clears/readback target the wrong FBO.
+    virtual void bindFramebuffer(uint32_t target, uint32_t framebuffer) = 0;
+
     // Draw commands (SPEC §2.1). The frontend flushes tracked pipeline state
     // (via GLStateSink) immediately before issuing these so the backend never
     // receives stale state. Backends translate them to native draw calls.

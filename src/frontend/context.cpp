@@ -444,6 +444,7 @@ GLObjectName Context::genTexture() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<TextureObject>(name);
     obj->backend = backend_.resourceFactory().createTexture();
+    if (obj->backend) backend_.bindNativeObject(name, obj->backend->nativeId());
     textures_.emplace(name, std::move(obj));
     return name;
 }
@@ -857,6 +858,7 @@ GLObjectName Context::genRenderbuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<RenderbufferObject>(name);
     obj->backend = backend_.resourceFactory().createRenderbuffer();
+    if (obj->backend) backend_.bindNativeObject(name, obj->backend->nativeId());
     renderbuffers_.emplace(name, std::move(obj));
     return name;
 }
@@ -922,6 +924,7 @@ GLObjectName Context::genFramebuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<FramebufferObject>(name);
     obj->backend = backend_.resourceFactory().createFramebuffer();
+    if (obj->backend) backend_.bindNativeObject(name, obj->backend->nativeId());
     framebuffers_.emplace(name, std::move(obj));
     return name;
 }
@@ -932,6 +935,16 @@ void Context::bindFramebuffer(GLObjectName name) {
         return;
     }
     boundFramebuffer_ = name;
+    // Push the bind to the backend so draws/clears/readback target the right FBO
+    // on the real driver (SPEC §9.4 / §15). The frontend otherwise only records
+    // the name and the driver keeps the default framebuffer bound.
+    if (name != 0) {
+        if (auto* f = getFramebuffer(name))
+            backend_.bindFramebuffer(GL_FRAMEBUFFER,
+                                     f->backend ? f->backend->nativeId() : name);
+    } else {
+        backend_.bindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 }
 
 GLObjectName Context::boundFramebuffer() const { return boundFramebuffer_; }
@@ -978,7 +991,7 @@ applied:
             if (auto* t = getTexture(texture)) nativeTex = t->backend ? t->backend->nativeId() : 0;
         }
         fbo->backend->framebufferTexture2D(target, attachment, texTarget,
-                                           nativeTex, level);
+                                            nativeTex, level);
     }
 }
 

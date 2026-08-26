@@ -100,6 +100,9 @@ public:
     // the real driver objects (SPEC §3/§11).
     void bindNativeObject(uint32_t name, uint32_t nativeId) override;
 
+    // Bind a framebuffer object on the driver (SPEC §9.4 / §15).
+    void bindFramebuffer(uint32_t target, uint32_t framebuffer) override;
+
     // Test/debug access to the registered name -> native id map.
     const std::unordered_map<uint32_t, uint32_t>& nativeMap() const {
         return nativeMap_;

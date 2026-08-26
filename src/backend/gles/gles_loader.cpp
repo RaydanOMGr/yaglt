@@ -37,6 +37,7 @@ bool GLESLib::load() {
     ok &= resolve(egl, eglInitialize, "eglInitialize");
     ok &= resolve(egl, eglGetError, "eglGetError");
     ok &= resolve(egl, eglGetPlatformDisplay, "eglGetPlatformDisplay");
+    resolve(egl, eglGetPlatformDisplayEXT, "eglGetPlatformDisplayEXT");
     ok &= resolve(egl, eglGetDisplay, "eglGetDisplay");
     ok &= resolve(egl, eglChooseConfig, "eglChooseConfig");
     ok &= resolve(egl, eglCreateContext, "eglCreateContext");
@@ -110,7 +111,11 @@ bool GLESLib::load() {
     ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
-    ok &= resolve(gles, glPointSize, "glPointSize");
+    // glPointSize was removed from the OpenGL ES 3.0 API (point size is set via
+    // the gl_PointSize vertex-shader builtin). Resolve it optionally so load()
+    // still succeeds on ES 3.0+ drivers that omit it; the frontend keeps tracking
+    // the state (SPEC §10) and GLESBackend::pointSize no-ops when absent.
+    resolve(gles, glPointSize, "glPointSize");
     ok &= resolve(gles, glLineWidth, "glLineWidth");
     ok &= resolve(gles, glPolygonOffset, "glPolygonOffset");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");

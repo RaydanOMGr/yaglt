@@ -1,0 +1,18 @@
+# LeakSanitizer suppressions for known Mesa-internal leaks.
+#
+# When the GLES backend loads the locally-built Mesa 26 softpipe surfaceless
+# driver (../mesa-26.2.1), eglInitialize / eglTerminate leak driver-internal
+# allocations (dri2_initialize_surfaceless, dri_init_screen, ...). These are
+# allocations made inside libEGL.so.1 / libgallium and are not freed on
+# eglTerminate; they are not YAGLT leaks. Suppress them so a Mesa-backed ASan
+# run stays green without disabling leak detection for our own code.
+#
+# Use with: ASAN_OPTIONS=suppressions=tools/lsan_mesa_suppressions.txt
+
+leak:dri2_initialize_surfaceless
+leak:dri2_initialize
+leak:_eglCreateArray
+leak:_eglAppendArray
+leak:dri_init_screen
+leak:dri2_add_config
+leak:driConcatConfigs

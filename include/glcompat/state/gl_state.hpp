@@ -59,6 +59,9 @@ public:
     // --- Color write mask (SPEC §17.3.6, glColorMask) ---
     bool setColorMask(bool r, bool g, bool b, bool a);
 
+    // --- Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage) ---
+    bool setSampleCoverage(float value, bool invert);
+
     // --- Rasterization ---
     bool setCullFace(GLenum mode);
     bool setFrontFace(GLenum mode);
@@ -280,6 +283,13 @@ private:
             return r == o.r && g == o.g && b == o.b && a == o.a;
         }
     };
+    struct SampleCoverageState {
+        float value = 1.0f;
+        bool invert = false;
+        bool equal(const SampleCoverageState& o) const {
+            return value == o.value && invert == o.invert;
+        }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -320,6 +330,7 @@ private:
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
     LogicOpState logicOp_, logicOpApplied_;
     ColorMaskState colorMask_, colorMaskApplied_;
+    SampleCoverageState sampleCoverage_, sampleCoverageApplied_;
 };
 
 } // namespace glcompat
