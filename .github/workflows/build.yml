@@ -1,0 +1,29 @@
+name: Build
+
+# Build the project and upload the compiled artifacts.
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and upload artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DYAGLT_BUILD_TESTS=ON
+
+      - name: Build
+        run: cmake --build build --target yaglt_tests -j
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: yaglt-build
+          path: |
+            build/tests/yaglt_tests
+            build/src/libyaglt_core.a
+          if-no-files-found: error
