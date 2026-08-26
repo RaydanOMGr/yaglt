@@ -261,7 +261,18 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 ## Compatibility Progress
 
 OpenGL 4.6:
-  Core API: partial. Object gen/bind/delete for buffers, textures, RBO, FBO, VAO;
+  Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
+    Measurement (2026-08-26): of the 490 command prototypes the spec declares,
+    90 (18.4%) have a frontend entry point; restricting to the core profile
+    (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
+    gives 90/435 ≈ 20.7% core prototype coverage. True core entry-point coverage
+    is lower (the spec text undercounts type/vector variants, and geometry/
+    tessellation/compute are honestly Unsupported). Implemented slice: object
+    lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
+    fragment/blend/depth/stencil/viewport/scissor state, transform feedback
+    scaffolding, samplers, DSA texture bind, basic draws — all with dispatch +
+    validation + tests.
+  Core API detail: Object gen/bind/delete for buffers, textures, RBO, FBO, VAO;
     buffer data upload; texture image storage + parameters; FBO attachments +
     completeness; pixel store; draw calls; shader/program/attrib API all wired.
     (SPEC §2.1 surface implemented against backend abstraction + mock; GLES path
