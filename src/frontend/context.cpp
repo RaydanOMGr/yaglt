@@ -1016,6 +1016,29 @@ void Context::setScissor(GLint x, GLint y, GLsizei width, GLsizei height) {
     state_.setScissor(x, y, width, height);
 }
 
+void Context::setClearColor(float r, float g, float b, float a) {
+    state_.setClearColor(r, g, b, a);
+}
+
+void Context::setClearDepth(double d) {
+    state_.setClearDepth(d);
+}
+
+void Context::clear(uint32_t mask) {
+    // glClear accepts only the color/depth/stencil buffer bits; any other bit
+    // is GL_INVALID_VALUE (SPEC §2.1).
+    constexpr uint32_t kValidMask =
+        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    if (mask & ~kValidMask) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Push tracked state (including the clear color/depth) before issuing the
+    // native clear so the driver clears with the current values (SPEC §10).
+    flushState();
+    backend_.clear(mask);
+}
+
 // --- Uniforms (SPEC §8) ---
 
 BackendProgram* Context::activeBackendProgram() {

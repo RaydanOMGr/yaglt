@@ -57,6 +57,8 @@ public:
     void pixelStorei(uint32_t pname, int32_t param) override;
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override;
     void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override;
+    void clearColor(float r, float g, float b, float a) override;
+    void clearDepth(double d) override;
     void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override;
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
                           intptr_t offset, intptr_t size) override;
@@ -86,7 +88,12 @@ public:
     void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
                              int32_t primcount) override;
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
-                               intptr_t indices, int32_t primcount) override;
+                                intptr_t indices, int32_t primcount) override;
+
+    // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
+    // clear color/depth through GLStateSink first, so this issues the native
+    // clear with the current values.
+    void clear(uint32_t mask) override;
 
 private:
     GLESLibPtr lib_;

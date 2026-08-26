@@ -55,6 +55,10 @@ public:
     // --- Scissor box (glScissor); the scissor test is GL_SCISSOR_TEST cap ---
     bool setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
+    // --- Clear values (glClearColor / glClearDepth, SPEC §2.1) ---
+    bool setClearColor(float r, float g, float b, float a);
+    bool setClearDepth(double d);
+
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
 
@@ -131,6 +135,21 @@ private:
                    height == o.height;
         }
     };
+    struct ClearColorState {
+        float r = 0.0f;
+        float g = 0.0f;
+        float b = 0.0f;
+        float a = 0.0f;
+        bool equal(const ClearColorState& o) const {
+            return r == o.r && g == o.g && b == o.b && a == o.a;
+        }
+    };
+    struct ClearDepthState {
+        double depth = 1.0;
+        bool equal(const ClearDepthState& o) const {
+            return depth == o.depth;
+        }
+    };
 
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;
@@ -148,6 +167,8 @@ private:
     PixelStoreState pixel_, pixelApplied_;
     ViewportState viewport_, viewportApplied_;
     ScissorBoxState scissor_, scissorApplied_;
+    ClearColorState clearColor_, clearColorApplied_;
+    ClearDepthState clearDepth_, clearDepthApplied_;
 };
 
 } // namespace glcompat

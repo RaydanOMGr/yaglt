@@ -117,7 +117,7 @@ bool GLStateTracker::setViewport(GLint x, GLint y, GLsizei width,
 }
 
 bool GLStateTracker::setScissor(GLint x, GLint y, GLsizei width,
-                                GLsizei height) {
+                                 GLsizei height) {
     if (scissor_.x == x && scissor_.y == y && scissor_.width == width &&
         scissor_.height == height)
         return false;
@@ -125,6 +125,23 @@ bool GLStateTracker::setScissor(GLint x, GLint y, GLsizei width,
     scissor_.y = y;
     scissor_.width = width;
     scissor_.height = height;
+    return true;
+}
+
+bool GLStateTracker::setClearColor(float r, float g, float b, float a) {
+    if (clearColor_.r == r && clearColor_.g == g && clearColor_.b == b &&
+        clearColor_.a == a)
+        return false;
+    clearColor_.r = r;
+    clearColor_.g = g;
+    clearColor_.b = b;
+    clearColor_.a = a;
+    return true;
+}
+
+bool GLStateTracker::setClearDepth(double d) {
+    if (clearDepth_.depth == d) return false;
+    clearDepth_.depth = d;
     return true;
 }
 
@@ -210,6 +227,19 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!clearColor_.equal(clearColorApplied_)) {
+        sink.clearColor(clearColor_.r, clearColor_.g, clearColor_.b,
+                        clearColor_.a);
+        clearColorApplied_ = clearColor_;
+        ++applied;
+    }
+
+    if (!clearDepth_.equal(clearDepthApplied_)) {
+        sink.clearDepth(clearDepth_.depth);
+        clearDepthApplied_ = clearDepth_;
+        ++applied;
+    }
+
     return applied;
 }
 
@@ -236,6 +266,10 @@ void GLStateTracker::reset() {
     viewportApplied_ = ViewportState{};
     scissor_ = ScissorBoxState{};
     scissorApplied_ = ScissorBoxState{};
+    clearColor_ = ClearColorState{};
+    clearColorApplied_ = ClearColorState{};
+    clearDepth_ = ClearDepthState{};
+    clearDepthApplied_ = ClearDepthState{};
 }
 
 } // namespace glcompat

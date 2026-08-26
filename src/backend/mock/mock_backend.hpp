@@ -82,6 +82,14 @@ public:
     int32_t lastScissorX = 0, lastScissorY = 0;
     int32_t lastScissorW = 0, lastScissorH = 0;
 
+    int clearColorCalls = 0;
+    float lastClearR = 0.0f, lastClearG = 0.0f, lastClearB = 0.0f,
+          lastClearA = 0.0f;
+    int clearDepthCalls = 0;
+    double lastClearDepth = 1.0;
+    int clearCalls = 0;
+    uint32_t lastClearMask = 0;
+
     void enable(GLenum cap) override {
         ++enableCalls;
         lastEnableCap = cap;
@@ -124,6 +132,17 @@ public:
         lastScissorY = y;
         lastScissorW = w;
         lastScissorH = h;
+    }
+    void clearColor(float r, float g, float b, float a) override {
+        ++clearColorCalls;
+        lastClearR = r;
+        lastClearG = g;
+        lastClearB = b;
+        lastClearA = a;
+    }
+    void clearDepth(double d) override {
+        ++clearDepthCalls;
+        lastClearDepth = d;
     }
 
     int bindBufferBaseCalls = 0;
@@ -214,13 +233,18 @@ public:
         lastDrawPrimcount = primcount;
     }
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
-                               intptr_t indices, int32_t primcount) override {
+                                intptr_t indices, int32_t primcount) override {
         ++drawElementsInstancedCalls;
         lastDrawMode = mode;
         lastDrawCount = count;
         lastDrawType = type;
         lastDrawIndices = indices;
         lastDrawPrimcount = primcount;
+    }
+
+    void clear(uint32_t mask) override {
+        ++clearCalls;
+        lastClearMask = mask;
     }
 
 private:

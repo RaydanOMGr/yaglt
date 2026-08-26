@@ -47,10 +47,15 @@ public:
     virtual void drawElements(uint32_t mode, int32_t count, uint32_t type,
                               intptr_t indices) = 0;
     virtual void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
-                                     int32_t primcount) = 0;
+                                      int32_t primcount) = 0;
     virtual void drawElementsInstanced(uint32_t mode, int32_t count,
-                                       uint32_t type, intptr_t indices,
-                                       int32_t primcount) = 0;
+                                        uint32_t type, intptr_t indices,
+                                        int32_t primcount) = 0;
+
+    // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
+    // clear color/depth values through GLStateSink before calling this, so the
+    // backend issues the native clear with the current clear values.
+    virtual void clear(uint32_t mask) = 0;
 
     virtual std::string describe() const = 0;
 };

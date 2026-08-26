@@ -125,4 +125,9 @@ constexpr GLenum GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER = 0x8CDB;
 constexpr GLenum GL_FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
 constexpr GLenum GL_UNPACK_ALIGNMENT = 0x0CF5;
 
+// Clear mask bits (SPEC §2.1, framebuffer clear).
+constexpr GLenum GL_DEPTH_BUFFER_BIT = 0x00000100;
+constexpr GLenum GL_STENCIL_BUFFER_BIT = 0x00000400;
+constexpr GLenum GL_COLOR_BUFFER_BIT = 0x00004000;
+
 } // namespace glcompat

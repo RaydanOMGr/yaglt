@@ -258,6 +258,17 @@ void GLESBackend::setScissor(int32_t x, int32_t y, int32_t w, int32_t h) {
     if (lib_->glScissor) lib_->glScissor(x, y, w, h);
 }
 
+void GLESBackend::clearColor(float r, float g, float b, float a) {
+    if (lib_->glClearColor) lib_->glClearColor(r, g, b, a);
+}
+
+void GLESBackend::clearDepth(double d) {
+    if (lib_->glClearDepthf) {
+        // GLES uses a float depth clear value; promote double to float.
+        lib_->glClearDepthf(static_cast<GLfloat>(d));
+    }
+}
+
 void GLESBackend::bindBufferBase(uint32_t target, uint32_t index,
                                   uint32_t buffer) {
     if (lib_->glBindBufferBase)
@@ -289,12 +300,16 @@ void GLESBackend::drawArraysInstanced(uint32_t mode, int32_t first,
 }
 
 void GLESBackend::drawElementsInstanced(uint32_t mode, int32_t count,
-                                        uint32_t type, intptr_t indices,
-                                        int32_t primcount) {
+                                         uint32_t type, intptr_t indices,
+                                         int32_t primcount) {
     if (lib_->glDrawElementsInstanced)
         lib_->glDrawElementsInstanced(mode, count, type,
                                       reinterpret_cast<const void*>(indices),
                                       primcount);
+}
+
+void GLESBackend::clear(uint32_t mask) {
+    if (lib_->glClear) lib_->glClear(mask);
 }
 
 } // namespace glcompat

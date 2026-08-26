@@ -123,6 +123,16 @@ public:
     void setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
     void setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
+    // --- Clear values + clear (SPEC §2.1) ---
+    // glClearColor / glClearDepth record the per-context clear values in the
+    // tracker and are pushed to the backend on the next state flush. glClear
+    // flushes tracked state first, then issues the native clear for the given
+    // mask. An invalid mask (bits outside color/depth/stencil) reports
+    // GL_INVALID_VALUE honestly.
+    void setClearColor(float r, float g, float b, float a);
+    void setClearDepth(double d);
+    void clear(uint32_t mask);
+
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
     // backend immediately (it affects subsequent texture/image uploads).

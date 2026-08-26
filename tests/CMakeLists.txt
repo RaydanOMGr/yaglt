@@ -22,6 +22,7 @@ add_executable(yaglt_tests
     unit/glsl_version_check_test.cpp
     unit/transform_feedback_test.cpp
     unit/viewport_scissor_test.cpp
+    unit/clear_test.cpp
     backend/gles_backend_test.cpp
 )
 

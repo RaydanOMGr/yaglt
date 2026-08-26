@@ -455,6 +455,26 @@ void glFlushState() {
     g_current->flushState();
 }
 
+void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {
+    if (g_current == nullptr) return;
+    g_current->setClearColor(red, green, blue, alpha);
+}
+
+void glClearDepth(GLdouble depth) {
+    if (g_current == nullptr) return;
+    g_current->setClearDepth(depth);
+}
+
+void glClearDepthf(GLfloat depth) {
+    if (g_current == nullptr) return;
+    g_current->setClearDepth(static_cast<double>(depth));
+}
+
+void glClear(GLuint mask) {
+    if (g_current == nullptr) return;
+    g_current->clear(mask);
+}
+
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (g_current == nullptr) return;
     g_current->drawArrays(mode, first, count);

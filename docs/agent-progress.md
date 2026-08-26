@@ -5,12 +5,10 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 2/3 — OpenGL object + state API (texture/FBO/pixel-store/buffer)
-Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API)
+Current milestone: Phase 3 — Core rendering state (viewport/scissor/depth-range/clear) + draw
+Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear)
 Last updated: 2026-08-26
 Known major blockers:
-- Renderbuffer storage (`glRenderbufferStorage`) and a full texture+program draw
-  e2e on GLES/Mesa still pending (next step).
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
 ## Toolchain & Environment
@@ -162,7 +160,7 @@ Known major blockers:
 - [x] P1: Implement GLES backend foundation + headless EGL validation.
 - [x] P1: Implement shader translation pipeline behind `IShaderCompiler`.
 - [x] P0: Implement uniform setting (`glUniform*`) on the active program.
-- [ ] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
+- [x] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
 - [x] P1: Android platform capabilities + SDK 21 fallback abstraction.
 - [ ] P2: Capability-driven emulation selection scaffolding.
 - [ ] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
@@ -487,7 +485,20 @@ OpenGL 4.6:
   `GLStateSink` gained `depthRange(double,double)`. Mock records it; GLESBackend
   drives `glDepthRangef` via the `GLESLib` loader. `gl_api` exposes both
   entry points; default range (0,1) matches the backend initial state so no
-  redundant native push occurs. Verified by `viewport_scissor_test`.
+   redundant native push occurs. Verified by `viewport_scissor_test`.
+
+- [x] Framebuffer clear (SPEC §2.1, this session).
+  - `glClearColor`/`glClearDepth`/`glClearDepthf` record the per-context clear
+    values in `GLStateTracker` (new `ClearColorState`/`ClearDepthState`), pushed
+    only on change through `GLStateSink` (new `clearColor`/`clearDepth`, SPEC §10).
+  - `glClear(mask)` validates the mask (bits outside color/depth/stencil →
+    `GL_INVALID_VALUE`, no native call) then flushes tracked state and issues the
+    native clear via the new `IGraphicsBackend::clear(uint32_t)` pure virtual.
+  - `GLESLib` resolves `glClearColor`/`glClearDepthf`/`glClear` (required);
+    `GLESBackend` drives them (depth promoted to float for GLES). `MockBackend`
+    records color/depth/clear. New `tests/unit/clear_test.cpp` covers change-only
+    push, invalid-mask error, and clear-after-flush.
+  - Validation: default 96/96, sanitizer 96/96, translate (Mesa) 103/103 green.
 
 ## Next Steps
 

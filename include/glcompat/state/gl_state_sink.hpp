@@ -40,6 +40,12 @@ public:
     virtual void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
     virtual void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
 
+    // Clear values (glClearColor / glClearDepth, SPEC §2.1). These are GL state
+    // pushed to the backend before a clear command so the driver clears with the
+    // correct color/depth. Pushed only when the value changed (SPEC §10).
+    virtual void clearColor(float r, float g, float b, float a) = 0;
+    virtual void clearDepth(double d) = 0;
+
     // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
     // `target` is the indexed buffer target, `index` the binding point.
     virtual void bindBufferBase(uint32_t target, uint32_t index,

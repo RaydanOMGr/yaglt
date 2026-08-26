@@ -149,6 +149,14 @@ void glPixelStorei(GLenum pname, GLint param);
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 void glScissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
+// Clear values + clear (SPEC §2.1). glClearColor/glClearDepth record the
+// per-context clear values; glClear flushes tracked state then clears the bound
+// framebuffer for the given mask. An invalid mask reports GL_INVALID_VALUE.
+void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+void glClearDepth(GLdouble depth);
+void glClearDepthf(GLfloat depth);
+void glClear(GLuint mask);
+
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for
 // unchanged state. Call this at draw / state-flush time.
