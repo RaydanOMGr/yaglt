@@ -58,6 +58,11 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                  GLsizei height, GLint border, GLenum format, GLenum type,
                  const GLvoid* data);
 void glTexParameteri(GLenum target, GLenum pname, GLint param);
+// Texture parameter queries (SPEC §8.1). glGetTexParameteriv reads the bound
+// texture for `target`; glGetTextureParameteriv is the DSA variant for an
+// explicit texture object (capability-gated by DirectStateAccess).
+void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params);
+void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
 
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);

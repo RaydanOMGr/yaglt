@@ -408,6 +408,43 @@ void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
     if (tex->backend) tex->backend->texParameteri(target, pname, param);
 }
 
+void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    auto it = tex->params.find(pname);
+    *params = (it != tex->params.end()) ? it->second : 0;
+}
+
+void Context::getTextureParameteriv(GLObjectName texture, GLenum pname,
+                                    int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    TextureObject* tex = getTexture(texture);
+    if (tex == nullptr) {
+        *params = 0; // default (name 0) texture object
+        return;
+    }
+    auto it = tex->params.find(pname);
+    *params = (it != tex->params.end()) ? it->second : 0;
+}
+
 GLObjectName Context::genRenderbuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<RenderbufferObject>(name);

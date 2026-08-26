@@ -186,6 +186,17 @@ Known major blockers:
      invariant. New `texture_fbo_test.cpp` cases cover the no-storage attachment
      path and the transition to COMPLETE after storage is allocated. Validation:
      default, sanitizer, and translate (Mesa) builds all green.
+
+- [x] Texture parameter queries (SPEC §8.1).
+   - `glGetTexParameteriv(target, pname, params)` reads the `params` map of the
+     currently bound texture for `target`; `glGetTextureParameteriv(texture,
+     pname, params)` is the DSA variant that reads an explicit texture object
+     (capability-gated by `DirectStateAccess`, Emulated in the mock). Null
+     `params` → `GL_INVALID_VALUE`; missing/unbound texture → `GL_INVALID_OPERATION`;
+     unknown pname returns 0 (the GL default). Pushes nothing to the backend — the
+     frontend owns the values (SPEC §10). `Context` gained `getTexParameteriv` /
+     `getTextureParameteriv`; `gl_api` exposes both entry points. New
+     `tests/unit/texparam_query_test.cpp`. Validation: default + sanitizer green.
    - `BackendSampler` resource + `IResourceFactory::createSampler`; frontend
      `SamplerObject` (params map + opaque backend). `Context` gained `genSampler`/
      `bindSampler`/`deleteSampler`/`samplerParameteri`/`getSamplerParameteriv`/

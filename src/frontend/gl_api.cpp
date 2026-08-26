@@ -110,6 +110,16 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
     g_current->texParameteri(target, pname, static_cast<int>(param));
 }
 
+void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexParameteriv(target, pname, params);
+}
+
+void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureParameteriv(texture, pname, params);
+}
+
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers) {
     if (g_current == nullptr) return;
     g_current->genRenderbuffers(static_cast<uint32_t>(n), renderbuffers);

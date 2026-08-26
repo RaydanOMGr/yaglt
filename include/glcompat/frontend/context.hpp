@@ -94,6 +94,15 @@ public:
                     int width, int height, uint32_t format, uint32_t type,
                     const void* data);
     void texParameteri(uint32_t target, uint32_t pname, int param);
+    // Texture parameter queries (SPEC §8.1). getTexParameteriv reads the
+    // currently bound texture for `target`; getTextureParameteriv is the DSA
+    // variant that reads an explicit texture object (capability-gated by
+    // DirectStateAccess). A null `params` reports GL_INVALID_VALUE; a missing
+    // texture reports GL_INVALID_OPERATION. Unknown pnames return 0 (the GL
+    // default), matching the driver's initial parameter state.
+    void getTexParameteriv(GLenum target, GLenum pname, int32_t* params);
+    void getTextureParameteriv(GLObjectName texture, GLenum pname,
+                               int32_t* params);
 
     // --- Renderbuffers ---
     GLObjectName genRenderbuffer();
