@@ -399,6 +399,21 @@ OpenGL 4.6:
   `tests/unit/getstring_test.cpp` covers values, invalid-name error, no-context.
 - Validation: default + sanitizer 69/69 green.
 
+## Recent Work
+
+2026-08-26 (honest-Unsupported shader stages, this session)
+- Per-stage shader capability gating (SPEC §8/§19, journal Next Step item:
+  geometry/tessellation/compute honest-Unsupported paths). `Context::createShader`
+  now maps each stage to its `Feature`: vertex/fragment→ShaderObjects,
+  geometry→GeometryShaders, tessellation→TessellationShaders,
+  compute→ComputeShaders. Unsupported stage → `GL_INVALID_OPERATION` + name 0
+  (no fake success); unknown stage → `GL_INVALID_ENUM`. Replaces the prior
+  ShaderObjects-only check.
+- New `tests/unit/shader_stage_test.cpp` covers vertex/fragment success, the
+  three unsupported stages (mock profile marks them Unsupported), and unknown
+  stage → INVALID_ENUM.
+- Validation: default + sanitizer suites green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

@@ -115,6 +115,22 @@ void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage,
 }
 
 namespace {
+// Map a shader stage to the capability that gates it. Vertex and fragment
+// shaders are gated by ShaderObjects; the advanced stages by their own
+// per-stage capability. An unknown stage maps to FeatureCount so the caller
+// can report GL_INVALID_ENUM honestly.
+Feature shaderStageFeature(uint32_t stage) {
+    switch (stage) {
+    case GL_VERTEX_SHADER:
+    case GL_FRAGMENT_SHADER: return Feature::ShaderObjects;
+    case GL_GEOMETRY_SHADER: return Feature::GeometryShaders;
+    case GL_TESS_CONTROL_SHADER:
+    case GL_TESS_EVALUATION_SHADER: return Feature::TessellationShaders;
+    case GL_COMPUTE_SHADER: return Feature::ComputeShaders;
+    default: return Feature::FeatureCount; // unknown stage -> invalid enum
+    }
+}
+
 // Map an indexed buffer target to the capability that gates it.
 Feature bufferTargetFeature(uint32_t target) {
     switch (target) {
@@ -537,7 +553,15 @@ void Context::drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
 // --- Shaders / programs (SPEC §8) ---
 
 GLObjectName Context::createShader(uint32_t stage) {
-    if (!backend_.capabilities().isSupported(Feature::ShaderObjects)) {
+    Feature f = shaderStageFeature(stage);
+    if (f == Feature::FeatureCount) {
+        setError(GLError::InvalidEnum); // unrecognized shader type
+        return 0;
+    }
+    if (!backend_.capabilities().isSupported(f)) {
+        // Stage unsupported by the backend (e.g. geometry/tessellation/compute
+        // have no GLES equivalent when emulation is absent). Report honestly
+        // rather than letting the unsupported shader fail later at compile/link.
         setError(GLError::InvalidOperation);
         return 0;
     }

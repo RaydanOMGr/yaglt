@@ -38,6 +38,17 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | ProgramPipelines | Emulated | (planned) |
 | DirectStateAccess | Emulated | (planned) |
 
+## Honest-Unsupported shader stages (this session)
+
+`createShader` now rejects stages the backend cannot provide, per SPEC §8/§19.
+Mapping: `GL_VERTEX_SHADER`/`GL_FRAGMENT_SHADER` → `ShaderObjects`;
+`GL_GEOMETRY_SHADER` → `GeometryShaders`;
+`GL_TESS_CONTROL_SHADER`/`GL_TESS_EVALUATION_SHADER` → `TessellationShaders`;
+`GL_COMPUTE_SHADER` → `ComputeShaders`. Unknown type → `GL_INVALID_ENUM`.
+Emulation path planned (see Emulation roadmap) but not yet implemented, so these
+remain honestly reported as `Unsupported` rather than faked.
+
+
 ## OpenGL-facing support (frontend)
 
 | Subsystem | Status | Notes |
@@ -50,7 +61,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | Error handling (GLError) | Partial | `getError`/`setError`; InvalidOperation on bad bind |
 | State tracking | Implemented | `GLStateTracker` + `GLStateSink`; Mock & GLES backends flush via `Context::flushState()`/`glFlushState()` |
 | Draw calls | Implemented | `glDrawArrays`/`glDrawElements` + instanced variants on `IGraphicsBackend`; `Context` flushes tracked state + bound VAO/attribs + program then issues the draw; no active program → `GL_INVALID_OPERATION`; instanced gated by `InstancedRendering` capability. Verified by `draw_test`/`shader_program_test` |
-| Shaders | Implemented | `glCreateShader`/`glShaderSource`/`glCompileShader`/`glGetShaderiv`; desktop GLSL translated via `IShaderCompiler` before the backend compiles. Capability-gated (ShaderObjects). Verified by `shader_program_test`/`gles_e2e_program_test` |
+| Shaders | Implemented | `glCreateShader`/`glShaderSource`/`glCompileShader`/`glGetShaderiv`; desktop GLSL translated via `IShaderCompiler` before the backend compiles. Capability-gated: `createShader` maps each stage to its `Feature` (vertex/fragment→ShaderObjects, geometry→GeometryShaders, tessellation→TessellationShaders, compute→ComputeShaders). Unsupported stage → `GL_INVALID_OPERATION`; unknown stage → `GL_INVALID_ENUM`. Verified by `shader_program_test`/`shader_stage_test`/`gles_e2e_program_test` |
 | Programs | Implemented | `glCreateProgram`/`glAttachShader`/`glLinkProgram`/`glGetProgramiv`/`glGetAttribLocation`; link status gated by ProgramObjects; name → native id mapping for bind-at-draw. Verified by `shader_program_test`/`gles_e2e_program_test` |
 | Vertex attributes | Implemented | `glEnableVertexAttribArray`/`glDisableVertexAttribArray`/`glVertexAttribPointer` recorded on the bound VAO (requires a bound VAO) and pushed via `GLStateSink` at draw/flush. Verified by `shader_program_test`/`gles_e2e_program_test` |
 | GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection, real program/shader compile + link. Real on Android/Mesa-GLES; initializes=false honestly where no driver |

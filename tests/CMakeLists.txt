@@ -16,6 +16,7 @@ add_executable(yaglt_tests
     unit/uniform_test.cpp
     unit/android_capabilities_test.cpp
     unit/getstring_test.cpp
+    unit/shader_stage_test.cpp
     backend/gles_backend_test.cpp
 )
 
