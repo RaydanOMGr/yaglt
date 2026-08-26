@@ -173,6 +173,43 @@ TEST_CASE("checkFramebufferStatus_incomplete_without_attachments") {
               GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT);
 }
 
+TEST_CASE("checkFramebufferStatus_incomplete_attachment_no_texture_storage") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fbo = ctx.genFramebuffer();
+    GLObjectName tex = ctx.genTexture(); // generated but no texImage2D yet
+    ctx.bindFramebuffer(fbo);
+    ctx.framebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                             tex, 0);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ctx.checkFramebufferStatus(GL_FRAMEBUFFER),
+              GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+    // Allocating storage makes the attachment complete.
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
+    ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE,
+                   nullptr);
+    EXPECT_EQ(ctx.checkFramebufferStatus(GL_FRAMEBUFFER),
+              GL_FRAMEBUFFER_COMPLETE);
+}
+
+TEST_CASE("checkFramebufferStatus_incomplete_attachment_no_rbo_storage") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fbo = ctx.genFramebuffer();
+    GLObjectName rbo = ctx.genRenderbuffer(); // generated but no storage yet
+    ctx.bindFramebuffer(fbo);
+    ctx.framebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                               GL_RENDERBUFFER, rbo);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ctx.checkFramebufferStatus(GL_FRAMEBUFFER),
+              GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT);
+    // Allocating storage makes the attachment complete.
+    ctx.bindRenderbuffer(rbo);
+    ctx.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 8, 8);
+    EXPECT_EQ(ctx.checkFramebufferStatus(GL_FRAMEBUFFER),
+              GL_FRAMEBUFFER_COMPLETE);
+}
+
 TEST_CASE("pixelStorei_records_state_and_pushes_to_sink") {
     auto backend = makeBackend();
     Context ctx(*backend);

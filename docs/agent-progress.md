@@ -173,6 +173,19 @@ Known major blockers:
      Public `gl_api` exposes `glBindTextureUnit` / `glBindTextures`. New
      `tests/unit/dsa_texture_test.cpp`. Validation: default, sanitizer, and
      translate (Mesa) builds all green.
+
+- [x] FBO completeness reasons (SPEC §9.4, Next Steps item 1).
+   - `Context::checkFramebufferStatus` now reports honest per-attachment
+     completeness instead of only the structural missing-attachment check. An
+     attachment referencing a generated-but-not-yet-specified object (texture
+     without `texImage2D` storage, or renderbuffer without `renderbufferStorage`)
+     returns `GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT`; an FBO with no attachments
+     still returns `GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT`. Driver-level
+     format support is still delegated to the backend `checkStatus` when a backend
+     resource exists. `isStructurallyComplete` kept for the non-empty + valid-name
+     invariant. New `texture_fbo_test.cpp` cases cover the no-storage attachment
+     path and the transition to COMPLETE after storage is allocated. Validation:
+     default, sanitizer, and translate (Mesa) builds all green.
    - `BackendSampler` resource + `IResourceFactory::createSampler`; frontend
      `SamplerObject` (params map + opaque backend). `Context` gained `genSampler`/
      `bindSampler`/`deleteSampler`/`samplerParameteri`/`getSamplerParameteriv`/

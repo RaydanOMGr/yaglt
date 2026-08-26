@@ -574,8 +574,24 @@ applied:
 uint32_t Context::checkFramebufferStatus(uint32_t target) {
     FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
     if (fbo == nullptr) return GL_FRAMEBUFFER_COMPLETE; // default FBO
-    if (!fbo->isStructurallyComplete())
+    if (fbo->attachments.empty())
         return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+    // Per-attachment completeness (SPEC §9.4): every attachment must reference
+    // an existing object that has had storage allocated. A missing or
+    // not-yet-specified attachment is reported honestly as INCOMPLETE_ATTACHMENT
+    // rather than pretending the FBO is complete.
+    for (const auto& a : fbo->attachments) {
+        if (a.name == 0) return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        if (a.type == 0) { // texture attachment
+            TextureObject* tex = getTexture(a.name);
+            if (tex == nullptr || !tex->storageSet)
+                return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        } else { // renderbuffer attachment
+            RenderbufferObject* rbo = getRenderbuffer(a.name);
+            if (rbo == nullptr || !rbo->storageSet)
+                return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        }
+    }
     if (fbo->backend) return fbo->backend->checkStatus(target);
     return GL_FRAMEBUFFER_COMPLETE;
 }
