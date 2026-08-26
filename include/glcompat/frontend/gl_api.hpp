@@ -248,6 +248,11 @@ void glClearDepth(GLdouble depth);
 void glClearDepthf(GLfloat depth);
 void glClear(GLuint mask);
 
+// Whole-framebuffer buffer selection (SPEC §15 / §16). glDrawBuffers selects the
+// draw buffers for the bound framebuffer; glReadBuffer selects its read buffer.
+void glDrawBuffers(GLsizei n, const GLenum* bufs);
+void glReadBuffer(GLenum buf);
+
 // Command stream flush / finish (SPEC §2.1).
 void glFlush();
 void glFinish();

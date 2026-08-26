@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 109 | **22.2%** |
-| Core profile only (spec − 55 removed commands) | 435 | 109 | **25.1%** |
+| Full spec (compat + core) | 490 | 111 | **22.7%** |
+| Core profile only (spec − 55 removed commands) | 435 | 111 | **25.5%** |
 
 All 100 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
@@ -65,7 +65,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
 | §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test. Missing: **`glSampleCoverage`**, **`glMinSampleShading`**, `glPolygonOffset` |
-| §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear. Missing: **`glDrawBuffers`**, **`glReadBuffer`**, **`glBlitFramebuffer`** (and `BlitNamedFramebuffer`), `glInvalidateFramebuffer`, `glColorMask`/`glDepthMask` present, `glStencilMask` present; **logic op**, **sRGB/alpha-to-coverage**, **`glClampColor`** |
+| §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush). Missing: **`glBlitFramebuffer`** (and `BlitNamedFramebuffer`), `glInvalidateFramebuffer`, `glColorMask`/`glDepthMask` present, `glStencilMask` present; **logic op**, **sRGB/alpha-to-coverage**, **`glClampColor`** |
 | §17 (fragment op details — alpha test, dither, logical op) | ❌ | alpha test removed-in-core; logical op / dither not implemented |
 | §18 (pixels: ReadPixels done; Copy/DrawPixels removed-compat) | 🟡 | `glReadPixels` implemented; `glPixelStorei` implemented |
 | §4 / §19 Sync objects & fences | ❌ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` — not implemented |
@@ -84,6 +84,7 @@ CopyTexImage1D, CopyTexImage2D,
 BindSampler, BindTexture, BindTextureUnit, BindTextures, BindTransformFeedback,
 BindVertexArray, BlendColor, BlendEquation, BlendEquationSeparate, BlendFunc,
 BlendFuncSeparate, BufferData, Clear, ClearColor, ClearDepth, ClearDepthf, CopyTexImage1D, CopyTexImage2D,
+DrawBuffers, ReadBuffer,
 CompileShader, CopyBufferSubData, CullFace, DeleteBuffers, DeleteFramebuffers,
 DeleteProgram, DeleteRenderbuffers, DeleteSamplers, DeleteShader, DeleteTextures,
 DeleteTransformFeedbacks, DeleteVertexArrays, DepthFunc, DepthMask, DepthRange,

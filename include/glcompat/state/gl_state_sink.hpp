@@ -67,6 +67,12 @@ public:
     virtual void clearColor(float r, float g, float b, float a) = 0;
     virtual void clearDepth(double d) = 0;
 
+    // Whole-framebuffer buffer selection (SPEC §15 / §16). `drawBuffers` selects
+    // the draw buffers for the currently bound framebuffer; `readBuffer` selects
+    // its read buffer. Pushed only when the selection changed (SPEC §10).
+    virtual void drawBuffers(int32_t n, const uint32_t* bufs) = 0;
+    virtual void readBuffer(uint32_t buf) = 0;
+
     // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
     // `target` is the indexed buffer target, `index` the binding point.
     virtual void bindBufferBase(uint32_t target, uint32_t index,

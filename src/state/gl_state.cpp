@@ -204,6 +204,18 @@ bool GLStateTracker::setClearDepth(double d) {
     return true;
 }
 
+bool GLStateTracker::setDrawBuffers(const std::vector<GLenum>& bufs) {
+    if (fbBuffers_.draw == bufs) return false;
+    fbBuffers_.draw = bufs;
+    return true;
+}
+
+bool GLStateTracker::setReadBuffer(GLenum buf) {
+    if (fbBuffers_.read == buf) return false;
+    fbBuffers_.read = buf;
+    return true;
+}
+
 bool GLStateTracker::setActiveTexture(GLenum texture) {
     if (texture < GL_TEXTURE0) return false; // not a texture-unit enum
     uint32_t unit = texture - GL_TEXTURE0;
@@ -432,6 +444,16 @@ int GLStateTracker::apply(GLStateSink& sink) {
     if (!clearDepth_.equal(clearDepthApplied_)) {
         sink.clearDepth(clearDepth_.depth);
         clearDepthApplied_ = clearDepth_;
+        ++applied;
+    }
+
+    if (!fbBuffers_.equal(fbBuffersApplied_)) {
+        if (!fbBuffers_.draw.empty()) {
+            sink.drawBuffers(static_cast<int32_t>(fbBuffers_.draw.size()),
+                             fbBuffers_.draw.data());
+        }
+        sink.readBuffer(fbBuffers_.read);
+        fbBuffersApplied_ = fbBuffers_;
         ++applied;
     }
 
@@ -678,6 +700,8 @@ void GLStateTracker::reset() {
     clearColorApplied_ = ClearColorState{};
     clearDepth_ = ClearDepthState{};
     clearDepthApplied_ = ClearDepthState{};
+    fbBuffers_ = FramebufferBufferState{};
+    fbBuffersApplied_ = FramebufferBufferState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
     texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
     activeTextureUnit_ = 0;

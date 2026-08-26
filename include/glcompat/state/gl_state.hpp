@@ -80,6 +80,13 @@ public:
     bool setClearColor(float r, float g, float b, float a);
     bool setClearDepth(double d);
 
+    // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
+    // `drawBuffers` selects the draw buffers for the bound framebuffer (vector of
+    // GL_COLOR_ATTACHMENTi / GL_BACK / GL_NONE); `readBuffer` selects its read
+    // buffer. Both return true when the selection changed.
+    bool setDrawBuffers(const std::vector<GLenum>& bufs);
+    bool setReadBuffer(GLenum buf);
+
     // --- Texture units (SPEC §2.1) ---
     // glActiveTexture selects the unit (texture = GL_TEXTURE0 + i); returns
     // true when the active unit actually changed. glBindTexture binds `name` to
@@ -248,6 +255,13 @@ private:
             return depth == o.depth;
         }
     };
+    struct FramebufferBufferState {
+        std::vector<GLenum> draw;            // draw buffer selection
+        GLenum read = 0x0405;                // GL_BACK (default read buffer)
+        bool equal(const FramebufferBufferState& o) const {
+            return draw == o.draw && read == o.read;
+        }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -285,6 +299,7 @@ private:
     ScissorBoxState scissor_, scissorApplied_;
     ClearColorState clearColor_, clearColorApplied_;
     ClearDepthState clearDepth_, clearDepthApplied_;
+    FramebufferBufferState fbBuffers_, fbBuffersApplied_;
 };
 
 } // namespace glcompat

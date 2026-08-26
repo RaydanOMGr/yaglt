@@ -201,6 +201,21 @@ public:
         lastClearDepth = d;
     }
 
+    int drawBuffersCalls = 0;
+    int32_t lastDrawBuffersN = 0;
+    std::vector<uint32_t> lastDrawBuffers;
+    int readBufferCalls = 0;
+    uint32_t lastReadBuffer = 0;
+    void drawBuffers(int32_t n, const uint32_t* bufs) override {
+        ++drawBuffersCalls;
+        lastDrawBuffersN = n;
+        lastDrawBuffers.assign(bufs, bufs + n);
+    }
+    void readBuffer(uint32_t buf) override {
+        ++readBufferCalls;
+        lastReadBuffer = buf;
+    }
+
     int bindBufferBaseCalls = 0;
     int bindBufferRangeCalls = 0;
     uint32_t lastBindTarget = 0;

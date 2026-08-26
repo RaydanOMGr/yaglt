@@ -152,6 +152,11 @@ struct GLESLib {
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;
 
+    // Whole-framebuffer buffer selection (SPEC §15 / §16). Core in GLES 2.0+, but
+    // resolved defensively so load() still succeeds when absent.
+    void (*glDrawBuffers)(GLsizei, const GLenum*) = nullptr;
+    void (*glReadBuffer)(GLenum) = nullptr;
+
     // Draw commands.
     void (*glDrawArrays)(GLenum, GLint, GLsizei) = nullptr;
     void (*glDrawElements)(GLenum, GLsizei, GLenum, const void*) = nullptr;

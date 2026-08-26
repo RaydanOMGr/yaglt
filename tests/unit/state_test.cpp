@@ -55,6 +55,8 @@ struct RecordingSink : GLStateSink {
     void activeTexture(uint32_t) override {}
     void bindTexture(uint32_t, uint32_t) override {}
     void bindSampler(uint32_t, uint32_t) override {}
+    void drawBuffers(int32_t, const uint32_t*) override {}
+    void readBuffer(uint32_t) override {}
 };
 
 } // namespace

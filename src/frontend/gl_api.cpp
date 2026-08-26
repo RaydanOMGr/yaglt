@@ -725,6 +725,16 @@ void glClear(GLuint mask) {
     g_current->clear(mask);
 }
 
+void glDrawBuffers(GLsizei n, const GLenum* bufs) {
+    if (g_current == nullptr) return;
+    g_current->drawBuffers(static_cast<int32_t>(n), bufs);
+}
+
+void glReadBuffer(GLenum buf) {
+    if (g_current == nullptr) return;
+    g_current->readBuffer(buf);
+}
+
 void glFlush() {
     if (g_current == nullptr) return;
     g_current->flushCommands();

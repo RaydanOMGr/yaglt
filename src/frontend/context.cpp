@@ -1780,6 +1780,61 @@ void Context::clear(uint32_t mask) {
     backend_.clear(mask);
 }
 
+namespace {
+// Valid draw buffer names (SPEC §15): GL_NONE, GL_BACK (default framebuffer), or
+// GL_COLOR_ATTACHMENTi (user framebuffers).
+bool isValidDrawBuffer(GLenum buf) {
+    if (buf == GL_NONE || buf == GL_BACK) return true;
+    if (buf >= GL_COLOR_ATTACHMENT0 &&
+        buf <= GL_COLOR_ATTACHMENT0 + 0x0F) return true;
+    return false;
+}
+bool isValidReadBuffer(GLenum buf) {
+    switch (buf) {
+        case GL_NONE:
+        case GL_FRONT:
+        case GL_BACK:
+        case GL_FRONT_LEFT:
+        case GL_FRONT_RIGHT:
+        case GL_BACK_LEFT:
+        case GL_BACK_RIGHT:
+            return true;
+        default:
+            return buf >= GL_COLOR_ATTACHMENT0 &&
+                   buf <= GL_COLOR_ATTACHMENT0 + 0x0F;
+    }
+}
+} // namespace
+
+void Context::drawBuffers(int32_t n, const GLenum* bufs) {
+    if (n <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufs == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    std::vector<GLenum> selection;
+    selection.reserve(n);
+    for (int32_t i = 0; i < n; ++i) {
+        if (!isValidDrawBuffer(bufs[i])) {
+            setError(GLError::InvalidEnum);
+            return;
+        }
+        selection.push_back(bufs[i]);
+    }
+    state_.setDrawBuffers(selection);
+}
+
+void Context::readBuffer(GLenum buf) {
+    if (!isValidReadBuffer(buf)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setReadBuffer(buf);
+}
+
 void Context::flushCommands() {
     backend_.flush();
 }

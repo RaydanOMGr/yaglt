@@ -317,6 +317,15 @@ void GLESBackend::clearDepth(double d) {
     }
 }
 
+void GLESBackend::drawBuffers(int32_t n, const uint32_t* bufs) {
+    if (lib_->glDrawBuffers && n > 0 && bufs)
+        lib_->glDrawBuffers(n, reinterpret_cast<const GLenum*>(bufs));
+}
+
+void GLESBackend::readBuffer(uint32_t buf) {
+    if (lib_->glReadBuffer) lib_->glReadBuffer(buf);
+}
+
 void GLESBackend::bindBufferBase(uint32_t target, uint32_t index,
                                   uint32_t buffer) {
     if (lib_->glBindBufferBase)

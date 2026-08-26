@@ -216,6 +216,14 @@ public:
     void setClearDepth(double d);
     void clear(uint32_t mask);
 
+    // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
+    // Select the draw buffers for the currently bound framebuffer (glDrawBuffers)
+    // and its read buffer (glReadBuffer). Pushed to the backend at the next state
+    // flush. n must be positive (else GL_INVALID_VALUE); each buffer must be a
+    // valid draw/read-buffer enum (else GL_INVALID_ENUM).
+    void drawBuffers(int32_t n, const GLenum* bufs);
+    void readBuffer(GLenum buf);
+
     // --- Command stream (SPEC §2.1) ---
     void flushCommands();
     void finishCommands();

@@ -263,9 +263,9 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 OpenGL 4.6:
   Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
      Measurement (2026-08-26): of the 490 command prototypes the spec declares,
-      109 (22.2%) have a frontend entry point; restricting to the core profile
+      111 (22.7%) have a frontend entry point; restricting to the core profile
       (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
-       gives 109/435 ≈ 25.1% core prototype coverage. True core entry-point coverage
+       gives 111/435 ≈ 25.5% core prototype coverage. True core entry-point coverage
     is lower (the spec text undercounts type/vector variants, and geometry/
     tessellation/compute are honestly Unsupported). Implemented slice: object
     lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
@@ -767,6 +767,20 @@ OpenGL 4.6:
   Extended `tests/unit/texparam_query_test.cpp` (10 new cases). Coverage now
   109/490 (22.2%) full / 109/435 (25.1%) core.
 - Validation: default 180/180 green; sanitizer 180/180 green.
+
+2026-08-26 (whole-framebuffer buffer selection, this session)
+- Implemented `glDrawBuffers` / `glReadBuffer` (SPEC §15 / §16). Frontend tracks
+  the draw-buffer set and read buffer in `GLStateTracker` (new `FramebufferBufferState`,
+  change-detected like the rest of the pipeline); the selection is pushed through
+  `GLStateSink::drawBuffers` / `readBuffer` at the next state flush (SPEC §10:
+  redundant native calls skipped). `MockBackend` and `GLESBackend` implement the
+  sink methods (`glDrawBuffers` / `glReadBuffer` via newly resolved `GLESLib`
+  loader symbols). Validation: non-positive count or null bufs → GL_INVALID_VALUE;
+  an invalid draw/read-buffer enum → GL_INVALID_ENUM. Added `GL_NONE`, `GL_FRONT*`,
+  `GL_BACK*`, `GL_COLOR_ATTACHMENT1..15` constants to `gl_types.hpp`. New
+  `tests/unit/framebuffer_buf_test.cpp` (7 cases). Coverage now 111/490 (22.7%)
+  full / 111/435 (25.5%) core.
+- Validation: default 187/187 green; sanitizer pending.
 
 ## Next Steps
 

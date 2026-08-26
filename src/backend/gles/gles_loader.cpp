@@ -137,6 +137,9 @@ bool GLESLib::load() {
     ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");
+    // Whole-framebuffer buffer selection (core in GLES but resolved defensively).
+    resolve(gles, glDrawBuffers, "glDrawBuffers");
+    resolve(gles, glReadBuffer, "glReadBuffer");
     ok &= resolve(gles, glDrawArrays, "glDrawArrays");
     ok &= resolve(gles, glDrawElements, "glDrawElements");
     // Instanced draws are ES 3.0+; resolve optionally so load() still succeeds
