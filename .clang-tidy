@@ -1,0 +1,10 @@
+---
+Checks: >
+  bugprone-*,
+  performance-*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  readability-braces-around-statements
+WarningsAsErrors: ''
+HeaderFilterRegex: 'include/glcompat/.*'
+FormatStyle: file

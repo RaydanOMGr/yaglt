@@ -1,0 +1,64 @@
+#pragma once
+
+#include <string>
+
+namespace glcompat {
+
+// How a given OpenGL feature is provided by the active backend/configuration.
+enum class FeatureSupport {
+    Native,     // backend provides it directly
+    Emulated,   // provided via emulation (shader/CPU/resource)
+    Unsupported // not available; must be reported honestly
+};
+
+// OpenGL feature identifiers tracked by the capability system.
+// Keep this list aligned with docs/feature-matrix.md.
+enum class Feature {
+    // Buffers
+    BufferObjects,
+    ImmutableBufferStorage,
+    // Textures
+    TextureObjects,
+    ImmutableTextureStorage,
+    TextureMultisample,
+    // Shaders
+    ShaderObjects,
+    ProgramObjects,
+    GeometryShaders,
+    TessellationShaders,
+    ComputeShaders,
+    // Vertex
+    VertexArrayObjects,
+    InstancedRendering,
+    // Framebuffers
+    FramebufferObjects,
+    RenderbufferObjects,
+    // Modern
+    UniformBufferObjects,
+    ShaderStorageBufferObjects,
+    TransformFeedback,
+    ImageLoadStore,
+    IndirectDrawing,
+    ProgramPipelines,
+    DirectStateAccess,
+    // Sentinel
+    FeatureCount
+};
+
+// Centralized capability query interface.
+// Frontend asks this instead of checking GLES version, Android SDK, extensions.
+class ICapabilities {
+public:
+    virtual ~ICapabilities() = default;
+
+    virtual FeatureSupport getFeatureSupport(Feature feature) const = 0;
+
+    bool isSupported(Feature feature) const {
+        FeatureSupport s = getFeatureSupport(feature);
+        return s == FeatureSupport::Native || s == FeatureSupport::Emulated;
+    }
+
+    virtual std::string featureName(Feature feature) const = 0;
+};
+
+} // namespace glcompat

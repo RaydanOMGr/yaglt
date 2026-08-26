@@ -1,0 +1,59 @@
+#pragma once
+
+#include "glcompat/core/capabilities_table.hpp"
+#include "glcompat/core/platform.hpp"
+
+namespace glcompat {
+
+// Populate a capability table with a believable mock-backend profile.
+// The profile mirrors a reasonable GLES 3.1 baseline: core features native,
+// advanced desktop-only stages reported honestly as unsupported, and some
+// features marked emulated to exercise the emulation code paths in tests.
+inline void populateMockCapabilities(CapabilityTable& table) {
+    using F = Feature;
+    using S = FeatureSupport;
+
+    table.set(F::BufferObjects, S::Native);
+    table.set(F::ImmutableBufferStorage, S::Native);
+    table.set(F::TextureObjects, S::Native);
+    table.set(F::ImmutableTextureStorage, S::Native);
+    table.set(F::TextureMultisample, S::Native);
+    table.set(F::ShaderObjects, S::Native);
+    table.set(F::ProgramObjects, S::Native);
+    table.set(F::GeometryShaders, S::Unsupported);
+    table.set(F::TessellationShaders, S::Unsupported);
+    table.set(F::ComputeShaders, S::Unsupported);
+    table.set(F::VertexArrayObjects, S::Native);
+    table.set(F::InstancedRendering, S::Native);
+    table.set(F::FramebufferObjects, S::Native);
+    table.set(F::RenderbufferObjects, S::Native);
+    table.set(F::UniformBufferObjects, S::Native);
+    table.set(F::ShaderStorageBufferObjects, S::Native);
+    table.set(F::TransformFeedback, S::Native);
+    table.set(F::ImageLoadStore, S::Unsupported);
+    table.set(F::IndirectDrawing, S::Unsupported);
+    table.set(F::ProgramPipelines, S::Emulated);
+    table.set(F::DirectStateAccess, S::Emulated);
+}
+
+// Mock platform: used for headless Linux testing. On Android the real
+// platform implementation is supplied instead; this one reports Linux.
+class MockPlatformCapabilities : public IPlatformCapabilities {
+public:
+    explicit MockPlatformCapabilities(PlatformOs os = PlatformOs::Linux, int sdk = 0)
+        : os_(os), sdk_(sdk) {}
+
+    PlatformOs os() const override { return os_; }
+    int androidSdkVersion() const override { return sdk_; }
+    bool supportsSharedMemory() const override { return true; }
+    std::string describe() const override {
+        return "MockPlatform(os=" + std::to_string(static_cast<int>(os_)) +
+               ", sdk=" + std::to_string(sdk_) + ")";
+    }
+
+private:
+    PlatformOs os_;
+    int sdk_;
+};
+
+} // namespace glcompat
