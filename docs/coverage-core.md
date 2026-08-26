@@ -35,10 +35,10 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 90 | **18.4%** |
-| Core profile only (spec − 55 removed commands) | 435 | 90 | **20.7%** |
+| Full spec (compat + core) | 490 | 97 | **19.8%** |
+| Core profile only (spec − 55 removed commands) | 435 | 97 | **22.3%** |
 
-All 90 covered commands are real `gl_api` entry points with frontend semantics
+All 97 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -75,27 +75,29 @@ ive) | ❌ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `
 | §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
 | Shader stages | 🚫 | **Geometry, Tessellation, Compute** honestly **Unsupported** (no entry points; capability-gated). Only vertex + fragment stages translate (desktop→GLSL ES via glslang + SPIRV-Cross). |
 
-## The 90 covered core command prototypes
+## The 97 covered core command prototypes
 
 ActiveTexture, AttachShader, BeginTransformFeedback, BindBuffer,
-BindBufferBase, BindBufferRange, BindFramebuffer, BindRenderbuffer,
+BindBufferBase, BindBufferRange, BufferStorage, BufferSubData,
+BindFramebuffer, BindRenderbuffer,
 BindSampler, BindTexture, BindTextureUnit, BindTextures, BindTransformFeedback,
 BindVertexArray, BlendColor, BlendEquation, BlendEquationSeparate, BlendFunc,
 BlendFuncSeparate, BufferData, Clear, ClearColor, ClearDepth, ClearDepthf,
-CompileShader, CullFace, DeleteBuffers, DeleteFramebuffers, DeleteProgram,
-DeleteRenderbuffers, DeleteSamplers, DeleteShader, DeleteTextures,
+CompileShader, CopyBufferSubData, CullFace, DeleteBuffers, DeleteFramebuffers,
+DeleteProgram, DeleteRenderbuffers, DeleteSamplers, DeleteShader, DeleteTextures,
 DeleteTransformFeedbacks, DeleteVertexArrays, DepthFunc, DepthMask, DepthRange,
 DepthRangef, Disable, DisableVertexAttribArray, DrawArrays,
 DrawArraysInstanced, DrawElements, DrawElementsInstanced, Enable,
 EnableVertexAttribArray, EndTransformFeedback, Finish, Flush,
 FramebufferRenderbuffer, FramebufferTexture2D, FrontFace, GenBuffers,
 GenFramebuffers, GenRenderbuffers, GenSamplers, GenTextures,
-GenTransformFeedbacks, GenVertexArrays, GetBooleanv, GetDoublev, GetFloatv,
-GetIntegerv, GetProgramInfoLog, GetProgramiv, GetShaderInfoLog, GetShaderiv,
-LinkProgram, PauseTransformFeedback, ReadPixels, RenderbufferStorage,
+GenTransformFeedbacks, GenVertexArrays, GetBooleanv, GetBufferParameteriv,
+GetDoublev, GetFloatv, GetIntegerv, GetProgramInfoLog, GetProgramiv,
+GetShaderInfoLog, GetShaderiv, LinkProgram, MapBuffer, MapBufferRange,
+PauseTransformFeedback, ReadPixels, RenderbufferStorage,
 ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
 StencilOp, TexImage2D, Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
-Uniform3i, Uniform4f, Uniform4i, UseProgram, VertexAttribPointer, Viewport.
+Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
 
 (Plus the type/vector variants already present in `gl_api`: `glUniform1fv`,
 `glUniform1iv`, `glUniformMatrix4fv`, `glGetString`, `glGetError`,
@@ -105,8 +107,10 @@ Uniform3i, Uniform4f, Uniform4i, UseProgram, VertexAttribPointer, Viewport.
 ## Major unimplemented core areas (priority order for next steps)
 
 1. **Buffer object completeness** — `BufferSubData`, `BufferStorage`
-   (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, buffer
-   parameter queries. (§6)
+    (immutable), `MapBuffer*`/`MapBufferRange`/`UnmapBuffer`, `CopyBufferSubData`,
+    and `glGetBufferParameteriv` are implemented (frontend owns an authoritative
+    CPU data store mirrored to the backend). Remaining: `ClearBuffer*`,
+    `InvalidateBuffer*`, `GetBufferSubData`. (§6)
 2. **Texture completeness** — all non-2D targets, `TexSubImage*`,
    `CompressedTexImage*`, `CopyTexImage*`, `TexParameter` full pname coverage,
    `GetTexImage`, multisample & buffer textures. (§8)

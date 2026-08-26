@@ -12,7 +12,31 @@ public:
     virtual ~BackendBuffer() = default;
     // Allocate/stream buffer storage (SPEC §2.1 glBufferData). `data` may be null.
     virtual void bufferData(uint32_t target, intptr_t size, uint32_t usage,
-                           const void* data) {}
+                            const void* data) {}
+    // Update a sub-region of existing storage (SPEC §6 glBufferSubData). The
+    // frontend validates bounds and keeps its own CPU mirror; backends that own
+    // native storage forward this to the driver.
+    virtual void bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                               const void* data) {}
+    // Allocate immutable storage (SPEC §6 glBufferStorage). Once allocated the
+    // buffer's size/usage/flags cannot change. Backends with native immutable
+    // storage (GLES 3.1+) forward this; others may emulate via bufferData.
+    virtual void bufferStorage(uint32_t target, intptr_t size, uint32_t flags,
+                               const void* data) {}
+    // Copy between two buffers' storage (SPEC §6 glCopyBufferSubData).
+    virtual void copySubData(uint32_t readTarget, uint32_t writeTarget,
+                             intptr_t readOffset, intptr_t writeOffset,
+                             intptr_t size) {}
+    // Map a region for CPU access (SPEC §6 glMapBufferRange). Returns a pointer to
+    // backend-owned memory, or nullptr when the backend has no native mapping (the
+    // frontend then serves the CPU mirror it maintains). Default no-op.
+    virtual void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
+                                 uint32_t access) {
+        (void)target; (void)offset; (void)length; (void)access;
+        return nullptr;
+    }
+    // Unmap a previously mapped region (SPEC §6 glUnmapBuffer). Default no-op.
+    virtual void unmapBuffer(uint32_t target) { (void)target; }
 };
 class BackendTexture {
 public:

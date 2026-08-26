@@ -17,9 +17,53 @@ struct GLESBackendBuffer : BackendBuffer {
         if (lib && lib->loaded && lib->glDeleteBuffers) lib->glDeleteBuffers(1, &handle);
     }
     void bufferData(uint32_t target, intptr_t size, uint32_t usage,
-                    const void* data) override {
-        if (lib && lib->loaded && lib->glBufferData)
+                     const void* data) override {
+        if (lib && lib->loaded && lib->glBufferData) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             lib->glBufferData(target, size, data, usage);
+        }
+    }
+    void bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                       const void* data) override {
+        if (lib && lib->loaded && lib->glBufferSubData) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
+            lib->glBufferSubData(target, offset, size, data);
+        }
+    }
+    void bufferStorage(uint32_t target, intptr_t size, uint32_t flags,
+                       const void* data) override {
+        if (lib && lib->loaded && lib->glBufferStorage) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
+            lib->glBufferStorage(target, size, data,
+                                 static_cast<GLenum>(flags));
+        }
+    }
+    void copySubData(uint32_t readTarget, uint32_t writeTarget,
+                     intptr_t readOffset, intptr_t writeOffset,
+                     intptr_t size) override {
+        if (lib && lib->loaded && lib->glCopyBufferSubData) {
+            if (lib->glBindBuffer) {
+                lib->glBindBuffer(readTarget, 0);
+                lib->glBindBuffer(writeTarget, 0);
+            }
+            lib->glCopyBufferSubData(readTarget, writeTarget, readOffset,
+                                     writeOffset, size);
+        }
+    }
+    void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
+                         uint32_t access) override {
+        if (lib && lib->loaded && lib->glMapBufferRange) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
+            return lib->glMapBufferRange(target, offset, length,
+                                         static_cast<GLbitfield>(access));
+        }
+        return nullptr;
+    }
+    void unmapBuffer(uint32_t target) override {
+        if (lib && lib->loaded && lib->glUnmapBuffer) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
+            lib->glUnmapBuffer(target);
+        }
     }
     GLESLibPtr lib;
     GLuint handle = 0;

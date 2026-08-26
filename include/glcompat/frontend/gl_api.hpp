@@ -32,6 +32,25 @@ void glBindBuffer(GLenum target, GLuint buffer);
 void glDeleteBuffers(GLsizei n, const GLuint* buffers);
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
 
+// Buffer sub-data / immutable storage / copy (SPEC §6).
+void glBufferSubData(GLenum target, GLsizeiptr offset, GLsizeiptr size,
+                     const GLvoid* data);
+void glBufferStorage(GLenum target, GLsizeiptr size, const GLvoid* data,
+                     GLbitfield flags);
+void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
+                         GLintptr readOffset, GLintptr writeOffset,
+                         GLsizeiptr size);
+
+// Buffer parameter queries (SPEC §6 / §22). Reads frontend-owned buffer state.
+void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);
+
+// Buffer mapping (SPEC §6). Returns a pointer into the frontend data store, or
+// nullptr on error. glUnmapBuffer returns GL_TRUE on success.
+GLvoid* glMapBuffer(GLenum target, GLenum access);
+GLvoid* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length,
+                         GLbitfield access);
+GLboolean glUnmapBuffer(GLenum target);
+
 // Indexed buffer bindings (SPEC §8). Capability-guarded in the frontend:
 // binding an unsupported target (e.g. SSBO on ES 3.0) yields GL_INVALID_OPERATION.
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);

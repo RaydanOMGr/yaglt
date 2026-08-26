@@ -25,6 +25,7 @@ add_executable(yaglt_tests
     unit/glsl_version_check_test.cpp
     unit/transform_feedback_test.cpp
     unit/sampler_test.cpp
+    unit/buffer_completeness_test.cpp
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
     unit/blend_test.cpp

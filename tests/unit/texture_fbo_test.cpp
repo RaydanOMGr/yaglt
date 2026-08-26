@@ -88,8 +88,8 @@ TEST_CASE("bufferData_pushes_to_backend_resource") {
     GLObjectName buf = ctx.genBuffer();
     ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
 
-    int data = 42;
-    ctx.bufferData(GL_ARRAY_BUFFER, 16, GL_STATIC_DRAW, &data);
+    int data[4] = {42, 0, 0, 0};
+    ctx.bufferData(GL_ARRAY_BUFFER, 16, GL_STATIC_DRAW, data);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
 
     BufferObject* b = ctx.getBuffer(buf);

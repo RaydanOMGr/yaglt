@@ -52,6 +52,47 @@ void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usa
     g_current->bufferData(target, size, usage, data);
 }
 
+void glBufferSubData(GLenum target, GLsizeiptr offset, GLsizeiptr size,
+                     const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->bufferSubData(target, offset, size, data);
+}
+
+void glBufferStorage(GLenum target, GLsizeiptr size, const GLvoid* data,
+                     GLbitfield flags) {
+    if (g_current == nullptr) return;
+    g_current->bufferStorage(target, size, data, flags);
+}
+
+void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
+                         GLintptr readOffset, GLintptr writeOffset,
+                         GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->copyBufferSubData(readTarget, writeTarget, readOffset,
+                                 writeOffset, size);
+}
+
+void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getBufferParameteriv(target, pname, params);
+}
+
+GLvoid* glMapBuffer(GLenum target, GLenum access) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->mapBuffer(target, access);
+}
+
+GLvoid* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length,
+                         GLbitfield access) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->mapBufferRange(target, offset, length, access);
+}
+
+GLboolean glUnmapBuffer(GLenum target) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->unmapBuffer(target) ? GL_TRUE : GL_FALSE;
+}
+
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
     if (g_current == nullptr) return;
     g_current->bindBufferBase(target, index, buffer);

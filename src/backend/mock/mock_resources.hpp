@@ -24,6 +24,64 @@ public:
         lastUsage = usage;
         lastHadData = (data != nullptr);
     }
+    int bufferSubDataCalls = 0;
+    intptr_t lastSubOffset = 0;
+    intptr_t lastSubSize = 0;
+    bool lastSubHadData = false;
+    void bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                       const void* data) override {
+        ++bufferSubDataCalls;
+        lastTarget = target;
+        lastSubOffset = offset;
+        lastSubSize = size;
+        lastSubHadData = (data != nullptr);
+    }
+    int bufferStorageCalls = 0;
+    intptr_t lastStorageSize = 0;
+    uint32_t lastStorageFlags = 0;
+    bool lastStorageHadData = false;
+    void bufferStorage(uint32_t target, intptr_t size, uint32_t flags,
+                       const void* data) override {
+        ++bufferStorageCalls;
+        lastTarget = target;
+        lastStorageSize = size;
+        lastStorageFlags = flags;
+        lastStorageHadData = (data != nullptr);
+    }
+    int copySubDataCalls = 0;
+    uint32_t lastCopyReadTarget = 0;
+    uint32_t lastCopyWriteTarget = 0;
+    intptr_t lastCopyReadOffset = 0;
+    intptr_t lastCopyWriteOffset = 0;
+    intptr_t lastCopySize = 0;
+    void copySubData(uint32_t readTarget, uint32_t writeTarget,
+                     intptr_t readOffset, intptr_t writeOffset,
+                     intptr_t size) override {
+        ++copySubDataCalls;
+        lastCopyReadTarget = readTarget;
+        lastCopyWriteTarget = writeTarget;
+        lastCopyReadOffset = readOffset;
+        lastCopyWriteOffset = writeOffset;
+        lastCopySize = size;
+    }
+    int mapBufferRangeCalls = 0;
+    intptr_t lastMapOffset = 0;
+    intptr_t lastMapLength = 0;
+    uint32_t lastMapAccess = 0;
+    int unmapBufferCalls = 0;
+    void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
+                         uint32_t access) override {
+        ++mapBufferRangeCalls;
+        lastTarget = target;
+        lastMapOffset = offset;
+        lastMapLength = length;
+        lastMapAccess = access;
+        return nullptr; // frontend serves the CPU mirror
+    }
+    void unmapBuffer(uint32_t target) override {
+        ++unmapBufferCalls;
+        lastTarget = target;
+    }
 };
 class MockTexture : public BackendTexture {
 public:

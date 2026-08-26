@@ -55,6 +55,14 @@ bool GLESLib::load() {
     ok &= resolve(gles, glDeleteBuffers, "glDeleteBuffers");
     ok &= resolve(gles, glBindBuffer, "glBindBuffer");
     ok &= resolve(gles, glBufferData, "glBufferData");
+    // Buffer sub-data / immutable storage / copy are ES 3.1+; resolved optionally
+    // so load() still succeeds on a driver that lacks them (capability reports
+    // unsupported / the frontend emulates via its CPU mirror).
+    resolve(gles, glBufferSubData, "glBufferSubData");
+    resolve(gles, glBufferStorage, "glBufferStorage");
+    resolve(gles, glCopyBufferSubData, "glCopyBufferSubData");
+    resolve(gles, glMapBufferRange, "glMapBufferRange");
+    resolve(gles, glUnmapBuffer, "glUnmapBuffer");
     ok &= resolve(gles, glGenTextures, "glGenTextures");
     ok &= resolve(gles, glDeleteTextures, "glDeleteTextures");
     ok &= resolve(gles, glBindTexture, "glBindTexture");

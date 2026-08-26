@@ -22,8 +22,26 @@ public:
     GLObjectName name = 0;
     std::unique_ptr<BackendBuffer> backend;
     uint32_t target = 0; // last bound target, 0 = unbound
-    intptr_t size = 0;   // last glBufferData size
-    uint32_t usage = 0;  // last glBufferData usage
+    intptr_t size = 0;   // last glBufferData/glBufferStorage size
+    uint32_t usage = 0;  // last glBufferData/glBufferStorage usage
+
+    // CPU-side data store (SPEC §6). YAGLT keeps an authoritative mirror of the
+    // buffer contents so map/getBufferParameter/subdata/copy semantics are fully
+    // defined even on a backend without native storage (the mock). Real backends
+    // additionally receive the data via the BackendBuffer so the driver copy stays
+    // consistent; the frontend mirror is the source of truth for queries and maps.
+    std::vector<uint8_t> store;
+
+    // Immutable storage (glBufferStorage). Once true, size/usage/flags are fixed
+    // and a further glBufferData/glBufferStorage reports GL_INVALID_OPERATION.
+    bool immutable = false;
+    uint32_t immutableFlags = 0;
+
+    // Mapping state (glMapBuffer / glMapBufferRange / glUnmapBuffer).
+    bool mapped = false;
+    intptr_t mapOffset = 0;
+    intptr_t mapLength = 0;
+    uint32_t mapAccess = 0;
 };
 
 class TextureObject {

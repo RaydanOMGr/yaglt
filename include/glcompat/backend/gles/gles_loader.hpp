@@ -42,6 +42,11 @@ struct GLESLib {
     void (*glDeleteBuffers)(GLsizei, const GLuint*) = nullptr;
     void (*glBindBuffer)(GLenum, GLuint) = nullptr;
     void (*glBufferData)(GLenum, GLsizeiptr, const void*, GLenum) = nullptr;
+    void (*glBufferSubData)(GLenum, GLintptr, GLsizeiptr, const void*) = nullptr;
+    void (*glBufferStorage)(GLenum, GLsizeiptr, const void*, GLenum) = nullptr;
+    void (*glCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr) = nullptr;
+    void* (*glMapBufferRange)(GLenum, GLintptr, GLsizeiptr, GLbitfield) = nullptr;
+    GLboolean (*glUnmapBuffer)(GLenum) = nullptr;
 
     void (*glGenTextures)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteTextures)(GLsizei, const GLuint*) = nullptr;

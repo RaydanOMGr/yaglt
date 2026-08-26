@@ -263,9 +263,9 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 OpenGL 4.6:
   Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
     Measurement (2026-08-26): of the 490 command prototypes the spec declares,
-    90 (18.4%) have a frontend entry point; restricting to the core profile
+     97 (19.8%) have a frontend entry point; restricting to the core profile
     (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
-    gives 90/435 ≈ 20.7% core prototype coverage. True core entry-point coverage
+     gives 97/435 ≈ 22.3% core prototype coverage. True core entry-point coverage
     is lower (the spec text undercounts type/vector variants, and geometry/
     tessellation/compute are honestly Unsupported). Implemented slice: object
     lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
@@ -697,6 +697,25 @@ OpenGL 4.6:
   existing tests updated to the (target, name) signature.
 - Validation: default 121/121, sanitizer 121/121, and translate (Mesa) e2e all
   green.
+
+2026-08-26 (buffer object completeness, this session)
+- Implemented the core buffer-data surface (SPEC §6): `glBufferSubData`,
+  `glBufferStorage` (immutable, capability-gated by `ImmutableBufferStorage`),
+  `glCopyBufferSubData`, `glGetBufferParameteriv`, and `glMapBuffer` /
+  `glMapBufferRange` / `glUnmapBuffer`. Added backend interface methods on
+  `BackendBuffer` (`bufferSubData`, `bufferStorage`, `copySubData`,
+  `mapBufferRange`, `unmapBuffer`) and wired `GLESBackendBuffer` to forward to
+  `glBufferSubData` / `glBufferStorage` / `glCopyBufferSubData` / `glMapBufferRange`
+  / `glUnmapBuffer` (resolved optionally in `GLESLib::load`). The frontend
+  `BufferObject` owns an authoritative CPU data store so subdata/copy/map/query
+  semantics are fully defined on the mock and mirror the driver copy on real
+  backends. Full validation: bound-buffer requirement, in-bounds checks,
+  immutable re-allocation rejection, unsupported `ImmutableBufferStorage`
+  reporting `GL_INVALID_OPERATION`, double-map / unmap-not-mapped errors.
+- New `tests/unit/buffer_completeness_test.cpp` (12 cases) covers all of the
+  above plus the public `gl*` surface. Verified: default + sanitizer suites
+  green (162/162). Coverage reassessed in `docs/coverage-core.md` (now 97/435
+  ≈ 22.3% core prototype coverage).
 
 ## Next Steps
 

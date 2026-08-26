@@ -17,6 +17,7 @@ using GLdouble = double;
 using GLvoid = void;
 using GLchar = char;
 using GLboolean = unsigned char;
+using GLbitfield = uint32_t;
 using GLubyte = unsigned char;
 
 // Selected OpenGL constants required by the implemented API subset.
@@ -35,10 +36,43 @@ constexpr GLenum GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
 constexpr GLenum GL_ARRAY_BUFFER = 0x8892;
 constexpr GLenum GL_ELEMENT_ARRAY_BUFFER = 0x8893;
+constexpr GLenum GL_COPY_READ_BUFFER = 0x8F36;
+constexpr GLenum GL_COPY_WRITE_BUFFER = 0x8F37;
+constexpr GLenum GL_PIXEL_PACK_BUFFER = 0x88EB;
+constexpr GLenum GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 
 constexpr GLenum GL_STATIC_DRAW = 0x88E4;
 constexpr GLenum GL_DYNAMIC_DRAW = 0x88E8;
 constexpr GLenum GL_STREAM_DRAW = 0x88E0;
+constexpr GLenum GL_STATIC_READ = 0x88E5;
+constexpr GLenum GL_STATIC_COPY = 0x88E6;
+constexpr GLenum GL_DYNAMIC_READ = 0x88E9;
+constexpr GLenum GL_DYNAMIC_COPY = 0x88EA;
+constexpr GLenum GL_STREAM_READ = 0x88E1;
+constexpr GLenum GL_STREAM_COPY = 0x88E2;
+
+// Buffer parameter queries (SPEC §6 / §22, glGetBufferParameteriv).
+constexpr GLenum GL_BUFFER_SIZE = 0x8764;
+constexpr GLenum GL_BUFFER_USAGE = 0x8765;
+constexpr GLenum GL_BUFFER_ACCESS = 0x88BB;
+constexpr GLenum GL_BUFFER_ACCESS_FLAGS = 0x911F;
+constexpr GLenum GL_BUFFER_IMMUTABLE_STORAGE = 0x821F;
+constexpr GLenum GL_BUFFER_MAPPED = 0x88BC;
+constexpr GLenum GL_BUFFER_MAP_LENGTH = 0x9120;
+constexpr GLenum GL_BUFFER_MAP_OFFSET = 0x9121;
+
+// Buffer mapping access modes (glMapBuffer access, SPEC §6.1).
+constexpr GLenum GL_READ_ONLY = 0x88B8;
+constexpr GLenum GL_WRITE_ONLY = 0x88B9;
+constexpr GLenum GL_READ_WRITE = 0x88BA;
+
+// Buffer mapping access bits (glMapBufferRange access, SPEC §6.1).
+constexpr GLenum GL_MAP_READ_BIT = 0x0001;
+constexpr GLenum GL_MAP_WRITE_BIT = 0x0002;
+constexpr GLenum GL_MAP_INVALIDATE_RANGE_BIT = 0x0004;
+constexpr GLenum GL_MAP_INVALIDATE_BUFFER_BIT = 0x0008;
+constexpr GLenum GL_MAP_FLUSH_EXPLICIT_BIT = 0x0010;
+constexpr GLenum GL_MAP_UNSIGNED_BYTE_BIT = 0x0020;
 
 constexpr GLenum GL_TEXTURE_2D = 0x0DE1;
 constexpr GLenum GL_RENDERBUFFER = 0x8D41;

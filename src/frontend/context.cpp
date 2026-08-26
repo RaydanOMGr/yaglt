@@ -5,6 +5,7 @@
 
 #include <cctype>
 #include <cstdint>
+#include <cstring>
 #include <string>
 
 namespace glcompat {
@@ -112,9 +113,212 @@ void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage,
     }
     obj->size = size;
     obj->usage = usage;
+    obj->store.assign(size > 0 ? static_cast<size_t>(size) : 0, 0);
+    if (data && size > 0)
+        std::memcpy(obj->store.data(), data, static_cast<size_t>(size));
+    obj->immutable = false;
+    obj->immutableFlags = 0;
     if (obj->backend) {
         obj->backend->bufferData(target, size, usage, data);
     }
+}
+
+void Context::bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                            const void* data) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation); // no buffer bound
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (offset < 0 || size < 0 || offset + size > obj->size) {
+        setError(GLError::InvalidValue); // region out of bounds
+        return;
+    }
+    if (size > 0) {
+        std::memcpy(obj->store.data() + static_cast<size_t>(offset), data,
+                    static_cast<size_t>(size));
+    }
+    if (obj->backend) {
+        obj->backend->bufferSubData(target, offset, size, data);
+    }
+}
+
+void Context::bufferStorage(uint32_t target, intptr_t size, const void* data,
+                            uint32_t flags) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!backend_.capabilities().isSupported(Feature::ImmutableBufferStorage)) {
+        setError(GLError::InvalidOperation); // backend cannot do immutable storage
+        return;
+    }
+    if (obj->immutable) {
+        // Already-immutable storage cannot be reallocated (SPEC §6).
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (size <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    obj->size = size;
+    obj->usage = flags; // storage flags act as the effective usage for queries
+    obj->immutable = true;
+    obj->immutableFlags = flags;
+    obj->store.assign(static_cast<size_t>(size), 0);
+    if (data) std::memcpy(obj->store.data(), data, static_cast<size_t>(size));
+    if (obj->backend) {
+        obj->backend->bufferStorage(target, size, flags, data);
+    }
+}
+
+void Context::copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,
+                                intptr_t readOffset, intptr_t writeOffset,
+                                intptr_t size) {
+    GLObjectName r = boundBuffer(readTarget);
+    GLObjectName w = boundBuffer(writeTarget);
+    if (r == 0 || w == 0) {
+        setError(GLError::InvalidOperation); // read or write target not bound
+        return;
+    }
+    BufferObject* src = getBuffer(r);
+    BufferObject* dst = getBuffer(w);
+    if (src == nullptr || dst == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (readOffset < 0 || size < 0 || readOffset + size > src->size ||
+        writeOffset < 0 || writeOffset + size > dst->size) {
+        setError(GLError::InvalidValue); // copy region out of bounds
+        return;
+    }
+    if (size > 0) {
+        std::memcpy(dst->store.data() + static_cast<size_t>(writeOffset),
+                    src->store.data() + static_cast<size_t>(readOffset),
+                    static_cast<size_t>(size));
+    }
+    if (dst->backend) {
+        dst->backend->copySubData(readTarget, writeTarget, readOffset,
+                                  writeOffset, size);
+    }
+}
+
+void Context::getBufferParameteriv(uint32_t target, uint32_t pname,
+                                   int32_t* params) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+    case GL_BUFFER_SIZE: *params = static_cast<int32_t>(obj->size); break;
+    case GL_BUFFER_USAGE: *params = static_cast<int32_t>(obj->usage); break;
+    case GL_BUFFER_ACCESS: *params = static_cast<int32_t>(obj->mapAccess); break;
+    case GL_BUFFER_ACCESS_FLAGS:
+        *params = static_cast<int32_t>(obj->immutableFlags); break;
+    case GL_BUFFER_IMMUTABLE_STORAGE:
+        *params = obj->immutable ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAPPED:
+        *params = obj->mapped ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAP_LENGTH:
+        *params = static_cast<int32_t>(obj->mapLength); break;
+    case GL_BUFFER_MAP_OFFSET:
+        *params = static_cast<int32_t>(obj->mapOffset); break;
+    default:
+        // Unknown pname: report GL_INVALID_ENUM (desktop GL behavior).
+        setError(GLError::InvalidEnum);
+        *params = 0;
+        return;
+    }
+}
+
+void* Context::mapBuffer(uint32_t target, uint32_t access) {
+    return mapBufferRange(target, 0, 0, access);
+}
+
+void* Context::mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
+                              uint32_t access) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (obj->mapped) {
+        // Already mapped; GL reports GL_INVALID_OPERATION for a second map.
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (length == 0) length = obj->size; // glMapBuffer maps the whole buffer
+    if (offset < 0 || length < 0 || offset + length > obj->size) {
+        setError(GLError::InvalidValue);
+        return nullptr;
+    }
+    obj->mapped = true;
+    obj->mapOffset = offset;
+    obj->mapLength = length;
+    obj->mapAccess = access;
+    if (obj->backend) {
+        // Real backends map their native copy; the frontend still serves the CPU
+        // mirror so the application gets a stable pointer to its data.
+        obj->backend->mapBufferRange(target, offset, length, access);
+    }
+    return obj->store.data() + static_cast<size_t>(offset);
+}
+
+bool Context::unmapBuffer(uint32_t target) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return false;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return false;
+    }
+    if (!obj->mapped) {
+        setError(GLError::InvalidOperation);
+        return false;
+    }
+    // Flush the CPU mirror back to the backend's native copy (so writes made via
+    // the mapped pointer reach the driver), then clear the mapping.
+    if (obj->backend && obj->mapLength > 0) {
+        obj->backend->bufferSubData(target, obj->mapOffset, obj->mapLength,
+                                   obj->store.data() +
+                                       static_cast<size_t>(obj->mapOffset));
+        obj->backend->unmapBuffer(target);
+    }
+    obj->mapped = false;
+    obj->mapOffset = 0;
+    obj->mapLength = 0;
+    obj->mapAccess = 0;
+    return true;
 }
 
 namespace {

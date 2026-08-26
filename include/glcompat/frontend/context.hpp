@@ -49,7 +49,35 @@ public:
     void deleteBuffer(GLObjectName name);
     void deleteBuffers(uint32_t n, const GLObjectName* names);
     void bufferData(uint32_t target, intptr_t size, uint32_t usage,
-                    const void* data);
+                     const void* data);
+    // Update a sub-region of existing storage (SPEC §6 glBufferSubData). Requires
+    // a bound buffer (else GL_INVALID_OPERATION) and a fully in-bounds region
+    // (else GL_INVALID_VALUE). Allowed on both mutable and immutable storage.
+    void bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                       const void* data);
+    // Allocate immutable storage (SPEC §6 glBufferStorage). Requires the
+    // ImmutableBufferStorage capability; re-allocation of an already-immutable
+    // buffer reports GL_INVALID_OPERATION. flags is the GL_MAP_* bitfield.
+    void bufferStorage(uint32_t target, intptr_t size, const void* data,
+                       uint32_t flags);
+    // Copy a sub-region between two buffers (SPEC §6 glCopyBufferSubData). Both
+    // read and write targets must be bound; the regions must be in bounds.
+    void copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,
+                           intptr_t readOffset, intptr_t writeOffset,
+                           intptr_t size);
+    // Query buffer parameters (SPEC §6 / §22 glGetBufferParameteriv). Reads the
+    // frontend-owned state (size/usage/flags/mapped). A null `params` reports
+    // GL_INVALID_VALUE; an unknown pname reports GL_INVALID_ENUM.
+    void getBufferParameteriv(uint32_t target, uint32_t pname, int32_t* params);
+    // Map a buffer for CPU access (SPEC §6 glMapBuffer / glMapBufferRange).
+    // Returns a pointer into the frontend data store, or nullptr on error.
+    // Mapping an already-mapped buffer reports GL_INVALID_OPERATION.
+    void* mapBuffer(uint32_t target, uint32_t access);
+    void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
+                         uint32_t access);
+    // Unmap a previously mapped buffer (SPEC §6 glUnmapBuffer). Returns false and
+    // reports GL_INVALID_OPERATION when no buffer is mapped.
+    bool unmapBuffer(uint32_t target);
     BufferObject* getBuffer(GLObjectName name);
 
     // --- Indexed buffer bindings (SPEC §8) ---
