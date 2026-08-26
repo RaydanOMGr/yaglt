@@ -36,6 +36,11 @@ public:
     GLError getError();          // returns and clears the pending error
     void setError(GLError e);    // records the first error since last getError
 
+    // --- String queries (SPEC §22.2) ---
+    // Returns VENDOR/RENDERER/VERSION/EXTENSIONS/SHADING_LANGUAGE_VERSION for the
+    // current GL context. An unknown name sets GL_INVALID_ENUM and returns nullptr.
+    const GLubyte* getString(GLenum name);
+
     // --- Buffers ---
     GLObjectName genBuffer();
     void genBuffers(uint32_t n, GLObjectName* names);

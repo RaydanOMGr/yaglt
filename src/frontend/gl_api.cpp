@@ -27,6 +27,11 @@ GLenum glGetError() {
     return mapError(g_current->getError());
 }
 
+const GLubyte* glGetString(GLenum name) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->getString(name);
+}
+
 void glGenBuffers(GLsizei n, GLuint* buffers) {
     if (g_current == nullptr) return;
     g_current->genBuffers(static_cast<uint32_t>(n), buffers);

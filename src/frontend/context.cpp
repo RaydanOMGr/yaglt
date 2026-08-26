@@ -18,6 +18,28 @@ void Context::setError(GLError e) {
     }
 }
 
+const GLubyte* Context::getString(GLenum name) {
+    // YAGLT identifies itself as the vendor and renderer. The VERSION string
+    // follows the spec format "major.minor.release" (4.6.0) with an
+    // implementation-dependent compatibility-profile suffix.
+    static constexpr char kVendor[] = "YAGLT";
+    static constexpr char kRenderer[] = "YAGLT";
+    static constexpr char kVersion[] = "4.6.0 Compatibility Profile YAGLT";
+    static constexpr char kShadingLanguageVersion[] = "4.60";
+    static constexpr char kExtensions[] = "";
+    switch (name) {
+    case GL_VENDOR: return reinterpret_cast<const GLubyte*>(kVendor);
+    case GL_RENDERER: return reinterpret_cast<const GLubyte*>(kRenderer);
+    case GL_VERSION: return reinterpret_cast<const GLubyte*>(kVersion);
+    case GL_SHADING_LANGUAGE_VERSION:
+        return reinterpret_cast<const GLubyte*>(kShadingLanguageVersion);
+    case GL_EXTENSIONS: return reinterpret_cast<const GLubyte*>(kExtensions);
+    default:
+        setError(GLError::InvalidEnum);
+        return nullptr;
+    }
+}
+
 GLObjectName Context::genBuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<BufferObject>(name);

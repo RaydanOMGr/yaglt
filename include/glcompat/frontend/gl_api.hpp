@@ -21,6 +21,12 @@ Context* getCurrentContext();
 
 GLenum glGetError();
 
+// String queries (SPEC §22.2). VENDOR="YAGLT", RENDERER="YAGLT",
+// VERSION="4.6.0 Compatibility Profile YAGLT" (major.minor.release per spec,
+// vendor-specific suffix is implementation-dependent). Unknown name yields
+// GL_INVALID_ENUM and nullptr.
+const GLubyte* glGetString(GLenum name);
+
 void glGenBuffers(GLsizei n, GLuint* buffers);
 void glBindBuffer(GLenum target, GLuint buffer);
 void glDeleteBuffers(GLsizei n, const GLuint* buffers);

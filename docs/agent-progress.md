@@ -388,6 +388,17 @@ OpenGL 4.6:
   selection, and both native/fallback map paths.
 - Validation: default + sanitizer suites green (66/66).
 
+2026-08-26 (glGetString frontend entry point, this session)
+- Implemented `glGetString` (SPEC §22.2) in the frontend dispatch. `Context::
+  getString` returns VENDOR="YAGLT", RENDERER="YAGLT", VERSION=
+  "4.6.0 Compatibility Profile YAGLT" (major.minor.release per spec, impl-
+  dependent suffix), SHADING_LANGUAGE_VERSION="4.60", EXTENSIONS="" (honest:
+  none exposed). Unknown name -> GL_INVALID_ENUM + nullptr.
+- Added GLubyte + GL_VENDOR/GL_RENDERER/GL_VERSION/GL_EXTENSIONS/
+  GL_SHADING_LANGUAGE_VERSION to `gl_types.hpp`. New
+  `tests/unit/getstring_test.cpp` covers values, invalid-name error, no-context.
+- Validation: default + sanitizer 69/69 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

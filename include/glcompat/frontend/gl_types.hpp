@@ -16,6 +16,7 @@ using GLfloat = float;
 using GLvoid = void;
 using GLchar = char;
 using GLboolean = unsigned char;
+using GLubyte = unsigned char;
 
 // Selected OpenGL constants required by the implemented API subset.
 // Values match the desktop GL specification so the frontend is compatible.
@@ -23,6 +24,13 @@ constexpr GLenum GL_NO_ERROR = 0x0000;
 constexpr GLenum GL_INVALID_ENUM = 0x0500;
 constexpr GLenum GL_INVALID_VALUE = 0x0501;
 constexpr GLenum GL_INVALID_OPERATION = 0x0502;
+
+// GetString query names (SPEC §22.2).
+constexpr GLenum GL_VENDOR = 0x1F00;
+constexpr GLenum GL_RENDERER = 0x1F01;
+constexpr GLenum GL_VERSION = 0x1F02;
+constexpr GLenum GL_EXTENSIONS = 0x1F03;
+constexpr GLenum GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
 
 constexpr GLenum GL_ARRAY_BUFFER = 0x8892;
 constexpr GLenum GL_ELEMENT_ARRAY_BUFFER = 0x8893;
