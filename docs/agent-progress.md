@@ -383,4 +383,11 @@ OpenGL 4.6:
    honest-Unsupported paths, SSBO storage-block translation / transform-feedback).
 3. Add a GLSL `version`/`profile` capability check so the frontend can reject
    unsupported desktop features before translation rather than at link time.
-4. Commit each coherent step; update this journal.
+4. **Planned deployment mode:** build YAGLT as a `libEGL.so` drop-in shim — renamed
+   shared lib placed next to any program (or via `LD_LIBRARY_PATH`/`LD_PRELOAD`),
+   forwarding the real system EGL/GLES driver internally while routing GL calls
+   through YAGLT's frontend/backend. Like Mesa's `libEGL` loader: API surface +
+   dispatcher to the real driver. Enables transparent context wrapping + call
+   interception for unmodified apps. Thin dispatch layer, not a new backend.
+   (See `docs/architecture.md` "Planned: libEGL.so drop-in wrapper".)
+5. Commit each coherent step; update this journal.

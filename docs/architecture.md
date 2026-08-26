@@ -178,6 +178,30 @@ capability table first: an unsupported target yields `GL_INVALID_OPERATION`
 honestly instead of a native call the driver would reject. The GLES backend
 issues the native `glBindBufferBase` / `glBindBufferRange`; the mock records them.
 
+## Planned: `libEGL.so` drop-in wrapper (transparent interception)
+
+A future deployment mode wraps YAGLT as a **`libEGL.so` shim**: build YAGLT's
+frontend + backend as a shared library renamed `libEGL.so` and drop it next to any
+target program (or force it via `LD_LIBRARY_PATH` / `LD_PRELOAD`). The shim resolves
+the real system `libEGL`/`libGLESv2` internally (via `dlopen` of the true driver,
+e.g. Mesa), forwards EGL/GL entry points to it, and routes the GL calls through
+YAGLT's frontend/backend instead. Conceptually like Mesa's own `libEGL` loader: it is
+both the API surface the app links against and the dispatcher to the real driver.
+
+Goal: seamless integration — an unmodified OpenGL ES (or, with the compat frontend,
+desktop GL) application is transparently translated/extended by YAGLT without code
+changes. Enables context wrapping (intercept `eglCreateContext` / `eglMakeCurrent` to
+own the `Context` lifecycle) and full call interception for validation, capability
+translation, and emulation.
+
+Design constraints:
+- Frontend stays backend-agnostic; the wrapper is a thin dispatch layer, not a new
+  backend.
+- Real driver resolved at runtime, never linked; absent driver → honest failure.
+- EGL entry points the app may call must be forwarded (create/destroy context,
+  surface, make-current, swap, get-proc-address).
+- Name `libEGL.so` is a deployment alias; the core library keeps its own soname.
+
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error
