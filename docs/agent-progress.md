@@ -9,9 +9,20 @@ Current milestone: Phase 3 — Core Rendering (API surface + GLES backend prep)
 Overall status: Early implementation (foundation + object model + GL dispatch)
 Last updated: 2026-08-26
 Known major blockers:
-- OpenGL 4.6 public API entry points (glGenBuffers etc.) not yet exposed.
 - Real GLES backend not yet implemented (interfaces reserved).
 - Shader translation pipeline not yet implemented.
+
+## Toolchain & Environment
+
+- Android NDK root (for building/testing the Android platform path):
+  `/mnt/c/Users/Andreas/AppData/Local/Android/Sdk/ndk/29.0.14206865/`
+  - This is a Windows NDK install reached via WSL. Its executables are
+    `.exe` files but are runnable from this WSL environment directly.
+  - Use it when compiling the `src/platform/android` layer or running
+    Android-targeted builds; the host `android_stub` headers (see
+    architecture.md) let that code compile here without the NDK libs.
+- Host (Linux/WSL) build stays self-contained with the mock backend; no NDK
+  required for the headless test suite.
 
 ## Completed
 

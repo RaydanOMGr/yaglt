@@ -28,6 +28,20 @@ target_sources(yaglt_core PRIVATE
     platform/linux/linux_capabilities.hpp
 )
 
+# Optional: build against Mesa's android_stub headers on a non-Android host to
+# exercise the Android platform path (SPEC §5/§18). The stub needs the compat
+# shim (force-included) because it uses NDK nullability/availability macros.
+option(YAGLT_ANDROID_STUB "Build against Mesa android_stub headers on host" OFF)
+if(YAGLT_ANDROID_STUB)
+    target_include_directories(yaglt_core PUBLIC ${CMAKE_SOURCE_DIR}/include/android_stub)
+    target_compile_definitions(yaglt_core PUBLIC YAGLT_ANDROID_STUB=1)
+    target_compile_options(yaglt_core PUBLIC
+        -include ${CMAKE_SOURCE_DIR}/include/android_stub/compat.h)
+    target_sources(yaglt_core PRIVATE
+        platform/android/android_stub_check.cpp
+    )
+endif()
+
 target_compile_features(yaglt_core PUBLIC cxx_std_17)
 
 install(TARGETS yaglt_core ARCHIVE DESTINATION lib)
