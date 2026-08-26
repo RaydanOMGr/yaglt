@@ -33,6 +33,13 @@ public:
     // state pushes (e.g. record-only backends).
     virtual GLStateSink* stateSink() { return nullptr; }
 
+    // Register a frontend object name -> backend-native id mapping. The frontend
+    // calls this when it learns a backend-native id (e.g. after linking a
+    // program or creating a VAO) so the backend can translate frontend names
+    // back to native handles when flushing state (SPEC §3/§11). Default no-op
+    // for backends that do not need the translation (e.g. the mock backend).
+    virtual void bindNativeObject(uint32_t /*name*/, uint32_t /*nativeId*/) {}
+
     // Draw commands (SPEC §2.1). The frontend flushes tracked pipeline state
     // (via GLStateSink) immediately before issuing these so the backend never
     // receives stale state. Backends translate them to native draw calls.

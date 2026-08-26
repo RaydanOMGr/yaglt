@@ -118,6 +118,108 @@ void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) {
     g_current->deleteVertexArrays(static_cast<uint32_t>(n), arrays);
 }
 
+// --- Shaders / programs (SPEC §8) ---
+
+GLuint glCreateShader(GLenum stage) {
+    if (g_current == nullptr) return 0;
+    return g_current->createShader(stage);
+}
+
+void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
+                    const GLint* lengths) {
+    if (g_current == nullptr) return;
+    if (count <= 0 || strings == nullptr) {
+        g_current->shaderSource(shader, std::string());
+        return;
+    }
+    // Join the provided string slices into one source (honouring lengths when
+    // given, treating -1 as null-terminated).
+    std::string src;
+    for (GLsizei i = 0; i < count; ++i) {
+        if (strings[i] == nullptr) continue;
+        if (lengths != nullptr && lengths[i] >= 0) {
+            src.append(strings[i], static_cast<size_t>(lengths[i]));
+        } else {
+            src.append(strings[i]);
+        }
+    }
+    g_current->shaderSource(shader, src);
+}
+
+void glShaderSource(GLuint shader, const std::string& source) {
+    if (g_current == nullptr) return;
+    g_current->shaderSource(shader, source);
+}
+
+void glCompileShader(GLuint shader) {
+    if (g_current == nullptr) return;
+    g_current->compileShader(shader);
+}
+
+GLint glGetShaderiv(GLuint shader, GLenum pname) {
+    if (g_current == nullptr) return 0;
+    if (pname == GL_COMPILE_STATUS)
+        return g_current->isShaderCompiled(shader) ? GL_TRUE : GL_FALSE;
+    return 0;
+}
+
+void glDeleteShader(GLuint shader) {
+    if (g_current == nullptr) return;
+    g_current->deleteShader(shader);
+}
+
+GLuint glCreateProgram() {
+    if (g_current == nullptr) return 0;
+    return g_current->createProgram();
+}
+
+void glAttachShader(GLuint program, GLuint shader) {
+    if (g_current == nullptr) return;
+    g_current->attachShader(program, shader);
+}
+
+void glLinkProgram(GLuint program) {
+    if (g_current == nullptr) return;
+    g_current->linkProgram(program);
+}
+
+GLint glGetProgramiv(GLuint program, GLenum pname) {
+    if (g_current == nullptr) return 0;
+    if (pname == GL_LINK_STATUS)
+        return g_current->isProgramLinked(program) ? GL_TRUE : GL_FALSE;
+    return 0;
+}
+
+void glDeleteProgram(GLuint program) {
+    if (g_current == nullptr) return;
+    g_current->deleteProgram(program);
+}
+
+GLint glGetAttribLocation(GLuint program, const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getAttribLocation(program, name ? name : "");
+}
+
+// --- Vertex attributes (SPEC §2.1) ---
+
+void glEnableVertexAttribArray(GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->enableVertexAttribArray(index);
+}
+
+void glDisableVertexAttribArray(GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->disableVertexAttribArray(index);
+}
+
+void glVertexAttribPointer(GLuint index, GLint size, GLenum type,
+                           GLboolean normalized, GLint stride,
+                           const GLvoid* offset) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribPointer(index, size, type, normalized != 0, stride,
+                                   reinterpret_cast<intptr_t>(offset));
+}
+
 // --- State management (SPEC §10) ---
 
 void glEnable(GLenum cap) {

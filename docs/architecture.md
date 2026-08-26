@@ -121,6 +121,33 @@ feature mapping is thus completed by the pipeline: capability classification
 decides support (SPEC §8), and the translator makes desktop block syntax
 portable to GLSL ES 3.10.
 
+## Shaders, programs, and vertex attributes (SPEC §8, §2.1)
+
+The frontend exposes a desktop-style shader/program API (`glCreateShader`,
+`glShaderSource`, `glCompileShader`, `glCreateProgram`, `glAttachShader`,
+`glLinkProgram`, `glGetAttribLocation`, `glEnableVertexAttribArray`,
+`glVertexAttribPointer`). Object identity lives in the frontend `ShaderObject` /
+`ProgramObject` (in `include/glcompat/frontend/objects.hpp`); each owns an opaque
+backend resource (`BackendShader` / `BackendProgram`) whose virtual methods do the
+real compile/link/query work.
+
+Compile flow: `Context::compileShader` runs the desktop source through
+`IShaderCompiler` (glslang + SPIRV-Cross under `YAGLT_SHADER_TRANSLATE`, plain
+pass-through otherwise) and then hands the backend-compatible source to
+`BackendShader::compile`, so the backend never sees raw desktop GLSL. Linking
+attaches each compiled `BackendShader` and calls `BackendProgram::link`; on
+success the frontend registers the frontend program name → native id mapping with
+the backend via `IGraphicsBackend::bindNativeObject` (SPEC §3/§11). The same
+mapping is registered for VAOs at `glGenVertexArrays`.
+
+Vertex attribute state is recorded on the bound `VertexArrayObject`
+(`enable`/`size`/`type`/`normalized`/`stride`/`offset`). At draw/flush time
+`Context::flushState` pushes the bound VAO and its attributes through
+`GLStateSink::bindVertexArray` / `enableVertexAttribArray` /
+`disableVertexAttribArray` / `vertexAttribPointer`, skipping the push when the
+vertex state is unchanged since the last flush (SPEC §10). `GLStateSink` still uses
+plain integer types so backends can implement it alongside native GL headers.
+
 ## State management
 
 `src/state` (`GLStateTracker`, `GLStateSink`) is the centralized OpenGL pipeline

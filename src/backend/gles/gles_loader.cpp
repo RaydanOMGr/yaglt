@@ -102,6 +102,14 @@ bool GLESLib::load() {
     resolve(gles, glDrawArraysInstanced, "glDrawArraysInstanced");
     resolve(gles, glDrawElementsInstanced, "glDrawElementsInstanced");
 
+    // Vertex attributes are ES 2.0+; resolve optionally so load() still succeeds
+    // if a driver somehow lacks them.
+    resolve(gles, glGetAttribLocation, "glGetAttribLocation");
+    resolve(gles, glBindAttribLocation, "glBindAttribLocation");
+    resolve(gles, glEnableVertexAttribArray, "glEnableVertexAttribArray");
+    resolve(gles, glDisableVertexAttribArray, "glDisableVertexAttribArray");
+    resolve(gles, glVertexAttribPointer, "glVertexAttribPointer");
+
     if (!ok) {
         dlclose(egl);
         dlclose(gles);

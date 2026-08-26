@@ -3,6 +3,8 @@
 #include "glcompat/core/backend_resources.hpp"
 #include <cstdint>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace glcompat {
 
@@ -48,6 +50,52 @@ public:
     explicit VertexArrayObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
     std::unique_ptr<BackendVertexArray> backend;
+
+    // Vertex attribute slot state (SPEC §2.1). Indexed by attribute location.
+    struct AttribState {
+        uint32_t index = 0;
+        bool enabled = false;
+        int32_t size = 4;
+        uint32_t type = 0;
+        bool normalized = false;
+        int32_t stride = 0;
+        intptr_t offset = 0;
+    };
+    std::vector<AttribState> attribs;
+
+    AttribState& attrib(uint32_t index) {
+        for (auto& a : attribs) {
+            if (a.index == index) return a;
+        }
+        attribs.push_back(AttribState{});
+        attribs.back().index = index;
+        return attribs.back();
+    }
+};
+
+// Frontend shader object (SPEC §8). Source + compile status live here, decoupled
+// from the backend shader resource it owns.
+class ShaderObject {
+public:
+    ShaderObject(GLObjectName n, uint32_t stage) : name(n), stage(stage) {}
+    GLObjectName name = 0;
+    uint32_t stage = 0;     // GL_VERTEX_SHADER / GL_FRAGMENT_SHADER / ...
+    std::string source;
+    bool compiled = false;
+    std::string infoLog;
+    std::unique_ptr<BackendShader> backend;
+};
+
+// Frontend program object (SPEC §8). Owns the attached shader list and the
+// linked backend program resource.
+class ProgramObject {
+public:
+    explicit ProgramObject(GLObjectName n) : name(n) {}
+    GLObjectName name = 0;
+    std::vector<GLObjectName> attachedShaders;
+    bool linked = false;
+    std::string infoLog;
+    std::unique_ptr<BackendProgram> backend;
 };
 
 } // namespace glcompat

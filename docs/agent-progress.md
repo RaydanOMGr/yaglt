@@ -117,7 +117,31 @@ Known major blockers:
       the last applied state (SPEC §10: avoid redundant backend calls). `Context`
       owns one and routes `glEnable`/`glDisable`/`glBlendFunc`/`glUseProgram`/
       `glDepthFunc`/`glDepthMask`/`glCullFace`/`glFrontFace` through it.
-      `tests/unit/state_test.cpp` verifies change detection and no-op applies.
+       `tests/unit/state_test.cpp` verifies change detection and no-op applies.
+
+- [x] Frontend shader/program/vertex-attrib API (SPEC §8, §2.1, next-agent task 1).
+  - `ShaderObject` / `ProgramObject` added to `include/glcompat/frontend/objects.hpp`;
+    each owns an opaque `BackendShader` / `BackendProgram` whose virtual
+    `compile` / `attach` / `link` / `getAttribLocation` / `nativeId` do the real
+    work. `Context` exposes `createShader` / `shaderSource` / `compileShader` /
+    `createProgram` / `attachShader` / `linkProgram` / `getAttribLocation` /
+    `deleteShader` / `deleteProgram`, all capability-gated (ShaderObjects /
+    ProgramObjects). `gl_api` exposes the matching `gl*` entry points.
+  - Compile runs the desktop source through `IShaderCompiler` (glslang +
+    SPIRV-Cross under `YAGLT_SHADER_TRANSLATE`) before the backend compiles, so
+    the backend never sees raw desktop GLSL.
+  - On link / VAO creation the frontend registers the frontend name → native id
+    mapping with the backend via `IGraphicsBackend::bindNativeObject`; the GLES
+    backend then binds the real driver program/VAO at draw/flush time (SPEC §3/§11).
+  - Vertex attribute state recorded on the bound `VertexArrayObject` and pushed
+    via new `GLStateSink` methods (`bindVertexArray` / `enableVertexAttribArray` /
+    `disableVertexAttribArray` / `vertexAttribPointer`); pushed only when dirty.
+  - Shader translator now also injects default `layout(location=...)` for
+    user `in`/`out` interface variables (glslang/SPIR-V requires located user I/O),
+    so desktop fragment outputs translate without manual edits.
+  - New `tests/unit/shader_program_test.cpp` (mock path) and
+    `tests/backend/gles_e2e_program_test.cpp` (real Mesa program link + draw).
+    All suites green: default 41/41, sanitizer 41/41, translate (Mesa) all pass.
 
 ## Known Issues
 
@@ -268,12 +292,12 @@ OpenGL 4.6:
 
 ## Next Steps
 
-1. Expand the OpenGL 4.6 frontend API for programs/shaders/vertex-attrib setup so
-   draws are meaningful end-to-end (attach shaders, link programs, vertex attrib
-   pointers, bind VAO/program to the native backend at draw time).
+1. Expand remaining OpenGL 4.6 object/state API (textures, FBO attachments,
+   pixel store, buffer data upload, uniform setting) so draws are fully
+   provisioned end-to-end. Build the mock path tests first, then GLES e2e.
 2. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
    emulation scaffolding, geometry/tessellation honest-Unsupported paths,
    SSBO storage-block translation / transform-feedback).
-3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
-   emulation scaffolding).
+3. Add a GLSL `version`/`profile` capability check so the frontend can reject
+   unsupported desktop features before translation rather than at link time.
 4. Commit each coherent step; update this journal.

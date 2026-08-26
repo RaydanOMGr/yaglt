@@ -13,6 +13,8 @@ using GLint = int32_t;
 using GLsizeiptr = intptr_t;
 using GLintptr = intptr_t;
 using GLvoid = void;
+using GLchar = char;
+using GLboolean = unsigned char;
 
 // Selected OpenGL constants required by the implemented API subset.
 // Values match the desktop GL specification so the frontend is compatible.
@@ -39,5 +41,28 @@ constexpr GLenum GL_VERTEX_ARRAY = 0x8074;
 constexpr GLenum GL_UNIFORM_BUFFER = 0x8A11;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
 constexpr GLenum GL_SHADER_STORAGE_BUFFER = 0x90D2;
+
+// Booleans.
+constexpr GLenum GL_TRUE = 1;
+constexpr GLenum GL_FALSE = 0;
+
+// Shader stages.
+constexpr GLenum GL_VERTEX_SHADER = 0x8B31;
+constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30;
+constexpr GLenum GL_GEOMETRY_SHADER = 0x8DD9;
+constexpr GLenum GL_TESS_CONTROL_SHADER = 0x8E88;
+constexpr GLenum GL_TESS_EVALUATION_SHADER = 0x8E87;
+constexpr GLenum GL_COMPUTE_SHADER = 0x91B9;
+
+// Shader / program query parameters.
+constexpr GLenum GL_COMPILE_STATUS = 0x8B81;
+constexpr GLenum GL_LINK_STATUS = 0x8B82;
+
+// Vertex attribute types.
+constexpr GLenum GL_FLOAT = 0x1406;
+constexpr GLenum GL_FLOAT_VEC2 = 0x8B50;
+constexpr GLenum GL_FLOAT_VEC3 = 0x8B51;
+constexpr GLenum GL_FLOAT_VEC4 = 0x8B52;
+constexpr GLenum GL_UNSIGNED_BYTE = 0x1401;
 
 } // namespace glcompat

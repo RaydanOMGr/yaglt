@@ -48,6 +48,30 @@ void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
 
+// --- Shaders / programs (SPEC §8) ---
+// glCreateShader / glCreateProgram return the new object name (0 on failure).
+GLuint glCreateShader(GLenum stage);
+void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
+                    const GLint* lengths);
+void glShaderSource(GLuint shader, const std::string& source);
+void glCompileShader(GLuint shader);
+GLint glGetShaderiv(GLuint shader, GLenum pname);
+void glDeleteShader(GLuint shader);
+
+GLuint glCreateProgram();
+void glAttachShader(GLuint program, GLuint shader);
+void glLinkProgram(GLuint program);
+GLint glGetProgramiv(GLuint program, GLenum pname);
+void glDeleteProgram(GLuint program);
+GLint glGetAttribLocation(GLuint program, const GLchar* name);
+
+// --- Vertex attributes (SPEC §2.1) ---
+void glEnableVertexAttribArray(GLuint index);
+void glDisableVertexAttribArray(GLuint index);
+void glVertexAttribPointer(GLuint index, GLint size, GLenum type,
+                           GLboolean normalized, GLint stride,
+                           const GLvoid* offset);
+
 // --- State management (SPEC §10) ---
 // These record state into the current context's GLStateTracker. The tracked
 // state is pushed to the backend via glFlushState() at draw / flush time.

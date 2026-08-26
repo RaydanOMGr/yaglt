@@ -162,7 +162,41 @@ void GLESBackend::disable(GLenum cap) {
 }
 
 void GLESBackend::useProgram(uint32_t prog) {
-    if (lib_->glUseProgram) lib_->glUseProgram(static_cast<GLuint>(prog));
+    // Translate the frontend program name to the native driver id when known.
+    auto it = nativeMap_.find(prog);
+    GLuint native = it != nativeMap_.end() ? it->second : prog;
+    if (lib_->glUseProgram) lib_->glUseProgram(native);
+}
+
+void GLESBackend::bindVertexArray(uint32_t vao) {
+    auto it = nativeMap_.find(vao);
+    GLuint native = it != nativeMap_.end() ? it->second : vao;
+    if (lib_->glBindVertexArray) lib_->glBindVertexArray(native);
+}
+
+void GLESBackend::enableVertexAttribArray(uint32_t index) {
+    if (lib_->glEnableVertexAttribArray)
+        lib_->glEnableVertexAttribArray(static_cast<GLuint>(index));
+}
+
+void GLESBackend::disableVertexAttribArray(uint32_t index) {
+    if (lib_->glDisableVertexAttribArray)
+        lib_->glDisableVertexAttribArray(static_cast<GLuint>(index));
+}
+
+void GLESBackend::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                                      bool normalized, int32_t stride,
+                                      intptr_t offset) {
+    if (lib_->glVertexAttribPointer)
+        lib_->glVertexAttribPointer(static_cast<GLuint>(index),
+                                    static_cast<GLint>(size), type,
+                                    normalized ? GL_TRUE : GL_FALSE,
+                                    static_cast<GLsizei>(stride),
+                                    reinterpret_cast<const void*>(offset));
+}
+
+void GLESBackend::bindNativeObject(uint32_t name, uint32_t nativeId) {
+    nativeMap_[name] = nativeId;
 }
 
 void GLESBackend::blendFunc(GLenum sfactor, GLenum dfactor) {

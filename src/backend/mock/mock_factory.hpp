@@ -31,7 +31,7 @@ public:
         r->id = ++counter_;
         return r;
     }
-    std::unique_ptr<BackendShader> createShader() override {
+    std::unique_ptr<BackendShader> createShader(uint32_t) override {
         auto r = std::make_unique<MockShader>();
         r->id = ++counter_;
         return r;

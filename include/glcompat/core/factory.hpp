@@ -17,7 +17,7 @@ public:
     virtual std::unique_ptr<BackendRenderbuffer> createRenderbuffer() = 0;
     virtual std::unique_ptr<BackendFramebuffer> createFramebuffer() = 0;
     virtual std::unique_ptr<BackendVertexArray> createVertexArray() = 0;
-    virtual std::unique_ptr<BackendShader> createShader() = 0;
+    virtual std::unique_ptr<BackendShader> createShader(uint32_t stage) = 0;
     virtual std::unique_ptr<BackendProgram> createProgram() = 0;
 };
 

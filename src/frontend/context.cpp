@@ -250,6 +250,7 @@ GLObjectName Context::genVertexArray() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<VertexArrayObject>(name);
     obj->backend = backend_.resourceFactory().createVertexArray();
+    if (obj->backend) backend_.bindNativeObject(name, obj->backend->nativeId());
     vertexArrays_.emplace(name, std::move(obj));
     return name;
 }
@@ -287,6 +288,23 @@ void Context::flushState() {
     GLStateSink* sink = backend_.stateSink();
     if (sink) {
         state_.apply(*sink);
+        if (vertexStateDirty_) {
+            if (boundVertexArray_ != 0) {
+                if (VertexArrayObject* vao = getVertexArray(boundVertexArray_)) {
+                    sink->bindVertexArray(boundVertexArray_);
+                    for (const auto& a : vao->attribs) {
+                        if (a.enabled)
+                            sink->enableVertexAttribArray(a.index);
+                        else
+                            sink->disableVertexAttribArray(a.index);
+                        sink->vertexAttribPointer(a.index, a.size, a.type,
+                                                  a.normalized, a.stride,
+                                                  a.offset);
+                    }
+                }
+            }
+            vertexStateDirty_ = false;
+        }
     }
 }
 
@@ -324,7 +342,7 @@ void Context::drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
 }
 
 void Context::drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
-                                    intptr_t indices, int32_t primcount) {
+                                     intptr_t indices, int32_t primcount) {
     if (!backend_.capabilities().isSupported(Feature::InstancedRendering)) {
         setError(GLError::InvalidOperation);
         return;
@@ -335,6 +353,197 @@ void Context::drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
     }
     flushState();
     backend_.drawElementsInstanced(mode, count, type, indices, primcount);
+}
+
+// --- Shaders / programs (SPEC §8) ---
+
+GLObjectName Context::createShader(uint32_t stage) {
+    if (!backend_.capabilities().isSupported(Feature::ShaderObjects)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    GLObjectName name = nextName_++;
+    auto obj = std::make_unique<ShaderObject>(name, stage);
+    obj->backend = backend_.resourceFactory().createShader(stage);
+    shaders_.emplace(name, std::move(obj));
+    return name;
+}
+
+void Context::shaderSource(GLObjectName shader, const std::string& src) {
+    ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    s->source = src;
+}
+
+void Context::compileShader(GLObjectName shader) {
+    ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    std::string out, err;
+    // Translate desktop GLSL -> backend source when a translator is wired in.
+    // On failure we report the translation error honestly (no fake success).
+    if (!backend_.shaderCompiler().compile(s->source, s->stage, out, err)) {
+        s->compiled = false;
+        s->infoLog = err;
+        return;
+    }
+    std::string log;
+    bool ok = s->backend ? s->backend->compile(out, log) : false;
+    s->compiled = ok;
+    s->infoLog = log;
+    if (!ok) setError(GLError::InvalidOperation);
+}
+
+bool Context::isShaderCompiled(GLObjectName shader) const {
+    const ShaderObject* s = getShader(shader);
+    return s != nullptr && s->compiled;
+}
+
+std::string Context::shaderInfoLog(GLObjectName shader) const {
+    const ShaderObject* s = getShader(shader);
+    return s ? s->infoLog : std::string();
+}
+
+void Context::deleteShader(GLObjectName shader) {
+    auto it = shaders_.find(shader);
+    if (it == shaders_.end()) return;
+    shaders_.erase(it);
+}
+
+ShaderObject* Context::getShader(GLObjectName name) {
+    auto it = shaders_.find(name);
+    return it == shaders_.end() ? nullptr : it->second.get();
+}
+
+const ShaderObject* Context::getShader(GLObjectName name) const {
+    auto it = shaders_.find(name);
+    return it == shaders_.end() ? nullptr : it->second.get();
+}
+
+GLObjectName Context::createProgram() {
+    if (!backend_.capabilities().isSupported(Feature::ProgramObjects)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    GLObjectName name = nextName_++;
+    auto obj = std::make_unique<ProgramObject>(name);
+    obj->backend = backend_.resourceFactory().createProgram();
+    programs_.emplace(name, std::move(obj));
+    return name;
+}
+
+void Context::attachShader(GLObjectName program, GLObjectName shader) {
+    ProgramObject* p = getProgram(program);
+    ShaderObject* s = getShader(shader);
+    if (p == nullptr || s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!s->compiled) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    p->attachedShaders.push_back(shader);
+}
+
+void Context::linkProgram(GLObjectName program) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    for (GLObjectName sh : p->attachedShaders) {
+        if (ShaderObject* s = getShader(sh)) {
+            if (s->backend) p->backend->attach(*s->backend);
+        }
+    }
+    std::string log;
+    bool ok = p->backend ? p->backend->link(log) : false;
+    p->linked = ok;
+    p->infoLog = log;
+    if (!ok) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Register the name->native mapping so the backend can bind the program at
+    // draw time (SPEC §3/§11).
+    backend_.bindNativeObject(program, p->backend ? p->backend->nativeId() : 0);
+}
+
+bool Context::isProgramLinked(GLObjectName program) const {
+    const ProgramObject* p = getProgram(program);
+    return p != nullptr && p->linked;
+}
+
+std::string Context::programInfoLog(GLObjectName program) const {
+    const ProgramObject* p = getProgram(program);
+    return p ? p->infoLog : std::string();
+}
+
+int Context::getAttribLocation(GLObjectName program, const std::string& name) const {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) return -1;
+    return p->backend->getAttribLocation(name);
+}
+
+void Context::deleteProgram(GLObjectName program) {
+    auto it = programs_.find(program);
+    if (it == programs_.end()) return;
+    if (state_.activeProgram() == program) {
+        state_.useProgram(0);
+    }
+    programs_.erase(it);
+}
+
+ProgramObject* Context::getProgram(GLObjectName name) {
+    auto it = programs_.find(name);
+    return it == programs_.end() ? nullptr : it->second.get();
+}
+
+const ProgramObject* Context::getProgram(GLObjectName name) const {
+    auto it = programs_.find(name);
+    return it == programs_.end() ? nullptr : it->second.get();
+}
+
+// --- Vertex attributes (SPEC §2.1) ---
+
+void Context::enableVertexAttribArray(uint32_t index) {
+    if (boundVertexArray_ == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getVertexArray(boundVertexArray_)->attrib(index).enabled = true;
+    vertexStateDirty_ = true;
+}
+
+void Context::disableVertexAttribArray(uint32_t index) {
+    if (boundVertexArray_ == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getVertexArray(boundVertexArray_)->attrib(index).enabled = false;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                                  bool normalized, int32_t stride, intptr_t offset) {
+    if (boundVertexArray_ == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    a.size = size;
+    a.type = type;
+    a.normalized = normalized;
+    a.stride = stride;
+    a.offset = offset;
+    a.enabled = true;
+    vertexStateDirty_ = true;
 }
 
 } // namespace glcompat

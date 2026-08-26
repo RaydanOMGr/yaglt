@@ -11,6 +11,7 @@ add_executable(yaglt_tests
     unit/state_flush_test.cpp
     unit/ubo_ssbo_test.cpp
     unit/draw_test.cpp
+    unit/shader_program_test.cpp
     backend/gles_backend_test.cpp
 )
 
@@ -18,6 +19,7 @@ if(YAGLT_SHADER_TRANSLATE)
     target_sources(yaglt_tests PRIVATE
         backend/shader_translate_test.cpp
         backend/gles_e2e_shader_test.cpp
+        backend/gles_e2e_program_test.cpp
     )
 endif()
 

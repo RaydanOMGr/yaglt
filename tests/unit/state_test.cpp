@@ -37,6 +37,10 @@ struct RecordingSink : GLStateSink {
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
     void bindBufferBase(uint32_t, uint32_t, uint32_t) override {}
     void bindBufferRange(uint32_t, uint32_t, uint32_t, intptr_t, intptr_t) override {}
+    void bindVertexArray(uint32_t) override {}
+    void enableVertexAttribArray(uint32_t) override {}
+    void disableVertexAttribArray(uint32_t) override {}
+    void vertexAttribPointer(uint32_t, int32_t, uint32_t, bool, int32_t, intptr_t) override {}
 };
 
 constexpr GLenum GL_BLEND = 0x0BE2;

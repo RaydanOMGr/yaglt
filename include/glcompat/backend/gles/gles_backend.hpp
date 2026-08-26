@@ -12,6 +12,7 @@
 #include "src/platform/linux/linux_capabilities.hpp"
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 namespace glcompat {
 
@@ -57,6 +58,23 @@ public:
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
                           intptr_t offset, intptr_t size) override;
 
+    // Vertex array + attribute setup (SPEC §2.1).
+    void bindVertexArray(uint32_t vao) override;
+    void enableVertexAttribArray(uint32_t index) override;
+    void disableVertexAttribArray(uint32_t index) override;
+    void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                             bool normalized, int32_t stride,
+                             intptr_t offset) override;
+
+    // Frontend name -> native id mapping so useProgram/bindVertexArray can bind
+    // the real driver objects (SPEC §3/§11).
+    void bindNativeObject(uint32_t name, uint32_t nativeId) override;
+
+    // Test/debug access to the registered name -> native id map.
+    const std::unordered_map<uint32_t, uint32_t>& nativeMap() const {
+        return nativeMap_;
+    }
+
     // Draw commands (SPEC §2.1). The frontend flushes tracked pipeline state
     // before calling these, so the driver already sees current GL state.
     void drawArrays(uint32_t mode, int32_t first, int32_t count) override;
@@ -77,6 +95,10 @@ private:
     EGLDisplay display_ = EGL_NO_DISPLAY;
     EGLContext context_ = EGL_NO_CONTEXT;
     bool initialized_ = false;
+
+    // Frontend object name -> backend-native id (only entries that the frontend
+    // has registered via bindNativeObject).
+    std::unordered_map<uint32_t, uint32_t> nativeMap_;
 
     bool createContext();
     void queryVersion();

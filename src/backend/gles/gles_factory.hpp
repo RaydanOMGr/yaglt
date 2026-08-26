@@ -36,12 +36,11 @@ public:
         lib_->glGenVertexArrays(1, &h);
         return std::make_unique<GLESBackendVertexArray>(lib_, h);
     }
-    std::unique_ptr<BackendShader> createShader() override {
-        // Shaders are created at compile time; return a placeholder handle.
-        return std::make_unique<BackendShader>();
+    std::unique_ptr<BackendShader> createShader(uint32_t stage) override {
+        return std::make_unique<GLESBackendShader>(lib_, stage);
     }
     std::unique_ptr<BackendProgram> createProgram() override {
-        return std::make_unique<BackendProgram>();
+        return std::make_unique<GLESBackendProgram>(lib_);
     }
 
 private:

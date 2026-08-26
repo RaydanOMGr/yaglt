@@ -98,6 +98,14 @@ struct GLESLib {
     void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void*,
                                     GLsizei) = nullptr;
 
+    // Vertex attributes (SPEC §2.1).
+    GLint (*glGetAttribLocation)(GLuint, const GLchar*) = nullptr;
+    void (*glBindAttribLocation)(GLuint, GLuint, const GLchar*) = nullptr;
+    void (*glEnableVertexAttribArray)(GLuint) = nullptr;
+    void (*glDisableVertexAttribArray)(GLuint) = nullptr;
+    void (*glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei,
+                                  const void*) = nullptr;
+
     // True only when every required symbol resolved.
     bool loaded = false;
 

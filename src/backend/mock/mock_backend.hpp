@@ -6,6 +6,11 @@
 #include "mock_factory.hpp"
 #include "mock_shader_compiler.hpp"
 
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 namespace glcompat {
 
 // In-memory backend for tests and headless development. No native GL context
@@ -33,6 +38,12 @@ public:
     void shutdown() override { initialized_ = false; }
 
     GLStateSink* stateSink() override { return this; }
+
+    // Record frontend name -> native id registrations (observable in tests).
+    std::unordered_map<uint32_t, uint32_t> nativeMap_;
+    void bindNativeObject(uint32_t name, uint32_t nativeId) override {
+        nativeMap_[name] = nativeId;
+    }
 
     std::string describe() const override {
         return "MockBackend(" + platform_.describe() + ")";
@@ -101,6 +112,41 @@ public:
         lastBindTarget = target;
         lastBindIndex = index;
         lastBindBuffer = buffer;
+    }
+
+    int bindVertexArrayCalls = 0;
+    uint32_t lastBindVertexArray = 0;
+    int enableVertexAttribArrayCalls = 0;
+    int disableVertexAttribArrayCalls = 0;
+    int vertexAttribPointerCalls = 0;
+    uint32_t lastAttribIndex = 0;
+    int32_t lastAttribSize = 0;
+    uint32_t lastAttribType = 0;
+    bool lastAttribNormalized = false;
+    int32_t lastAttribStride = 0;
+    intptr_t lastAttribOffset = 0;
+    void bindVertexArray(uint32_t vao) override {
+        ++bindVertexArrayCalls;
+        lastBindVertexArray = vao;
+    }
+    void enableVertexAttribArray(uint32_t index) override {
+        ++enableVertexAttribArrayCalls;
+        lastAttribIndex = index;
+    }
+    void disableVertexAttribArray(uint32_t index) override {
+        ++disableVertexAttribArrayCalls;
+        lastAttribIndex = index;
+    }
+    void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                             bool normalized, int32_t stride,
+                             intptr_t offset) override {
+        ++vertexAttribPointerCalls;
+        lastAttribIndex = index;
+        lastAttribSize = size;
+        lastAttribType = type;
+        lastAttribNormalized = normalized;
+        lastAttribStride = stride;
+        lastAttribOffset = offset;
     }
 
     // --- Draw command recording (observable in tests) ---

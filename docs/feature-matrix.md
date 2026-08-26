@@ -49,8 +49,11 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | Object model (Buffer/Texture/RBO/FBO/VAO) | Partial | `src/frontend` objects hold `unique_ptr<BackendX>`; gen/bind/delete done |
 | Error handling (GLError) | Partial | `getError`/`setError`; InvalidOperation on bad bind |
 | State tracking | Implemented | `GLStateTracker` + `GLStateSink`; Mock & GLES backends flush via `Context::flushState()`/`glFlushState()` |
-| Draw calls | Implemented | `glDrawArrays`/`glDrawElements` + instanced variants on `IGraphicsBackend`; `Context` flushes tracked state then issues the draw; no active program → `GL_INVALID_OPERATION`; instanced gated by `InstancedRendering` capability. Verified by `draw_test` |
-| GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection. Real on Android/Mesa-GLES; initializes=false honestly where no driver |
+| Draw calls | Implemented | `glDrawArrays`/`glDrawElements` + instanced variants on `IGraphicsBackend`; `Context` flushes tracked state + bound VAO/attribs + program then issues the draw; no active program → `GL_INVALID_OPERATION`; instanced gated by `InstancedRendering` capability. Verified by `draw_test`/`shader_program_test` |
+| Shaders | Implemented | `glCreateShader`/`glShaderSource`/`glCompileShader`/`glGetShaderiv`; desktop GLSL translated via `IShaderCompiler` before the backend compiles. Capability-gated (ShaderObjects). Verified by `shader_program_test`/`gles_e2e_program_test` |
+| Programs | Implemented | `glCreateProgram`/`glAttachShader`/`glLinkProgram`/`glGetProgramiv`/`glGetAttribLocation`; link status gated by ProgramObjects; name → native id mapping for bind-at-draw. Verified by `shader_program_test`/`gles_e2e_program_test` |
+| Vertex attributes | Implemented | `glEnableVertexAttribArray`/`glDisableVertexAttribArray`/`glVertexAttribPointer` recorded on the bound VAO (requires a bound VAO) and pushed via `GLStateSink` at draw/flush. Verified by `shader_program_test`/`gles_e2e_program_test` |
+| GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection, real program/shader compile + link. Real on Android/Mesa-GLES; initializes=false honestly where no driver |
 | Shader translation | Emulated (ES) | `GLESShaderCompiler` compiles GLSL ES on driver; `TranslatingGLESShaderCompiler` runs desktop GLSL → glslang → SPIRV-Cross → GLSL ES 3.10. Uniform/storage blocks auto-bound via 420pack. Verified end-to-end on Mesa. |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |
 

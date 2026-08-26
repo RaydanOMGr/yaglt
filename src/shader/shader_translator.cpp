@@ -46,6 +46,41 @@ std::string assignDefaultBindings(const std::string& src) {
     out.append(pos, src.end());
     return out;
 }
+
+// User-defined `in`/`out` interface variables (vertex inputs, fragment outputs)
+// need an explicit location when targeting SPIR-V (glslang rejects unlocated
+// user I/O). Inject a default location for any such declaration that lacks one
+// so desktop GLSL translates without manual edits (SPEC §7).
+std::string assignDefaultLocations(const std::string& src) {
+    static const std::regex re(
+        R"((layout\s*\([^)]*\)\s*)?(in|out)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
+    std::string out;
+    std::string::const_iterator pos = src.begin();
+    int location = 0;
+    std::smatch m;
+    while (std::regex_search(pos, src.end(), m, re)) {
+        out.append(pos, m[0].first);
+        const std::string layout = m[1].str();
+        const std::string qual = m[2].str();
+        const std::string type = m[3].str();
+        const std::string name = m[4].str();
+        const std::string arr = m[5].str();
+        if (layout.empty()) {
+            out += "layout(location=" + std::to_string(location++) + ") " + qual +
+                   " " + type + " " + name + arr + ";";
+        } else if (layout.find("location") == std::string::npos) {
+            const std::string afterOpen =
+                layout.substr(std::string("layout(").size());
+            out += "layout(location=" + std::to_string(location++) + ", " +
+                   afterOpen + qual + " " + type + " " + name + arr + ";";
+        } else {
+            out += m[0].str();
+        }
+        pos = m[0].second;
+    }
+    out.append(pos, src.end());
+    return out;
+}
 } // namespace
 
 namespace {
@@ -82,6 +117,7 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     EShLanguage lang = mapStage(stage);
     glslang::TShader shader(lang);
     std::string prepared = assignDefaultBindings(desktopGlsl);
+    prepared = assignDefaultLocations(prepared);
     // Desktop GLSL < 4.20 rejects layout(binding=...) on uniform/storage
     // blocks; the 420pack extension enables it for SPIR-V translation.
     const size_t vpos = prepared.find("#version");

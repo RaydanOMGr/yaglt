@@ -90,6 +90,39 @@ public:
     void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
 
+    // --- Shaders / programs (SPEC §8) ---
+    // Capability-guarded: ShaderObjects / ProgramObjects must be supported by the
+    // backend or these report GL_INVALID_OPERATION honestly. The desktop->backend
+    // source translation (IShaderCompiler) runs inside compileShader so the
+    // backend receives backend-compatible source.
+    GLObjectName createShader(uint32_t stage);
+    void shaderSource(GLObjectName shader, const std::string& src);
+    void compileShader(GLObjectName shader);
+    bool isShaderCompiled(GLObjectName shader) const;
+    std::string shaderInfoLog(GLObjectName shader) const;
+    void deleteShader(GLObjectName shader);
+    ShaderObject* getShader(GLObjectName name);
+    const ShaderObject* getShader(GLObjectName name) const;
+
+    GLObjectName createProgram();
+    void attachShader(GLObjectName program, GLObjectName shader);
+    void linkProgram(GLObjectName program);
+    bool isProgramLinked(GLObjectName program) const;
+    std::string programInfoLog(GLObjectName program) const;
+    int getAttribLocation(GLObjectName program, const std::string& name) const;
+    void deleteProgram(GLObjectName program);
+    ProgramObject* getProgram(GLObjectName name);
+    const ProgramObject* getProgram(GLObjectName name) const;
+
+    // --- Vertex attributes (SPEC §2.1) ---
+    // Operate on the currently bound VAO (glBindVertexArray); with no VAO bound
+    // they report GL_INVALID_OPERATION. State is recorded on the VAO and pushed
+    // to the backend (via GLStateSink) at draw / flush time.
+    void enableVertexAttribArray(uint32_t index);
+    void disableVertexAttribArray(uint32_t index);
+    void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                             bool normalized, int32_t stride, intptr_t offset);
+
     // --- Draw (SPEC §2.1) ---
     // Flush tracked pipeline state to the backend, then issue the draw. Drawing
     // with no active program is GL_INVALID_OPERATION (core profile). Instanced
@@ -114,6 +147,10 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<RenderbufferObject>> renderbuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<FramebufferObject>> framebuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<VertexArrayObject>> vertexArrays_;
+    std::unordered_map<GLObjectName, std::unique_ptr<ShaderObject>> shaders_;
+    std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;
+
+    bool vertexStateDirty_ = false;
 
     std::unordered_map<uint32_t, GLObjectName> boundBuffers_;
     GLObjectName boundTexture_ = 0;

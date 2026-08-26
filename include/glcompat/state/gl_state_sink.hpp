@@ -41,6 +41,15 @@ public:
     virtual void bindBufferRange(uint32_t target, uint32_t index,
                                  uint32_t buffer, intptr_t offset,
                                  intptr_t size) = 0;
+
+    // Vertex array + attribute setup (SPEC §2.1). `vao` is the frontend VAO
+    // name; `index` the attribute location.
+    virtual void bindVertexArray(uint32_t vao) = 0;
+    virtual void enableVertexAttribArray(uint32_t index) = 0;
+    virtual void disableVertexAttribArray(uint32_t index) = 0;
+    virtual void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
+                                     bool normalized, int32_t stride,
+                                     intptr_t offset) = 0;
 };
 
 } // namespace glcompat
