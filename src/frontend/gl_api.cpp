@@ -776,6 +776,11 @@ void glSampleCoverage(GLfloat value, GLboolean invert) {
     g_current->state().setSampleCoverage(value, invert != 0);
 }
 
+void glPrimitiveRestartIndex(GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->primitiveRestartIndex(index);
+}
+
 void glPixelStorei(GLenum pname, GLint param) {
     if (g_current == nullptr) return;
     g_current->pixelStorei(pname, static_cast<int>(param));

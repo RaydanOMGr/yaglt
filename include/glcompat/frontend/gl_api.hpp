@@ -259,6 +259,11 @@ void glStencilMask(GLuint mask);
 void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
 void glSampleCoverage(GLfloat value, GLboolean invert);
 
+// Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex). Activation is via
+// glEnable(GL_PRIMITIVE_RESTART); this records the restart index, pushed to the
+// backend only when it changes (SPEC §10).
+void glPrimitiveRestartIndex(GLuint index);
+
 // Pixel store (SPEC §10). Affects subsequent texture/image uploads.
 void glPixelStorei(GLenum pname, GLint param);
 

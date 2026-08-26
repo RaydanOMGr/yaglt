@@ -58,6 +58,8 @@ public:
     void colorMask(bool r, bool g, bool b, bool a) override;
     // Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage).
     void sampleCoverage(float value, bool invert) override;
+    // Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex).
+    void primitiveRestart(uint32_t index) override;
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
     void pointSize(float size) override;

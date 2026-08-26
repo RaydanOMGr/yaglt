@@ -35,10 +35,10 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 137 | **28.0%** |
-| Core profile only (spec − 55 removed commands) | 435 | 137 | **31.5%** |
+| Full spec (compat + core) | 490 | 138 | **28.2%** |
+| Core profile only (spec − 55 removed commands) | 435 | 138 | **31.7%** |
 
-All 137 covered commands are real `gl_api` entry points with frontend semantics
+All 138 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -60,7 +60,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate. Missing: `BindAttribLocation`, program **pipelines** (§7.4), **subroutines**, **compute** shaders, shader binaries |
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`). Missing: 1D/3D/cube/array/rect targets (texImage), full param coverage, `GetTexImage`, **multisample textures**, **buffer textures**, texture views, full **Named* (DSA object) surface** |
 | §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
-| §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced). Missing: `DrawRangeElements`, `MultiDraw*`, **`DrawElementsBaseVertex`**, **indirect draw**, **primitive restart** (core `GL_PRIMITIVE_RESTART`), vertex attrib divisor, `VertexAttrib*` (except pointer), client array legacy |
+| §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4). Missing: `DrawRangeElements`, `MultiDraw*`, **`DrawElementsBaseVertex`**, **indirect draw**, vertex attrib divisor, `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
@@ -74,7 +74,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
 | Shader stages | 🚫 | **Geometry, Tessellation, Compute** honestly **Unsupported** (no entry points; capability-gated). Only vertex + fragment stages translate (desktop→GLSL ES via glslang + SPIRV-Cross). |
 
-## The 137 covered core command prototypes
+## The 138 covered core command prototypes
 
 ActiveTexture, AttachShader, BeginQuery, BeginQueryIndexed, BeginTransformFeedback, BindBuffer,
 BindBufferBase, BindBufferRange, BufferStorage, BufferSubData,
@@ -84,6 +84,7 @@ BindSampler, BindTexture, BindTextureUnit, BindTextures, BindTransformFeedback,
 BindVertexArray, BlendColor, BlendEquation, BlendEquationSeparate, BlendFunc,
 BlendFuncSeparate, BufferData, Clear, ClearColor, ClearDepth, ClearDepthf, CopyTexImage1D, CopyTexImage2D,
 ColorMask, SampleCoverage,
+PrimitiveRestartIndex,
 DrawBuffers, ReadBuffer, LogicOp, BlitFramebuffer, InvalidateFramebuffer, InvalidateSubFramebuffer,
 CompileShader, CopyBufferSubData, CullFace, DeleteBuffers, DeleteFramebuffers,
 DeleteProgram, DeleteRenderbuffers, DeleteSamplers, DeleteShader, DeleteTextures,

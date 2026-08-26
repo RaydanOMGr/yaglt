@@ -95,6 +95,8 @@ public:
     int sampleCoverageCalls = 0;
     float lastSampleCoverageValue = 1.0f;
     bool lastSampleCoverageInvert = false;
+    int primitiveRestartCalls = 0;
+    uint32_t lastPrimitiveRestartIndex = 0;
     int cullFaceCalls = 0;
     int frontFaceCalls = 0;
     int pointSizeCalls = 0;
@@ -182,6 +184,10 @@ public:
         ++sampleCoverageCalls;
         lastSampleCoverageValue = value;
         lastSampleCoverageInvert = invert;
+    }
+    void primitiveRestart(uint32_t index) override {
+        ++primitiveRestartCalls;
+        lastPrimitiveRestartIndex = index;
     }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }

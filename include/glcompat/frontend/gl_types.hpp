@@ -366,4 +366,9 @@ constexpr GLenum GL_OR_INVERTED = 0x150D;
 constexpr GLenum GL_NAND = 0x150E;
 constexpr GLenum GL_SET = 0x150F;
 
+// Primitive restart (SPEC §10.4, glPrimitiveRestartIndex + GL_PRIMITIVE_RESTART).
+constexpr GLenum GL_PRIMITIVE_RESTART = 0x8F9D;
+constexpr GLenum GL_PRIMITIVE_RESTART_FIXED_INDEX = 0x8FDE;
+constexpr GLenum GL_PRIMITIVE_RESTART_INDEX = 0x8F9E;
+
 } // namespace glcompat

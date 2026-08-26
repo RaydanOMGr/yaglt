@@ -141,6 +141,12 @@ bool GLStateTracker::setSampleCoverage(float value, bool invert) {
     return true;
 }
 
+bool GLStateTracker::setPrimitiveRestartIndex(uint32_t index) {
+    if (primitiveRestart_.index == index) return false;
+    primitiveRestart_.index = index;
+    return true;
+}
+
 bool GLStateTracker::setCullFace(GLenum mode) {
     if (raster_.cull == mode) return false;
     raster_.cull = mode;
@@ -500,6 +506,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!primitiveRestart_.equal(primitiveRestartApplied_)) {
+        sink.primitiveRestart(primitiveRestart_.index);
+        primitiveRestartApplied_ = primitiveRestart_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -560,7 +572,9 @@ bool isTrackedCap(GLenum cap) {
            cap == 0x0B90 /* GL_STENCIL_TEST */ ||
            cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
            cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */ ||
-           cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */;
+            cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */ ||
+            cap == 0x8F9D /* GL_PRIMITIVE_RESTART */ ||
+            cap == 0x8FDE /* GL_PRIMITIVE_RESTART_FIXED_INDEX */;
 }
 
 GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
@@ -614,6 +628,8 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(kMaxTextureUnits); return 1;
     case GL_LOGIC_OP_MODE:
         out[0] = static_cast<GLint>(logicOp_.mode); return 1;
+    case 0x8F9E: // GL_PRIMITIVE_RESTART_INDEX
+        out[0] = static_cast<GLint>(primitiveRestart_.index); return 1;
     case GL_COLOR_WRITEMASK:
         out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
         out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
@@ -771,6 +787,8 @@ void GLStateTracker::reset() {
     colorMaskApplied_ = ColorMaskState{};
     sampleCoverage_ = SampleCoverageState{};
     sampleCoverageApplied_ = SampleCoverageState{};
+    primitiveRestart_ = PrimitiveRestartState{};
+    primitiveRestartApplied_ = PrimitiveRestartState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
     texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
     activeTextureUnit_ = 0;

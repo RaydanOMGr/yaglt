@@ -109,6 +109,9 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilMask, "glStencilMask");
     ok &= resolve(gles, glColorMask, "glColorMask");
     ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");
+    // glPrimitiveRestartIndex is core in GLES 3.0 but some implementations expose
+    // it conditionally; resolve it optionally so load() still succeeds without it.
+    resolve(gles, glPrimitiveRestartIndex, "glPrimitiveRestartIndex");
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
     // glPointSize was removed from the OpenGL ES 3.0 API (point size is set via

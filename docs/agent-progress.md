@@ -838,15 +838,15 @@ crashed agent, this session)
   constants added to `gl_types.hpp`. Public `gl_api` exposes
   `glSampleCoverage(GLfloat, GLboolean)`.
 - New `tests/unit/samplecoverage_test.cpp` (2 cases) covers push-only-on-change
-  + recording and the tracked-state queries. Coverage now 137/490 (28.0%) full /
-  137/435 (31.5%) core.
+  + recording and the tracked-state queries. Coverage now 138/490 (28.2%) full /
+  138/435 (31.7%) core.
 - Validation: default + sanitizer suites green.
 
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-     Per `docs/coverage-core.md` (2026-08-27) now 137/490 (28.0%) have a
-      frontend entry point; core-only is 137/435 (31.5%). The standing
+    Per `docs/coverage-core.md` (2026-08-27) now 138/490 (28.2%) have a
+     frontend entry point; core-only is 138/435 (31.7%). The standing
      objective is to reach **full coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per
@@ -914,5 +914,28 @@ crashed agent, this session)
 - New `tests/unit/query_sync_test.cpp` (mock path: gen/delete/is, begin/end
   lifecycle + validation, indexed-target gating, getQuery* result/counter reads,
   unsupported-capability paths, full sync fence lifecycle + error paths). All
-  suites green: default 187→**, sanitizer, and translate (Mesa) builds pass.
+   suites green: default 187→**, sanitizer, and translate (Mesa) builds pass.
+
+2026-08-27 (EGL overflow fix + primitive restart, this session)
+- **Recovery**: the prior agent crashed mid-work on the GLES backend EGL init.
+  The crash notes identified a stack-buffer-overflow in Mesa 26's `_eglFindDisplay`
+  when the surfaceless platform is routed through `eglGetPlatformDisplay` /
+  `eglGetPlatformDisplayEXT`. `createContext` now prefers
+  `eglGetDisplay(EGL_DEFAULT_DISPLAY)` (which yields a usable surfaceless display
+  on this Mesa build without overflow) and only falls back to the platform-display
+  entry points when that fails. Verified clean under ASan (no overflow). Added
+  `tools/lsan_mesa_suppressions.txt` for the known Mesa softpipe init leaks and
+  wired them via `LSAN_OPTIONS=suppressions=...` so a Mesa-backed ASan run stays
+  green without masking our own leaks.
+- **Primitive restart (SPEC §10.4)**: implemented `glPrimitiveRestartIndex` as a
+  tracked `GLStateTracker` value pushed through a new `GLStateSink::primitiveRestart`
+  only on change (SPEC §10). `GL_PRIMITIVE_RESTART` is a normal enable/disable cap
+  (added to the tracked-cap set so `glIsEnabled`/`glGet` report it). GLES backend
+  resolves `glPrimitiveRestartIndex` optionally; mock records it. `GL_PRIMITIVE_RESTART`
+  / `_FIXED_INDEX` / `_INDEX` constants added to `gl_types.hpp`; `glGetIntegerv
+  (GL_PRIMITIVE_RESTART_INDEX)` returns the tracked value. New
+  `tests/unit/primitive_restart_test.cpp`. Coverage now 138/490 (28.2%) full /
+  138/435 (31.7%) core.
+- Validation: default + sanitizer (no Mesa) + translate (Mesa) suites all green.
+
 

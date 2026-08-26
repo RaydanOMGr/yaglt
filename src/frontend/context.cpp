@@ -2144,6 +2144,10 @@ void Context::logicOp(uint32_t mode) {
     state_.setLogicOp(mode);
 }
 
+void Context::primitiveRestartIndex(uint32_t index) {
+    state_.setPrimitiveRestartIndex(index);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,

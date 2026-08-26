@@ -62,6 +62,12 @@ public:
     // --- Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage) ---
     bool setSampleCoverage(float value, bool invert);
 
+    // --- Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex) ---
+    // The matching GL_PRIMITIVE_RESTART capability is a normal enable/disable cap;
+    // this records only the restart index, pushed to the backend on change.
+    bool setPrimitiveRestartIndex(uint32_t index);
+    uint32_t primitiveRestartIndex() const { return primitiveRestart_.index; }
+
     // --- Rasterization ---
     bool setCullFace(GLenum mode);
     bool setFrontFace(GLenum mode);
@@ -290,6 +296,12 @@ private:
             return value == o.value && invert == o.invert;
         }
     };
+    struct PrimitiveRestartState {
+        uint32_t index = 0;
+        bool equal(const PrimitiveRestartState& o) const {
+            return index == o.index;
+        }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -331,6 +343,7 @@ private:
     LogicOpState logicOp_, logicOpApplied_;
     ColorMaskState colorMask_, colorMaskApplied_;
     SampleCoverageState sampleCoverage_, sampleCoverageApplied_;
+    PrimitiveRestartState primitiveRestart_, primitiveRestartApplied_;
 };
 
 } // namespace glcompat

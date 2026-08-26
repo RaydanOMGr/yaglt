@@ -230,6 +230,11 @@ public:
     // enabled. Capability-gated by LogicOp.
     void logicOp(uint32_t mode);
 
+    // --- Primitive restart (SPEC §10.4, glPrimitiveRestartIndex) ---
+    // Records the restart index in the tracker; pushed to the backend on change
+    // (SPEC §10). Activation is via glEnable(GL_PRIMITIVE_RESTART), a normal cap.
+    void primitiveRestartIndex(uint32_t index);
+
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
     // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)

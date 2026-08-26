@@ -335,6 +335,11 @@ void GLESBackend::sampleCoverage(float value, bool invert) {
         lib_->glSampleCoverage(value, invert ? GL_TRUE : GL_FALSE);
 }
 
+void GLESBackend::primitiveRestart(uint32_t index) {
+    if (lib_->glPrimitiveRestartIndex)
+        lib_->glPrimitiveRestartIndex(static_cast<GLuint>(index));
+}
+
 void GLESBackend::cullFace(GLenum mode) {
     if (lib_->glCullFace) lib_->glCullFace(mode);
 }

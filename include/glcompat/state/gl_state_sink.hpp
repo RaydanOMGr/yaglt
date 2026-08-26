@@ -101,6 +101,11 @@ public:
     virtual void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                                      bool normalized, int32_t stride,
                                      intptr_t offset) = 0;
+
+    // Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex). Pushed only
+    // when the index changes (SPEC §10). The GL_PRIMITIVE_RESTART capability that
+    // activates it is pushed via enable/disable.
+    virtual void primitiveRestart(uint32_t index) = 0;
 };
 
 } // namespace glcompat
