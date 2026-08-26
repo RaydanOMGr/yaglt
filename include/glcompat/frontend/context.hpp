@@ -162,7 +162,28 @@ public:
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
                                intptr_t indices, int32_t primcount);
 
+    // --- Uniforms (SPEC §8) ---
+    // Query a uniform location for an explicit program. Setting uniforms operates
+    // on the currently active program (glUseProgram). No active program or a
+    // non-linked program yields GL_INVALID_OPERATION; a -1 location is a silent
+    // no-op (standard glUniform* semantics).
+    int getUniformLocation(GLObjectName program, const std::string& name);
+    void uniform1f(int loc, float v0);
+    void uniform2f(int loc, float v0, float v1);
+    void uniform3f(int loc, float v0, float v1, float v2);
+    void uniform4f(int loc, float v0, float v1, float v2, float v3);
+    void uniform1i(int loc, int v0);
+    void uniform2i(int loc, int v0, int v1);
+    void uniform3i(int loc, int v0, int v1, int v2);
+    void uniform4i(int loc, int v0, int v1, int v2, int v3);
+    void uniform1fv(int loc, const float* v, int count);
+    void uniform1iv(int loc, const int* v, int count);
+    void uniformMatrix4fv(int loc, const float* m, int count, bool transpose);
+
 private:
+    // Backend program for the currently active program (nullptr when none / not
+    // linked / no backend resource). Used by the uniform setters.
+    BackendProgram* activeBackendProgram();
     GLObjectName nextName_ = 1;
 
     IGraphicsBackend& backend_;

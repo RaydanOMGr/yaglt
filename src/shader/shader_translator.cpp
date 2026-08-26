@@ -47,13 +47,14 @@ std::string assignDefaultBindings(const std::string& src) {
     return out;
 }
 
-// User-defined `in`/`out` interface variables (vertex inputs, fragment outputs)
+// User-defined `in`/`out` interface variables and bare `uniform` declarations
 // need an explicit location when targeting SPIR-V (glslang rejects unlocated
-// user I/O). Inject a default location for any such declaration that lacks one
-// so desktop GLSL translates without manual edits (SPEC §7).
+// user I/O and non-block uniforms). Inject a default location for any such
+// declaration that lacks one so desktop GLSL translates without manual edits
+// (SPEC §7).
 std::string assignDefaultLocations(const std::string& src) {
     static const std::regex re(
-        R"((layout\s*\([^)]*\)\s*)?(in|out)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
+        R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int location = 0;
@@ -118,14 +119,16 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     glslang::TShader shader(lang);
     std::string prepared = assignDefaultBindings(desktopGlsl);
     prepared = assignDefaultLocations(prepared);
-    // Desktop GLSL < 4.20 rejects layout(binding=...) on uniform/storage
-    // blocks; the 420pack extension enables it for SPIR-V translation.
+    // Desktop GLSL < 4.20 rejects layout(binding=...) on uniform/storage blocks
+    // and layout(location=...) on bare uniforms; these ARB extensions enable them
+    // for SPIR-V translation.
     const size_t vpos = prepared.find("#version");
     if (vpos != std::string::npos) {
         const size_t nl = prepared.find('\n', vpos);
         if (nl != std::string::npos) {
-            prepared.insert(
-                nl + 1, "#extension GL_ARB_shading_language_420pack : enable\n");
+            prepared.insert(nl + 1,
+                "#extension GL_ARB_shading_language_420pack : enable\n"
+                "#extension GL_ARB_explicit_uniform_location : enable\n");
         }
     }
     const char* src = prepared.c_str();
@@ -161,6 +164,10 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     opts.version = 310;      // target GLSL ES 3.10
     opts.es = true;
     opts.vulkan_semantics = false;
+    // GLSL ES requires explicit precision for float in fragment shaders; emit a
+    // default highp precision so translated desktop uniforms compile (SPEC §7).
+    opts.fragment.default_float_precision = spirv_cross::CompilerGLSL::Options::Highp;
+    opts.fragment.default_int_precision = spirv_cross::CompilerGLSL::Options::Highp;
     glsl.set_common_options(opts);
 
     esSource = glsl.compile();

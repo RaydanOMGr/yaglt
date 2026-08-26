@@ -686,4 +686,100 @@ void Context::pixelStorei(uint32_t pname, int param) {
     }
 }
 
+// --- Uniforms (SPEC §8) ---
+
+BackendProgram* Context::activeBackendProgram() {
+    GLObjectName prog = state_.activeProgram();
+    if (prog == 0) return nullptr;
+    ProgramObject* p = getProgram(prog);
+    if (p == nullptr || !p->linked || !p->backend) return nullptr;
+    return p->backend.get();
+}
+
+int Context::getUniformLocation(GLObjectName program, const std::string& name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    return p->backend->getUniformLocation(name);
+}
+
+void Context::uniform1f(int loc, float v0) {
+    if (loc < 0) return; // silent no-op (desktop semantics)
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1f(loc, v0);
+}
+
+void Context::uniform2f(int loc, float v0, float v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2f(loc, v0, v1);
+}
+
+void Context::uniform3f(int loc, float v0, float v1, float v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3f(loc, v0, v1, v2);
+}
+
+void Context::uniform4f(int loc, float v0, float v1, float v2, float v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4f(loc, v0, v1, v2, v3);
+}
+
+void Context::uniform1i(int loc, int v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1i(loc, v0);
+}
+
+void Context::uniform2i(int loc, int v0, int v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2i(loc, v0, v1);
+}
+
+void Context::uniform3i(int loc, int v0, int v1, int v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3i(loc, v0, v1, v2);
+}
+
+void Context::uniform4i(int loc, int v0, int v1, int v2, int v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4i(loc, v0, v1, v2, v3);
+}
+
+void Context::uniform1fv(int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1fv(loc, v, count);
+}
+
+void Context::uniform1iv(int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1iv(loc, v, count);
+}
+
+void Context::uniformMatrix4fv(int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix4fv(loc, m, count, transpose);
+}
+
 } // namespace glcompat

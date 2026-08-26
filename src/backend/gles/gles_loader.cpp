@@ -115,6 +115,21 @@ bool GLESLib::load() {
     resolve(gles, glDisableVertexAttribArray, "glDisableVertexAttribArray");
     resolve(gles, glVertexAttribPointer, "glVertexAttribPointer");
 
+    // Uniforms are ES 2.0+; resolve optionally so load() still succeeds if a
+    // driver somehow lacks them (capability system reports unsupported instead).
+    resolve(gles, glGetUniformLocation, "glGetUniformLocation");
+    resolve(gles, glUniform1f, "glUniform1f");
+    resolve(gles, glUniform2f, "glUniform2f");
+    resolve(gles, glUniform3f, "glUniform3f");
+    resolve(gles, glUniform4f, "glUniform4f");
+    resolve(gles, glUniform1i, "glUniform1i");
+    resolve(gles, glUniform2i, "glUniform2i");
+    resolve(gles, glUniform3i, "glUniform3i");
+    resolve(gles, glUniform4i, "glUniform4i");
+    resolve(gles, glUniform1fv, "glUniform1fv");
+    resolve(gles, glUniform1iv, "glUniform1iv");
+    resolve(gles, glUniformMatrix4fv, "glUniformMatrix4fv");
+
     if (!ok) {
         dlclose(egl);
         dlclose(gles);

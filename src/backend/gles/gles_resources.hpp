@@ -174,6 +174,79 @@ struct GLESBackendProgram : BackendProgram {
         return static_cast<int>(lib->glGetAttribLocation(handle, name.c_str()));
     }
     uint32_t nativeId() const override { return handle; }
+
+    int getUniformLocation(const std::string& name) const override {
+        if (!lib || !lib->loaded || handle == 0) return -1;
+        return static_cast<int>(lib->glGetUniformLocation(handle, name.c_str()));
+    }
+    void uniform1f(int loc, float v0) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform1f(loc, v0);
+    }
+    void uniform2f(int loc, float v0, float v1) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform2f(loc, v0, v1);
+    }
+    void uniform3f(int loc, float v0, float v1, float v2) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform3f(loc, v0, v1, v2);
+    }
+    void uniform4f(int loc, float v0, float v1, float v2, float v3) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform4f(loc, v0, v1, v2, v3);
+    }
+    void uniform1i(int loc, int v0) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform1i(loc, v0);
+    }
+    void uniform2i(int loc, int v0, int v1) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform2i(loc, v0, v1);
+    }
+    void uniform3i(int loc, int v0, int v1, int v2) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform3i(loc, v0, v1, v2);
+    }
+    void uniform4i(int loc, int v0, int v1, int v2, int v3) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
+        bind();
+        lib->glUniform4i(loc, v0, v1, v2, v3);
+    }
+    void uniform1fv(int loc, const float* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform1fv(loc, count, v);
+    }
+    void uniform1iv(int loc, const int* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform1iv(loc, count, v);
+    }
+    void uniformMatrix4fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0) return;
+        bind();
+        lib->glUniformMatrix4fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+
+private:
+    // Bind this program only when it is not already the bound driver program, so
+    // back-to-back uniform calls on the same program skip redundant native binds
+    // (SPEC §10). The shared loader's currentProgram is the single source of
+    // truth, also updated by the backend's useProgram sink.
+    void bind() {
+        if (lib->currentProgram != handle) {
+            if (lib->glUseProgram) lib->glUseProgram(handle);
+            lib->currentProgram = handle;
+        }
+    }
+
     GLESLibPtr lib;
     GLuint handle = 0;
 };

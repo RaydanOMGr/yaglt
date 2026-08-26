@@ -77,6 +77,24 @@ public:
     virtual int getAttribLocation(const std::string& name) const = 0;
     // Native backend program id (e.g. driver GLuint). 0 when not linked.
     virtual uint32_t nativeId() const = 0;
+
+    // Uniform management (SPEC §8). Operate on this linked program. Defaults are
+    // no-ops so backends opt in. `getUniformLocation` returns -1 when the uniform
+    // is absent (matching desktop GL semantics). A -1 location is a silent no-op
+    // in every setter, matching glUniform* behavior.
+    virtual int getUniformLocation(const std::string& name) const { return -1; }
+    virtual void uniform1f(int loc, float v0) {}
+    virtual void uniform2f(int loc, float v0, float v1) {}
+    virtual void uniform3f(int loc, float v0, float v1, float v2) {}
+    virtual void uniform4f(int loc, float v0, float v1, float v2, float v3) {}
+    virtual void uniform1i(int loc, int v0) {}
+    virtual void uniform2i(int loc, int v0, int v1) {}
+    virtual void uniform3i(int loc, int v0, int v1, int v2) {}
+    virtual void uniform4i(int loc, int v0, int v1, int v2, int v3) {}
+    virtual void uniform1fv(int loc, const float* v, int count) {}
+    virtual void uniform1iv(int loc, const int* v, int count) {}
+    virtual void uniformMatrix4fv(int loc, const float* m, int count,
+                                 bool transpose) {}
 };
 
 } // namespace glcompat

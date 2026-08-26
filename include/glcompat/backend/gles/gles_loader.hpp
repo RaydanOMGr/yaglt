@@ -113,6 +113,25 @@ struct GLESLib {
     void (*glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei,
                                   const void*) = nullptr;
 
+    // Uniforms (SPEC §8). Resolved for ES 2.0+ drivers; absent on a driver that
+    // lacks them they stay null and the backend reports unsupported honestly.
+    GLint (*glGetUniformLocation)(GLuint, const GLchar*) = nullptr;
+    void (*glUniform1f)(GLint, GLfloat) = nullptr;
+    void (*glUniform2f)(GLint, GLfloat, GLfloat) = nullptr;
+    void (*glUniform3f)(GLint, GLfloat, GLfloat, GLfloat) = nullptr;
+    void (*glUniform4f)(GLint, GLfloat, GLfloat, GLfloat, GLfloat) = nullptr;
+    void (*glUniform1i)(GLint, GLint) = nullptr;
+    void (*glUniform2i)(GLint, GLint, GLint) = nullptr;
+    void (*glUniform3i)(GLint, GLint, GLint, GLint) = nullptr;
+    void (*glUniform4i)(GLint, GLint, GLint, GLint, GLint) = nullptr;
+    void (*glUniform1fv)(GLint, GLsizei, const GLfloat*) = nullptr;
+    void (*glUniform1iv)(GLint, GLsizei, const GLint*) = nullptr;
+    void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+
+    // Tracks the driver program bound by this loader so uniform calls can avoid
+    // redundant glUseProgram (SPEC §10: skip unchanged native state).
+    GLuint currentProgram = 0;
+
     // True only when every required symbol resolved.
     bool loaded = false;
 

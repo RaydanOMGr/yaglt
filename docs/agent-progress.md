@@ -9,7 +9,8 @@ Current milestone: Phase 2/3 — OpenGL object + state API (texture/FBO/pixel-st
 Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API)
 Last updated: 2026-08-26
 Known major blockers:
-- Uniform setting and renderbuffer storage not yet exposed (next step).
+- Renderbuffer storage (`glRenderbufferStorage`) and a full texture+program draw
+  e2e on GLES/Mesa still pending (next step).
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
 ## Toolchain & Environment
@@ -160,7 +161,7 @@ Known major blockers:
 - [x] P0: Implement core object model (buffers, textures, VAO, FBO, RBO).
 - [x] P1: Implement GLES backend foundation + headless EGL validation.
 - [x] P1: Implement shader translation pipeline behind `IShaderCompiler`.
-- [ ] P0: Implement uniform setting (`glUniform*`) on the active program.
+- [x] P0: Implement uniform setting (`glUniform*`) on the active program.
 - [ ] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
 - [ ] P1: Android platform capabilities + SDK 21 fallback abstraction.
 - [ ] P2: Capability-driven emulation selection scaffolding.
@@ -200,6 +201,10 @@ OpenGL 4.6:
   Compatibility profile: not implemented
   Shader stages: desktop GLSL → GLSL ES translation implemented (glslang +
     SPIRV-Cross), exercised by `shader_translate_test` + e2e program/shader tests.
+    Translator injects default precision (fragment) + uniform locations so desktop
+    shaders with uniforms compile on ES.
+  Uniforms: `glGetUniformLocation` + `glUniform*` (f/i, vectors, 1fv/1iv, mat4)
+    implemented on the active program (SPEC §8); real path via GLES backend.
   DSA: not implemented (marked Emulated in mock capabilities only)
   Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
@@ -237,6 +242,28 @@ OpenGL 4.6:
     translate (Mesa) all pass.
 
 ## Recent Work
+
+2026-08-26 (uniforms, this session)
+- Uniform setting subsystem (SPEC §8, next-agent Next Steps item 1). `BackendProgram`
+  gained `getUniformLocation` + `uniform1f..4f`/`uniform1i..4i`/`uniform1fv`/`uniform1iv`/
+  `uniformMatrix4fv` virtuals (default no-op). `Context` gained `getUniformLocation`
+  (validates linked program) and `uniform*` setters that operate on the active program
+  (no active program → `GL_INVALID_OPERATION`; -1 location → silent no-op). Public
+  `gl_api` exposes `glGetUniformLocation` + all `glUniform*` variants.
+- `GLESBackendProgram` implements the real path: binds its driver program only when it
+  differs from `GLESLib::currentProgram` (redundant-bind avoidance, SPEC §10); the GLES
+  loader resolves the 14 uniform entry points (optional, so load() still succeeds without
+  them). `GLESBackend::useProgram` keeps `currentProgram` in sync.
+- `MockProgram` records every uniform call (location/args/count) so tests assert behavior.
+- New `tests/unit/uniform_test.cpp` (mock path: location stability, no-active-program and
+  -1-location handling, all variants). New `gles_e2e_uniform_set` in
+  `tests/backend/gles_e2e_program_test.cpp` exercises the real Mesa driver path.
+- Shader translator (SPEC §7) hardened for the desktop→ES path: emit default
+  `highp` precision for fragment float/int (ES requires it), and inject default
+  `layout(location=...)` for bare `uniform` declarations (glslang/SPIR-V requires
+  located non-block uniforms). Both fixes exercised by the e2e uniform test.
+- Validation: default 58/58, sanitizer 58/58, translate (Mesa) 64/64 green.
+
 
 2026-08-26 (this session)
 - Texture / FBO / pixel-store / buffer-data frontend API (SPEC §2.1). Added

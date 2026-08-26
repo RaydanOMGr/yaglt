@@ -12,6 +12,7 @@ using GLsizei = int32_t;
 using GLint = int32_t;
 using GLsizeiptr = intptr_t;
 using GLintptr = intptr_t;
+using GLfloat = float;
 using GLvoid = void;
 using GLchar = char;
 using GLboolean = unsigned char;

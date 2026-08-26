@@ -166,6 +166,9 @@ void GLESBackend::useProgram(uint32_t prog) {
     auto it = nativeMap_.find(prog);
     GLuint native = it != nativeMap_.end() ? it->second : prog;
     if (lib_->glUseProgram) lib_->glUseProgram(native);
+    // Keep the loader's active-program cache in sync so the program's own uniform
+    // calls (which bind via the same loader) don't issue a redundant glUseProgram.
+    lib_->currentProgram = native;
 }
 
 void GLESBackend::bindVertexArray(uint32_t vao) {

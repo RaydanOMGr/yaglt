@@ -232,6 +232,60 @@ GLint glGetAttribLocation(GLuint program, const GLchar* name) {
     return g_current->getAttribLocation(program, name ? name : "");
 }
 
+// --- Uniforms (SPEC §8) ---
+
+GLint glGetUniformLocation(GLuint program, const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getUniformLocation(program, name ? name : "");
+}
+
+void glUniform1f(GLint location, GLfloat v0) {
+    if (g_current == nullptr) return;
+    g_current->uniform1f(location, v0);
+}
+void glUniform2f(GLint location, GLfloat v0, GLfloat v1) {
+    if (g_current == nullptr) return;
+    g_current->uniform2f(location, v0, v1);
+}
+void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2) {
+    if (g_current == nullptr) return;
+    g_current->uniform3f(location, v0, v1, v2);
+}
+void glUniform4f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) {
+    if (g_current == nullptr) return;
+    g_current->uniform4f(location, v0, v1, v2, v3);
+}
+void glUniform1i(GLint location, GLint v0) {
+    if (g_current == nullptr) return;
+    g_current->uniform1i(location, v0);
+}
+void glUniform2i(GLint location, GLint v0, GLint v1) {
+    if (g_current == nullptr) return;
+    g_current->uniform2i(location, v0, v1);
+}
+void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2) {
+    if (g_current == nullptr) return;
+    g_current->uniform3i(location, v0, v1, v2);
+}
+void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3) {
+    if (g_current == nullptr) return;
+    g_current->uniform4i(location, v0, v1, v2, v3);
+}
+void glUniform1fv(GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform1fv(location, value, static_cast<int>(count));
+}
+void glUniform1iv(GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform1iv(location, value, static_cast<int>(count));
+}
+void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
+                       const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix4fv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+
 // --- Vertex attributes (SPEC §2.1) ---
 
 void glEnableVertexAttribArray(GLuint index) {
