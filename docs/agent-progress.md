@@ -700,6 +700,17 @@ OpenGL 4.6:
 
 ## Next Steps
 
+0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
+   Per `docs/coverage-core.md` (2026-08-26) only 90/490 (18.4%) have a
+   frontend entry point today; core-only is 90/435 (20.7%). The standing
+   objective is to reach **full coverage of all 490 spec command prototypes** —
+   core profile fully, plus the compatibility-profile (removed-in-core)
+   commands from Appendix E.2.2 once the core majority is landed (gated per
+   `docs/feature-matrix.md` "Compatibility Profile"). Track progress against
+   the 90 covered / 400 remaining prototypes. Work the priority gaps listed in
+   `docs/coverage-core.md` (buffer/texture completeness, full DSA `Named*`
+   surface, queries + sync fences, `DrawBuffers`/`BlitFramebuffer`, draw
+   expansion, program pipelines, geometry/tessellation/compute emulation).
 1. **Texture units + DSA done.** Sampler objects and DSA texture binding
      (`glBindTextureUnit` / `glBindTextures`, SPEC §2.1) implemented (see
      Completed above). Next texture-correctness item: `glActiveTexture`
