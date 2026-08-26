@@ -165,6 +165,16 @@ struct GLESLib {
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;
 
+    // Color logic op + framebuffer copy/invalidate (SPEC §15 / §16 / §17.3.4).
+    // Core in GLES 3.0+; resolved optionally so load() still succeeds on a driver
+    // that lacks them (capability reports unsupported).
+    void (*glLogicOp)(GLenum) = nullptr;
+    void (*glBlitFramebuffer)(GLint, GLint, GLint, GLint, GLint, GLint, GLint,
+                              GLint, GLbitfield, GLenum) = nullptr;
+    void (*glInvalidateFramebuffer)(GLenum, GLsizei, const GLenum*) = nullptr;
+    void (*glInvalidateSubFramebuffer)(GLenum, GLsizei, const GLenum*, GLint,
+                                       GLint, GLsizei, GLsizei) = nullptr;
+
     // Whole-framebuffer buffer selection (SPEC §15 / §16). Core in GLES 2.0+, but
     // resolved defensively so load() still succeeds when absent.
     void (*glDrawBuffers)(GLsizei, const GLenum*) = nullptr;

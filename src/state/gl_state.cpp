@@ -216,6 +216,12 @@ bool GLStateTracker::setReadBuffer(GLenum buf) {
     return true;
 }
 
+bool GLStateTracker::setLogicOp(GLenum mode) {
+    if (logicOp_.mode == mode) return false;
+    logicOp_.mode = mode;
+    return true;
+}
+
 bool GLStateTracker::setActiveTexture(GLenum texture) {
     if (texture < GL_TEXTURE0) return false; // not a texture-unit enum
     uint32_t unit = texture - GL_TEXTURE0;
@@ -457,6 +463,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!logicOp_.equal(logicOpApplied_)) {
+        sink.logicOp(logicOp_.mode);
+        logicOpApplied_ = logicOp_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -516,7 +528,8 @@ bool isTrackedCap(GLenum cap) {
            cap == 0x0B71 /* GL_DEPTH_TEST */ ||
            cap == 0x0B90 /* GL_STENCIL_TEST */ ||
            cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
-           cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */;
+           cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */ ||
+           cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */;
 }
 
 GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
@@ -568,6 +581,8 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case GL_MAX_TEXTURE_IMAGE_UNITS:
     case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
         out[0] = static_cast<GLint>(kMaxTextureUnits); return 1;
+    case GL_LOGIC_OP_MODE:
+        out[0] = static_cast<GLint>(logicOp_.mode); return 1;
     }
     return 0;
 }
@@ -702,6 +717,8 @@ void GLStateTracker::reset() {
     clearDepthApplied_ = ClearDepthState{};
     fbBuffers_ = FramebufferBufferState{};
     fbBuffersApplied_ = FramebufferBufferState{};
+    logicOp_ = LogicOpState{};
+    logicOpApplied_ = LogicOpState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
     texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
     activeTextureUnit_ = 0;

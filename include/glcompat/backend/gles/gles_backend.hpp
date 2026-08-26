@@ -88,6 +88,10 @@ public:
                              bool normalized, int32_t stride,
                              intptr_t offset) override;
 
+    // Color logic op (SPEC §17.3.4, glLogicOp). Pushed only when the mode changes
+    // (SPEC §10); the driver applies it only while GL_COLOR_LOGIC_OP is enabled.
+    void logicOp(uint32_t mode) override;
+
     // Frontend name -> native id mapping so useProgram/bindVertexArray can bind
     // the real driver objects (SPEC §3/§11).
     void bindNativeObject(uint32_t name, uint32_t nativeId) override;
@@ -119,6 +123,17 @@ public:
     // Read back pixels from the bound framebuffer (SPEC §2.1).
     void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                     uint32_t format, uint32_t type, void* pixels) override;
+
+    // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer).
+    void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1, int32_t srcY1,
+                         int32_t dstX0, int32_t dstY0, int32_t dstX1, int32_t dstY1,
+                         uint32_t mask, uint32_t filter) override;
+
+    // Invalidate framebuffer attachments (SPEC §16). The sub-rectangle form passes
+    // x/y/width/height; the full form passes width/height == 0.
+    void invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                              const uint32_t* attachments, int32_t x, int32_t y,
+                              int32_t width, int32_t height) override;
 
 private:
     GLESLibPtr lib_;

@@ -841,6 +841,33 @@ void glReadBuffer(GLenum buf) {
     g_current->readBuffer(buf);
 }
 
+void glLogicOp(GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->logicOp(mode);
+}
+
+void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
+                      GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                      GLbitfield mask, GLenum filter) {
+    if (g_current == nullptr) return;
+    g_current->blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1,
+                              dstY1, mask, filter);
+}
+
+void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments,
+                            const GLenum* attachments) {
+    if (g_current == nullptr) return;
+    g_current->invalidateFramebuffer(target, numAttachments, attachments);
+}
+
+void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments,
+                               const GLenum* attachments, GLint x, GLint y,
+                               GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->invalidateSubFramebuffer(target, numAttachments, attachments, x, y,
+                                      width, height);
+}
+
 void glFlush() {
     if (g_current == nullptr) return;
     g_current->flushCommands();

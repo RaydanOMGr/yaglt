@@ -2123,6 +2123,52 @@ void Context::readBuffer(GLenum buf) {
     state_.setReadBuffer(buf);
 }
 
+void Context::logicOp(uint32_t mode) {
+    if (!backend_.capabilities().isSupported(Feature::LogicOp)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    state_.setLogicOp(mode);
+}
+
+void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
+                             int32_t srcY1, int32_t dstX0, int32_t dstY0,
+                             int32_t dstX1, int32_t dstY1, uint32_t mask,
+                             uint32_t filter) {
+    // A mask with bits outside color/depth/stencil is invalid (SPEC §15).
+    constexpr uint32_t kValidMask =
+        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    if (mask & ~kValidMask) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    flushState();
+    backend_.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1,
+                            mask, filter);
+}
+
+void Context::invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                                    const uint32_t* attachments) {
+    invalidateSubFramebuffer(target, numAttachments, attachments, 0, 0, 0, 0);
+}
+
+void Context::invalidateSubFramebuffer(uint32_t target, int32_t numAttachments,
+                                      const uint32_t* attachments, int32_t x,
+                                      int32_t y, int32_t width, int32_t height) {
+    if (numAttachments < 0 ||
+        (numAttachments > 0 && attachments == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (width < 0 || height < 0 || x < 0 || y < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    flushState();
+    backend_.invalidateFramebuffer(target, numAttachments, attachments, x, y, width,
+                                 height);
+}
+
 void Context::flushCommands() {
     backend_.flush();
 }

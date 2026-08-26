@@ -345,6 +345,51 @@ public:
         ++clearCalls;
         lastClearMask = mask;
     }
+
+    // Color logic op (SPEC §17.3.4). Recorded so tests can assert it is pushed
+    // only when the mode changes.
+    int logicOpCalls = 0;
+    uint32_t lastLogicOp = 0;
+    void logicOp(uint32_t mode) override {
+        ++logicOpCalls;
+        lastLogicOp = mode;
+    }
+
+    // Whole-framebuffer ops (SPEC §15 / §16). Recorded for assertions.
+    int blitFramebufferCalls = 0;
+    int32_t lastBlitSrcX0 = 0, lastBlitSrcY0 = 0, lastBlitSrcX1 = 0,
+            lastBlitSrcY1 = 0;
+    int32_t lastBlitDstX0 = 0, lastBlitDstY0 = 0, lastBlitDstX1 = 0,
+            lastBlitDstY1 = 0;
+    uint32_t lastBlitMask = 0, lastBlitFilter = 0;
+    void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1, int32_t srcY1,
+                        int32_t dstX0, int32_t dstY0, int32_t dstX1, int32_t dstY1,
+                        uint32_t mask, uint32_t filter) override {
+        ++blitFramebufferCalls;
+        lastBlitSrcX0 = srcX0; lastBlitSrcY0 = srcY0; lastBlitSrcX1 = srcX1;
+        lastBlitSrcY1 = srcY1; lastBlitDstX0 = dstX0; lastBlitDstY0 = dstY0;
+        lastBlitDstX1 = dstX1; lastBlitDstY1 = dstY1;
+        lastBlitMask = mask; lastBlitFilter = filter;
+    }
+
+    int invalidateFramebufferCalls = 0;
+    bool lastInvalidateSub = false;
+    uint32_t lastInvalidateTarget = 0;
+    int32_t lastInvalidateNum = 0;
+    std::vector<uint32_t> lastInvalidateAttachments;
+    int32_t lastInvalidateX = 0, lastInvalidateY = 0, lastInvalidateW = 0,
+            lastInvalidateH = 0;
+    void invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                               const uint32_t* attachments, int32_t x, int32_t y,
+                               int32_t width, int32_t height) override {
+        ++invalidateFramebufferCalls;
+        lastInvalidateTarget = target;
+        lastInvalidateNum = numAttachments;
+        lastInvalidateSub = (width != 0 || height != 0);
+        lastInvalidateX = x; lastInvalidateY = y;
+        lastInvalidateW = width; lastInvalidateH = height;
+        lastInvalidateAttachments.assign(attachments, attachments + numAttachments);
+    }
     void flush() override { ++flushCalls; }
     void finish() override { ++finishCalls; }
     void readPixels(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t format,

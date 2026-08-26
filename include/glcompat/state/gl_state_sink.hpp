@@ -73,6 +73,10 @@ public:
     virtual void drawBuffers(int32_t n, const uint32_t* bufs) = 0;
     virtual void readBuffer(uint32_t buf) = 0;
 
+    // Color logic op (SPEC §17.3.4, glLogicOp). Pushed only when the mode changes
+    // (SPEC §10); the driver applies it only while GL_COLOR_LOGIC_OP is enabled.
+    virtual void logicOp(uint32_t mode) = 0;
+
     // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
     // `target` is the indexed buffer target, `index` the binding point.
     virtual void bindBufferBase(uint32_t target, uint32_t index,

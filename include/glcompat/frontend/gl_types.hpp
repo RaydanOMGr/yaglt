@@ -342,4 +342,25 @@ constexpr GLenum GL_CONDITION_SATISFIED = 0x911C;
 constexpr GLenum GL_WAIT_FAILED = 0x911D;
 constexpr GLenum GL_SYNC_FLUSH_COMMANDS_BIT = 0x00000001;
 
+// Color logic op (SPEC §17.3.4, glLogicOp). Enabled via GL_COLOR_LOGIC_OP.
+constexpr GLenum GL_COLOR_LOGIC_OP = 0x0BF2;
+constexpr GLenum GL_LOGIC_OP_MODE = 0x0AFC;
+constexpr GLenum GL_CLEAR = 0x1500;
+constexpr GLenum GL_AND = 0x1501;
+constexpr GLenum GL_AND_REVERSE = 0x1502;
+constexpr GLenum GL_COPY = 0x1503;
+constexpr GLenum GL_AND_INVERTED = 0x1504;
+constexpr GLenum GL_NOOP = 0x1505;
+constexpr GLenum GL_XOR = 0x1506;
+constexpr GLenum GL_OR = 0x1507;
+constexpr GLenum GL_NOR = 0x1508;
+constexpr GLenum GL_EQUIV = 0x1509;
+// GL_INVERT (0x150A) is defined in the stencil-op block above; it is shared by
+// glStencilOp and glLogicOp, so it is intentionally declared only once.
+constexpr GLenum GL_OR_REVERSE = 0x150B;
+constexpr GLenum GL_COPY_INVERTED = 0x150C;
+constexpr GLenum GL_OR_INVERTED = 0x150D;
+constexpr GLenum GL_NAND = 0x150E;
+constexpr GLenum GL_SET = 0x150F;
+
 } // namespace glcompat

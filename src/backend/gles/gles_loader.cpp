@@ -175,6 +175,12 @@ bool GLESLib::load() {
     resolve(gles, glGetQueryObjectuiv, "glGetQueryObjectuiv");
     resolve(gles, glGetQueryObjectui64v, "glGetQueryObjectui64v");
 
+    // Color logic op + framebuffer copy/invalidate (ES 3.0+); resolved optionally.
+    resolve(gles, glLogicOp, "glLogicOp");
+    resolve(gles, glBlitFramebuffer, "glBlitFramebuffer");
+    resolve(gles, glInvalidateFramebuffer, "glInvalidateFramebuffer");
+    resolve(gles, glInvalidateSubFramebuffer, "glInvalidateSubFramebuffer");
+
     // Vertex attributes are ES 2.0+; resolve optionally so load() still succeeds
     // if a driver somehow lacks them.
     resolve(gles, glGetAttribLocation, "glGetAttribLocation");

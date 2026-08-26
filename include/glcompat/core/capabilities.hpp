@@ -45,6 +45,8 @@ enum class Feature {
     // Queries / sync (SPEC §4 / §19 / §20)
     Queries,
     SyncObjects,
+    // Per-fragment color logic op (SPEC §17.3.4)
+    LogicOp,
     // Sentinel
     FeatureCount
 };

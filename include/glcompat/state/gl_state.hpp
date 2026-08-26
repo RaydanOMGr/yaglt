@@ -80,6 +80,11 @@ public:
     bool setClearColor(float r, float g, float b, float a);
     bool setClearDepth(double d);
 
+    // --- Color logic op (SPEC §17.3.4, glLogicOp) ---
+    // The logic op mode is pushed to the backend only when it changes; it is
+    // applied by the driver only while GL_COLOR_LOGIC_OP is enabled.
+    bool setLogicOp(GLenum mode);
+
     // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
     // `drawBuffers` selects the draw buffers for the bound framebuffer (vector of
     // GL_COLOR_ATTACHMENTi / GL_BACK / GL_NONE); `readBuffer` selects its read
@@ -262,6 +267,10 @@ private:
             return draw == o.draw && read == o.read;
         }
     };
+    struct LogicOpState {
+        GLenum mode = 0x1503; // GL_COPY (default logic op)
+        bool equal(const LogicOpState& o) const { return mode == o.mode; }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -300,6 +309,7 @@ private:
     ClearColorState clearColor_, clearColorApplied_;
     ClearDepthState clearDepth_, clearDepthApplied_;
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
+    LogicOpState logicOp_, logicOpApplied_;
 };
 
 } // namespace glcompat

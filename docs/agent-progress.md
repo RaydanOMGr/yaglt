@@ -782,6 +782,37 @@ OpenGL 4.6:
   full / 111/435 (25.5%) core.
 - Validation: default 187/187 green; sanitizer pending.
 
+2026-08-27 (color logic op + blit/invalidate framebuffer — recovered from a
+crashed agent, this session)
+- SPEC §17.3.4 / §15 / §16: implemented `glLogicOp`, `glBlitFramebuffer`,
+  `glInvalidateFramebuffer`, `glInvalidateSubFramebuffer`. A prior agent added
+  these plus the supporting `GLStateSink::logicOp` (plain int) and
+  `IGraphicsBackend::blitFramebuffer` / `invalidateFramebuffer` (full + sub
+  forms) but left the tree in a broken state (build failed). Recovered:
+  - Fixed a redefinition error: `GL_INVERT` (0x150A) was declared twice in
+    `gl_types.hpp` (stencil-op block + logic-op block); it is shared by
+    `glStencilOp` and `glLogicOp`, so it is now declared once (kept in the
+    stencil block, referenced from the logic-op block).
+  - Added the missing `GLStateSink::logicOp` override to the three test
+    `UnitRecordingSink` stubs (`state_test`, `texture_unit_test`,
+    `dsa_texture_test`) so the test suite links again.
+- Frontend behavior: `Context::logicOp` is capability-gated by `Feature::LogicOp`
+  (Native on GLES 3.0+; recorded in `GLStateTracker::setLogicOp`, pushed via the
+  sink only when the mode changes, SPEC §10). `blitFramebuffer` validates the mask
+  (bits outside color/depth/stencil → GL_INVALID_VALUE, no backend call) then
+  flushes tracked state and forwards. `invalidateFramebuffer`/`invalidateSubFrame-
+  buffer` validate numAttachments<0 or null-attachments-with-count>0 →
+  GL_INVALID_VALUE and negative rect → GL_INVALID_VALUE. Backend resolves
+  `glLogicOp`/`glBlitFramebuffer`/`glInvalidateFramebuffer`/`glInvalidateSubFrame-
+  buffer` as optional `GLESLib` symbols (so load() still succeeds on drivers
+  lacking them; capability reports Unsupported). `glGetIntegerv(GL_LOGIC_OP_MODE)`
+  returns the tracked mode.
+- New `tests/unit/logicop_blit_invalidate_test.cpp` (4 cases) covers push-only-on-
+  change for logic op (default GL_COPY), capability gate, blit forwarding + mask
+  validation, and both invalidate forms + null-attachment validation.
+  Coverage now 135/490 (27.6%) full / 135/435 (31.0%) core.
+- Validation: default 199/199 green; sanitizer 199/199 green.
+
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**

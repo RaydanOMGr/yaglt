@@ -65,7 +65,24 @@ public:
     // Read back pixels from the bound framebuffer (SPEC §2.1). The frontend
     // flushes tracked state first so the backend reads the current framebuffer.
     virtual void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
-                            uint32_t format, uint32_t type, void* pixels) = 0;
+                             uint32_t format, uint32_t type, void* pixels) = 0;
+
+    // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer). Copies a rectangle of
+    // the bound read framebuffer into the bound draw framebuffer; `mask` selects
+    // color/depth/stencil, `filter` is the scaling filter for drawable buffers.
+    virtual void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
+                                 int32_t srcY1, int32_t dstX0, int32_t dstY0,
+                                 int32_t dstX1, int32_t dstY1, uint32_t mask,
+                                 uint32_t filter) = 0;
+
+    // Invalidate framebuffer attachments (SPEC §16, glInvalidateFramebuffer /
+    // glInvalidateSubFramebuffer). `target` is GL_FRAMEBUFFER / READ / DRAW;
+    // `attachments` lists the attachment points to discard; the sub-rectangle form
+    // passes x/y/width/height (the non-sub form passes 0 for all four).
+    virtual void invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                                       const uint32_t* attachments, int32_t x,
+                                       int32_t y, int32_t width,
+                                       int32_t height) = 0;
 
     virtual std::string describe() const = 0;
 };

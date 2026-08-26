@@ -383,4 +383,32 @@ void GLESBackend::readPixels(int32_t x, int32_t y, int32_t width, int32_t height
         lib_->glReadPixels(x, y, width, height, format, type, pixels);
 }
 
+void GLESBackend::logicOp(uint32_t mode) {
+    if (lib_->glLogicOp) lib_->glLogicOp(mode);
+}
+
+void GLESBackend::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
+                                  int32_t srcY1, int32_t dstX0, int32_t dstY0,
+                                  int32_t dstX1, int32_t dstY1, uint32_t mask,
+                                  uint32_t filter) {
+    if (lib_->glBlitFramebuffer)
+        lib_->glBlitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1,
+                                dstY1, mask, filter);
+}
+
+void GLESBackend::invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                                       const uint32_t* attachments, int32_t x,
+                                       int32_t y, int32_t width, int32_t height) {
+    if (numAttachments <= 0 || !attachments) return;
+    if (width != 0 || height != 0) {
+        if (lib_->glInvalidateSubFramebuffer)
+            lib_->glInvalidateSubFramebuffer(
+                target, numAttachments,
+                reinterpret_cast<const GLenum*>(attachments), x, y, width, height);
+    } else if (lib_->glInvalidateFramebuffer) {
+        lib_->glInvalidateFramebuffer(
+            target, numAttachments, reinterpret_cast<const GLenum*>(attachments));
+    }
+}
+
 } // namespace glcompat

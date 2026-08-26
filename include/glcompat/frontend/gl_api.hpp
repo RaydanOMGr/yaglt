@@ -278,6 +278,22 @@ void glClear(GLuint mask);
 void glDrawBuffers(GLsizei n, const GLenum* bufs);
 void glReadBuffer(GLenum buf);
 
+// Color logic op (SPEC §17.3.4, glLogicOp). Capability-gated (LogicOp).
+void glLogicOp(GLenum mode);
+
+// Whole-framebuffer copy / invalidate (SPEC §15 / §16). glBlitFramebuffer copies a
+// rectangle of the bound read framebuffer into the bound draw framebuffer; an
+// invalid mask reports GL_INVALID_VALUE. glInvalidateFramebuffer /
+// glInvalidateSubFramebuffer discard the listed attachments.
+void glBlitFramebuffer(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
+                      GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                      GLbitfield mask, GLenum filter);
+void glInvalidateFramebuffer(GLenum target, GLsizei numAttachments,
+                            const GLenum* attachments);
+void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments,
+                               const GLenum* attachments, GLint x, GLint y,
+                               GLsizei width, GLsizei height);
+
 // Command stream flush / finish (SPEC §2.1).
 void glFlush();
 void glFinish();

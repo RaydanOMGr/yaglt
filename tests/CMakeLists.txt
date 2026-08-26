@@ -35,6 +35,7 @@ add_executable(yaglt_tests
     unit/stencil_test.cpp
     unit/raster_test.cpp
     unit/readpixels_test.cpp
+    unit/logicop_blit_invalidate_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp
     backend/gles_backend_test.cpp

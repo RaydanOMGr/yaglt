@@ -224,6 +224,28 @@ public:
     void drawBuffers(int32_t n, const GLenum* bufs);
     void readBuffer(GLenum buf);
 
+    // --- Color logic op (SPEC §17.3.4, glLogicOp) ---
+    // Records the logic op mode in the tracker (pushed to the backend only when it
+    // changes, SPEC §10); the driver applies it only while GL_COLOR_LOGIC_OP is
+    // enabled. Capability-gated by LogicOp.
+    void logicOp(uint32_t mode);
+
+    // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
+    // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
+    // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)
+    // reports GL_INVALID_VALUE honestly. glInvalidateFramebuffer /
+    // glInvalidateSubFramebuffer discard the listed attachments (full or a
+    // sub-rectangle); a null attachment pointer with a non-zero count reports
+    // GL_INVALID_VALUE. The frontend flushes tracked state first.
+    void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1, int32_t srcY1,
+                        int32_t dstX0, int32_t dstY0, int32_t dstX1, int32_t dstY1,
+                        uint32_t mask, uint32_t filter);
+    void invalidateFramebuffer(uint32_t target, int32_t numAttachments,
+                             const uint32_t* attachments);
+    void invalidateSubFramebuffer(uint32_t target, int32_t numAttachments,
+                                 const uint32_t* attachments, int32_t x, int32_t y,
+                                 int32_t width, int32_t height);
+
     // --- Command stream (SPEC §2.1) ---
     void flushCommands();
     void finishCommands();
