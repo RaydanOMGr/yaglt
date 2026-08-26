@@ -203,9 +203,7 @@ void glCompileShader(GLuint shader) {
 
 GLint glGetShaderiv(GLuint shader, GLenum pname) {
     if (g_current == nullptr) return 0;
-    if (pname == GL_COMPILE_STATUS)
-        return g_current->isShaderCompiled(shader) ? GL_TRUE : GL_FALSE;
-    return 0;
+    return g_current->getShaderiv(shader, pname);
 }
 
 void glDeleteShader(GLuint shader) {
@@ -230,9 +228,7 @@ void glLinkProgram(GLuint program) {
 
 GLint glGetProgramiv(GLuint program, GLenum pname) {
     if (g_current == nullptr) return 0;
-    if (pname == GL_LINK_STATUS)
-        return g_current->isProgramLinked(program) ? GL_TRUE : GL_FALSE;
-    return 0;
+    return g_current->getProgramiv(program, pname);
 }
 
 void glDeleteProgram(GLuint program) {

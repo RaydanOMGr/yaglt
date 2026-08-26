@@ -91,6 +91,19 @@ constexpr GLenum GL_COMPUTE_SHADER = 0x91B9;
 // Shader / program query parameters.
 constexpr GLenum GL_COMPILE_STATUS = 0x8B81;
 constexpr GLenum GL_LINK_STATUS = 0x8B82;
+constexpr GLenum GL_VALIDATE_STATUS = 0x8B83;
+constexpr GLenum GL_INFO_LOG_LENGTH = 0x8B84;
+constexpr GLenum GL_ATTACHED_SHADERS = 0x8B85;
+constexpr GLenum GL_ACTIVE_UNIFORMS = 0x8B86;
+constexpr GLenum GL_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;
+constexpr GLenum GL_ACTIVE_ATTRIBUTES = 0x8B89;
+constexpr GLenum GL_ACTIVE_ATTRIBUTE_MAX_LENGTH = 0x8B8A;
+constexpr GLenum GL_SHADER_TYPE = 0x8B4F;
+constexpr GLenum GL_DELETE_STATUS = 0x8B80;
+constexpr GLenum GL_SHADER_SOURCE_LENGTH = 0x8B88;
+constexpr GLenum GL_ACTIVE_UNIFORM_BLOCKS = 0x8A36;
+constexpr GLenum GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = 0x8A35;
+constexpr GLenum GL_ACTIVE_ATOMIC_COUNTER_BUFFERS = 0x92D9;
 
 // Vertex attribute types.
 constexpr GLenum GL_FLOAT = 0x1406;

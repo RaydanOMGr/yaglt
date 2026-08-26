@@ -139,6 +139,12 @@ public:
     void compileShader(GLObjectName shader);
     bool isShaderCompiled(GLObjectName shader) const;
     std::string shaderInfoLog(GLObjectName shader) const;
+    // Query shader/program parameters (SPEC §7.3 / §7.14). Frontend-owned data
+    // (type, source/info-log length, compile/link/delete status, attached shader
+    // count) is returned directly; active uniform/attribute/block counts are
+    // delegated to the backend resource. An unknown name sets GL_INVALID_ENUM.
+    GLint getShaderiv(GLObjectName shader, uint32_t pname);
+    GLint getProgramiv(GLObjectName program, uint32_t pname);
     void deleteShader(GLObjectName shader);
     ShaderObject* getShader(GLObjectName name);
     const ShaderObject* getShader(GLObjectName name) const;

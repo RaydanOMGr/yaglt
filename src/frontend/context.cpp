@@ -607,6 +607,48 @@ bool Context::isShaderCompiled(GLObjectName shader) const {
     return s != nullptr && s->compiled;
 }
 
+GLint Context::getShaderiv(GLObjectName shader, uint32_t pname) {
+    const ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    switch (pname) {
+    case GL_SHADER_TYPE: return static_cast<GLint>(s->stage);
+    case GL_COMPILE_STATUS: return s->compiled ? GL_TRUE : GL_FALSE;
+    case GL_DELETE_STATUS: return GL_FALSE; // frontend does not flag pending delete
+    case GL_INFO_LOG_LENGTH: return static_cast<GLint>(s->infoLog.size() + 1);
+    case GL_SHADER_SOURCE_LENGTH: return static_cast<GLint>(s->source.size() + 1);
+    default:
+        setError(GLError::InvalidEnum);
+        return 0;
+    }
+}
+
+GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    switch (pname) {
+    case GL_LINK_STATUS: return p->linked ? GL_TRUE : GL_FALSE;
+    case GL_DELETE_STATUS: return GL_FALSE;
+    case GL_ATTACHED_SHADERS:
+        return static_cast<GLint>(p->attachedShaders.size());
+    case GL_INFO_LOG_LENGTH: return static_cast<GLint>(p->infoLog.size() + 1);
+    case GL_ACTIVE_UNIFORMS:
+        return p->backend ? p->backend->activeUniformCount() : 0;
+    case GL_ACTIVE_ATTRIBUTES:
+        return p->backend ? p->backend->activeAttributeCount() : 0;
+    case GL_ACTIVE_UNIFORM_BLOCKS:
+        return p->backend ? p->backend->activeUniformBlockCount() : 0;
+    default:
+        setError(GLError::InvalidEnum);
+        return 0;
+    }
+}
+
 std::string Context::shaderInfoLog(GLObjectName shader) const {
     const ShaderObject* s = getShader(shader);
     return s ? s->infoLog : std::string();

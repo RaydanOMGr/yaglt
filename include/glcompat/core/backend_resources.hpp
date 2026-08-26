@@ -96,6 +96,13 @@ public:
     virtual void uniform4i(int loc, int v0, int v1, int v2, int v3) {}
     virtual void uniform1fv(int loc, const float* v, int count) {}
     virtual void uniform1iv(int loc, const int* v, int count) {}
+    // Active object counts after linking (SPEC §7.3 / §7.14). Backends with
+    // introspection override these; the default (0) is honest for backends that
+    // do not yet expose program reflection.
+    virtual int activeUniformCount() const { return 0; }
+    virtual int activeAttributeCount() const { return 0; }
+    virtual int activeUniformBlockCount() const { return 0; }
+
     virtual void uniformMatrix4fv(int loc, const float* m, int count,
                                  bool transpose) {}
 };

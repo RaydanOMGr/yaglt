@@ -414,6 +414,21 @@ OpenGL 4.6:
   stage → INVALID_ENUM.
 - Validation: default + sanitizer suites green.
 
+## Recent Work
+
+2026-08-26 (shader/program query coverage, this session)
+- Expanded `glGetShaderiv` / `glGetProgramiv` to full SPEC §7.3 / §7.14
+  coverage. `Context::getShaderiv` returns SHADER_TYPE, COMPILE_STATUS,
+  DELETE_STATUS, SHADER_SOURCE_LENGTH, INFO_LOG_LENGTH; `getProgramiv` returns
+  LINK_STATUS, DELETE_STATUS, ATTACHED_SHADERS, INFO_LOG_LENGTH, and the
+  active uniform/attribute/uniform-block counts (delegated to a new
+  `BackendProgram::activeUniformCount`/`activeAttributeCount`/
+  `activeUniformBlockCount`, default 0). Unknown pname → `GL_INVALID_ENUM`;
+  unknown object → `GL_INVALID_OPERATION`. The mock reports 0 for the
+  active counts (no reflection) and the GLES backend can override later.
+- New `tests/unit/shader_program_query_test.cpp`. Validation: default +
+  sanitizer + translate (Mesa) suites green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active
