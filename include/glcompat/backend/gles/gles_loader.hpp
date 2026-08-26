@@ -98,6 +98,9 @@ struct GLESLib {
     void (*glStencilMask)(GLuint) = nullptr;
     void (*glCullFace)(GLenum) = nullptr;
     void (*glFrontFace)(GLenum) = nullptr;
+    void (*glPointSize)(GLfloat) = nullptr;
+    void (*glLineWidth)(GLfloat) = nullptr;
+    void (*glPolygonOffset)(GLfloat, GLfloat) = nullptr;
     void (*glPixelStorei)(GLenum, GLint) = nullptr;
     void (*glViewport)(GLint, GLint, GLsizei, GLsizei) = nullptr;
     void (*glScissor)(GLint, GLint, GLsizei, GLsizei) = nullptr;

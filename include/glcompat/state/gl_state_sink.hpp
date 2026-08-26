@@ -35,6 +35,12 @@ public:
     virtual void cullFace(uint32_t mode) = 0;
     virtual void frontFace(uint32_t mode) = 0;
 
+    // Rasterization scalar state (SPEC §11). Independent values pushed only when
+    // the relevant one changed (the frontend compares each field individually).
+    virtual void pointSize(float size) = 0;
+    virtual void lineWidth(float width) = 0;
+    virtual void polygonOffset(float factor, float units) = 0;
+
     // Texture units (SPEC §2.1). `activeTexture` selects the unit (unit =
     // GL_TEXTURE0 + i); `bindTexture` binds `texture` (frontend object name) to
     // `target` on the currently selected unit. The backend converts the frontend

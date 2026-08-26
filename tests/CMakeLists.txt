@@ -30,6 +30,7 @@ add_executable(yaglt_tests
     unit/clear_test.cpp
     unit/blend_test.cpp
     unit/stencil_test.cpp
+    unit/raster_test.cpp
     unit/readpixels_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp

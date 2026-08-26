@@ -108,6 +108,9 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilMask, "glStencilMask");
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
+    ok &= resolve(gles, glPointSize, "glPointSize");
+    ok &= resolve(gles, glLineWidth, "glLineWidth");
+    ok &= resolve(gles, glPolygonOffset, "glPolygonOffset");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
     ok &= resolve(gles, glViewport, "glViewport");
     ok &= resolve(gles, glScissor, "glScissor");

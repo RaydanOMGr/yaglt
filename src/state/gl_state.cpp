@@ -134,6 +134,27 @@ bool GLStateTracker::setFrontFace(GLenum mode) {
     return true;
 }
 
+bool GLStateTracker::setPointSize(float size) {
+    if (rasterScalar_.pointSize == size) return false;
+    rasterScalar_.pointSize = size;
+    return true;
+}
+
+bool GLStateTracker::setLineWidth(float width) {
+    if (rasterScalar_.lineWidth == width) return false;
+    rasterScalar_.lineWidth = width;
+    return true;
+}
+
+bool GLStateTracker::setPolygonOffset(float factor, float units) {
+    if (rasterScalar_.polygonOffsetFactor == factor &&
+        rasterScalar_.polygonOffsetUnits == units)
+        return false;
+    rasterScalar_.polygonOffsetFactor = factor;
+    rasterScalar_.polygonOffsetUnits = units;
+    return true;
+}
+
 bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
     if (pname == 0x0CF5 /* GL_UNPACK_ALIGNMENT */ &&
         pixel_.unpackAlignment == param)
@@ -365,6 +386,21 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!rasterScalar_.equal(rasterScalarApplied_)) {
+        if (rasterScalar_.pointSize != rasterScalarApplied_.pointSize)
+            sink.pointSize(rasterScalar_.pointSize);
+        if (rasterScalar_.lineWidth != rasterScalarApplied_.lineWidth)
+            sink.lineWidth(rasterScalar_.lineWidth);
+        if (rasterScalar_.polygonOffsetFactor !=
+                rasterScalarApplied_.polygonOffsetFactor ||
+            rasterScalar_.polygonOffsetUnits !=
+                rasterScalarApplied_.polygonOffsetUnits)
+            sink.polygonOffset(rasterScalar_.polygonOffsetFactor,
+                               rasterScalar_.polygonOffsetUnits);
+        rasterScalarApplied_ = rasterScalar_;
+        ++applied;
+    }
+
     if (!pixel_.equal(pixelApplied_)) {
         sink.pixelStorei(0x0CF5 /* GL_UNPACK_ALIGNMENT */,
                          pixel_.unpackAlignment);
@@ -457,7 +493,8 @@ bool isTrackedCap(GLenum cap) {
     return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0B44 /* GL_CULL_FACE */ ||
            cap == 0x0B71 /* GL_DEPTH_TEST */ ||
            cap == 0x0B90 /* GL_STENCIL_TEST */ ||
-           cap == 0x0C11 /* GL_SCISSOR_TEST */;
+           cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
+           cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */;
 }
 
 GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
@@ -491,6 +528,14 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case GL_DEPTH_FUNC: out[0] = static_cast<GLint>(depth_.func); return 1;
     case GL_CULL_FACE_MODE: out[0] = static_cast<GLint>(raster_.cull); return 1;
     case GL_FRONT_FACE: out[0] = static_cast<GLint>(raster_.front); return 1;
+    case GL_POINT_SIZE:
+        out[0] = static_cast<GLint>(rasterScalar_.pointSize); return 1;
+    case GL_LINE_WIDTH:
+        out[0] = static_cast<GLint>(rasterScalar_.lineWidth); return 1;
+    case GL_POLYGON_OFFSET_FACTOR:
+        out[0] = static_cast<GLint>(rasterScalar_.polygonOffsetFactor); return 1;
+    case GL_POLYGON_OFFSET_UNITS:
+        out[0] = static_cast<GLint>(rasterScalar_.polygonOffsetUnits); return 1;
     case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
     case GL_ACTIVE_TEXTURE:
         out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
@@ -530,6 +575,14 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[0] = static_cast<GLfloat>(depthRange_.nearVal);
         out[1] = static_cast<GLfloat>(depthRange_.farVal);
         return 2;
+    case 0x0B11: // GL_POINT_SIZE
+        out[0] = rasterScalar_.pointSize; return 1;
+    case 0x0B21: // GL_LINE_WIDTH
+        out[0] = rasterScalar_.lineWidth; return 1;
+    case 0x8038: // GL_POLYGON_OFFSET_FACTOR
+        out[0] = rasterScalar_.polygonOffsetFactor; return 1;
+    case 0x2A00: // GL_POLYGON_OFFSET_UNITS
+        out[0] = rasterScalar_.polygonOffsetUnits; return 1;
     case 0x8005: // GL_BLEND_COLOR
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -563,6 +616,14 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[0] = depthRange_.nearVal;
         out[1] = depthRange_.farVal;
         return 2;
+    case 0x0B11: // GL_POINT_SIZE
+        out[0] = rasterScalar_.pointSize; return 1;
+    case 0x0B21: // GL_LINE_WIDTH
+        out[0] = rasterScalar_.lineWidth; return 1;
+    case 0x8038: // GL_POLYGON_OFFSET_FACTOR
+        out[0] = rasterScalar_.polygonOffsetFactor; return 1;
+    case 0x2A00: // GL_POLYGON_OFFSET_UNITS
+        out[0] = rasterScalar_.polygonOffsetUnits; return 1;
     case 0x8005:
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -605,6 +666,8 @@ void GLStateTracker::reset() {
     stencilApplied_ = StencilState{};
     raster_ = RasterState{};
     rasterApplied_ = RasterState{};
+    rasterScalar_ = RasterScalarState{};
+    rasterScalarApplied_ = RasterScalarState{};
     pixel_ = PixelStoreState{};
     pixelApplied_ = PixelStoreState{};
     viewport_ = ViewportState{};

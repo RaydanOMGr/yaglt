@@ -85,6 +85,13 @@ public:
     int stencilMaskCalls = 0;
     int cullFaceCalls = 0;
     int frontFaceCalls = 0;
+    int pointSizeCalls = 0;
+    int lineWidthCalls = 0;
+    int polygonOffsetCalls = 0;
+    float lastPointSize = 1.0f;
+    float lastLineWidth = 1.0f;
+    float lastPolygonOffsetFactor = 0.0f;
+    float lastPolygonOffsetUnits = 0.0f;
     int pixelStoreiCalls = 0;
 
     int viewportCalls = 0;
@@ -154,6 +161,19 @@ public:
     void stencilMask(GLuint) override { ++stencilMaskCalls; }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }
+    void pointSize(float size) override {
+        ++pointSizeCalls;
+        lastPointSize = size;
+    }
+    void lineWidth(float width) override {
+        ++lineWidthCalls;
+        lastLineWidth = width;
+    }
+    void polygonOffset(float factor, float units) override {
+        ++polygonOffsetCalls;
+        lastPolygonOffsetFactor = factor;
+        lastPolygonOffsetUnits = units;
+    }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {
         ++viewportCalls;

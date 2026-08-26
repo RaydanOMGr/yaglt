@@ -35,10 +35,10 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 97 | **19.8%** |
-| Core profile only (spec − 55 removed commands) | 435 | 97 | **22.3%** |
+| Full spec (compat + core) | 490 | 100 | **20.4%** |
+| Core profile only (spec − 55 removed commands) | 435 | 100 | **23.0%** |
 
-All 97 covered commands are real `gl_api` entry points with frontend semantics
+All 100 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -61,7 +61,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexParameteri` (scalar pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries. Missing: 1D/3D/cube/array/rect targets, `TexImage1/3D`, `TexSubImage*`, `CompressedTexImage*`, `CopyTexImage*`, `TexParameterf`/vector pnames + full param coverage, `GetTexImage`, **multisample textures**, **buffer textures**, texture views, full **Named* (DSA object) surface** |
 | §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced). Missing: `DrawRangeElements`, `MultiDraw*`, **`DrawElementsBaseVertex`**, **indirect draw**, **primitive restart** (core `GL_PRIMITIVE_RESTART`), vertex attrib divisor, `VertexAttrib*` (except pointer), client array legacy |
-| §11 (rasterization — points/lines/polygons) | ❌ | `glPointSize`, `glLineWidth` (partial: no entry point), `glPolygonMode`, polygon offset, provoking vertex, **multisample** raster — not implemented |
+| §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
 | §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test. Missing: **`glSampleCoverage`**, **`glMinSampleShading`**, `glPolygonOffset` |
@@ -75,7 +75,7 @@ ive) | ❌ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `
 | §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
 | Shader stages | 🚫 | **Geometry, Tessellation, Compute** honestly **Unsupported** (no entry points; capability-gated). Only vertex + fragment stages translate (desktop→GLSL ES via glslang + SPIRV-Cross). |
 
-## The 97 covered core command prototypes
+## The 100 covered core command prototypes
 
 ActiveTexture, AttachShader, BeginTransformFeedback, BindBuffer,
 BindBufferBase, BindBufferRange, BufferStorage, BufferSubData,
@@ -89,7 +89,7 @@ DeleteTransformFeedbacks, DeleteVertexArrays, DepthFunc, DepthMask, DepthRange,
 DepthRangef, Disable, DisableVertexAttribArray, DrawArrays,
 DrawArraysInstanced, DrawElements, DrawElementsInstanced, Enable,
 EnableVertexAttribArray, EndTransformFeedback, Finish, Flush,
-FramebufferRenderbuffer, FramebufferTexture2D, FrontFace, GenBuffers,
+FramebufferRenderbuffer, FramebufferTexture2D, FrontFace, GenBuffers, LineWidth, PointSize, PolygonOffset,
 GenFramebuffers, GenRenderbuffers, GenSamplers, GenTextures,
 GenTransformFeedbacks, GenVertexArrays, GetBooleanv, GetBufferParameteriv,
 GetDoublev, GetFloatv, GetIntegerv, GetProgramInfoLog, GetProgramiv,

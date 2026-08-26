@@ -282,6 +282,18 @@ void GLESBackend::frontFace(GLenum mode) {
     if (lib_->glFrontFace) lib_->glFrontFace(mode);
 }
 
+void GLESBackend::pointSize(float size) {
+    if (lib_->glPointSize) lib_->glPointSize(size);
+}
+
+void GLESBackend::lineWidth(float width) {
+    if (lib_->glLineWidth) lib_->glLineWidth(width);
+}
+
+void GLESBackend::polygonOffset(float factor, float units) {
+    if (lib_->glPolygonOffset) lib_->glPolygonOffset(factor, units);
+}
+
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
 }

@@ -56,6 +56,9 @@ public:
     void stencilMask(uint32_t mask) override;
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
+    void pointSize(float size) override;
+    void lineWidth(float width) override;
+    void polygonOffset(float factor, float units) override;
     void pixelStorei(uint32_t pname, int32_t param) override;
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override;
     void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override;

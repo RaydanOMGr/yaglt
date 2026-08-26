@@ -38,6 +38,9 @@ struct RecordingSink : GLStateSink {
     void stencilMask(GLuint) override { ++stencilCalls; }
     void cullFace(GLenum) override { ++cullCalls; }
     void frontFace(GLenum) override { ++frontCalls; }
+    void pointSize(float) override {}
+    void lineWidth(float) override {}
+    void polygonOffset(float, float) override {}
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
     void setViewport(int32_t, int32_t, int32_t, int32_t) override {}
     void setScissor(int32_t, int32_t, int32_t, int32_t) override {}

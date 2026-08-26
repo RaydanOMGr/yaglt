@@ -194,6 +194,13 @@ void glDepthRangef(GLfloat nearVal, GLfloat farVal);
 void glCullFace(GLenum mode);
 void glFrontFace(GLenum mode);
 
+// Rasterization scalar state (SPEC §11). Recorded in the current context's
+// GLStateTracker and pushed to the backend only when the value changes (SPEC
+// §10). glPointSize / glLineWidth / glPolygonOffset map directly to GLES3.
+void glPointSize(GLfloat size);
+void glLineWidth(GLfloat width);
+void glPolygonOffset(GLfloat factor, GLfloat units);
+
 // Stencil test state (SPEC §17.3.3). These set the front and back stencil state
 // to identical values. Pushed to the backend via glFlushState() at draw/flush
 // time (SPEC §10).

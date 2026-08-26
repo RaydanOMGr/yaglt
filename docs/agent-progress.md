@@ -263,9 +263,9 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 OpenGL 4.6:
   Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
     Measurement (2026-08-26): of the 490 command prototypes the spec declares,
-     97 (19.8%) have a frontend entry point; restricting to the core profile
-    (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
-     gives 97/435 ≈ 22.3% core prototype coverage. True core entry-point coverage
+     100 (20.4%) have a frontend entry point; restricting to the core profile
+     (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
+      gives 100/435 ≈ 23.0% core prototype coverage. True core entry-point coverage
     is lower (the spec text undercounts type/vector variants, and geometry/
     tessellation/compute are honestly Unsupported). Implemented slice: object
     lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
@@ -714,22 +714,44 @@ OpenGL 4.6:
   reporting `GL_INVALID_OPERATION`, double-map / unmap-not-mapped errors.
 - New `tests/unit/buffer_completeness_test.cpp` (12 cases) covers all of the
   above plus the public `gl*` surface. Verified: default + sanitizer suites
-  green (162/162). Coverage reassessed in `docs/coverage-core.md` (now 97/435
+  green (162/162). Coverage reassessed in `docs/coverage-core.md` (now 100/435
   ≈ 22.3% core prototype coverage).
+
+## Recent Work
+
+2026-08-26 (rasterization scalar state, this session)
+- Implemented §11 rasterization scalar controls (SPEC §11): `glPointSize`,
+  `glLineWidth`, `glPolygonOffset`. `GLStateTracker` gained `setPointSize` /
+  `setLineWidth` / `setPolygonOffset`; `GLStateSink` gained `pointSize` /
+  `lineWidth` / `polygonOffset`. The three are independent scalar values pushed
+  to the backend only when the relevant one changed (SPEC §10: no redundant
+  native calls). `GL_POLYGON_OFFSET_FILL` added to the tracked-capability set so
+  `glEnable`/`glDisable`/`glIsEnabled`/`glGet` treat it honestly. `glGet*` (int/
+  float/ double) supports `GL_POINT_SIZE`, `GL_LINE_WIDTH`,
+  `GL_POLYGON_OFFSET_FACTOR`, `GL_POLYGON_OFFSET_UNITS` (frontend owns the values).
+- GLES backend drives `glPointSize` / `glLineWidth` / `glPolygonOffset` via new
+  `GLESLib` loader symbols (all core in GLES 2.0+); `MockBackend` records every
+  push. Public `gl_api` exposes the three entry points.
+- New `tests/unit/raster_test.cpp` covers push-only-on-change (per-value), glGet
+  round-trips, and `GL_POLYGON_OFFSET_FILL` capability. Added the new sink
+  overrides to the test `RecordingSink` / `UnitRecordingSink` stubs.
+- Validation: default 162/162, sanitizer 162/162, translate (Mesa) all green.
+- Coverage bumped in `docs/coverage-core.md` (now 100/490 = 20.4% full,
+  100/435 = 23.0% … actually 23.0% core prototype coverage).
 
 ## Next Steps
 
-0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-   Per `docs/coverage-core.md` (2026-08-26) only 90/490 (18.4%) have a
-   frontend entry point today; core-only is 90/435 (20.7%). The standing
-   objective is to reach **full coverage of all 490 spec command prototypes** —
-   core profile fully, plus the compatibility-profile (removed-in-core)
-   commands from Appendix E.2.2 once the core majority is landed (gated per
-   `docs/feature-matrix.md` "Compatibility Profile"). Track progress against
-   the 90 covered / 400 remaining prototypes. Work the priority gaps listed in
-   `docs/coverage-core.md` (buffer/texture completeness, full DSA `Named*`
-   surface, queries + sync fences, `DrawBuffers`/`BlitFramebuffer`, draw
-   expansion, program pipelines, geometry/tessellation/compute emulation).
+ 0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
+    Per `docs/coverage-core.md` (2026-08-26) now 100/490 (20.4%) have a
+    frontend entry point; core-only is 100/435 (23.0%). The standing
+    objective is to reach **full coverage of all 490 spec command prototypes** —
+    core profile fully, plus the compatibility-profile (removed-in-core)
+    commands from Appendix E.2.2 once the core majority is landed (gated per
+    `docs/feature-matrix.md` "Compatibility Profile"). Track progress against
+    the 100 covered / 390 remaining prototypes. Work the priority gaps listed in
+    `docs/coverage-core.md` (texture completeness, full DSA `Named*`
+    surface, queries + sync fences, `DrawBuffers`/`BlitFramebuffer`, draw
+    expansion, program pipelines, geometry/tessellation/compute emulation).
 1. **Texture units + DSA done.** Sampler objects and DSA texture binding
      (`glBindTextureUnit` / `glBindTextures`, SPEC §2.1) implemented (see
      Completed above). Next texture-correctness item: `glActiveTexture`

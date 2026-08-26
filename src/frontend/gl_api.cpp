@@ -561,6 +561,22 @@ void glFrontFace(GLenum mode) {
     g_current->state().setFrontFace(mode);
 }
 
+void glPointSize(GLfloat size) {
+    if (g_current == nullptr) return;
+    g_current->state().setPointSize(static_cast<float>(size));
+}
+
+void glLineWidth(GLfloat width) {
+    if (g_current == nullptr) return;
+    g_current->state().setLineWidth(static_cast<float>(width));
+}
+
+void glPolygonOffset(GLfloat factor, GLfloat units) {
+    if (g_current == nullptr) return;
+    g_current->state().setPolygonOffset(static_cast<float>(factor),
+                                        static_cast<float>(units));
+}
+
 void glStencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (g_current == nullptr) return;
     g_current->state().setStencilFunc(func, ref, mask);

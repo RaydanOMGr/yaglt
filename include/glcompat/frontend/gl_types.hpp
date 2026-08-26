@@ -241,15 +241,21 @@ constexpr GLenum GL_INVERT = 0x150A;
 constexpr GLenum GL_INCR_WRAP = 0x8507;
 constexpr GLenum GL_DECR_WRAP = 0x8508;
 
-// Rasterization state (SPEC §17.3 / §14.
+// Rasterization state (SPEC §17.3 / §11 / §14).
 constexpr GLenum GL_CULL_FACE = 0x0B44;
 constexpr GLenum GL_DEPTH_TEST = 0x0B71;
 constexpr GLenum GL_DITHER = 0x0BD0;
 constexpr GLenum GL_POLYGON_OFFSET_FILL = 0x8037;
+constexpr GLenum GL_POLYGON_OFFSET_POINT = 0x2A01;
+constexpr GLenum GL_POLYGON_OFFSET_LINE = 0x2A02;
 constexpr GLenum GL_CULL_FACE_MODE = 0x0B45;
 constexpr GLenum GL_FRONT_FACE = 0x0B46;
 constexpr GLenum GL_CW = 0x0900;
 constexpr GLenum GL_CCW = 0x0901;
+constexpr GLenum GL_POINT_SIZE = 0x0B11;
+constexpr GLenum GL_LINE_WIDTH = 0x0B21;
+constexpr GLenum GL_POLYGON_OFFSET_FACTOR = 0x8038;
+constexpr GLenum GL_POLYGON_OFFSET_UNITS = 0x2A00;
 
 // Depth func already has GL_LESS etc. above; add writemask + range.
 constexpr GLenum GL_DEPTH_WRITEMASK = 0x0B72;

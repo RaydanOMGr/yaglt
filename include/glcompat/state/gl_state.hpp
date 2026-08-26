@@ -60,6 +60,13 @@ public:
     bool setCullFace(GLenum mode);
     bool setFrontFace(GLenum mode);
 
+    // --- Rasterization scalar state (SPEC §11) ---
+    // glPointSize / glLineWidth / glPolygonOffset. These are independent scalar
+    // values pushed to the backend only when the relevant one changed.
+    bool setPointSize(float size);
+    bool setLineWidth(float width);
+    bool setPolygonOffset(float factor, float units);
+
     // --- Pixel store ---
     bool setPixelStorei(GLenum pname, GLint param);
 
@@ -189,6 +196,17 @@ private:
             return cull == o.cull && front == o.front;
         }
     };
+    struct RasterScalarState {
+        float pointSize = 1.0f;
+        float lineWidth = 1.0f;
+        float polygonOffsetFactor = 0.0f;
+        float polygonOffsetUnits = 0.0f;
+        bool equal(const RasterScalarState& o) const {
+            return pointSize == o.pointSize && lineWidth == o.lineWidth &&
+                   polygonOffsetFactor == o.polygonOffsetFactor &&
+                   polygonOffsetUnits == o.polygonOffsetUnits;
+        }
+    };
     struct PixelStoreState {
         GLint unpackAlignment = 4;
         bool equal(const PixelStoreState& o) const {
@@ -261,6 +279,7 @@ private:
     DepthRangeState depthRange_, depthRangeApplied_;
     StencilState stencil_, stencilApplied_;
     RasterState raster_, rasterApplied_;
+    RasterScalarState rasterScalar_, rasterScalarApplied_;
     PixelStoreState pixel_, pixelApplied_;
     ViewportState viewport_, viewportApplied_;
     ScissorBoxState scissor_, scissorApplied_;
