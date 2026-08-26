@@ -75,6 +75,30 @@ type layer. The Vulkan subset is currently partial (some `vk_video/*`
 sub-headers are absent); it becomes relevant only when the Vulkan backend
 starts.
 
+## GLES backend
+
+`src/backend/gles` implements the real OpenGL ES backend behind the standard
+interfaces (`IGraphicsBackend`, `IResourceFactory`, `IShaderCompiler`).
+
+- **Dynamic loading.** EGL and GLES are resolved at runtime via `dlopen` +
+  `dlsym` (`gles_loader.hpp` / `GLESLib`), not linked at build time. This lets
+  YAGLT compile on hosts lacking the GLES dev libraries (and on Android, where
+  the drivers exist at runtime). If `libEGL`/`libGLESv2` or required symbols
+  are absent, `GLESBackend::initialize()` returns `false` honestly — no fake
+  support.
+- **Headless context.** A surfaceless EGL display
+  (`EGL_PLATFORM_SURFACELESS_MESA`) with a pbuffer-compatible config is used so
+  the backend works without a window system (Linux/Mesa, Android).
+- **Capability detection.** After context creation the backend queries
+  `GL_VERSION` / `GL_RENDERER` / `GL_EXTENSIONS` and populates `CapabilityTable`
+  (see `gles_capabilities.cpp`): ES 3.x → most features Native; ES 3.1 →
+  SSBO/compute/indirect/image-load native; geometry/tessellation Unsupported
+  (no GLES equivalent); DSA Unsupported unless `GL_EXT_direct_state_access`.
+- **Shader compiler.** `GLESShaderCompiler` compiles GLSL ES on the real driver
+  and surfaces the driver log. It does **not** translate desktop GLSL → GLSL ES
+  (that needs glslang, not yet available), so desktop inputs fail at the driver
+  rather than being silently accepted.
+
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error

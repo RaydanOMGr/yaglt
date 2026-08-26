@@ -11,6 +11,7 @@ add_library(yaglt_core STATIC
 
 target_include_directories(yaglt_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
@@ -40,6 +41,21 @@ if(YAGLT_ANDROID_STUB)
     target_sources(yaglt_core PRIVATE
         platform/android/android_stub_check.cpp
     )
+endif()
+
+# Real OpenGL ES backend. Symbols are resolved at runtime via dlopen, so this
+# compiles even where libGLESv2 dev libraries are absent; initialize() reports
+# honestly when no driver is present.
+option(YAGLT_BACKEND_GLES "Build the OpenGL ES backend (runtime-loaded)" ON)
+if(YAGLT_BACKEND_GLES)
+    target_sources(yaglt_core PRIVATE
+        backend/gles/gles_loader.cpp
+        backend/gles/gles_capabilities.cpp
+        backend/gles/gles_shader_compiler.cpp
+        backend/gles/gles_backend.cpp
+    )
+    target_link_libraries(yaglt_core PUBLIC ${CMAKE_DL_LIBS})
+    target_compile_definitions(yaglt_core PUBLIC YAGLT_BACKEND_GLES=1)
 endif()
 
 target_compile_features(yaglt_core PUBLIC cxx_std_17)

@@ -5,8 +5,8 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 3 — Core Rendering (API surface + GLES backend prep)
-Overall status: Early implementation (foundation + object model + GL dispatch)
+Current milestone: Phase 4 — GLES Backend Foundation (runtime-loaded)
+Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend)
 Last updated: 2026-08-26
 Known major blockers:
 - Real GLES backend not yet implemented (interfaces reserved).
@@ -62,12 +62,28 @@ Known major blockers:
     missing `KHR/khrplatform.h` so glext/GLES3/EGL compile.
   - Used by backends only; frontend keeps its own lightweight type layer.
 
+- [x] GLES backend foundation (runtime-loaded)
+  - `GLESLib` dynamic loader (dlopen EGL/GLES, dlsym ~45 entry points).
+  - `GLESBackend`: surfaceless EGL context, capability detection from
+    version/extensions, real resource factory, GLES shader compiler.
+  - `tests/backend/gles_backend_test.cpp`: passes both with and without a
+    driver (initialize() honest). 21/21 tests pass.
+  - Builds linking only libdl; compiles where libGLESv2 dev libs are absent.
+
 ## In Progress
 
-- [ ] Real GLES backend foundation (consume `GLES3`/`EGL` headers; headless
-      surfaceless context on Linux/Mesa; capability detection).
 - [ ] State tracking subsystem (`src/state`).
-- [ ] Shader translation pipeline behind `IShaderCompiler`.
+- [ ] Shader translation pipeline behind `IShaderCompiler` (needs glslang,
+      which is not yet vendored; current compiler handles GLSL ES only).
+- [ ] Real desktop GLSL → GLSL ES translation (Phase 4 per SPEC).
+
+## Known Issues
+
+- Host Linux/WSL box has no `libGLESv2` (only `libEGL.so.1`), so the GLES
+  backend `initialize()` returns false here. It will initialize for real on
+  Android or a Mesa GLES build. This is expected, not a bug.
+- `GLESShaderCompiler` does not translate desktop GLSL → GLSL ES; glslang was
+  not available. Desktop shader sources are rejected by the driver honestly.
 
 ## TODO
 

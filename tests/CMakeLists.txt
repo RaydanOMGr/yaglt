@@ -7,6 +7,7 @@ add_executable(yaglt_tests
     unit/backend_test.cpp
     unit/object_test.cpp
     unit/gl_api_test.cpp
+    backend/gles_backend_test.cpp
 )
 
 target_include_directories(yaglt_tests PRIVATE
