@@ -5,6 +5,7 @@
 
 add_library(yaglt_core STATIC
     core/capabilities_table.cpp
+    core/log.cpp
     frontend/context.cpp
     frontend/gl_api.cpp
     state/gl_state.cpp

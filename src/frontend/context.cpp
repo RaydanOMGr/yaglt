@@ -1,6 +1,7 @@
 #include "glcompat/frontend/context.hpp"
 #include "glcompat/core/capabilities.hpp"
 #include "glcompat/core/factory.hpp"
+#include "glcompat/core/log.hpp"
 
 #include <cctype>
 #include <cstdint>
@@ -760,13 +761,19 @@ void Context::compileShader(GLObjectName shader) {
     if (!backend_.shaderCompiler().compile(s->source, s->stage, out, err)) {
         s->compiled = false;
         s->infoLog = err;
+        glcompat::log(LogCategory::Shader, LogLevel::Error)
+            << "shader translation failed (stage=" << s->stage << "): " << err;
         return;
     }
-    std::string log;
-    bool ok = s->backend ? s->backend->compile(out, log) : false;
+    std::string blog;
+    bool ok = s->backend ? s->backend->compile(out, blog) : false;
     s->compiled = ok;
-    s->infoLog = log;
-    if (!ok) setError(GLError::InvalidOperation);
+    s->infoLog = blog;
+    if (!ok) {
+        setError(GLError::InvalidOperation);
+        glcompat::log(LogCategory::Shader, LogLevel::Error)
+            << "shader compile failed (stage=" << s->stage << "): " << blog;
+    }
 }
 
 bool Context::isShaderCompiled(GLObjectName shader) const {

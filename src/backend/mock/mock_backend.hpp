@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glcompat/core/backend.hpp"
+#include "glcompat/core/log.hpp"
 #include "glcompat/state/gl_state.hpp"
 #include "mock_capabilities.hpp"
 #include "mock_factory.hpp"
@@ -37,7 +38,13 @@ public:
     IResourceFactory& resourceFactory() override { return factory_; }
     IShaderCompiler& shaderCompiler() override { return compiler_; }
 
-    bool initialize() override { initialized_ = true; return true; }
+    bool initialize() override {
+        initialized_ = true;
+        log(LogCategory::Backend, LogLevel::Info)
+            << "selected backend: Mock (headless test backend)";
+        capabilities_.report();
+        return true;
+    }
     void shutdown() override { initialized_ = false; }
 
     GLStateSink* stateSink() override { return this; }

@@ -1,4 +1,5 @@
 #include "glcompat/backend/gles/gles_backend.hpp"
+#include "glcompat/core/log.hpp"
 
 #ifdef YAGLT_SHADER_TRANSLATE
 #include "src/backend/gles/gles_translating_compiler.hpp"
@@ -131,6 +132,12 @@ bool GLESBackend::initialize() {
     }
     queryVersion();
     populateGLESCapabilities(caps_, *lib_);
+    log(LogCategory::Backend, LogLevel::Info) << "selected backend: GLES (ES "
+        << lib_->glesMajor << "." << lib_->glesMinor
+        << ", renderer=" << lib_->rendererString << ")";
+    log(LogCategory::GLES, LogLevel::Debug) << "detected extensions: "
+        << (lib_->extensionsString.empty() ? "(none)" : lib_->extensionsString);
+    caps_.report();
     initialized_ = true;
     return true;
 }

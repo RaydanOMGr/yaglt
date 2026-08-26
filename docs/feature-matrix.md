@@ -71,6 +71,7 @@ remain honestly reported as `Unsupported` rather than faked.
 | GLES backend | Partial (runtime) | `src/backend/gles`; dlopen EGL/GLES, surfaceless EGL, capability detection, real program/shader compile + link. Real on Android/Mesa-GLES; initializes=false honestly where no driver |
 | Shader translation | Emulated (ES) | `GLESShaderCompiler` compiles GLSL ES on driver; `TranslatingGLESShaderCompiler` runs desktop GLSL → glslang → SPIRV-Cross → GLSL ES 3.10. Uniform/storage blocks auto-bound via 420pack. Verified end-to-end on Mesa. |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |
+| Structured logging (SPEC §20) | Implemented | `glcompat::log(category, level)` streaming API + `Logger` (`include/glcompat/core/log.hpp`, `src/core/log.cpp`); categories CORE/STATE/RESOURCE/SHADER/BACKEND/GLES/VULKAN/PLATFORM/EMULATION, levels Debug/Info/Warn/Error; configurable via `setStream`/`setLevel`/`enableCategory` and env `YAGLT_LOG_LEVEL`/`YAGLT_LOG_CATS`; `CapabilityTable::report()` logs selected feature implementations + activated fallbacks. Verified by `log_test` |
 
 ## Emulation roadmap (future heavy lifting)
 

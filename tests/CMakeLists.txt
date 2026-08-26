@@ -26,6 +26,7 @@ add_executable(yaglt_tests
     unit/blend_test.cpp
     unit/stencil_test.cpp
     unit/readpixels_test.cpp
+    unit/log_test.cpp
     backend/gles_backend_test.cpp
 )
 

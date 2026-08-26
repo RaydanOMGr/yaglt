@@ -24,6 +24,12 @@ public:
 
     std::string featureName(Feature feature) const override;
 
+    // Diagnostic dump of the resolved feature table (SPEC §20): logs each
+    // feature's support classification and flags Emulated features as activated
+    // fallbacks. Emitted at the Debug level so the release configuration stays
+    // quiet; raise detail with YAGLT_LOG_LEVEL=debug.
+    void report() const;
+
 private:
     std::array<FeatureSupport, static_cast<size_t>(Feature::FeatureCount)> table_;
 };

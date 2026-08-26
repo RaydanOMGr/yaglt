@@ -1,4 +1,5 @@
 #include "glcompat/core/capabilities_table.hpp"
+#include "glcompat/core/log.hpp"
 
 namespace glcompat {
 
@@ -28,6 +29,30 @@ std::string CapabilityTable::featureName(Feature feature) const {
     case Feature::FeatureCount: return "FeatureCount";
     }
     return "Unknown";
+}
+
+void CapabilityTable::report() const {
+    using glcompat::log;
+    using glcompat::LogCategory;
+    using glcompat::LogLevel;
+
+    int native = 0, emulated = 0, unsupported = 0, other = 0;
+    for (size_t i = 0; i < table_.size(); ++i) {
+        auto f = static_cast<Feature>(i);
+        auto s = table_[i];
+        const char* cls = "Unknown";
+        switch (s) {
+        case FeatureSupport::Native: cls = "Native"; ++native; break;
+        case FeatureSupport::Emulated: cls = "Emulated"; ++emulated; break;
+        case FeatureSupport::Unsupported: cls = "Unsupported"; ++unsupported; break;
+        default: ++other; break;
+        }
+        log(LogCategory::Emulation, LogLevel::Debug)
+            << "feature " << featureName(f) << " -> " << cls;
+    }
+    log(LogCategory::Emulation, LogLevel::Debug)
+        << "capability summary: native=" << native << " emulated=" << emulated
+        << " unsupported=" << unsupported << " other=" << other;
 }
 
 } // namespace glcompat

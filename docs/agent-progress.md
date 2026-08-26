@@ -163,7 +163,7 @@ Known major blockers:
 - [x] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
 - [x] P1: Android platform capabilities + SDK 21 fallback abstraction.
 - [ ] P2: Capability-driven emulation selection scaffolding.
-- [ ] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
+- [x] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
 
 ## Known Issues
 
@@ -255,6 +255,24 @@ OpenGL 4.6:
     translate (Mesa) all pass.
 
 ## Recent Work
+
+2026-08-26 (structured logging subsystem, this session)
+- SPEC §20: implemented a structured logging subsystem. New
+  `include/glcompat/core/log.hpp` + `src/core/log.cpp` provide categories
+  (CORE/STATE/RESOURCE/SHADER/BACKEND/GLES/VULKAN/PLATFORM/EMULATION), levels
+  (Debug/Info/Warn/Error), a streaming `log(cat, level) << ...` proxy, and a
+  process-wide `Logger` that is configurable (setStream / setLevel /
+  enableCategory) and reads `YAGLT_LOG_LEVEL` / `YAGLT_LOG_CATS` env vars.
+  Defaults to stderr at Info so the release configuration does not spam.
+- `CapabilityTable::report()` logs each feature's support classification and an
+  activated-fallback summary at Debug (SPEC §20: selected feature implementations
+  + activated fallbacks). `GLESBackend::initialize` logs backend selection +
+  detected extensions (Debug) and a summary line (Info); `MockBackend::
+  initialize` logs selection; `Context::compileShader` logs translation/compile
+  failures at Error. Marked P3 done in TODO.
+- New `tests/unit/log_test.cpp` covers level/category filtering, name helpers,
+  and the capability report classification. Validation: default + sanitizer
+  109/109 green.
 
 2026-08-26 (renderbuffer storage + e2e FBO/draw, this session)
 - Renderbuffer storage subsystem (SPEC §2.1): `renderbufferStorage` virtual on
