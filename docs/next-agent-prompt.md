@@ -79,7 +79,8 @@ Both currently green (default + 29/29 with Mesa). Use a sanitizer build
 - Never fake support — if a feature is unsupported, report it (error / Unsupported).
 - `build/`, `build_tx/`, `build_tr/` are build dirs — do NOT commit them.
   `.gitignore` covers `build/`; `build_tx`/`build_tr` are untracked, leave them.
-- Commit only when explicitly asked. Keep changes incremental and tested.
+- Commit after each coherent task/feature step once its tests pass (project rule,
+  set 2026-08-26). Keep changes incremental and tested.
 - Update `docs/agent-progress.md` (and `architecture.md` / `feature-matrix.md`
   when behavior changes) after each coherent step. The journal is the source of
   truth for status.
