@@ -123,6 +123,15 @@ a tracker and routes `glEnable`/`glDisable`/`glBlendFunc`/`glUseProgram`/
 `glDepthFunc`/`glDepthMask`/`glCullFace`/`glFrontFace` through it. A backend that
 implements `GLStateSink` can flush the tracker's dirty state at draw/flush time.
 
+The state sink is decoupled from the frontend GL constant layer: `GLStateSink`
+(methods in `src/state/gl_state_sink.hpp`) takes plain integer types so a backend
+can implement it even while including native GL headers. `IGraphicsBackend::
+stateSink()` returns the sink (or `nullptr`); `Context::flushState()` calls
+`GLStateTracker::apply(sink)`, pushing only the categories whose state changed.
+`MockBackend` records every push (observable in tests); `GLESBackend` issues the
+corresponding native `gl*` calls through its runtime-loaded `GLESLib`. The public
+`glFlushState()` in `gl_api` is the explicit flush entry point.
+
 ## Current gaps
 
 The OpenGL 4.6 frontend API is partially exposed (object management + error

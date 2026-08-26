@@ -20,6 +20,13 @@ public:
 
     IGraphicsBackend& backend() { return backend_; }
 
+    // Push tracked pipeline state to the backend (SPEC §10). Calls
+    // GLStateTracker::apply() on the backend's GLStateSink; the backend then
+    // issues only the native calls whose state actually changed. No-op when the
+    // backend exposes no sink. The frontend calls this at draw / state-flush
+    // time so redundant native calls are skipped.
+    void flushState();
+
     // Centralized pipeline state (SPEC §10). glEnable/glDisable/glBlendFunc/
     // glUseProgram/etc. route through here so a backend can avoid redundant
     // native calls via GLStateTracker::apply().

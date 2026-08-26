@@ -154,4 +154,9 @@ void glFrontFace(GLenum mode) {
     g_current->state().setFrontFace(mode);
 }
 
+void glFlushState() {
+    if (g_current == nullptr) return;
+    g_current->flushState();
+}
+
 } // namespace glcompat

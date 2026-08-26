@@ -1,0 +1,38 @@
+#pragma once
+
+#include <cstdint>
+
+namespace glcompat {
+
+// Backend-facing sink for tracked pipeline state (SPEC §10). It deliberately
+// uses plain integer types (not the frontend GL* typedefs/constants) so a
+// backend can implement it even while it includes native GL headers (whose
+// GL_* macros would otherwise collide with the frontend's lightweight GL
+// constant layer). The frontend GLStateTracker converts its GLenum/GLObjectName
+// values to these integers when pushing state.
+class GLStateSink {
+public:
+    virtual ~GLStateSink() = default;
+
+    virtual void enable(uint32_t cap) = 0;
+    virtual void disable(uint32_t cap) = 0;
+
+    virtual void useProgram(uint32_t prog) = 0;
+
+    virtual void blendFunc(uint32_t sfactor, uint32_t dfactor) = 0;
+    virtual void blendEquation(uint32_t mode) = 0;
+
+    virtual void depthFunc(uint32_t func) = 0;
+    virtual void depthMask(bool enabled) = 0;
+
+    virtual void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) = 0;
+    virtual void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) = 0;
+    virtual void stencilMask(uint32_t mask) = 0;
+
+    virtual void cullFace(uint32_t mode) = 0;
+    virtual void frontFace(uint32_t mode) = 0;
+
+    virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
+};
+
+} // namespace glcompat

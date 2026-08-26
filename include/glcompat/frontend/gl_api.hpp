@@ -42,4 +42,22 @@ void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
 
+// --- State management (SPEC §10) ---
+// These record state into the current context's GLStateTracker. The tracked
+// state is pushed to the backend via glFlushState() at draw / flush time.
+void glEnable(GLenum cap);
+void glDisable(GLenum cap);
+void glBlendFunc(GLenum sfactor, GLenum dfactor);
+void glBlendEquation(GLenum mode);
+void glUseProgram(GLuint prog);
+void glDepthFunc(GLenum func);
+void glDepthMask(bool flag);
+void glCullFace(GLenum mode);
+void glFrontFace(GLenum mode);
+
+// Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
+// state that changed since the last flush, so the driver is not re-set for
+// unchanged state. Call this at draw / state-flush time.
+void glFlushState();
+
 } // namespace glcompat

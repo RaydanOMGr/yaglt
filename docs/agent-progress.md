@@ -79,9 +79,10 @@ Known major blockers:
 
 ## In Progress
 
-- [ ] Wire `GLStateTracker::apply()` into a backend: make `GLESBackend` (and
-      `MockBackend`) implement `GLStateSink` and push tracked state on draw /
-      state flush, so redundant native calls are actually skipped.
+- [x] Wire `GLStateTracker::apply()` into backends: `GLESBackend` and
+      `MockBackend` implement `GLStateSink` and push tracked state on
+      `Context::flushState()` / `glFlushState()`, so redundant native calls are
+      skipped. Tests verify only-changed-caps are pushed.
 
 ## Completed (this session)
 
@@ -201,14 +202,30 @@ OpenGL 4.6:
   `include/shaderc`, `include/spirv-tools`, top-level `include/spirv*.hpp`).
 - `build_tx` (translate) + `build` (default) both compile and pass tests.
 
+2026-08-26 (state flush)
+- Wired `GLStateTracker::apply()` into backends (SPEC §10, task 1 from
+  next-agent-prompt). `IGraphicsBackend::stateSink()` returns the backend's
+  `GLStateSink`; `Context::flushState()` / `glFlushState()` pushes only changed
+  state. `MockBackend` records every push (observable in tests); `GLESBackend`
+  issues native `gl*` calls via its runtime-loaded `GLESLib`.
+- Split `GLStateSink` into its own header (`include/glcompat/state/
+  gl_state_sink.hpp`) using plain integer types so backends can implement it
+  alongside native GL headers without colliding with the frontend GL constant
+  layer (`gl_types.hpp`). `GLESLib` gained the state-entry function pointers.
+- Added `glEnable`/`glDisable`/.../`glFlushState` declarations to `gl_api.hpp`
+  (previously defined but undeclared).
+- New test `tests/unit/state_flush_test.cpp` verifies a `MockBackend`-backed
+  `Context` issues a native enable/disable (and other state) only when the
+  value actually changed.
+- Validation: default 30/30, translate (Mesa) 32/32, and an ASan/UBSan build
+  all green.
+
 ## Next Steps
 
-1. Mesa built and the GLES backend initializes on host. End-to-end shader
-   compile test added. Run the translate build's tests with the Mesa
-   `LD_LIBRARY_PATH`/`LIBGL_DRIVERS_PATH` to exercise the real driver path.
-2. Wire `GLStateTracker::apply()` into backends: make `GLESBackend` (and
-   `MockBackend`) implement `GLStateSink` and flush tracked state on draw /
-   state changes, so redundant native calls are actually skipped.
-3. Implement remaining desktop GLSL → GLSL ES feature mapping (UBO/SSBO,
-   unsupported stages) as needed by real apps.
+1. Implement remaining desktop GLSL → GLSL ES feature mapping (UBO/SSBO,
+   unsupported stages) behind `IShaderCompiler` / capability system.
+2. Expand the public OpenGL 4.6 frontend API (draw calls) and flush state at
+   draw time automatically.
+3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
+   emulation scaffolding).
 4. Commit each coherent step; update this journal.

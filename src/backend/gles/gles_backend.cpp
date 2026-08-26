@@ -151,4 +151,58 @@ std::string GLESBackend::describe() const {
            std::to_string(lib_->glesMinor) + ", renderer=" + lib_->rendererString + ")";
 }
 
+// --- GLStateSink (SPEC §10) ---
+
+void GLESBackend::enable(GLenum cap) {
+    if (lib_->glEnable) lib_->glEnable(cap);
+}
+
+void GLESBackend::disable(GLenum cap) {
+    if (lib_->glDisable) lib_->glDisable(cap);
+}
+
+void GLESBackend::useProgram(uint32_t prog) {
+    if (lib_->glUseProgram) lib_->glUseProgram(static_cast<GLuint>(prog));
+}
+
+void GLESBackend::blendFunc(GLenum sfactor, GLenum dfactor) {
+    if (lib_->glBlendFunc) lib_->glBlendFunc(sfactor, dfactor);
+}
+
+void GLESBackend::blendEquation(GLenum mode) {
+    if (lib_->glBlendEquation) lib_->glBlendEquation(mode);
+}
+
+void GLESBackend::depthFunc(GLenum func) {
+    if (lib_->glDepthFunc) lib_->glDepthFunc(func);
+}
+
+void GLESBackend::depthMask(bool enabled) {
+    if (lib_->glDepthMask) lib_->glDepthMask(enabled ? GL_TRUE : GL_FALSE);
+}
+
+void GLESBackend::stencilFunc(GLenum func, GLint ref, GLuint mask) {
+    if (lib_->glStencilFunc) lib_->glStencilFunc(func, ref, mask);
+}
+
+void GLESBackend::stencilOp(GLenum sfail, GLenum dpfail, GLenum dppass) {
+    if (lib_->glStencilOp) lib_->glStencilOp(sfail, dpfail, dppass);
+}
+
+void GLESBackend::stencilMask(GLuint mask) {
+    if (lib_->glStencilMask) lib_->glStencilMask(mask);
+}
+
+void GLESBackend::cullFace(GLenum mode) {
+    if (lib_->glCullFace) lib_->glCullFace(mode);
+}
+
+void GLESBackend::frontFace(GLenum mode) {
+    if (lib_->glFrontFace) lib_->glFrontFace(mode);
+}
+
+void GLESBackend::pixelStorei(GLenum pname, GLint param) {
+    if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
+}
+
 } // namespace glcompat

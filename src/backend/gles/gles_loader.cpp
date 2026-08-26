@@ -79,6 +79,19 @@ bool GLESLib::load() {
     ok &= resolve(gles, glGetProgramiv, "glGetProgramiv");
     ok &= resolve(gles, glGetProgramInfoLog, "glGetProgramInfoLog");
     ok &= resolve(gles, glDeleteProgram, "glDeleteProgram");
+    ok &= resolve(gles, glEnable, "glEnable");
+    ok &= resolve(gles, glDisable, "glDisable");
+    ok &= resolve(gles, glUseProgram, "glUseProgram");
+    ok &= resolve(gles, glBlendFunc, "glBlendFunc");
+    ok &= resolve(gles, glBlendEquation, "glBlendEquation");
+    ok &= resolve(gles, glDepthFunc, "glDepthFunc");
+    ok &= resolve(gles, glDepthMask, "glDepthMask");
+    ok &= resolve(gles, glStencilFunc, "glStencilFunc");
+    ok &= resolve(gles, glStencilOp, "glStencilOp");
+    ok &= resolve(gles, glStencilMask, "glStencilMask");
+    ok &= resolve(gles, glCullFace, "glCullFace");
+    ok &= resolve(gles, glFrontFace, "glFrontFace");
+    ok &= resolve(gles, glPixelStorei, "glPixelStorei");
 
     if (!ok) {
         dlclose(egl);

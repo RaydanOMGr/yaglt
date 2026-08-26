@@ -233,4 +233,11 @@ void Context::deleteVertexArrays(uint32_t n, const GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) deleteVertexArray(names[i]);
 }
 
+void Context::flushState() {
+    GLStateSink* sink = backend_.stateSink();
+    if (sink) {
+        state_.apply(*sink);
+    }
+}
+
 } // namespace glcompat

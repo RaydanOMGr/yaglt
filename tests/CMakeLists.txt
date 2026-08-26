@@ -8,6 +8,7 @@ add_executable(yaglt_tests
     unit/object_test.cpp
     unit/gl_api_test.cpp
     unit/state_test.cpp
+    unit/state_flush_test.cpp
     backend/gles_backend_test.cpp
 )
 

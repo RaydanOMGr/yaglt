@@ -73,6 +73,22 @@ struct GLESLib {
     void (*glGetProgramInfoLog)(GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
     void (*glDeleteProgram)(GLuint) = nullptr;
 
+    // Pipeline state (SPEC §10): pushed by GLStateSink when the frontend
+    // flushes tracked state to the driver.
+    void (*glEnable)(GLenum) = nullptr;
+    void (*glDisable)(GLenum) = nullptr;
+    void (*glUseProgram)(GLuint) = nullptr;
+    void (*glBlendFunc)(GLenum, GLenum) = nullptr;
+    void (*glBlendEquation)(GLenum) = nullptr;
+    void (*glDepthFunc)(GLenum) = nullptr;
+    void (*glDepthMask)(GLboolean) = nullptr;
+    void (*glStencilFunc)(GLenum, GLint, GLuint) = nullptr;
+    void (*glStencilOp)(GLenum, GLenum, GLenum) = nullptr;
+    void (*glStencilMask)(GLuint) = nullptr;
+    void (*glCullFace)(GLenum) = nullptr;
+    void (*glFrontFace)(GLenum) = nullptr;
+    void (*glPixelStorei)(GLenum, GLint) = nullptr;
+
     // True only when every required symbol resolved.
     bool loaded = false;
 

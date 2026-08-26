@@ -2,39 +2,12 @@
 
 #include "glcompat/frontend/gl_types.hpp"
 #include "glcompat/frontend/objects.hpp"
+#include "glcompat/state/gl_state_sink.hpp"
 
 #include <cstdint>
 #include <unordered_map>
 
 namespace glcompat {
-
-// Sink the state tracker pushes changed state into (SPEC §10). A backend
-// implements this to issue only the native calls the tracker marks dirty, so
-// the driver is not re-queried or re-set for unchanged state.
-class GLStateSink {
-public:
-    virtual ~GLStateSink() = default;
-
-    virtual void enable(GLenum cap) = 0;
-    virtual void disable(GLenum cap) = 0;
-
-    virtual void useProgram(GLObjectName prog) = 0;
-
-    virtual void blendFunc(GLenum sfactor, GLenum dfactor) = 0;
-    virtual void blendEquation(GLenum mode) = 0;
-
-    virtual void depthFunc(GLenum func) = 0;
-    virtual void depthMask(bool enabled) = 0;
-
-    virtual void stencilFunc(GLenum func, GLint ref, GLuint mask) = 0;
-    virtual void stencilOp(GLenum sfail, GLenum dpfail, GLenum dppass) = 0;
-    virtual void stencilMask(GLuint mask) = 0;
-
-    virtual void cullFace(GLenum mode) = 0;
-    virtual void frontFace(GLenum mode) = 0;
-
-    virtual void pixelStorei(GLenum pname, GLint param) = 0;
-};
 
 // Centralized OpenGL pipeline state with change tracking.
 //
