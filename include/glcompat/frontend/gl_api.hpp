@@ -77,12 +77,16 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
 void glShaderSource(GLuint shader, const std::string& source);
 void glCompileShader(GLuint shader);
 GLint glGetShaderiv(GLuint shader, GLenum pname);
+void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length,
+                       GLchar* infoLog);
 void glDeleteShader(GLuint shader);
 
 GLuint glCreateProgram();
 void glAttachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
 GLint glGetProgramiv(GLuint program, GLenum pname);
+void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
+                        GLchar* infoLog);
 void glDeleteProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 

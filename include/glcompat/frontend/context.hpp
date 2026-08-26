@@ -145,6 +145,15 @@ public:
     // delegated to the backend resource. An unknown name sets GL_INVALID_ENUM.
     GLint getShaderiv(GLObjectName shader, uint32_t pname);
     GLint getProgramiv(GLObjectName program, uint32_t pname);
+
+    // Retrieve the info/debug log (SPEC §7.3 / §7.14). Copies up to bufSize-1
+    // characters into `infoLog` (nul-terminated); `*length` receives the number
+    // of characters written, excluding the nul. An unknown object sets
+    // GL_INVALID_OPERATION and writes nothing.
+    void getShaderInfoLog(GLObjectName shader, uint32_t bufSize, int32_t* length,
+                         char* infoLog);
+    void getProgramInfoLog(GLObjectName program, uint32_t bufSize, int32_t* length,
+                          char* infoLog);
     void deleteShader(GLObjectName shader);
     ShaderObject* getShader(GLObjectName name);
     const ShaderObject* getShader(GLObjectName name) const;

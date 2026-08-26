@@ -206,6 +206,13 @@ GLint glGetShaderiv(GLuint shader, GLenum pname) {
     return g_current->getShaderiv(shader, pname);
 }
 
+void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length,
+                       GLchar* infoLog) {
+    if (g_current == nullptr) return;
+    g_current->getShaderInfoLog(shader, static_cast<uint32_t>(bufSize), length,
+                               infoLog);
+}
+
 void glDeleteShader(GLuint shader) {
     if (g_current == nullptr) return;
     g_current->deleteShader(shader);
@@ -229,6 +236,13 @@ void glLinkProgram(GLuint program) {
 GLint glGetProgramiv(GLuint program, GLenum pname) {
     if (g_current == nullptr) return 0;
     return g_current->getProgramiv(program, pname);
+}
+
+void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
+                        GLchar* infoLog) {
+    if (g_current == nullptr) return;
+    g_current->getProgramInfoLog(program, static_cast<uint32_t>(bufSize), length,
+                                infoLog);
 }
 
 void glDeleteProgram(GLuint program) {

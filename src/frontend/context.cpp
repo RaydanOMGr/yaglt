@@ -649,6 +649,45 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
     }
 }
 
+namespace {
+// Copy `log` into `out` (up to bufSize-1 chars, nul-terminated). Sets *length to
+// the number of characters written, excluding the nul. Honors bufSize==0.
+void copyInfoLog(const std::string& log, uint32_t bufSize, int32_t* length,
+                 char* out) {
+    if (length) *length = 0;
+    if (out == nullptr || bufSize == 0) return;
+    uint32_t n = 0;
+    for (char c : log) {
+        if (n + 1 >= bufSize) break; // leave room for nul
+        out[n++] = c;
+    }
+    out[n] = '\0';
+    if (length) *length = static_cast<int32_t>(n);
+}
+} // namespace
+
+void Context::getShaderInfoLog(GLObjectName shader, uint32_t bufSize,
+                              int32_t* length, char* infoLog) {
+    const ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        copyInfoLog({}, bufSize, length, infoLog);
+        return;
+    }
+    copyInfoLog(s->infoLog, bufSize, length, infoLog);
+}
+
+void Context::getProgramInfoLog(GLObjectName program, uint32_t bufSize,
+                               int32_t* length, char* infoLog) {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        copyInfoLog({}, bufSize, length, infoLog);
+        return;
+    }
+    copyInfoLog(p->infoLog, bufSize, length, infoLog);
+}
+
 std::string Context::shaderInfoLog(GLObjectName shader) const {
     const ShaderObject* s = getShader(shader);
     return s ? s->infoLog : std::string();

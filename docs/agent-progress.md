@@ -416,6 +416,17 @@ OpenGL 4.6:
 
 ## Recent Work
 
+2026-08-26 (info-log retrieval, this session)
+- Added `glGetShaderInfoLog` / `glGetProgramInfoLog` (SPEC §7.3 / §7.14) to
+  complement the GL_INFO_LOG_LENGTH query added previously. `Context` gained
+  `getShaderInfoLog` / `getProgramInfoLog` that copy the log into the caller
+  buffer (nul-terminated; `*length` excludes the nul; bufSize==0 writes nothing),
+  validate the object (unknown → `GL_INVALID_OPERATION`), and otherwise leave
+  pending errors untouched (standard glGetError semantics). Wired through `gl_api`.
+- New `tests/unit/infolog_test.cpp` covers copy + length, truncation to bufSize,
+  unknown-object error, and the program-link-failure log path.
+- Validation: default + sanitizer + translate (Mesa) suites green.
+
 2026-08-26 (shader/program query coverage, this session)
 - Expanded `glGetShaderiv` / `glGetProgramiv` to full SPEC §7.3 / §7.14
   coverage. `Context::getShaderiv` returns SHADER_TYPE, COMPILE_STATUS,
