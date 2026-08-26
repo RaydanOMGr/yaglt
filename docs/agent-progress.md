@@ -538,6 +538,19 @@ OpenGL 4.6:
      color push-only-on-change, and color-vs-func independence.
    - Validation: default 104/104, sanitizer 104/104 green.
 
+- [x] Stencil API exposure (SPEC §17.3.3, this session).
+   - The tracker, `GLStateSink`, `MockBackend` and `GLESBackend` already tracked
+     stencil func/op/mask (pushed by `apply()`), but the public surface lacked the
+     entry points. Added `glStencilFunc`/`glStencilOp`/`glStencilMask` to
+     `gl_api`; they route into `GLStateTracker::setStencil*`, which sets front and
+     back stencil state identically (per the GL spec) and is flushed at
+     draw/flush time. Added the stencil comparison/operation constants
+     (`GL_NEVER`…`GL_ALWAYS`, `GL_KEEP`…`GL_DECR_WRAP`, `GL_STENCIL_TEST`) to
+     `gl_types.hpp`. New `tests/unit/stencil_test.cpp` verifies the stencil
+     category is pushed only when it changes and that defaults (func=ALWAYS,
+     ops=KEEP, mask=all-ones) produce no push.
+   - Validation: default 105/105, sanitizer 105/105 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

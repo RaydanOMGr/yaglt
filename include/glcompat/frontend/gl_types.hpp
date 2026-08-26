@@ -157,4 +157,26 @@ constexpr GLenum GL_MAX = 0x8008;
 constexpr GLenum GL_FUNC_SUBTRACT = 0x800A;
 constexpr GLenum GL_FUNC_REVERSE_SUBTRACT = 0x800B;
 
+// Stencil test enable (glEnable/glDisable capability, SPEC §17.3.3).
+constexpr GLenum GL_STENCIL_TEST = 0x0B90;
+
+// Stencil comparison functions (SPEC §17.3.3, StencilFunc func).
+constexpr GLenum GL_NEVER = 0x0200;
+constexpr GLenum GL_LESS = 0x0201;
+constexpr GLenum GL_EQUAL = 0x0202;
+constexpr GLenum GL_LEQUAL = 0x0203;
+constexpr GLenum GL_GREATER = 0x0204;
+constexpr GLenum GL_NOTEQUAL = 0x0205;
+constexpr GLenum GL_GEQUAL = 0x0206;
+constexpr GLenum GL_ALWAYS = 0x0207;
+
+// Stencil operations (SPEC §17.3.3, StencilOp sfail/dpfail/dppass).
+constexpr GLenum GL_KEEP = 0x1E00;
+constexpr GLenum GL_REPLACE = 0x1E01;
+constexpr GLenum GL_INCR = 0x1E02;
+constexpr GLenum GL_DECR = 0x1E03;
+constexpr GLenum GL_INVERT = 0x150A;
+constexpr GLenum GL_INCR_WRAP = 0x8507;
+constexpr GLenum GL_DECR_WRAP = 0x8508;
+
 } // namespace glcompat

@@ -451,6 +451,21 @@ void glFrontFace(GLenum mode) {
     g_current->state().setFrontFace(mode);
 }
 
+void glStencilFunc(GLenum func, GLint ref, GLuint mask) {
+    if (g_current == nullptr) return;
+    g_current->state().setStencilFunc(func, ref, mask);
+}
+
+void glStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass) {
+    if (g_current == nullptr) return;
+    g_current->state().setStencilOp(sfail, dpfail, dppass);
+}
+
+void glStencilMask(GLuint mask) {
+    if (g_current == nullptr) return;
+    g_current->state().setStencilMask(mask);
+}
+
 void glPixelStorei(GLenum pname, GLint param) {
     if (g_current == nullptr) return;
     g_current->pixelStorei(pname, static_cast<int>(param));

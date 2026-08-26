@@ -149,6 +149,13 @@ void glDepthRangef(GLfloat nearVal, GLfloat farVal);
 void glCullFace(GLenum mode);
 void glFrontFace(GLenum mode);
 
+// Stencil test state (SPEC §17.3.3). These set the front and back stencil state
+// to identical values. Pushed to the backend via glFlushState() at draw/flush
+// time (SPEC §10).
+void glStencilFunc(GLenum func, GLint ref, GLuint mask);
+void glStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass);
+void glStencilMask(GLuint mask);
+
 // Pixel store (SPEC §10). Affects subsequent texture/image uploads.
 void glPixelStorei(GLenum pname, GLint param);
 
