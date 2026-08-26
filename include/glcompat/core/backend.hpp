@@ -33,6 +33,18 @@ public:
     // state pushes (e.g. record-only backends).
     virtual GLStateSink* stateSink() { return nullptr; }
 
+    // Draw commands (SPEC §2.1). The frontend flushes tracked pipeline state
+    // (via GLStateSink) immediately before issuing these so the backend never
+    // receives stale state. Backends translate them to native draw calls.
+    virtual void drawArrays(uint32_t mode, int32_t first, int32_t count) = 0;
+    virtual void drawElements(uint32_t mode, int32_t count, uint32_t type,
+                              intptr_t indices) = 0;
+    virtual void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
+                                     int32_t primcount) = 0;
+    virtual void drawElementsInstanced(uint32_t mode, int32_t count,
+                                       uint32_t type, intptr_t indices,
+                                       int32_t primcount) = 0;
+
     virtual std::string describe() const = 0;
 };
 

@@ -96,11 +96,54 @@ public:
         lastBindBuffer = buffer;
     }
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
-                         intptr_t, intptr_t) override {
+                          intptr_t, intptr_t) override {
         ++bindBufferRangeCalls;
         lastBindTarget = target;
         lastBindIndex = index;
         lastBindBuffer = buffer;
+    }
+
+    // --- Draw command recording (observable in tests) ---
+    int drawArraysCalls = 0;
+    int drawElementsCalls = 0;
+    int drawArraysInstancedCalls = 0;
+    int drawElementsInstancedCalls = 0;
+    uint32_t lastDrawMode = 0;
+    int32_t lastDrawFirst = 0;
+    int32_t lastDrawCount = 0;
+    uint32_t lastDrawType = 0;
+    intptr_t lastDrawIndices = 0;
+    int32_t lastDrawPrimcount = 0;
+    void drawArrays(uint32_t mode, int32_t first, int32_t count) override {
+        ++drawArraysCalls;
+        lastDrawMode = mode;
+        lastDrawFirst = first;
+        lastDrawCount = count;
+    }
+    void drawElements(uint32_t mode, int32_t count, uint32_t type,
+                      intptr_t indices) override {
+        ++drawElementsCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+    }
+    void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
+                             int32_t primcount) override {
+        ++drawArraysInstancedCalls;
+        lastDrawMode = mode;
+        lastDrawFirst = first;
+        lastDrawCount = count;
+        lastDrawPrimcount = primcount;
+    }
+    void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
+                               intptr_t indices, int32_t primcount) override {
+        ++drawElementsInstancedCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawPrimcount = primcount;
     }
 
 private:

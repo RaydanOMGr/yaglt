@@ -174,6 +174,20 @@ OpenGL 4.6:
   DSA: not implemented (marked Emulated in mock capabilities only)
   Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
+- [x] Draw-call frontend entry points (SPEC §2.1, task 2 from next-agent-prompt).
+  - `IGraphicsBackend` gained `drawArrays`/`drawElements` + instanced variants
+    (pure virtual; implemented by `MockBackend` and `GLESBackend`).
+  - `GLESLib` resolves `glDrawArrays`/`glDrawElements` (required) and
+    `glDrawArraysInstanced`/`glDrawElementsInstanced` (optional, ES 3.0+).
+  - `Context::draw*` flushes tracked pipeline state to the backend first, then
+    issues the native draw (SPEC §10: redundant state skipped). Drawing with no
+    active program → `GL_INVALID_OPERATION`; instanced draws consult the
+    `InstancedRendering` capability and report `Unsupported` honestly.
+  - Public `gl_api` exposes `glDrawArrays`/`glDrawElements`/`glDrawArraysInstanced`/
+    `glDrawElementsInstanced`. New `tests/unit/draw_test.cpp` covers flush-before-draw,
+    recording, capability gating, and the no-program error path.
+  - Validation: default 37/37, sanitizer 37/37, translate (Mesa) all green.
+
 ## Recent Work
 
 2026-08-26 (prior agent)
@@ -254,12 +268,12 @@ OpenGL 4.6:
 
 ## Next Steps
 
-1. Implement draw-call frontend entry points and flush tracked state at draw.
+1. Expand the OpenGL 4.6 frontend API for programs/shaders/vertex-attrib setup so
+   draws are meaningful end-to-end (attach shaders, link programs, vertex attrib
+   pointers, bind VAO/program to the native backend at draw time).
 2. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
    emulation scaffolding, geometry/tessellation honest-Unsupported paths,
    SSBO storage-block translation / transform-feedback).
-2. Expand the public OpenGL 4.6 frontend API (draw calls) and flush state at
-   draw time automatically.
 3. Continue SPEC phases (§5 Android platform capabilities, §6 compatibility/
    emulation scaffolding).
 4. Commit each coherent step; update this journal.

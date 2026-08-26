@@ -91,6 +91,13 @@ struct GLESLib {
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 
+    // Draw commands.
+    void (*glDrawArrays)(GLenum, GLint, GLsizei) = nullptr;
+    void (*glDrawElements)(GLenum, GLsizei, GLenum, const void*) = nullptr;
+    void (*glDrawArraysInstanced)(GLenum, GLint, GLsizei, GLsizei) = nullptr;
+    void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void*,
+                                    GLsizei) = nullptr;
+
     // True only when every required symbol resolved.
     bool loaded = false;
 

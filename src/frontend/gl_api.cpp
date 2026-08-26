@@ -170,4 +170,30 @@ void glFlushState() {
     g_current->flushState();
 }
 
+void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+    if (g_current == nullptr) return;
+    g_current->drawArrays(mode, first, count);
+}
+
+void glDrawElements(GLenum mode, GLsizei count, GLenum type,
+                    const GLvoid* indices) {
+    if (g_current == nullptr) return;
+    g_current->drawElements(mode, count, type,
+                            reinterpret_cast<intptr_t>(indices));
+}
+
+void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count,
+                           GLsizei primcount) {
+    if (g_current == nullptr) return;
+    g_current->drawArraysInstanced(mode, first, count, primcount);
+}
+
+void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
+                             const GLvoid* indices, GLsizei primcount) {
+    if (g_current == nullptr) return;
+    g_current->drawElementsInstanced(mode, count, type,
+                                     reinterpret_cast<intptr_t>(indices),
+                                     primcount);
+}
+
 } // namespace glcompat

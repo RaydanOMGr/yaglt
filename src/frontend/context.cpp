@@ -290,4 +290,51 @@ void Context::flushState() {
     }
 }
 
+void Context::drawArrays(uint32_t mode, int32_t first, int32_t count) {
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawArrays(mode, first, count);
+}
+
+void Context::drawElements(uint32_t mode, int32_t count, uint32_t type,
+                           intptr_t indices) {
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawElements(mode, count, type, indices);
+}
+
+void Context::drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
+                                   int32_t primcount) {
+    if (!backend_.capabilities().isSupported(Feature::InstancedRendering)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawArraysInstanced(mode, first, count, primcount);
+}
+
+void Context::drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
+                                    intptr_t indices, int32_t primcount) {
+    if (!backend_.capabilities().isSupported(Feature::InstancedRendering)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawElementsInstanced(mode, count, type, indices, primcount);
+}
+
 } // namespace glcompat

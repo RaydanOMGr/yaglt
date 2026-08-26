@@ -90,6 +90,18 @@ public:
     void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
 
+    // --- Draw (SPEC §2.1) ---
+    // Flush tracked pipeline state to the backend, then issue the draw. Drawing
+    // with no active program is GL_INVALID_OPERATION (core profile). Instanced
+    // draws consult the capability table and report unsupported honestly.
+    void drawArrays(uint32_t mode, int32_t first, int32_t count);
+    void drawElements(uint32_t mode, int32_t count, uint32_t type,
+                      intptr_t indices);
+    void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
+                             int32_t primcount);
+    void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
+                               intptr_t indices, int32_t primcount);
+
 private:
     GLObjectName nextName_ = 1;
 

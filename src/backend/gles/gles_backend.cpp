@@ -212,10 +212,36 @@ void GLESBackend::bindBufferBase(uint32_t target, uint32_t index,
 }
 
 void GLESBackend::bindBufferRange(uint32_t target, uint32_t index,
-                                  uint32_t buffer, intptr_t offset,
-                                  intptr_t size) {
+                                   uint32_t buffer, intptr_t offset,
+                                   intptr_t size) {
     if (lib_->glBindBufferRange)
         lib_->glBindBufferRange(target, index, buffer, offset, size);
+}
+
+void GLESBackend::drawArrays(uint32_t mode, int32_t first, int32_t count) {
+    if (lib_->glDrawArrays) lib_->glDrawArrays(mode, first, count);
+}
+
+void GLESBackend::drawElements(uint32_t mode, int32_t count, uint32_t type,
+                               intptr_t indices) {
+    if (lib_->glDrawElements)
+        lib_->glDrawElements(mode, count, type,
+                             reinterpret_cast<const void*>(indices));
+}
+
+void GLESBackend::drawArraysInstanced(uint32_t mode, int32_t first,
+                                      int32_t count, int32_t primcount) {
+    if (lib_->glDrawArraysInstanced)
+        lib_->glDrawArraysInstanced(mode, first, count, primcount);
+}
+
+void GLESBackend::drawElementsInstanced(uint32_t mode, int32_t count,
+                                        uint32_t type, intptr_t indices,
+                                        int32_t primcount) {
+    if (lib_->glDrawElementsInstanced)
+        lib_->glDrawElementsInstanced(mode, count, type,
+                                      reinterpret_cast<const void*>(indices),
+                                      primcount);
 }
 
 } // namespace glcompat

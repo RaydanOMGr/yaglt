@@ -94,6 +94,13 @@ bool GLESLib::load() {
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
+    ok &= resolve(gles, glDrawArrays, "glDrawArrays");
+    ok &= resolve(gles, glDrawElements, "glDrawElements");
+    // Instanced draws are ES 3.0+; resolve optionally so load() still succeeds
+    // on a driver that lacks them (the capability system reports them
+    // unsupported instead of failing the whole backend init).
+    resolve(gles, glDrawArraysInstanced, "glDrawArraysInstanced");
+    resolve(gles, glDrawElementsInstanced, "glDrawElementsInstanced");
 
     if (!ok) {
         dlclose(egl);

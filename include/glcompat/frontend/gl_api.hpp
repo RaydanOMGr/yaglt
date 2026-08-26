@@ -66,4 +66,15 @@ void glFrontFace(GLenum mode);
 // unchanged state. Call this at draw / state-flush time.
 void glFlushState();
 
+// --- Draw commands (SPEC §2.1) ---
+// The frontend flushes tracked pipeline state to the backend immediately before
+// issuing the draw, so redundant native state calls are skipped. Drawing with no
+// active program yields GL_INVALID_OPERATION; instanced draws consult the
+// capability table and report unsupported honestly.
+void glDrawArrays(GLenum mode, GLint first, GLsizei count);
+void glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
+void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei primcount);
+void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
+                             const GLvoid* indices, GLsizei primcount);
+
 } // namespace glcompat

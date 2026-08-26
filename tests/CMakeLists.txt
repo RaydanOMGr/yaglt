@@ -10,6 +10,7 @@ add_executable(yaglt_tests
     unit/state_test.cpp
     unit/state_flush_test.cpp
     unit/ubo_ssbo_test.cpp
+    unit/draw_test.cpp
     backend/gles_backend_test.cpp
 )
 

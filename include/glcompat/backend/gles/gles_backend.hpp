@@ -55,7 +55,17 @@ public:
     void pixelStorei(uint32_t pname, int32_t param) override;
     void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override;
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
-                         intptr_t offset, intptr_t size) override;
+                          intptr_t offset, intptr_t size) override;
+
+    // Draw commands (SPEC §2.1). The frontend flushes tracked pipeline state
+    // before calling these, so the driver already sees current GL state.
+    void drawArrays(uint32_t mode, int32_t first, int32_t count) override;
+    void drawElements(uint32_t mode, int32_t count, uint32_t type,
+                      intptr_t indices) override;
+    void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
+                             int32_t primcount) override;
+    void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
+                               intptr_t indices, int32_t primcount) override;
 
 private:
     GLESLibPtr lib_;
