@@ -196,7 +196,10 @@ OpenGL 4.6:
     completeness; pixel store; draw calls; shader/program/attrib API all wired.
     (SPEC §2.1 surface implemented against backend abstraction + mock; GLES path
     real against Mesa softpipe.)
-  Compatibility profile: not implemented
+  Compatibility profile: not implemented (plan documented in
+    docs/feature-matrix.md "Compatibility Profile" — opt-in via EGL only,
+    gated behind a majority of core being done, emulated by record-then-replay
+    into a generated GLSL shader)
   Shader stages: desktop GLSL → GLSL ES translation implemented (glslang +
     SPIRV-Cross), exercised by `shader_translate_test` + e2e program/shader tests.
     Translator injects default precision (fragment) + uniform locations so desktop
@@ -569,4 +572,10 @@ OpenGL 4.6:
    dispatcher to the real driver. Enables transparent context wrapping + call
    interception for unmodified apps. Thin dispatch layer, not a new backend.
    (See `docs/architecture.md` "Planned: libEGL.so drop-in wrapper".)
-5. Commit each coherent step; update this journal.
+ 5. Commit each coherent step; update this journal.
+ 6. **Compatibility Profile** (deprecated fixed-function API) is planned but
+    gated — see `docs/feature-matrix.md` "Compatibility Profile": only enable it
+    when EGL explicitly selects a compat profile; only begin implementation once
+    a majority of core is done and remaining core is slower/harder; emulate via
+    record-then-replay into a generated GLSL shader. Shipping GLSL in the tree is
+    fine.
