@@ -68,9 +68,14 @@ void glGenTextures(GLsizei n, GLuint* textures) {
     g_current->genTextures(static_cast<uint32_t>(n), textures);
 }
 
-void glBindTexture(GLenum, GLuint texture) {
+void glBindTexture(GLenum target, GLuint texture) {
     if (g_current == nullptr) return;
-    g_current->bindTexture(texture);
+    g_current->bindTexture(target, texture);
+}
+
+void glActiveTexture(GLenum texture) {
+    if (g_current == nullptr) return;
+    g_current->activeTexture(texture);
 }
 
 void glDeleteTextures(GLsizei n, const GLuint* textures) {

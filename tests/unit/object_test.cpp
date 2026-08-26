@@ -69,12 +69,12 @@ TEST_CASE("context_texture_lifecycle") {
     Context ctx(*backend);
     GLObjectName t = ctx.genTexture();
     EXPECT_EQ(t, 1u);
-    ctx.bindTexture(t);
-    EXPECT_EQ(ctx.boundTexture(), t);
+    ctx.bindTexture(GL_TEXTURE_2D, t);
+    EXPECT_EQ(ctx.boundTextureForTarget(GL_TEXTURE_2D), t);
     EXPECT_NE(ctx.getTexture(t)->backend.get(), nullptr);
     ctx.deleteTexture(t);
     EXPECT_EQ(ctx.getTexture(t), nullptr);
-    EXPECT_EQ(ctx.boundTexture(), 0u);
+    EXPECT_EQ(ctx.boundTextureForTarget(GL_TEXTURE_2D), 0u);
 }
 
 TEST_CASE("context_renderbuffer_framebuffer_vertexarray_lifecycle") {

@@ -18,6 +18,11 @@ namespace glcompat {
 // to a native API directly.
 class GLStateTracker {
 public:
+    // Maximum number of texture image units (combined). A desktop GL context
+    // guarantees at least this many; GLES guarantees far fewer but YAGLT tracks
+    // a fixed, generous table so unit indices stay stable (SPEC §2.1).
+    static constexpr uint32_t kMaxTextureUnits = 32;
+
     GLStateTracker();
 
     // --- Capabilities (glEnable / glDisable) ---
@@ -67,6 +72,21 @@ public:
     // --- Clear values (glClearColor / glClearDepth, SPEC §2.1) ---
     bool setClearColor(float r, float g, float b, float a);
     bool setClearDepth(double d);
+
+    // --- Texture units (SPEC §2.1) ---
+    // glActiveTexture selects the unit (texture = GL_TEXTURE0 + i); returns
+    // true when the active unit actually changed. glBindTexture binds `name` to
+    // `target` on the active unit; returns true when that (unit,target) binding
+    // changed. boundTextureForTarget returns the texture bound to `target` on
+    // the active unit (0 when none is bound).
+    bool setActiveTexture(GLenum texture);
+    uint32_t activeTextureUnit() const { return activeTextureUnit_; }
+    bool setTextureBinding(GLenum target, GLObjectName name);
+    GLObjectName boundTextureForTarget(GLenum target) const;
+    // Clears any (unit, target) binding that references `name` (used when a
+    // texture object is deleted). Returns true when a binding was changed.
+    bool clearTextureBinding(GLObjectName name);
+    uint32_t maxCombinedTextureUnits() const { return kMaxTextureUnits; }
 
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
@@ -184,6 +204,16 @@ private:
             return depth == o.depth;
         }
     };
+
+    struct TextureUnitState {
+        std::unordered_map<GLenum, GLObjectName> bound; // target -> name
+        bool equal(const TextureUnitState& o) const { return bound == o.bound; }
+    };
+    std::vector<TextureUnitState> texUnits_;
+    std::vector<TextureUnitState> texUnitsApplied_;
+    uint32_t activeTextureUnit_ = 0;
+    uint32_t activeTextureApplied_ = 0;
+    bool textureUnitsDirty_ = false;
 
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;

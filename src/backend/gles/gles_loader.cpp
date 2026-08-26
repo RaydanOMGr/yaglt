@@ -58,6 +58,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glGenTextures, "glGenTextures");
     ok &= resolve(gles, glDeleteTextures, "glDeleteTextures");
     ok &= resolve(gles, glBindTexture, "glBindTexture");
+    resolve(gles, glActiveTexture, "glActiveTexture");
     ok &= resolve(gles, glGenRenderbuffers, "glGenRenderbuffers");
     ok &= resolve(gles, glDeleteRenderbuffers, "glDeleteRenderbuffers");
     ok &= resolve(gles, glBindRenderbuffer, "glBindRenderbuffer");

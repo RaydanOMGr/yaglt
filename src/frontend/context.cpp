@@ -223,20 +223,36 @@ GLObjectName Context::genTexture() {
     return name;
 }
 
-void Context::bindTexture(GLObjectName name) {
+void Context::activeTexture(GLenum texture) {
+    if (!state_.setActiveTexture(texture)) {
+        // setActiveTexture returns false for an out-of-range unit; report it as
+        // an invalid enum (desktop GL: only GL_TEXTURE0+i in range is allowed).
+        if (texture < GL_TEXTURE0 ||
+            texture >= GL_TEXTURE0 + state_.maxCombinedTextureUnits()) {
+            setError(GLError::InvalidEnum);
+        }
+    }
+}
+
+void Context::bindTexture(GLenum target, GLObjectName name) {
     if (name != 0 && textures_.find(name) == textures_.end()) {
         setError(GLError::InvalidOperation);
         return;
     }
-    boundTexture_ = name;
+    if (TextureObject* tex = getTexture(name)) {
+        tex->target = target;
+    }
+    state_.setTextureBinding(target, name);
 }
 
-GLObjectName Context::boundTexture() const { return boundTexture_; }
+GLObjectName Context::boundTextureForTarget(GLenum target) const {
+    return state_.boundTextureForTarget(target);
+}
 
 void Context::deleteTexture(GLObjectName name) {
     auto it = textures_.find(name);
     if (it == textures_.end()) return;
-    if (boundTexture_ == name) boundTexture_ = 0;
+    state_.clearTextureBinding(name);
     textures_.erase(it);
 }
 
@@ -253,9 +269,9 @@ void Context::deleteTextures(uint32_t n, const GLObjectName* names) {
 }
 
 void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
-                         int width, int height, uint32_t format, uint32_t type,
-                         const void* data) {
-    TextureObject* tex = getTexture(boundTexture_);
+                          int width, int height, uint32_t format, uint32_t type,
+                          const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
     if (tex == nullptr) {
         setError(GLError::InvalidOperation); // no texture bound
         return;
@@ -290,7 +306,7 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
 }
 
 void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
-    TextureObject* tex = getTexture(boundTexture_);
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
     if (tex == nullptr) {
         setError(GLError::InvalidOperation);
         return;

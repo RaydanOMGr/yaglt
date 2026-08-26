@@ -41,6 +41,9 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
 void glGenTextures(GLsizei n, GLuint* textures);
 void glBindTexture(GLenum target, GLuint texture);
 void glDeleteTextures(GLsizei n, const GLuint* textures);
+// Selects the active texture image unit (SPEC §2.1). `texture` must be
+// GL_TEXTURE0 + i within the supported unit range.
+void glActiveTexture(GLenum texture);
 
 // Texture storage + parameters (SPEC §2.1). Operate on the bound texture.
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,

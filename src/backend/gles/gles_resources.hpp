@@ -31,17 +31,22 @@ struct GLESBackendTexture : BackendTexture {
         if (lib && lib->loaded && lib->glDeleteTextures) lib->glDeleteTextures(1, &handle);
     }
     void texImage2D(uint32_t target, int level, uint32_t internalFormat,
-                    int width, int height, uint32_t format, uint32_t type,
-                    const void* data) override {
-        if (lib && lib->loaded && lib->glTexImage2D)
-            lib->glTexImage2D(target, level, static_cast<GLint>(internalFormat),
-                             static_cast<GLsizei>(width),
-                             static_cast<GLsizei>(height), 0,
-                             format, type, data);
+                     int width, int height, uint32_t format, uint32_t type,
+                     const void* data) override {
+        if (!lib || !lib->loaded || !lib->glTexImage2D) return;
+        // glTexImage2D operates on the texture bound to `target` on the active
+        // unit, so bind our handle first (SPEC §2.1 correctness: the driver's
+        // currently bound texture must be ours, not whatever was bound before).
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexImage2D(target, level, static_cast<GLint>(internalFormat),
+                         static_cast<GLsizei>(width),
+                         static_cast<GLsizei>(height), 0,
+                         format, type, data);
     }
     void texParameteri(uint32_t target, uint32_t pname, int param) override {
-        if (lib && lib->loaded && lib->glTexParameteri)
-            lib->glTexParameteri(target, pname, param);
+        if (!lib || !lib->loaded || !lib->glTexParameteri) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexParameteri(target, pname, param);
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;

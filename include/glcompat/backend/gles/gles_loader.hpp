@@ -46,6 +46,7 @@ struct GLESLib {
     void (*glGenTextures)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteTextures)(GLsizei, const GLuint*) = nullptr;
     void (*glBindTexture)(GLenum, GLuint) = nullptr;
+    void (*glActiveTexture)(GLenum) = nullptr;
 
     void (*glGenRenderbuffers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteRenderbuffers)(GLsizei, const GLuint*) = nullptr;

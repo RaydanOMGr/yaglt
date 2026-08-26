@@ -72,6 +72,12 @@ constexpr GLenum GL_UNSIGNED_SHORT = 0x1403;
 constexpr GLenum GL_HALF_FLOAT = 0x140B;
 constexpr GLenum GL_TEXTURE0 = 0x84C0;
 
+// Texture-unit state queries (SPEC §2.1 / §10).
+constexpr GLenum GL_ACTIVE_TEXTURE = 0x84E0;
+constexpr GLenum GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+constexpr GLenum GL_MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+constexpr GLenum GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
 // Indexed buffer binding points (UBO / SSBO / transform feedback).
 constexpr GLenum GL_UNIFORM_BUFFER = 0x8A11;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;

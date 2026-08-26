@@ -61,7 +61,7 @@ TEST_CASE("gl_api_texture_renderbuffer_framebuffer_vertexarray") {
     glGenVertexArrays(1, &vao);
 
     glBindTexture(GL_TEXTURE_2D, t);
-    EXPECT_EQ(ctx.boundTexture(), t);
+    EXPECT_EQ(ctx.boundTextureForTarget(GL_TEXTURE_2D), t);
     glBindRenderbuffer(GL_RENDERBUFFER, rb);
     EXPECT_EQ(ctx.boundRenderbuffer(), rb);
     glBindFramebuffer(GL_FRAMEBUFFER, fb);

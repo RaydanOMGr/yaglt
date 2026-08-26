@@ -2,7 +2,10 @@
 
 namespace glcompat {
 
-GLStateTracker::GLStateTracker() = default;
+GLStateTracker::GLStateTracker() {
+    texUnits_.resize(kMaxTextureUnits);
+    texUnitsApplied_.resize(kMaxTextureUnits);
+}
 
 bool GLStateTracker::setCapability(GLenum cap, bool enabled) {
     auto it = capsCurrent_.find(cap);
@@ -178,6 +181,46 @@ bool GLStateTracker::setClearDepth(double d) {
     return true;
 }
 
+bool GLStateTracker::setActiveTexture(GLenum texture) {
+    if (texture < GL_TEXTURE0) return false; // not a texture-unit enum
+    uint32_t unit = texture - GL_TEXTURE0;
+    if (unit >= kMaxTextureUnits) return false; // out of range
+    if (activeTextureUnit_ == unit) return false;
+    activeTextureUnit_ = unit;
+    textureUnitsDirty_ = true; // active unit must be re-pushed to the driver
+    return true;
+}
+
+bool GLStateTracker::setTextureBinding(GLenum target, GLObjectName name) {
+    auto& bound = texUnits_[activeTextureUnit_].bound;
+    auto it = bound.find(target);
+    if (it != bound.end() && it->second == name) return false;
+    bound[target] = name;
+    textureUnitsDirty_ = true;
+    return true;
+}
+
+GLObjectName GLStateTracker::boundTextureForTarget(GLenum target) const {
+    if (activeTextureUnit_ >= texUnits_.size()) return 0;
+    const auto& bound = texUnits_[activeTextureUnit_].bound;
+    auto it = bound.find(target);
+    return it == bound.end() ? 0 : it->second;
+}
+
+bool GLStateTracker::clearTextureBinding(GLObjectName name) {
+    bool changed = false;
+    for (auto& unit : texUnits_) {
+        for (auto& kv : unit.bound) {
+            if (kv.second == name) {
+                kv.second = 0;
+                changed = true;
+            }
+        }
+    }
+    if (changed) textureUnitsDirty_ = true;
+    return changed;
+}
+
 int GLStateTracker::apply(GLStateSink& sink) {
     int applied = 0;
 
@@ -280,6 +323,38 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (textureUnitsDirty_) {
+        // Ensure the driver's active unit matches the frontend's active unit.
+        if (activeTextureApplied_ != activeTextureUnit_) {
+            sink.activeTexture(GL_TEXTURE0 + activeTextureUnit_);
+            activeTextureApplied_ = activeTextureUnit_;
+        }
+        uint32_t lastUnit = activeTextureApplied_;
+        for (uint32_t i = 0; i < texUnits_.size(); ++i) {
+            const auto& cur = texUnits_[i].bound;
+            const auto& app = texUnitsApplied_[i].bound;
+            // Collect every target touched in either the current or applied
+            // state so bindings that were removed (reset to 0) are pushed too.
+            std::vector<GLenum> keys;
+            for (const auto& kv : cur) keys.push_back(kv.first);
+            for (const auto& kv : app)
+                if (cur.find(kv.first) == cur.end()) keys.push_back(kv.first);
+            for (GLenum t : keys) {
+                GLObjectName c = cur.count(t) ? cur.at(t) : 0;
+                GLObjectName a = app.count(t) ? app.at(t) : 0;
+                if (c == a) continue;
+                if (i != lastUnit) {
+                    sink.activeTexture(GL_TEXTURE0 + i);
+                    lastUnit = i;
+                }
+                sink.bindTexture(t, c);
+            }
+            texUnitsApplied_[i].bound = cur;
+        }
+        textureUnitsDirty_ = false;
+        ++applied;
+    }
+
     return applied;
 }
 
@@ -326,6 +401,11 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case GL_CULL_FACE_MODE: out[0] = static_cast<GLint>(raster_.cull); return 1;
     case GL_FRONT_FACE: out[0] = static_cast<GLint>(raster_.front); return 1;
     case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
+    case GL_ACTIVE_TEXTURE: out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
+    case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_TEXTURE_IMAGE_UNITS:
+    case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
+        out[0] = static_cast<GLint>(kMaxTextureUnits); return 1;
     }
     return 0;
 }
@@ -440,6 +520,11 @@ void GLStateTracker::reset() {
     clearColorApplied_ = ClearColorState{};
     clearDepth_ = ClearDepthState{};
     clearDepthApplied_ = ClearDepthState{};
+    texUnits_.assign(kMaxTextureUnits, TextureUnitState{});
+    texUnitsApplied_.assign(kMaxTextureUnits, TextureUnitState{});
+    activeTextureUnit_ = 0;
+    activeTextureApplied_ = 0;
+    textureUnitsDirty_ = false;
 }
 
 } // namespace glcompat

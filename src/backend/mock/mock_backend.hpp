@@ -224,8 +224,8 @@ public:
         lastAttribIndex = index;
     }
     void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
-                             bool normalized, int32_t stride,
-                             intptr_t offset) override {
+                              bool normalized, int32_t stride,
+                              intptr_t offset) override {
         ++vertexAttribPointerCalls;
         lastAttribIndex = index;
         lastAttribSize = size;
@@ -233,6 +233,23 @@ public:
         lastAttribNormalized = normalized;
         lastAttribStride = stride;
         lastAttribOffset = offset;
+    }
+
+    // Texture units (SPEC §2.1). Recorded so tests can assert the frontend
+    // pushes the active unit and per-unit bindings only when they change.
+    int activeTextureCalls = 0;
+    uint32_t lastActiveTexture = 0;
+    int bindTextureCalls = 0;
+    uint32_t lastTexBindTarget = 0;
+    GLObjectName lastBindTexture = 0;
+    void activeTexture(uint32_t unit) override {
+        ++activeTextureCalls;
+        lastActiveTexture = unit;
+    }
+    void bindTexture(uint32_t target, uint32_t texture) override {
+        ++bindTextureCalls;
+        lastTexBindTarget = target;
+        lastBindTexture = texture;
     }
 
     // --- Draw command recording (observable in tests) ---

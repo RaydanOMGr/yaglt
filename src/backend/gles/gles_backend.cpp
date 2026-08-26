@@ -184,6 +184,17 @@ void GLESBackend::bindVertexArray(uint32_t vao) {
     if (lib_->glBindVertexArray) lib_->glBindVertexArray(native);
 }
 
+void GLESBackend::activeTexture(uint32_t unit) {
+    if (lib_->glActiveTexture) lib_->glActiveTexture(unit);
+}
+
+void GLESBackend::bindTexture(uint32_t target, uint32_t texture) {
+    // Resolve the frontend texture name to the native driver id when known.
+    auto it = nativeMap_.find(texture);
+    GLuint native = it != nativeMap_.end() ? it->second : texture;
+    if (lib_->glBindTexture) lib_->glBindTexture(target, native);
+}
+
 void GLESBackend::enableVertexAttribArray(uint32_t index) {
     if (lib_->glEnableVertexAttribArray)
         lib_->glEnableVertexAttribArray(static_cast<GLuint>(index));

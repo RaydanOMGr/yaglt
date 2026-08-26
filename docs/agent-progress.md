@@ -587,12 +587,39 @@ OpenGL 4.6:
      ops=KEEP, mask=all-ones) produce no push.
    - Validation: default 105/105, sanitizer 105/105 green.
 
+## Recent Work
+
+2026-08-26 (texture units + active texture, this session)
+- Implemented texture image units (SPEC §2.1). `glActiveTexture(GL_TEXTURE0+i)`
+  selects the active unit; an out-of-range value reports `GL_INVALID_ENUM`
+  honestly. `glBindTexture(target, tex)` binds to (active unit, target); the
+  frontend now tracks per-unit, per-target bindings via `GLStateTracker` instead
+  of a single global bound texture. `glGetIntegerv(GL_ACTIVE_TEXTURE)` and
+  `GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS` read the tracked state.
+- `GLStateSink` gained `activeTexture(unit)` + `bindTexture(target, texture)`;
+  `apply()` now pushes changed per-unit bindings to the backend at flush time,
+  switching the driver active unit only when it differs from the last pushed
+  unit (SPEC §10: no redundant native calls). Implemented by `MockBackend`,
+  `GLESBackend` (resolves `glActiveTexture`, converts the frontend name to the
+  native id via the registered name map), and the test `RecordingSink`.
+- Fixed a latent backend bug: `GLESBackendTexture::texImage2D`/`texParameteri`
+  now bind the texture to the target on the active unit before the driver call,
+  so multi-texture uploads target the correct texture (previously relied on
+  whatever was bound on the driver).
+- New `tests/unit/texture_unit_test.cpp` covers active-unit selection + query,
+  out-of-range `GL_INVALID_ENUM`, out-of-range unit validation, per-unit binding
+  push correctness (incl. unbinding via delete), and the `glActiveTexture`/
+  `glBindTexture` public surface. `glBindTexture`/`boundTexture` callers in
+  existing tests updated to the (target, name) signature.
+- Validation: default 121/121, sanitizer 121/121, and translate (Mesa) e2e all
+  green.
+
 ## Next Steps
 
-1. Continue the object/state API: uniform setting (`glUniform*` on the active
-   program), renderbuffer storage (`glRenderbufferStorage`), and an end-to-end GLES
-   FBO completeness test against Mesa. Then drive a full draw with bound
-   texture+program through the GLES backend.
+1. **Texture units done.** Next texture-correctness items: sampler objects
+   (`glGenSamplers`/`glBindSampler`/`glSamplerParameteri`, SPEC §8.2) and
+   direct-state `glBindTextures`/`glBindTextureUnit` (DSA), plus
+   `glActiveTexture` interaction with the FBO/texture-completeness queries.
 2. Continue SPEC phases (§5 Android platform capabilities + SDK 21 fallback
    abstraction, §6 compatibility/emulation scaffolding, geometry/tessellation
    honest-Unsupported paths, SSBO storage-block translation / transform-feedback).
@@ -605,10 +632,10 @@ OpenGL 4.6:
    dispatcher to the real driver. Enables transparent context wrapping + call
    interception for unmodified apps. Thin dispatch layer, not a new backend.
    (See `docs/architecture.md` "Planned: libEGL.so drop-in wrapper".)
- 5. Commit each coherent step; update this journal.
- 6. **Compatibility Profile** (deprecated fixed-function API) is planned but
-    gated — see `docs/feature-matrix.md` "Compatibility Profile": only enable it
-    when EGL explicitly selects a compat profile; only begin implementation once
-    a majority of core is done and remaining core is slower/harder; emulate via
-    record-then-replay into a generated GLSL shader. Shipping GLSL in the tree is
-    fine.
+5. Commit each coherent step; update this journal.
+6. **Compatibility Profile** (deprecated fixed-function API) is planned but
+   gated — see `docs/feature-matrix.md` "Compatibility Profile": only enable it
+   when EGL explicitly selects a compat profile; only begin implementation once
+   a majority of core is done and remaining core is slower/harder; emulate via
+   record-then-replay into a generated GLSL shader. Shipping GLSL in the tree is
+   fine.

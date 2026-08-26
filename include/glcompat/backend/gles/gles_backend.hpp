@@ -65,6 +65,11 @@ public:
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
                           intptr_t offset, intptr_t size) override;
 
+    // Texture units (SPEC §2.1). The frontend name is resolved to the native
+    // driver id via the registered name map, mirroring useProgram/bindVertexArray.
+    void activeTexture(uint32_t unit) override;
+    void bindTexture(uint32_t target, uint32_t texture) override;
+
     // Vertex array + attribute setup (SPEC §2.1).
     void bindVertexArray(uint32_t vao) override;
     void enableVertexAttribArray(uint32_t index) override;

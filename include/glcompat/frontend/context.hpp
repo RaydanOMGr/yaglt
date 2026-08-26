@@ -63,8 +63,13 @@ public:
     // --- Textures ---
     GLObjectName genTexture();
     void genTextures(uint32_t n, GLObjectName* names);
-    void bindTexture(GLObjectName name);
-    GLObjectName boundTexture() const;
+    // glActiveTexture selects the active texture image unit (texture = GL_TEXTURE0
+    // + i). An out-of-range value reports GL_INVALID_ENUM honestly (SPEC §2.1).
+    void activeTexture(GLenum texture);
+    // glBindTexture binds `name` to `target` on the active texture unit. A non-zero
+    // name that was not generated reports GL_INVALID_OPERATION (SPEC §2.1).
+    void bindTexture(GLenum target, GLObjectName name);
+    GLObjectName boundTextureForTarget(GLenum target) const;
     void deleteTexture(GLObjectName name);
     void deleteTextures(uint32_t n, const GLObjectName* names);
     TextureObject* getTexture(GLObjectName name);
@@ -288,7 +293,6 @@ private:
     bool transformFeedbackPaused_ = false;
 
     std::unordered_map<uint32_t, GLObjectName> boundBuffers_;
-    GLObjectName boundTexture_ = 0;
     GLObjectName boundRenderbuffer_ = 0;
     GLObjectName boundFramebuffer_ = 0;
     GLObjectName boundVertexArray_ = 0;

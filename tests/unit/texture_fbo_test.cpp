@@ -22,7 +22,7 @@ TEST_CASE("texture_texImage2D_allocates_storage_and_records_state") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLObjectName tex = ctx.genTexture();
-    ctx.bindTexture(tex);
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
 
     ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 64, 32, GL_RGBA, GL_UNSIGNED_BYTE,
                    nullptr);
@@ -50,7 +50,7 @@ TEST_CASE("texture_texParameteri_records_and_pushes") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLObjectName tex = ctx.genTexture();
-    ctx.bindTexture(tex);
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
 
     ctx.texParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
@@ -76,7 +76,7 @@ TEST_CASE("texture_texImage2D_negative_size_is_invalid_value") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLObjectName tex = ctx.genTexture();
-    ctx.bindTexture(tex);
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
     ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, -1, 4, GL_RGBA, GL_UNSIGNED_BYTE,
                    nullptr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
@@ -109,7 +109,7 @@ TEST_CASE("framebuffer_texture_attachment_records_and_pushes") {
     GLObjectName fbo = ctx.genFramebuffer();
     GLObjectName tex = ctx.genTexture();
     ctx.bindFramebuffer(fbo);
-    ctx.bindTexture(tex);
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
     ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE,
                    nullptr);
 

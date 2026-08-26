@@ -35,6 +35,13 @@ public:
     virtual void cullFace(uint32_t mode) = 0;
     virtual void frontFace(uint32_t mode) = 0;
 
+    // Texture units (SPEC §2.1). `activeTexture` selects the unit (unit =
+    // GL_TEXTURE0 + i); `bindTexture` binds `texture` (frontend object name) to
+    // `target` on the currently selected unit. The backend converts the frontend
+    // name to its native id, mirroring useProgram/bindVertexArray.
+    virtual void activeTexture(uint32_t unit) = 0;
+    virtual void bindTexture(uint32_t target, uint32_t texture) = 0;
+
     virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
 
     // Viewport (glViewport, SPEC §10) and scissor box (glScissor). The scissor
