@@ -48,6 +48,7 @@ public:
     void blendEquation(uint32_t mode) override;
     void depthFunc(uint32_t func) override;
     void depthMask(bool enabled) override;
+    void depthRange(double nearVal, double farVal) override;
     void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) override;
     void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) override;
     void stencilMask(uint32_t mask) override;

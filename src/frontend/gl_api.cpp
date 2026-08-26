@@ -413,6 +413,18 @@ void glDepthMask(bool flag) {
     g_current->state().setDepthMask(flag);
 }
 
+void glDepthRange(GLdouble nearVal, GLdouble farVal) {
+    if (g_current == nullptr) return;
+    g_current->state().setDepthRange(static_cast<double>(nearVal),
+                                     static_cast<double>(farVal));
+}
+
+void glDepthRangef(GLfloat nearVal, GLfloat farVal) {
+    if (g_current == nullptr) return;
+    g_current->state().setDepthRange(static_cast<double>(nearVal),
+                                     static_cast<double>(farVal));
+}
+
 void glCullFace(GLenum mode) {
     if (g_current == nullptr) return;
     g_current->state().setCullFace(mode);

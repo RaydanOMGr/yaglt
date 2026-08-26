@@ -66,6 +66,8 @@ public:
     int blendEquationCalls = 0;
     int depthFuncCalls = 0;
     int depthMaskCalls = 0;
+    int depthRangeCalls = 0;
+    double lastDepthNear = 0.0, lastDepthFar = 1.0;
     int stencilFuncCalls = 0;
     int stencilOpCalls = 0;
     int stencilMaskCalls = 0;
@@ -98,6 +100,11 @@ public:
     void blendEquation(GLenum) override { ++blendEquationCalls; }
     void depthFunc(GLenum) override { ++depthFuncCalls; }
     void depthMask(bool) override { ++depthMaskCalls; }
+    void depthRange(double n, double f) override {
+        ++depthRangeCalls;
+        lastDepthNear = n;
+        lastDepthFar = f;
+    }
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilFuncCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilOpCalls; }
     void stencilMask(GLuint) override { ++stencilMaskCalls; }

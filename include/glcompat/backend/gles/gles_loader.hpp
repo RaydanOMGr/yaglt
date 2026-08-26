@@ -83,6 +83,7 @@ struct GLESLib {
     void (*glBlendEquation)(GLenum) = nullptr;
     void (*glDepthFunc)(GLenum) = nullptr;
     void (*glDepthMask)(GLboolean) = nullptr;
+    void (*glDepthRangef)(GLfloat, GLfloat) = nullptr;
     void (*glStencilFunc)(GLenum, GLint, GLuint) = nullptr;
     void (*glStencilOp)(GLenum, GLenum, GLenum) = nullptr;
     void (*glStencilMask)(GLuint) = nullptr;

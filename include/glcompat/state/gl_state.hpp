@@ -35,6 +35,7 @@ public:
     // --- Depth ---
     bool setDepthFunc(GLenum func);
     bool setDepthMask(bool enabled);
+    bool setDepthRange(double nearVal, double farVal);
 
     // --- Stencil ---
     bool setStencilFunc(GLenum func, GLint ref, GLuint mask);
@@ -74,6 +75,13 @@ private:
         bool mask = true;
         bool equal(const DepthState& o) const {
             return func == o.func && mask == o.mask;
+        }
+    };
+    struct DepthRangeState {
+        double nearVal = 0.0;
+        double farVal = 1.0;
+        bool equal(const DepthRangeState& o) const {
+            return nearVal == o.nearVal && farVal == o.farVal;
         }
     };
     struct StencilState {
@@ -134,6 +142,7 @@ private:
 
     BlendState blend_, blendApplied_;
     DepthState depth_, depthApplied_;
+    DepthRangeState depthRange_, depthRangeApplied_;
     StencilState stencil_, stencilApplied_;
     RasterState raster_, rasterApplied_;
     PixelStoreState pixel_, pixelApplied_;

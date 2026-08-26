@@ -116,3 +116,34 @@ TEST_CASE("viewport_and_scissor_pushed_together_at_draw") {
 
     setCurrentContext(nullptr);
 }
+
+TEST_CASE("depth_range_records_and_pushes_only_on_change") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // Default 0..1 already matches the backend's initial state, so the first
+    // flush pushes nothing (SPEC §10: avoid redundant native calls).
+    ctx.flushState();
+    EXPECT_EQ(backend.depthRangeCalls, 0);
+
+    // Changed range: pushed once.
+    glDepthRange(0.1, 0.9);
+    ctx.flushState();
+    EXPECT_EQ(backend.depthRangeCalls, 1);
+    EXPECT_EQ(backend.lastDepthNear, 0.1);
+    EXPECT_EQ(backend.lastDepthFar, 0.9);
+
+    // Identical re-flush: no further push.
+    ctx.flushState();
+    EXPECT_EQ(backend.depthRangeCalls, 1);
+
+    // glDepthRangef mirrors glDepthRange (float promoted to double).
+    glDepthRangef(0.2f, 0.8f);
+    ctx.flushState();
+    EXPECT_EQ(backend.depthRangeCalls, 2);
+    EXPECT_EQ(backend.lastDepthNear, static_cast<double>(0.2f));
+    EXPECT_EQ(backend.lastDepthFar, static_cast<double>(0.8f));
+
+    setCurrentContext(nullptr);
+}

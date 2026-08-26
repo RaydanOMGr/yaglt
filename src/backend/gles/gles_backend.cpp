@@ -218,6 +218,14 @@ void GLESBackend::depthMask(bool enabled) {
     if (lib_->glDepthMask) lib_->glDepthMask(enabled ? GL_TRUE : GL_FALSE);
 }
 
+void GLESBackend::depthRange(double nearVal, double farVal) {
+    if (lib_->glDepthRangef) {
+        // GLES uses float depth range; promote double to float.
+        lib_->glDepthRangef(static_cast<GLfloat>(nearVal),
+                           static_cast<GLfloat>(farVal));
+    }
+}
+
 void GLESBackend::stencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (lib_->glStencilFunc) lib_->glStencilFunc(func, ref, mask);
 }

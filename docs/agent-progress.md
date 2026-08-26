@@ -481,6 +481,14 @@ OpenGL 4.6:
   `GL_TRANSFORM_FEEDBACK` constant from the frontend type layer.
 - Validation: default 90/90, sanitizer 90/90 green.
 
+2026-08-26 (depth range state, this session)
+- Added `glDepthRange`/`glDepthRangef` pipeline state (SPEC §10 depth-range
+  category, previously untracked). `GLStateTracker` gained `setDepthRange`;
+  `GLStateSink` gained `depthRange(double,double)`. Mock records it; GLESBackend
+  drives `glDepthRangef` via the `GLESLib` loader. `gl_api` exposes both
+  entry points; default range (0,1) matches the backend initial state so no
+  redundant native push occurs. Verified by `viewport_scissor_test`.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

@@ -13,6 +13,7 @@ using GLint = int32_t;
 using GLsizeiptr = intptr_t;
 using GLintptr = intptr_t;
 using GLfloat = float;
+using GLdouble = double;
 using GLvoid = void;
 using GLchar = char;
 using GLboolean = unsigned char;

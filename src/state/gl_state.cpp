@@ -51,6 +51,14 @@ bool GLStateTracker::setDepthMask(bool enabled) {
     return true;
 }
 
+bool GLStateTracker::setDepthRange(double nearVal, double farVal) {
+    if (depthRange_.nearVal == nearVal && depthRange_.farVal == farVal)
+        return false;
+    depthRange_.nearVal = nearVal;
+    depthRange_.farVal = farVal;
+    return true;
+}
+
 bool GLStateTracker::setStencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (stencil_.func == func && stencil_.ref == ref && stencil_.mask == mask)
         return false;
@@ -160,6 +168,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!depthRange_.equal(depthRangeApplied_)) {
+        sink.depthRange(depthRange_.nearVal, depthRange_.farVal);
+        depthRangeApplied_ = depthRange_;
+        ++applied;
+    }
+
     if (!stencil_.equal(stencilApplied_)) {
         sink.stencilFunc(stencil_.func, stencil_.ref, stencil_.mask);
         sink.stencilOp(stencil_.sfail, stencil_.dpfail, stencil_.dppass);
@@ -210,6 +224,8 @@ void GLStateTracker::reset() {
     blendApplied_ = BlendState{};
     depth_ = DepthState{};
     depthApplied_ = DepthState{};
+    depthRange_ = DepthRangeState{};
+    depthRangeApplied_ = DepthRangeState{};
     stencil_ = StencilState{};
     stencilApplied_ = StencilState{};
     raster_ = RasterState{};

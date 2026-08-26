@@ -136,6 +136,8 @@ void glBlendEquation(GLenum mode);
 void glUseProgram(GLuint prog);
 void glDepthFunc(GLenum func);
 void glDepthMask(bool flag);
+void glDepthRange(GLdouble nearVal, GLdouble farVal);
+void glDepthRangef(GLfloat nearVal, GLfloat farVal);
 void glCullFace(GLenum mode);
 void glFrontFace(GLenum mode);
 

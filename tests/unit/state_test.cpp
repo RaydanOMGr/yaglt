@@ -29,6 +29,7 @@ struct RecordingSink : GLStateSink {
     void blendEquation(GLenum) override { ++blendEqCalls; }
     void depthFunc(GLenum) override { ++depthFuncCalls; }
     void depthMask(bool) override { ++depthMaskCalls; }
+    void depthRange(double, double) override {}
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilCalls; }
     void stencilMask(GLuint) override { ++stencilCalls; }
