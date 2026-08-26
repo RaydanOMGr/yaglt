@@ -5,6 +5,7 @@ add_executable(yaglt_tests
     unit/main.cpp
     unit/capabilities_test.cpp
     unit/backend_test.cpp
+    unit/object_test.cpp
 )
 
 target_include_directories(yaglt_tests PRIVATE

@@ -42,9 +42,11 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 
 | Subsystem | Status | Notes |
 |-----------|--------|-------|
-| OpenGL 4.6 API entry points | Not implemented | Frontend not yet built |
+| OpenGL 4.6 API entry points | Not implemented | Public `gl*` dispatch not yet built |
+| Frontend Context (name gen / bind / delete) | Partial | `Context` in `include/glcompat/frontend/context.hpp`; tested via mock |
+| Object model (Buffer/Texture/RBO/FBO/VAO) | Partial | `src/frontend` objects hold `unique_ptr<BackendX>`; gen/bind/delete done |
+| Error handling (GLError) | Partial | `getError`/`setError`; InvalidOperation on bad bind |
 | State tracking | Not implemented | `src/state` reserved |
-| Object model | Not implemented | `src/objects` reserved |
 | Shader translation | Not implemented | `IShaderCompiler` exists; pipeline pending |
 | GLES backend | Not implemented | interfaces reserved in `src/backend/gles` |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |

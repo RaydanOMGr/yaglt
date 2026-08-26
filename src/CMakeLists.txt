@@ -5,6 +5,7 @@
 
 add_library(yaglt_core STATIC
     core/capabilities_table.cpp
+    frontend/context.cpp
 )
 
 target_include_directories(yaglt_core PUBLIC

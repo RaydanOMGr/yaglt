@@ -5,11 +5,11 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 1 — Foundation
-Overall status: Early implementation (foundation only)
+Current milestone: Phase 2 — Core OpenGL Objects
+Overall status: Early implementation (foundation + object model)
 Last updated: 2026-08-26
 Known major blockers:
-- OpenGL 4.6 frontend API not yet implemented.
+- OpenGL 4.6 public API entry points (glGenBuffers etc.) not yet exposed.
 - Real GLES backend not yet implemented (interfaces reserved).
 - Shader translation pipeline not yet implemented.
 
@@ -36,11 +36,18 @@ Known major blockers:
   - `LinuxCapabilities` under `src/platform/linux`.
 - [x] Self-contained test framework
   - Header-only, no external deps (`tests/framework/test_framework.hpp`).
+- [x] Frontend object model (Phase 2)
+  - `Context` with name gen / bind tracking / delete-with-bound-reset.
+  - Object classes (Buffer/Texture/RBO/FBO/VAO) own `unique_ptr<BackendX>`.
+  - `GLError` getError/setError; InvalidOperation on binding ungenerated name.
+  - `tests/unit/object_test.cpp` covers gen/bind/delete/error vs mock.
 
 ## In Progress
 
+- [ ] Expose OpenGL 4.6 public API entry points (glGenBuffers, glBindBuffer, ...)
+      dispatching into `Context`.
 - [ ] Real GLES backend (interfaces reserved in `src/backend/gles`).
-- [ ] OpenGL 4.6 frontend API + state/object model.
+- [ ] State tracking subsystem (`src/state`).
 
 ## TODO
 
@@ -94,15 +101,16 @@ OpenGL 4.6:
 - Mock backend + mock capability profile.
 - Linux platform capabilities.
 - Self-contained test framework.
-- Unit tests for capabilities + mock backend.
+- Phase 2: Frontend `Context`, object model (Buffer/Texture/RBO/FBO/VAO),
+  `GLError` handling, object lifecycle tests.
 - Architecture / feature-matrix / README docs.
 
 ## Next Steps
 
-1. Implement OpenGL 4.6 frontend API skeleton (entry points dispatch to
-   backend via `IGraphicsBackend`).
-2. Implement core object model (buffers, textures, VAO, FBO, RBO) with
+1. Expose OpenGL 4.6 public API entry points (glGen*/glBind*/glDelete*) that
+   dispatch into `Context`.
+2. Add state-tracking subsystem (buffers/textures/bindings) in `src/state`.
+3. Implement core object model (buffers, textures, VAO, FBO) with
    lifetime tracking and `unique_ptr<BackendX>` ownership.
-3. Add object/resource unit tests against the mock backend.
 4. Begin GLES backend foundation + headless EGL context for real validation.
 5. Commit each coherent step; update this journal.

@@ -4,6 +4,7 @@
 // No external dependencies; compiles under a standard C++17 toolchain so the
 // headless Linux CI environment needs nothing beyond a compiler and CMake.
 
+#include <cstdint>
 #include <cstdio>
 #include <functional>
 #include <string>
@@ -16,6 +17,12 @@ namespace detail {
 
 inline std::string toStr(const std::string& v) { return v; }
 inline std::string toStr(const char* v) { return std::string(v); }
+inline std::string toStr(std::nullptr_t) { return "nullptr"; }
+
+template <typename T>
+inline std::string toStr(T* v) {
+    return "0x" + std::to_string(reinterpret_cast<std::uintptr_t>(v));
+}
 
 template <typename T>
 inline std::string toStr(T v) {
@@ -37,45 +44,39 @@ struct TestCase {
     std::function<void()> fn;
 };
 
-inline std::vector<TestCase>& registry() {
-    static std::vector<TestCase> r;
-    return r;
-}
-
-inline int& failures() {
-    static int f = 0;
-    return f;
-}
+// C++17 inline globals: guaranteed single instance shared across all TUs.
+inline std::vector<TestCase> g_registry;
+inline int g_failures = 0;
 
 inline void registerTest(const std::string& name, std::function<void()> fn) {
-    registry().push_back({name, std::move(fn)});
+    g_registry.push_back({name, std::move(fn)});
 }
 
 inline void fail(const char* file, int line, const std::string& expr,
                  const std::string& extra) {
-    ++failures();
+    ++g_failures;
     std::fprintf(stderr, "  FAIL %s:%d: %s%s\n", file, line, expr.c_str(),
                  extra.empty() ? "" : (" | " + extra).c_str());
 }
 
 inline int runAll() {
     int passed = 0;
-    for (auto& tc : registry()) {
+    for (auto& tc : g_registry) {
         try {
             tc.fn();
             ++passed;
             std::printf("[ PASS ] %s\n", tc.name.c_str());
         } catch (const std::exception& e) {
-            ++failures();
+            ++g_failures;
             std::fprintf(stderr, "  FAIL %s: threw %s\n", tc.name.c_str(), e.what());
         } catch (...) {
-            ++failures();
+            ++g_failures;
             std::fprintf(stderr, "  FAIL %s: threw unknown\n", tc.name.c_str());
         }
     }
-    int total = static_cast<int>(registry().size());
-    std::printf("\n%d/%d tests passed, %d failed\n", passed, total, failures());
-    return failures() == 0 ? 0 : 1;
+    int total = static_cast<int>(g_registry.size());
+    std::printf("\n%d/%d tests passed, %d failed\n", passed, total, g_failures);
+    return g_failures == 0 ? 0 : 1;
 }
 
 } // namespace test
@@ -85,14 +86,16 @@ inline int runAll() {
 #define YAGLT_TEST_CONCAT(a, b) YAGLT_TEST_CONCAT_(a, b)
 
 // Register a test case. Body uses EXPECT_* macros.
+// The registrar is a file-static function marked constructor; it runs once at
+// load. Everything is file-static (internal linkage) so the __LINE__-based
+// names never collide across translation units (no ODR issues).
 #define TEST_CASE(name)                                                        \
     static void YAGLT_TEST_CONCAT(yaglt_test_, __LINE__)();                    \
-    struct YAGLT_TEST_CONCAT(yaglt_reg_, __LINE__) {                          \
-        YAGLT_TEST_CONCAT(yaglt_reg_, __LINE__)() {                           \
-            ::yaglt::test::registerTest(name, &YAGLT_TEST_CONCAT(yaglt_test_, __LINE__)); \
-        }                                                                     \
-    };                                                                         \
-    static YAGLT_TEST_CONCAT(yaglt_reg_, __LINE__) YAGLT_TEST_CONCAT(yaglt_inst_, __LINE__); \
+    static void YAGLT_TEST_CONCAT(yaglt_reg_, __LINE__)(void)                  \
+        __attribute__((constructor));                                         \
+    static void YAGLT_TEST_CONCAT(yaglt_reg_, __LINE__)(void) {                \
+        ::yaglt::test::registerTest(name, &YAGLT_TEST_CONCAT(yaglt_test_, __LINE__)); \
+    }                                                                         \
     static void YAGLT_TEST_CONCAT(yaglt_test_, __LINE__)()
 
 #define EXPECT_TRUE(expr)                                                      \
