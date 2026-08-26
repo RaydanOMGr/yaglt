@@ -186,6 +186,62 @@ TEST_CASE("pixelStorei_records_state_and_pushes_to_sink") {
     EXPECT_EQ(backend->pixelStoreiCalls, 2);
 }
 
+TEST_CASE("renderbuffer_storage_allocates_and_records_state") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rbo = ctx.genRenderbuffer();
+    ctx.bindRenderbuffer(rbo);
+
+    ctx.renderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, 32, 16);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    RenderbufferObject* r = ctx.getRenderbuffer(rbo);
+    EXPECT_NE(r, nullptr);
+    EXPECT_TRUE(r->storageSet);
+    EXPECT_EQ(r->internalFormat, GL_RGBA8);
+    EXPECT_EQ(r->width, 32);
+    EXPECT_EQ(r->height, 16);
+
+    MockRenderbuffer* mr = as<MockRenderbuffer>(r->backend.get());
+    EXPECT_NE(mr, nullptr);
+    EXPECT_EQ(mr->renderbufferStorageCalls, 1);
+    EXPECT_EQ(mr->lastTarget, GL_RENDERBUFFER);
+    EXPECT_EQ(mr->lastInternalFormat, GL_RGBA8);
+    EXPECT_EQ(mr->lastWidth, 32);
+    EXPECT_EQ(mr->lastHeight, 16);
+}
+
+TEST_CASE("renderbuffer_storage_requires_bound_renderbuffer") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.renderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, 4, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("renderbuffer_storage_rejects_negative_size") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rbo = ctx.genRenderbuffer();
+    ctx.bindRenderbuffer(rbo);
+    ctx.renderbufferStorage(GL_RENDERBUFFER, GL_RGBA8, -1, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("framebuffer_renderbuffer_depth_completeness_via_mock") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fbo = ctx.genFramebuffer();
+    GLObjectName rbo = ctx.genRenderbuffer();
+    ctx.bindFramebuffer(fbo);
+    ctx.bindRenderbuffer(rbo);
+    ctx.renderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 8, 8);
+    ctx.framebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                               GL_RENDERBUFFER, rbo);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ctx.checkFramebufferStatus(GL_FRAMEBUFFER),
+              GL_FRAMEBUFFER_COMPLETE);
+}
+
 TEST_CASE("gl_api_surface_for_new_texture_fbo_pixelstore_calls") {
     auto backend = makeBackend();
     Context ctx(*backend);

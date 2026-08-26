@@ -30,6 +30,9 @@ public:
 class BackendRenderbuffer {
 public:
     virtual ~BackendRenderbuffer() = default;
+    // Allocate storage for the renderbuffer (SPEC §2.1 glRenderbufferStorage).
+    virtual void renderbufferStorage(uint32_t target, uint32_t internalFormat,
+                                     int width, int height) {}
     // Native backend renderbuffer id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };

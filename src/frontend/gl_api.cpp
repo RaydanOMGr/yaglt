@@ -103,6 +103,14 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers) {
     g_current->deleteRenderbuffers(static_cast<uint32_t>(n), renderbuffers);
 }
 
+void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
+                         GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->renderbufferStorage(target, static_cast<uint32_t>(internalFormat),
+                                  static_cast<int>(width),
+                                  static_cast<int>(height));
+}
+
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers) {
     if (g_current == nullptr) return;
     g_current->genFramebuffers(static_cast<uint32_t>(n), framebuffers);

@@ -54,6 +54,15 @@ struct GLESBackendRenderbuffer : BackendRenderbuffer {
         if (lib && lib->loaded && lib->glDeleteRenderbuffers)
             lib->glDeleteRenderbuffers(1, &handle);
     }
+    void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
+                            int height) override {
+        if (!lib || !lib->loaded || !lib->glRenderbufferStorage) return;
+        // The renderbuffer must be bound to the target before storage is set.
+        if (lib->glBindRenderbuffer) lib->glBindRenderbuffer(target, handle);
+        lib->glRenderbufferStorage(target, static_cast<GLenum>(internalFormat),
+                                  static_cast<GLsizei>(width),
+                                  static_cast<GLsizei>(height));
+    }
     GLESLibPtr lib;
     GLuint handle = 0;
 };

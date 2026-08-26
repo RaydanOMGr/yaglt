@@ -82,6 +82,13 @@ public:
     void deleteRenderbuffers(uint32_t n, const GLObjectName* names);
     RenderbufferObject* getRenderbuffer(GLObjectName name);
 
+    // --- Renderbuffers (SPEC §2.1) ---
+    // Allocate storage on the currently bound renderbuffer. Negative dimensions
+    // are GL_INVALID_VALUE; no bound renderbuffer is GL_INVALID_OPERATION; the
+    // target must be GL_RENDERBUFFER. Capability-gated (RenderbufferObjects).
+    void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
+                            int height);
+
     // --- Framebuffers ---
     GLObjectName genFramebuffer();
     void genFramebuffers(uint32_t n, GLObjectName* names);

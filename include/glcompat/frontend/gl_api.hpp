@@ -45,6 +45,8 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param);
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);
 void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
+void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
+                         GLsizei height);
 
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers);
 void glBindFramebuffer(GLenum target, GLuint framebuffer);

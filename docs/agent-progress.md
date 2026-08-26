@@ -209,6 +209,18 @@ OpenGL 4.6:
   Backend: Mock (headless) + GLES (runtime-loaded). Vulkan reserved.
 
 - [x] Draw-call frontend entry points (SPEC §2.1, task 2 from next-agent-prompt).
+  - Renderbuffer storage + e2e FBO completeness + full draw (this session).
+  - `BackendRenderbuffer::renderbufferStorage` virtual added; `RenderbufferObject`
+    records storage (internalFormat/width/height). `Context::renderbufferStorage`
+    (capability-gated, target==GL_RENDERBUFFER, no-bound→INVALID_OPERATION,
+    negative size→INVALID_VALUE) + `glRenderbufferStorage` in the public API.
+  - `GLESBackendRenderbuffer` binds its handle then calls the driver
+    `glRenderbufferStorage` (added to the `GLESLib` runtime loader); `MockRenderbuffer`
+    records the call.
+  - New e2e test `gles_e2e_framebuffer_complete_and_full_draw` builds an FBO with a
+    depth renderbuffer + color texture attachment, verifies COMPLETE against the real
+    Mesa driver, then draws with the texture bound to a sampler and the program in use.
+  - Validation: default, translate (Mesa) and sanitizer suites all green.
   - `IGraphicsBackend` gained `drawArrays`/`drawElements` + instanced variants
     (pure virtual; implemented by `MockBackend` and `GLESBackend`).
   - `GLESLib` resolves `glDrawArrays`/`glDrawElements` (required) and
@@ -242,6 +254,17 @@ OpenGL 4.6:
     translate (Mesa) all pass.
 
 ## Recent Work
+
+2026-08-26 (renderbuffer storage + e2e FBO/draw, this session)
+- Renderbuffer storage subsystem (SPEC §2.1): `renderbufferStorage` virtual on
+  `BackendRenderbuffer`, `RenderbufferObject` storage state, `Context::renderbufferStorage`
+  + `glRenderbufferStorage` (capability-gated, validation per spec), `GLESBackendRenderbuffer`
+  and `MockRenderbuffer` implementations, `GLESLib::glRenderbufferStorage` loader entry.
+- New `tests/unit/texture_fbo_test.cpp` cases: rbo storage records state, no-bound and
+  negative-size errors, depth-rbo FBO completeness via mock.
+- New `tests/backend/gles_e2e_framebuffer_complete_and_full_draw`: real Mesa driver builds
+  an FBO (depth RBO + color texture), asserts COMPLETE, draws with texture+program.
+- Validation: default green, translate (Mesa) green, sanitizer green.
 
 2026-08-26 (uniforms, this session)
 - Uniform setting subsystem (SPEC §8, next-agent Next Steps item 1). `BackendProgram`

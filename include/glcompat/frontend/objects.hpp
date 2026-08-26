@@ -54,6 +54,11 @@ class RenderbufferObject {
 public:
     explicit RenderbufferObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
+    // Storage recorded on the frontend (decoupled from backend allocation).
+    uint32_t internalFormat = 0;
+    int width = 0;
+    int height = 0;
+    bool storageSet = false;
     std::unique_ptr<BackendRenderbuffer> backend;
 };
 

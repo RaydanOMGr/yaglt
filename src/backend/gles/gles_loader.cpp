@@ -61,6 +61,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glGenRenderbuffers, "glGenRenderbuffers");
     ok &= resolve(gles, glDeleteRenderbuffers, "glDeleteRenderbuffers");
     ok &= resolve(gles, glBindRenderbuffer, "glBindRenderbuffer");
+    ok &= resolve(gles, glRenderbufferStorage, "glRenderbufferStorage");
     ok &= resolve(gles, glGenFramebuffers, "glGenFramebuffers");
     ok &= resolve(gles, glDeleteFramebuffers, "glDeleteFramebuffers");
     ok &= resolve(gles, glBindFramebuffer, "glBindFramebuffer");

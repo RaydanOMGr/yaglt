@@ -63,6 +63,19 @@ public:
 class MockRenderbuffer : public BackendRenderbuffer {
 public:
     int id = 0;
+    int renderbufferStorageCalls = 0;
+    uint32_t lastTarget = 0;
+    uint32_t lastInternalFormat = 0;
+    int lastWidth = 0;
+    int lastHeight = 0;
+    void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
+                            int height) override {
+        ++renderbufferStorageCalls;
+        lastTarget = target;
+        lastInternalFormat = internalFormat;
+        lastWidth = width;
+        lastHeight = height;
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
 class MockFramebuffer : public BackendFramebuffer {

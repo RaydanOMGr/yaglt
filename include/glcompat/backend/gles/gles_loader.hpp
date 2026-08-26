@@ -50,6 +50,7 @@ struct GLESLib {
     void (*glGenRenderbuffers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteRenderbuffers)(GLsizei, const GLuint*) = nullptr;
     void (*glBindRenderbuffer)(GLenum, GLuint) = nullptr;
+    void (*glRenderbufferStorage)(GLenum, GLenum, GLsizei, GLsizei) = nullptr;
 
     void (*glGenFramebuffers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteFramebuffers)(GLsizei, const GLuint*) = nullptr;
