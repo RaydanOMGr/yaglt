@@ -93,6 +93,8 @@ bool GLESLib::load() {
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
+    ok &= resolve(gles, glViewport, "glViewport");
+    ok &= resolve(gles, glScissor, "glScissor");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");

@@ -34,6 +34,11 @@ public:
 
     virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
 
+    // Viewport (glViewport, SPEC §10) and scissor box (glScissor). The scissor
+    // *test* itself is a capability (GL_SCISSOR_TEST) pushed via enable/disable.
+    virtual void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
+    virtual void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
+
     // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
     // `target` is the indexed buffer target, `index` the binding point.
     virtual void bindBufferBase(uint32_t target, uint32_t index,

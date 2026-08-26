@@ -115,6 +115,14 @@ public:
     // the backend resource's driver-level checkStatus().
     uint32_t checkFramebufferStatus(uint32_t target);
 
+    // --- Viewport / scissor (SPEC §10) ---
+    // Record viewport (glViewport) and scissor box (glScissor) state in the
+    // tracker; pushed to the backend on the next state flush (SPEC §10). The
+    // scissor *test* is a capability (GL_SCISSOR_TEST) toggled via glEnable/
+    // glDisable, separate from the box itself.
+    void setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+    void setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
     // backend immediately (it affects subsequent texture/image uploads).

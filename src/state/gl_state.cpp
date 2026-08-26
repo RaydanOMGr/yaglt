@@ -96,6 +96,30 @@ bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
     return true;
 }
 
+bool GLStateTracker::setViewport(GLint x, GLint y, GLsizei width,
+                                  GLsizei height) {
+    if (viewport_.x == x && viewport_.y == y && viewport_.width == width &&
+        viewport_.height == height)
+        return false;
+    viewport_.x = x;
+    viewport_.y = y;
+    viewport_.width = width;
+    viewport_.height = height;
+    return true;
+}
+
+bool GLStateTracker::setScissor(GLint x, GLint y, GLsizei width,
+                                GLsizei height) {
+    if (scissor_.x == x && scissor_.y == y && scissor_.width == width &&
+        scissor_.height == height)
+        return false;
+    scissor_.x = x;
+    scissor_.y = y;
+    scissor_.width = width;
+    scissor_.height = height;
+    return true;
+}
+
 int GLStateTracker::apply(GLStateSink& sink) {
     int applied = 0;
 
@@ -158,6 +182,20 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!viewport_.equal(viewportApplied_)) {
+        sink.setViewport(viewport_.x, viewport_.y, viewport_.width,
+                         viewport_.height);
+        viewportApplied_ = viewport_;
+        ++applied;
+    }
+
+    if (!scissor_.equal(scissorApplied_)) {
+        sink.setScissor(scissor_.x, scissor_.y, scissor_.width,
+                        scissor_.height);
+        scissorApplied_ = scissor_;
+        ++applied;
+    }
+
     return applied;
 }
 
@@ -178,6 +216,10 @@ void GLStateTracker::reset() {
     rasterApplied_ = RasterState{};
     pixel_ = PixelStoreState{};
     pixelApplied_ = PixelStoreState{};
+    viewport_ = ViewportState{};
+    viewportApplied_ = ViewportState{};
+    scissor_ = ScissorBoxState{};
+    scissorApplied_ = ScissorBoxState{};
 }
 
 } // namespace glcompat

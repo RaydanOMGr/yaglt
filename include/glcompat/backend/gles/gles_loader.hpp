@@ -89,6 +89,8 @@ struct GLESLib {
     void (*glCullFace)(GLenum) = nullptr;
     void (*glFrontFace)(GLenum) = nullptr;
     void (*glPixelStorei)(GLenum, GLint) = nullptr;
+    void (*glViewport)(GLint, GLint, GLsizei, GLsizei) = nullptr;
+    void (*glScissor)(GLint, GLint, GLsizei, GLsizei) = nullptr;
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 

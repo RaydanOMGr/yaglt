@@ -465,6 +465,22 @@ OpenGL 4.6:
 - New `tests/unit/shader_program_query_test.cpp`. Validation: default +
   sanitizer + translate (Mesa) suites green.
 
+## Recent Work
+
+2026-08-26 (viewport + scissor state, this session)
+- Implemented viewport (`glViewport`) and scissor box (`glScissor`) pipeline state
+  tracking (SPEC §10). `GLStateTracker` gained `setViewport`/`setScissor`;
+  `GLStateSink` gained `setViewport`/`setScissor`. The scissor *test* remains a
+  `GL_SCISSOR_TEST` capability toggled by `glEnable`/`glDisable`, separate from
+  the scissor box. Both pushed only when changed (SPEC §10: skip redundant native
+  calls). `MockBackend` records them; `GLESBackend` drives `glViewport`/`glScissor`
+  via the `GLESLib` runtime loader (added to the required symbol set). `Context`
+  + `gl_api` expose `glViewport`/`glScissor`; state flushes at draw/flush time.
+- New `tests/unit/viewport_scissor_test.cpp` covers change-only push, scissor-box
+  vs scissor-test distinction, and flush-at-draw. Also removed a stray unused
+  `GL_TRANSFORM_FEEDBACK` constant from the frontend type layer.
+- Validation: default 90/90, sanitizer 90/90 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

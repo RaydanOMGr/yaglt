@@ -1008,6 +1008,14 @@ void Context::pixelStorei(uint32_t pname, int param) {
     }
 }
 
+void Context::setViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+    state_.setViewport(x, y, width, height);
+}
+
+void Context::setScissor(GLint x, GLint y, GLsizei width, GLsizei height) {
+    state_.setScissor(x, y, width, height);
+}
+
 // --- Uniforms (SPEC §8) ---
 
 BackendProgram* Context::activeBackendProgram() {

@@ -54,6 +54,8 @@ public:
     void cullFace(uint32_t mode) override;
     void frontFace(uint32_t mode) override;
     void pixelStorei(uint32_t pname, int32_t param) override;
+    void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override;
+    void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override;
     void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override;
     void bindBufferRange(uint32_t target, uint32_t index, uint32_t buffer,
                           intptr_t offset, intptr_t size) override;

@@ -35,6 +35,8 @@ struct RecordingSink : GLStateSink {
     void cullFace(GLenum) override { ++cullCalls; }
     void frontFace(GLenum) override { ++frontCalls; }
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
+    void setViewport(int32_t, int32_t, int32_t, int32_t) override {}
+    void setScissor(int32_t, int32_t, int32_t, int32_t) override {}
     void bindBufferBase(uint32_t, uint32_t, uint32_t) override {}
     void bindBufferRange(uint32_t, uint32_t, uint32_t, intptr_t, intptr_t) override {}
     void bindVertexArray(uint32_t) override {}

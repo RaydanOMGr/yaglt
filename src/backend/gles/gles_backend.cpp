@@ -242,8 +242,16 @@ void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
 }
 
+void GLESBackend::setViewport(int32_t x, int32_t y, int32_t w, int32_t h) {
+    if (lib_->glViewport) lib_->glViewport(x, y, w, h);
+}
+
+void GLESBackend::setScissor(int32_t x, int32_t y, int32_t w, int32_t h) {
+    if (lib_->glScissor) lib_->glScissor(x, y, w, h);
+}
+
 void GLESBackend::bindBufferBase(uint32_t target, uint32_t index,
-                                 uint32_t buffer) {
+                                  uint32_t buffer) {
     if (lib_->glBindBufferBase)
         lib_->glBindBufferBase(target, index, buffer);
 }

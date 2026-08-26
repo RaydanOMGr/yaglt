@@ -48,6 +48,12 @@ public:
     // --- Pixel store ---
     bool setPixelStorei(GLenum pname, GLint param);
 
+    // --- Viewport (glViewport) ---
+    bool setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+
+    // --- Scissor box (glScissor); the scissor test is GL_SCISSOR_TEST cap ---
+    bool setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
 
@@ -97,6 +103,26 @@ private:
             return unpackAlignment == o.unpackAlignment;
         }
     };
+    struct ViewportState {
+        GLint x = 0;
+        GLint y = 0;
+        GLsizei width = 0;
+        GLsizei height = 0;
+        bool equal(const ViewportState& o) const {
+            return x == o.x && y == o.y && width == o.width &&
+                   height == o.height;
+        }
+    };
+    struct ScissorBoxState {
+        GLint x = 0;
+        GLint y = 0;
+        GLsizei width = 0;
+        GLsizei height = 0;
+        bool equal(const ScissorBoxState& o) const {
+            return x == o.x && y == o.y && width == o.width &&
+                   height == o.height;
+        }
+    };
 
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;
@@ -111,6 +137,8 @@ private:
     StencilState stencil_, stencilApplied_;
     RasterState raster_, rasterApplied_;
     PixelStoreState pixel_, pixelApplied_;
+    ViewportState viewport_, viewportApplied_;
+    ScissorBoxState scissor_, scissorApplied_;
 };
 
 } // namespace glcompat

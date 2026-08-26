@@ -142,6 +142,11 @@ void glFrontFace(GLenum mode);
 // Pixel store (SPEC §10). Affects subsequent texture/image uploads.
 void glPixelStorei(GLenum pname, GLint param);
 
+// Viewport (glViewport) and scissor box (glScissor), recorded in the current
+// context's GLStateTracker and pushed to the backend on the next flush (SPEC §10).
+void glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+void glScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for
 // unchanged state. Call this at draw / state-flush time.

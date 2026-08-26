@@ -73,6 +73,13 @@ public:
     int frontFaceCalls = 0;
     int pixelStoreiCalls = 0;
 
+    int viewportCalls = 0;
+    int32_t lastViewportX = 0, lastViewportY = 0;
+    int32_t lastViewportW = 0, lastViewportH = 0;
+    int scissorCalls = 0;
+    int32_t lastScissorX = 0, lastScissorY = 0;
+    int32_t lastScissorW = 0, lastScissorH = 0;
+
     void enable(GLenum cap) override {
         ++enableCalls;
         lastEnableCap = cap;
@@ -97,6 +104,20 @@ public:
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
+    void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {
+        ++viewportCalls;
+        lastViewportX = x;
+        lastViewportY = y;
+        lastViewportW = w;
+        lastViewportH = h;
+    }
+    void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override {
+        ++scissorCalls;
+        lastScissorX = x;
+        lastScissorY = y;
+        lastScissorW = w;
+        lastScissorH = h;
+    }
 
     int bindBufferBaseCalls = 0;
     int bindBufferRangeCalls = 0;
