@@ -88,6 +88,15 @@ public:
     bool clearTextureBinding(GLObjectName name);
     uint32_t maxCombinedTextureUnits() const { return kMaxTextureUnits; }
 
+    // --- Sampler objects (SPEC §8.2) ---
+    // Bind sampler `name` to texture unit `unit`; returns true when the binding
+    // changed. boundSamplerForUnit returns the sampler bound to `unit` (0 when
+    // none). clearSamplerBinding resets any unit bound to `name` (used when the
+    // sampler object is deleted), returning true when a binding changed.
+    bool setSamplerBinding(uint32_t unit, GLObjectName name);
+    GLObjectName boundSamplerForUnit(uint32_t unit) const;
+    bool clearSamplerBinding(GLObjectName name);
+
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
 
@@ -218,6 +227,12 @@ private:
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;
     bool capsDirty_ = false;
+
+    // Per-unit sampler-object bindings (SPEC §8.2). Parallel to texUnits_: one
+    // bound sampler name per texture unit, 0 when no sampler is bound.
+    std::vector<GLObjectName> samplerBound_;
+    std::vector<GLObjectName> samplerBoundApplied_;
+    bool samplerUnitsDirty_ = false;
 
     GLObjectName activeProgram_ = 0;
     GLObjectName activeProgramApplied_ = 0;

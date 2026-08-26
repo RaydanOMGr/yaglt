@@ -195,6 +195,13 @@ void GLESBackend::bindTexture(uint32_t target, uint32_t texture) {
     if (lib_->glBindTexture) lib_->glBindTexture(target, native);
 }
 
+void GLESBackend::bindSampler(uint32_t unit, uint32_t sampler) {
+    // Resolve the frontend sampler name to the native driver id when known.
+    auto it = nativeMap_.find(sampler);
+    GLuint native = it != nativeMap_.end() ? it->second : sampler;
+    if (lib_->glBindSampler) lib_->glBindSampler(unit, native);
+}
+
 void GLESBackend::enableVertexAttribArray(uint32_t index) {
     if (lib_->glEnableVertexAttribArray)
         lib_->glEnableVertexAttribArray(static_cast<GLuint>(index));

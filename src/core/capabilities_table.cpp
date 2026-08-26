@@ -26,6 +26,7 @@ std::string CapabilityTable::featureName(Feature feature) const {
     case Feature::IndirectDrawing: return "IndirectDrawing";
     case Feature::ProgramPipelines: return "ProgramPipelines";
     case Feature::DirectStateAccess: return "DirectStateAccess";
+    case Feature::SamplerObjects: return "SamplerObjects";
     case Feature::FeatureCount: return "FeatureCount";
     }
     return "Unknown";

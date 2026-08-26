@@ -120,6 +120,17 @@ public:
     }
 };
 
+// Frontend sampler object (SPEC §8.2). Owns an opaque backend sampler resource
+// and records the scalar sampler parameters set via glSamplerParameteri so they
+// can be queried by glGetSamplerParameteriv.
+class SamplerObject {
+public:
+    explicit SamplerObject(GLObjectName n) : name(n) {}
+    GLObjectName name = 0;
+    std::unordered_map<uint32_t, int> params; // pname -> param
+    std::unique_ptr<BackendSampler> backend;
+};
+
 // Frontend transform-feedback object (SPEC §13.3). Owns an opaque backend TF
 // resource; capture begin/end/pause/resume are forwarded to it at draw time.
 class TransformFeedbackObject {

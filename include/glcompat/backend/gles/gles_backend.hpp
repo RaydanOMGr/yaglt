@@ -70,6 +70,11 @@ public:
     void activeTexture(uint32_t unit) override;
     void bindTexture(uint32_t target, uint32_t texture) override;
 
+    // Sampler objects (SPEC §8.2). `sampler` is the frontend name resolved to the
+    // native driver sampler id via the registered name map; `unit` is the
+    // zero-based texture unit index.
+    void bindSampler(uint32_t unit, uint32_t sampler) override;
+
     // Vertex array + attribute setup (SPEC §2.1).
     void bindVertexArray(uint32_t vao) override;
     void enableVertexAttribArray(uint32_t index) override;

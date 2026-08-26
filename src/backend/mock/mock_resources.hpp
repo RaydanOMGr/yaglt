@@ -116,6 +116,19 @@ class MockVertexArray : public BackendVertexArray {
 public:
     int id = 0;
 };
+class MockSampler : public BackendSampler {
+public:
+    int id = 0;
+    int samplerParameteriCalls = 0;
+    uint32_t lastParamPname = 0;
+    int lastParam = 0;
+    void samplerParameteri(uint32_t pname, int param) override {
+        ++samplerParameteriCalls;
+        lastParamPname = pname;
+        lastParam = param;
+    }
+    uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
+};
 class MockTransformFeedback : public BackendTransformFeedback {
 public:
     int id = 0;

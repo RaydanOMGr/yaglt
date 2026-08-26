@@ -215,6 +215,48 @@ void glResumeTransformFeedback() {
     g_current->resumeTransformFeedback();
 }
 
+// --- Sampler objects (SPEC §8.2) ---
+
+GLuint glGenSampler() {
+    if (g_current == nullptr) return 0;
+    return g_current->genSampler();
+}
+
+void glGenSamplers(GLsizei n, GLuint* samplers) {
+    if (g_current == nullptr) return;
+    g_current->genSamplers(static_cast<uint32_t>(n), samplers);
+}
+
+void glBindSampler(GLuint unit, GLuint sampler) {
+    if (g_current == nullptr) return;
+    g_current->bindSampler(unit, sampler);
+}
+
+void glDeleteSampler(GLuint sampler) {
+    if (g_current == nullptr) return;
+    g_current->deleteSampler(sampler);
+}
+
+void glDeleteSamplers(GLsizei n, const GLuint* samplers) {
+    if (g_current == nullptr) return;
+    g_current->deleteSamplers(static_cast<uint32_t>(n), samplers);
+}
+
+GLboolean glIsSampler(GLuint sampler) {
+    if (g_current == nullptr) return 0;
+    return g_current->isSampler(sampler) ? 1 : 0;
+}
+
+void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameteri(sampler, pname, static_cast<int>(param));
+}
+
+void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getSamplerParameteriv(sampler, pname, params);
+}
+
 // --- Shaders / programs (SPEC §8) ---
 
 GLuint glCreateShader(GLenum stage) {

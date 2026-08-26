@@ -252,6 +252,17 @@ public:
         lastBindTexture = texture;
     }
 
+    // Sampler objects (SPEC §8.2). Recorded so tests can assert the frontend
+    // pushes a sampler binding only when it changes.
+    int bindSamplerCalls = 0;
+    uint32_t lastBindSamplerUnit = 0;
+    GLObjectName lastBindSampler = 0;
+    void bindSampler(uint32_t unit, uint32_t sampler) override {
+        ++bindSamplerCalls;
+        lastBindSamplerUnit = unit;
+        lastBindSampler = sampler;
+    }
+
     // --- Draw command recording (observable in tests) ---
     int drawArraysCalls = 0;
     int drawElementsCalls = 0;

@@ -112,6 +112,26 @@ struct GLESBackendVertexArray : BackendVertexArray {
     GLuint handle = 0;
 };
 
+// Real GLES sampler object (SPEC §8.2). Created lazily at construction; the
+// scalar parameters are driven through the loader.
+struct GLESBackendSampler : BackendSampler {
+    GLESBackendSampler(GLESLibPtr lib) : lib(lib) {
+        if (lib && lib->loaded && lib->glGenSamplers)
+            lib->glGenSamplers(1, &handle);
+    }
+    ~GLESBackendSampler() override {
+        if (lib && lib->loaded && lib->glDeleteSamplers && handle)
+            lib->glDeleteSamplers(1, &handle);
+    }
+    void samplerParameteri(uint32_t pname, int param) override {
+        if (lib && lib->loaded && lib->glSamplerParameteri && handle)
+            lib->glSamplerParameteri(handle, pname, param);
+    }
+    uint32_t nativeId() const override { return handle; }
+    GLESLibPtr lib;
+    GLuint handle = 0;
+};
+
 // Real GLES transform-feedback object (SPEC §13.3). The native TF object is
 // created lazily at construction; capture state is driven through the loader.
 struct GLESBackendTransformFeedback : BackendTransformFeedback {

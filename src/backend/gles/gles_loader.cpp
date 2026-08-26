@@ -133,6 +133,13 @@ bool GLESLib::load() {
     resolve(gles, glPauseTransformFeedback, "glPauseTransformFeedback");
     resolve(gles, glResumeTransformFeedback, "glResumeTransformFeedback");
 
+    // Sampler objects (ES 3.0+); resolved optionally.
+    resolve(gles, glGenSamplers, "glGenSamplers");
+    resolve(gles, glDeleteSamplers, "glDeleteSamplers");
+    resolve(gles, glBindSampler, "glBindSampler");
+    resolve(gles, glSamplerParameteri, "glSamplerParameteri");
+    resolve(gles, glIsSampler, "glIsSampler");
+
     // Vertex attributes are ES 2.0+; resolve optionally so load() still succeeds
     // if a driver somehow lacks them.
     resolve(gles, glGetAttribLocation, "glGetAttribLocation");

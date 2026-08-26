@@ -53,6 +53,8 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     table.set(F::DirectStateAccess, has("GL_EXT_direct_state_access")
                                         ? S::Emulated
                                         : S::Unsupported);
+    // Sampler objects are core in GLES 3.0 (glBindSampler / glSamplerParameteri).
+    table.set(F::SamplerObjects, es3 ? S::Native : S::Unsupported);
 }
 
 } // namespace glcompat

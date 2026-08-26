@@ -5,6 +5,8 @@ namespace glcompat {
 GLStateTracker::GLStateTracker() {
     texUnits_.resize(kMaxTextureUnits);
     texUnitsApplied_.resize(kMaxTextureUnits);
+    samplerBound_.assign(kMaxTextureUnits, 0);
+    samplerBoundApplied_.assign(kMaxTextureUnits, 0);
 }
 
 bool GLStateTracker::setCapability(GLenum cap, bool enabled) {
@@ -221,6 +223,31 @@ bool GLStateTracker::clearTextureBinding(GLObjectName name) {
     return changed;
 }
 
+bool GLStateTracker::setSamplerBinding(uint32_t unit, GLObjectName name) {
+    if (unit >= kMaxTextureUnits) return false;
+    if (samplerBound_[unit] == name) return false;
+    samplerBound_[unit] = name;
+    samplerUnitsDirty_ = true;
+    return true;
+}
+
+GLObjectName GLStateTracker::boundSamplerForUnit(uint32_t unit) const {
+    if (unit >= samplerBound_.size()) return 0;
+    return samplerBound_[unit];
+}
+
+bool GLStateTracker::clearSamplerBinding(GLObjectName name) {
+    bool changed = false;
+    for (auto& s : samplerBound_) {
+        if (s == name) {
+            s = 0;
+            changed = true;
+        }
+    }
+    if (changed) samplerUnitsDirty_ = true;
+    return changed;
+}
+
 int GLStateTracker::apply(GLStateSink& sink) {
     int applied = 0;
 
@@ -355,6 +382,21 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (samplerUnitsDirty_) {
+        for (uint32_t i = 0; i < samplerBound_.size(); ++i) {
+            GLObjectName c = samplerBound_[i];
+            GLObjectName a = samplerBoundApplied_[i];
+            if (c == a) continue;
+            // glBindSampler takes the zero-based unit index directly, so the
+            // backend resolves `c` (frontend name) to its native id. No active
+            // texture switch is required here (SPEC §8.2).
+            sink.bindSampler(i, c);
+        }
+        samplerBoundApplied_ = samplerBound_;
+        samplerUnitsDirty_ = false;
+        ++applied;
+    }
+
     return applied;
 }
 
@@ -401,7 +443,11 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case GL_CULL_FACE_MODE: out[0] = static_cast<GLint>(raster_.cull); return 1;
     case GL_FRONT_FACE: out[0] = static_cast<GLint>(raster_.front); return 1;
     case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
-    case GL_ACTIVE_TEXTURE: out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
+    case GL_ACTIVE_TEXTURE:
+        out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
+    case GL_SAMPLER_BINDING:
+        out[0] = static_cast<GLint>(
+            boundSamplerForUnit(activeTextureUnit_)); return 1;
     case GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS:
     case GL_MAX_TEXTURE_IMAGE_UNITS:
     case GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS:
@@ -525,6 +571,9 @@ void GLStateTracker::reset() {
     activeTextureUnit_ = 0;
     activeTextureApplied_ = 0;
     textureUnitsDirty_ = false;
+    samplerBound_.assign(kMaxTextureUnits, 0);
+    samplerBoundApplied_.assign(kMaxTextureUnits, 0);
+    samplerUnitsDirty_ = false;
 }
 
 } // namespace glcompat

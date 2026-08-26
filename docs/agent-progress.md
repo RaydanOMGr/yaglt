@@ -142,6 +142,22 @@ Known major blockers:
     `tests/backend/gles_e2e_program_test.cpp` (real Mesa program link + draw).
     All suites green: default 41/41, sanitizer 41/41, translate (Mesa) all pass.
 
+- [x] Sampler objects (SPEC §8.2, Next Steps item 1).
+   - `BackendSampler` resource + `IResourceFactory::createSampler`; frontend
+     `SamplerObject` (params map + opaque backend). `Context` gained `genSampler`/
+     `bindSampler`/`deleteSampler`/`samplerParameteri`/`getSamplerParameteriv`/
+     `isSampler` (capability-gated by `SamplerObjects`; Native on GLES 3.0+).
+     `bindSampler(unit, sampler)` records the per-unit binding in `GLStateTracker`
+     and pushes via new `GLStateSink::bindSampler` only when changed (SPEC §10).
+     `GL_SAMPLER_BINDING` query added to the tracker; out-of-range unit →
+     `GL_INVALID_VALUE`, ungenerated name → `GL_INVALID_OPERATION`. `samplerParameteri`
+     accepts only scalar sampler pnames (table 23.23); non-scalar/unknown →
+     `GL_INVALID_ENUM`. GLES backend resolves `glGenSamplers`/`glDeleteSamplers`/
+     `glBindSampler`/`glSamplerParameteri`/`glIsSampler` (optional); `GLESBackendSampler`
+     drives the native object. `Feature::SamplerObjects` added to the capability enum
+     and marked Native in the mock + GLES (ES3) profiles. New `tests/unit/sampler_test.cpp`.
+   - Validation: default + sanitizer + translate (Mesa) suites all green.
+
 ## Known Issues
 
 - Host previously had no `libGLESv2`, so the GLES backend returned false.
@@ -616,10 +632,10 @@ OpenGL 4.6:
 
 ## Next Steps
 
-1. **Texture units done.** Next texture-correctness items: sampler objects
-   (`glGenSamplers`/`glBindSampler`/`glSamplerParameteri`, SPEC §8.2) and
-   direct-state `glBindTextures`/`glBindTextureUnit` (DSA), plus
-   `glActiveTexture` interaction with the FBO/texture-completeness queries.
+1. **Texture units done.** Sampler objects implemented (SPEC §8.2; see Completed
+    above). Next texture-correctness items: direct-state `glBindTextures`/
+    `glBindTextureUnit` (DSA), plus `glActiveTexture` interaction with the
+    FBO/texture-completeness queries.
 2. Continue SPEC phases (§5 Android platform capabilities + SDK 21 fallback
    abstraction, §6 compatibility/emulation scaffolding, geometry/tessellation
    honest-Unsupported paths, SSBO storage-block translation / transform-feedback).

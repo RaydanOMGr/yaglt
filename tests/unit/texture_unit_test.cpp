@@ -53,6 +53,7 @@ struct UnitRecordingSink : GLStateSink {
     void bindTexture(uint32_t target, uint32_t texture) override {
         binds.push_back({currentUnit, target, texture});
     }
+    void bindSampler(uint32_t, uint32_t) override {}
 };
 } // namespace
 

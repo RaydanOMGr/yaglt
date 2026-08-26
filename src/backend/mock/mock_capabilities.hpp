@@ -34,6 +34,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::IndirectDrawing, S::Unsupported);
     table.set(F::ProgramPipelines, S::Emulated);
     table.set(F::DirectStateAccess, S::Emulated);
+    table.set(F::SamplerObjects, S::Native);
 }
 
 // Mock platform: used for headless Linux testing. On Android the real

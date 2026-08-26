@@ -59,6 +59,18 @@ public:
     virtual uint32_t nativeId() const { return 0; }
 };
 
+// Sampler object (SPEC §8.2). Holds texture-parameter state that overrides the
+// per-texture state when bound to a texture unit. Defaults are no-ops so backends
+// opt in. `samplerParameteri` sets a scalar sampler parameter (wrap/min/mag
+// filter/compare/lod bias).
+class BackendSampler {
+public:
+    virtual ~BackendSampler() = default;
+    virtual void samplerParameteri(uint32_t pname, int param) {}
+    // Native backend sampler id (e.g. driver GLuint). 0 when not applicable.
+    virtual uint32_t nativeId() const { return 0; }
+};
+
 // Transform feedback object (SPEC §13.3). Captures primitives during drawing into
 // bound transform-feedback buffers. Defaults are no-ops so backends opt in.
 class BackendTransformFeedback {

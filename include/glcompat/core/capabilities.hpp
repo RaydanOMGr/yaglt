@@ -41,6 +41,7 @@ enum class Feature {
     IndirectDrawing,
     ProgramPipelines,
     DirectStateAccess,
+    SamplerObjects,
     // Sentinel
     FeatureCount
 };

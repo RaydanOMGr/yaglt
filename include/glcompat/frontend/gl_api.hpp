@@ -83,6 +83,16 @@ void glEndTransformFeedback();
 void glPauseTransformFeedback();
 void glResumeTransformFeedback();
 
+// --- Sampler objects (SPEC §8.2) ---
+GLuint glGenSampler();
+void glGenSamplers(GLsizei n, GLuint* samplers);
+void glBindSampler(GLuint unit, GLuint sampler);
+void glDeleteSampler(GLuint sampler);
+void glDeleteSamplers(GLsizei n, const GLuint* samplers);
+GLboolean glIsSampler(GLuint sampler);
+void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param);
+void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint* params);
+
 // --- Shaders / programs (SPEC §8) ---
 // glCreateShader / glCreateProgram return the new object name (0 on failure).
 GLuint glCreateShader(GLenum stage);

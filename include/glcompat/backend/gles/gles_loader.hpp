@@ -116,6 +116,14 @@ struct GLESLib {
     void (*glPauseTransformFeedback)(void) = nullptr;
     void (*glResumeTransformFeedback)(void) = nullptr;
 
+    // Sampler objects (SPEC §8.2, GLES 3.0+). Resolved optionally so load()
+    // still succeeds on a driver that lacks them (capability reports unsupported).
+    void (*glGenSamplers)(GLsizei, GLuint*) = nullptr;
+    void (*glDeleteSamplers)(GLsizei, const GLuint*) = nullptr;
+    void (*glBindSampler)(GLuint, GLuint) = nullptr;
+    void (*glSamplerParameteri)(GLuint, GLenum, GLint) = nullptr;
+    GLboolean (*glIsSampler)(GLuint) = nullptr;
+
     void (*glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
                         GLenum, const void*) = nullptr;
     void (*glTexParameteri)(GLenum, GLenum, GLint) = nullptr;

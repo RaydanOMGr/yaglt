@@ -178,7 +178,25 @@ public:
     void pauseTransformFeedback();
     void resumeTransformFeedback();
 
-    // --- Shaders / programs (SPEC §8) ---
+    // --- Sampler objects (SPEC §8.2) ---
+    // Capability-gated by SamplerObjects. gen/bind/delete manage the frontend
+    // sampler objects; samplerParameteri sets scalar sampler parameters and is
+    // forwarded to the backend sampler resource. bindSampler binds a sampler to a
+    // texture unit (pushed to the backend at flush time). An out-of-range unit
+    // reports GL_INVALID_VALUE; an ungenerated sampler name reports
+    // GL_INVALID_OPERATION honestly.
+    GLObjectName genSampler();
+    void genSamplers(uint32_t n, GLObjectName* names);
+    void bindSampler(uint32_t unit, GLObjectName sampler);
+    GLObjectName boundSampler(uint32_t unit) const;
+    void deleteSampler(GLObjectName name);
+    void deleteSamplers(uint32_t n, const GLObjectName* names);
+    SamplerObject* getSampler(GLObjectName name);
+    const SamplerObject* getSampler(GLObjectName name) const;
+    void samplerParameteri(GLObjectName sampler, uint32_t pname, int param);
+    void getSamplerParameteriv(GLObjectName sampler, uint32_t pname,
+                               int32_t* params);
+    bool isSampler(GLObjectName name) const;
     // Capability-guarded: ShaderObjects / ProgramObjects must be supported by the
     // backend or these report GL_INVALID_OPERATION honestly. The desktop->backend
     // source translation (IShaderCompiler) runs inside compileShader so the
@@ -283,6 +301,7 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<RenderbufferObject>> renderbuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<FramebufferObject>> framebuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<VertexArrayObject>> vertexArrays_;
+    std::unordered_map<GLObjectName, std::unique_ptr<SamplerObject>> samplers_;
     std::unordered_map<GLObjectName, std::unique_ptr<ShaderObject>> shaders_;
     std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;
     std::unordered_map<GLObjectName, std::unique_ptr<TransformFeedbackObject>>

@@ -42,6 +42,12 @@ public:
     virtual void activeTexture(uint32_t unit) = 0;
     virtual void bindTexture(uint32_t target, uint32_t texture) = 0;
 
+    // Sampler objects (SPEC §8.2). Binds the sampler `sampler` (frontend object
+    // name, resolved to the native id by the backend) to texture unit `unit`
+    // (the zero-based unit index, not GL_TEXTURE0+unit). Pushed only when the
+    // binding changes (SPEC §10).
+    virtual void bindSampler(uint32_t unit, uint32_t sampler) = 0;
+
     virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
 
     // Viewport (glViewport, SPEC §10) and scissor box (glScissor). The scissor

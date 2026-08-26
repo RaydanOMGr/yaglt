@@ -36,6 +36,9 @@ public:
         lib_->glGenVertexArrays(1, &h);
         return std::make_unique<GLESBackendVertexArray>(lib_, h);
     }
+    std::unique_ptr<BackendSampler> createSampler() override {
+        return std::make_unique<GLESBackendSampler>(lib_);
+    }
     std::unique_ptr<BackendTransformFeedback> createTransformFeedback() override {
         return std::make_unique<GLESBackendTransformFeedback>(lib_);
     }

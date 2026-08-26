@@ -31,6 +31,11 @@ public:
         r->id = ++counter_;
         return r;
     }
+    std::unique_ptr<BackendSampler> createSampler() override {
+        auto r = std::make_unique<MockSampler>();
+        r->id = ++counter_;
+        return r;
+    }
     std::unique_ptr<BackendTransformFeedback> createTransformFeedback() override {
         auto r = std::make_unique<MockTransformFeedback>();
         r->id = ++counter_;

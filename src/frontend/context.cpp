@@ -178,6 +178,27 @@ Feature bufferTargetFeature(uint32_t target) {
     default: return Feature::FeatureCount; // unknown -> unsupported
     }
 }
+
+// Sampler-object scalar parameters (SPEC §8.2, table 23.23). These are the
+// pnames accepted by glSamplerParameteri; non-scalar pnames (TEXTURE_BORDER_COLOR,
+// TEXTURE_SWIZZLE_RGBA) are rejected, matching the spec.
+bool isValidSamplerParameter(uint32_t pname) {
+    switch (pname) {
+    case GL_TEXTURE_WRAP_S:
+    case GL_TEXTURE_WRAP_T:
+    case GL_TEXTURE_WRAP_R:
+    case GL_TEXTURE_MIN_FILTER:
+    case GL_TEXTURE_MAG_FILTER:
+    case GL_TEXTURE_COMPARE_MODE:
+    case GL_TEXTURE_COMPARE_FUNC:
+    case GL_TEXTURE_MIN_LOD:
+    case GL_TEXTURE_MAX_LOD:
+    case GL_TEXTURE_LOD_BIAS:
+        return true;
+    default:
+        return false;
+    }
+}
 } // namespace
 
 void Context::bindBufferBase(uint32_t target, uint32_t index,
@@ -643,6 +664,106 @@ void Context::resumeTransformFeedback() {
         if (tf->backend) tf->backend->resume();
     }
     transformFeedbackPaused_ = false;
+}
+
+// --- Sampler objects (SPEC §8.2) ---
+
+GLObjectName Context::genSampler() {
+    if (!backend_.capabilities().isSupported(Feature::SamplerObjects)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    GLObjectName name = nextName_++;
+    auto obj = std::make_unique<SamplerObject>(name);
+    obj->backend = backend_.resourceFactory().createSampler();
+    // Register the name -> native id so the backend can bind the sampler at
+    // flush time (SPEC §3/§11).
+    if (obj->backend)
+        backend_.bindNativeObject(name, obj->backend->nativeId());
+    samplers_.emplace(name, std::move(obj));
+    return name;
+}
+
+void Context::genSamplers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genSampler();
+}
+
+void Context::bindSampler(uint32_t unit, GLObjectName sampler) {
+    if (!backend_.capabilities().isSupported(Feature::SamplerObjects)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (unit >= state_.maxCombinedTextureUnits()) {
+        setError(GLError::InvalidValue); // unit out of range
+        return;
+    }
+    if (sampler != 0 && samplers_.find(sampler) == samplers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    state_.setSamplerBinding(unit, sampler);
+}
+
+GLObjectName Context::boundSampler(uint32_t unit) const {
+    return state_.boundSamplerForUnit(unit);
+}
+
+void Context::deleteSampler(GLObjectName name) {
+    auto it = samplers_.find(name);
+    if (it == samplers_.end()) return;
+    state_.clearSamplerBinding(name);
+    samplers_.erase(it);
+}
+
+void Context::deleteSamplers(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteSampler(names[i]);
+}
+
+SamplerObject* Context::getSampler(GLObjectName name) {
+    auto it = samplers_.find(name);
+    return it == samplers_.end() ? nullptr : it->second.get();
+}
+
+const SamplerObject* Context::getSampler(GLObjectName name) const {
+    auto it = samplers_.find(name);
+    return it == samplers_.end() ? nullptr : it->second.get();
+}
+
+bool Context::isSampler(GLObjectName name) const {
+    return samplers_.find(name) != samplers_.end();
+}
+
+void Context::samplerParameteri(GLObjectName sampler, uint32_t pname, int param) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSamplerParameter(pname)) {
+        setError(GLError::InvalidEnum); // non-scalar / unknown pname
+        return;
+    }
+    s->params[pname] = param;
+    if (s->backend) s->backend->samplerParameteri(pname, param);
+}
+
+void Context::getSamplerParameteriv(GLObjectName sampler, uint32_t pname,
+                                    int32_t* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isValidSamplerParameter(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    auto it = s->params.find(pname);
+    *params = (it != s->params.end()) ? it->second : 0;
 }
 
 void Context::flushState() {
