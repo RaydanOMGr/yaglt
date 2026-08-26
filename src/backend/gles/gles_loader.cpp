@@ -124,6 +124,12 @@ bool GLESLib::load() {
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");
     ok &= resolve(gles, glTexParameteri, "glTexParameteri");
+    // Sub-image / copy-from-framebuffer are core in GLES but resolved defensively.
+    resolve(gles, glTexSubImage1D, "glTexSubImage1D");
+    resolve(gles, glTexSubImage2D, "glTexSubImage2D");
+    resolve(gles, glTexSubImage3D, "glTexSubImage3D");
+    resolve(gles, glCopyTexImage1D, "glCopyTexImage1D");
+    resolve(gles, glCopyTexImage2D, "glCopyTexImage2D");
     ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");

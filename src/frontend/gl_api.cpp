@@ -151,6 +151,52 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
     g_current->texParameteri(target, pname, static_cast<int>(param));
 }
 
+void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width,
+                     GLenum format, GLenum type, const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->texSubImage1D(target, level, xoffset, static_cast<int>(width),
+                             static_cast<uint32_t>(format),
+                             static_cast<uint32_t>(type), pixels);
+}
+
+void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                     GLsizei width, GLsizei height, GLenum format, GLenum type,
+                     const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->texSubImage2D(target, level, xoffset, yoffset,
+                             static_cast<int>(width), static_cast<int>(height),
+                             static_cast<uint32_t>(format),
+                             static_cast<uint32_t>(type), pixels);
+}
+
+void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                     GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                     GLenum format, GLenum type, const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->texSubImage3D(target, level, xoffset, yoffset, zoffset,
+                             static_cast<int>(width), static_cast<int>(height),
+                             static_cast<int>(depth),
+                             static_cast<uint32_t>(format),
+                             static_cast<uint32_t>(type), pixels);
+}
+
+void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                      GLint y, GLsizei width, GLint border) {
+    if (g_current == nullptr) return;
+    g_current->copyTexImage1D(target, level,
+                              static_cast<uint32_t>(internalFormat), x, y,
+                              static_cast<int>(width), border);
+}
+
+void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                      GLint y, GLsizei width, GLsizei height, GLint border) {
+    if (g_current == nullptr) return;
+    g_current->copyTexImage2D(target, level,
+                              static_cast<uint32_t>(internalFormat), x, y,
+                              static_cast<int>(width), static_cast<int>(height),
+                              border);
+}
+
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getTexParameteriv(target, pname, params);

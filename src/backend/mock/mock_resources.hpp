@@ -116,6 +116,59 @@ public:
         lastParamPname = pname;
         lastParam = param;
     }
+    int texSubImage1DCalls = 0;
+    int texSubImage2DCalls = 0;
+    int texSubImage3DCalls = 0;
+    uint32_t lastSubTarget = 0;
+    int lastSubLevel = 0;
+    int lastSubXoffset = 0, lastSubYoffset = 0, lastSubZoffset = 0;
+    int lastSubWidth = 0, lastSubHeight = 0, lastSubDepth = 0;
+    uint32_t lastSubFormat = 0, lastSubType = 0;
+    int copyTexImage1DCalls = 0;
+    int copyTexImage2DCalls = 0;
+    uint32_t lastCopyInternalFormat = 0;
+    int lastCopyX = 0, lastCopyY = 0;
+    int lastCopyWidth = 0, lastCopyHeight = 0, lastCopyBorder = 0;
+    void texSubImage1D(uint32_t target, int level, int xoffset, int width,
+                       uint32_t format, uint32_t type, const void* data) override {
+        ++texSubImage1DCalls;
+        lastSubTarget = target; lastSubLevel = level; lastSubXoffset = xoffset;
+        lastSubWidth = width; lastSubFormat = format; lastSubType = type;
+        (void)data;
+    }
+    void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                       int width, int height, uint32_t format, uint32_t type,
+                       const void* data) override {
+        ++texSubImage2DCalls;
+        lastSubTarget = target; lastSubLevel = level; lastSubXoffset = xoffset;
+        lastSubYoffset = yoffset; lastSubWidth = width; lastSubHeight = height;
+        lastSubFormat = format; lastSubType = type;
+        (void)data;
+    }
+    void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                       int zoffset, int width, int height, int depth,
+                       uint32_t format, uint32_t type, const void* data) override {
+        ++texSubImage3DCalls;
+        lastSubTarget = target; lastSubLevel = level; lastSubXoffset = xoffset;
+        lastSubYoffset = yoffset; lastSubZoffset = zoffset; lastSubWidth = width;
+        lastSubHeight = height; lastSubDepth = depth; lastSubFormat = format;
+        lastSubType = type;
+        (void)data;
+    }
+    void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int border) override {
+        ++copyTexImage1DCalls;
+        lastSubTarget = target; lastSubLevel = level;
+        lastCopyInternalFormat = internalFormat; lastCopyX = x; lastCopyY = y;
+        lastCopyWidth = width; lastCopyBorder = border;
+    }
+    void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int height, int border) override {
+        ++copyTexImage2DCalls;
+        lastSubTarget = target; lastSubLevel = level;
+        lastCopyInternalFormat = internalFormat; lastCopyX = x; lastCopyY = y;
+        lastCopyWidth = width; lastCopyHeight = height; lastCopyBorder = border;
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
 class MockRenderbuffer : public BackendRenderbuffer {

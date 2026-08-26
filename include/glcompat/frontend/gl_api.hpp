@@ -77,6 +77,20 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                  GLsizei height, GLint border, GLenum format, GLenum type,
                  const GLvoid* data);
 void glTexParameteri(GLenum target, GLenum pname, GLint param);
+// Texture sub-image specification (SPEC §8.6 TexSubImage*D).
+void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width,
+                     GLenum format, GLenum type, const GLvoid* pixels);
+void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                     GLsizei width, GLsizei height, GLenum format, GLenum type,
+                     const GLvoid* pixels);
+void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                     GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                     GLenum format, GLenum type, const GLvoid* pixels);
+// Define a texture image by copying from the framebuffer (SPEC §8.5 CopyTexImage*D).
+void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                      GLint y, GLsizei width, GLint border);
+void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                      GLint y, GLsizei width, GLsizei height, GLint border);
 // Texture parameter queries (SPEC §8.1). glGetTexParameteriv reads the bound
 // texture for `target`; glGetTextureParameteriv is the DSA variant for an
 // explicit texture object (capability-gated by DirectStateAccess).

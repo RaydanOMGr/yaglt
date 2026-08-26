@@ -92,6 +92,42 @@ struct GLESBackendTexture : BackendTexture {
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameteri(target, pname, param);
     }
+    void texSubImage1D(uint32_t target, int level, int xoffset, int width,
+                       uint32_t format, uint32_t type, const void* data) override {
+        // OpenGL ES has no 1D textures; the call is a no-op on this backend.
+        if (!lib || !lib->loaded || !lib->glTexSubImage1D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexSubImage1D(target, level, xoffset, width, format, type, data);
+    }
+    void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                       int width, int height, uint32_t format, uint32_t type,
+                       const void* data) override {
+        if (!lib || !lib->loaded || !lib->glTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexSubImage2D(target, level, xoffset, yoffset, width, height,
+                             format, type, data);
+    }
+    void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                       int zoffset, int width, int height, int depth,
+                       uint32_t format, uint32_t type, const void* data) override {
+        if (!lib || !lib->loaded || !lib->glTexSubImage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width,
+                             height, depth, format, type, data);
+    }
+    void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int border) override {
+        if (!lib || !lib->loaded || !lib->glCopyTexImage1D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCopyTexImage1D(target, level, internalFormat, x, y, width, border);
+    }
+    void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int height, int border) override {
+        if (!lib || !lib->loaded || !lib->glCopyTexImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCopyTexImage2D(target, level, internalFormat, x, y, width, height,
+                              border);
+    }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;

@@ -16,6 +16,7 @@ add_executable(yaglt_tests
     unit/texture_unit_test.cpp
     unit/dsa_texture_test.cpp
     unit/texparam_query_test.cpp
+    unit/texsubimage_test.cpp
     unit/uniform_test.cpp
     unit/android_capabilities_test.cpp
     unit/getstring_test.cpp

@@ -122,6 +122,26 @@ public:
                     int width, int height, uint32_t format, uint32_t type,
                     const void* data);
     void texParameteri(uint32_t target, uint32_t pname, int param);
+    // Texture sub-image uploads (SPEC §8.6 TexSubImage*D). Require a bound texture
+    // (else GL_INVALID_OPERATION) and a previously allocated `level` (else
+    // GL_INVALID_OPERATION). Non-negative level/dimensions/offset are required
+    // (else GL_INVALID_VALUE); the region must fit inside the allocated level
+    // (else GL_INVALID_VALUE).
+    void texSubImage1D(uint32_t target, int level, int xoffset, int width,
+                       uint32_t format, uint32_t type, const void* data);
+    void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                       int width, int height, uint32_t format, uint32_t type,
+                       const void* data);
+    void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                       int zoffset, int width, int height, int depth,
+                       uint32_t format, uint32_t type, const void* data);
+    // Define texture image by copying from the framebuffer (SPEC §8.5
+    // CopyTexImage*D). Require a bound texture (else GL_INVALID_OPERATION);
+    // negative level/width/height or a non-zero border report GL_INVALID_VALUE.
+    void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int border);
+    void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                        int x, int y, int width, int height, int border);
     // Texture parameter queries (SPEC §8.1). getTexParameteriv reads the
     // currently bound texture for `target`; getTextureParameteriv is the DSA
     // variant that reads an explicit texture object (capability-gated by

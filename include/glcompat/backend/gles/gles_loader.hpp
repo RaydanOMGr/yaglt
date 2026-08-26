@@ -133,8 +133,18 @@ struct GLESLib {
     GLboolean (*glIsSampler)(GLuint) = nullptr;
 
     void (*glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
-                        GLenum, const void*) = nullptr;
+                         GLenum, const void*) = nullptr;
     void (*glTexParameteri)(GLenum, GLenum, GLint) = nullptr;
+    void (*glTexSubImage1D)(GLenum, GLint, GLint, GLsizei, GLenum, GLenum,
+                            const void*) = nullptr;
+    void (*glTexSubImage2D)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei, GLenum,
+                            GLenum, const void*) = nullptr;
+    void (*glTexSubImage3D)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei,
+                            GLsizei, GLenum, GLenum, const void*) = nullptr;
+    void (*glCopyTexImage1D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei,
+                             GLint) = nullptr;
+    void (*glCopyTexImage2D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei,
+                             GLint) = nullptr;
     void (*glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint) = nullptr;
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;

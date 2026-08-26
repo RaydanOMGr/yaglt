@@ -626,6 +626,144 @@ void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
     *params = (it != tex->params.end()) ? it->second : 0;
 }
 
+namespace {
+// Returns the previously allocated image for `level`, or nullptr when the level
+// was never defined by a TexImage call (glTexSubImage requires existing storage).
+const TextureObject::Image* findLevel(const TextureObject* tex, int level) {
+    for (const auto& img : tex->images) {
+        if (img.level == level) return &img;
+    }
+    return nullptr;
+}
+} // namespace
+
+void Context::texSubImage1D(uint32_t target, int level, int xoffset, int width,
+                            uint32_t format, uint32_t type, const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || width < 0 || xoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const TextureObject::Image* lvl = findLevel(tex, level);
+    if (lvl == nullptr) {
+        setError(GLError::InvalidOperation); // level not allocated
+        return;
+    }
+    if (xoffset + width > lvl->width) {
+        setError(GLError::InvalidValue); // region exceeds allocated level
+        return;
+    }
+    tex->target = target;
+    TextureObject::SubImage sub;
+    sub.target = target; sub.level = level; sub.xoffset = xoffset;
+    sub.width = width; sub.format = format; sub.type = type; sub.dim = 1;
+    tex->subimages.push_back(sub);
+    if (tex->backend) tex->backend->texSubImage1D(target, level, xoffset, width,
+                                                  format, type, data);
+}
+
+void Context::texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                            int width, int height, uint32_t format, uint32_t type,
+                            const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || width < 0 || height < 0 || xoffset < 0 || yoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const TextureObject::Image* lvl = findLevel(tex, level);
+    if (lvl == nullptr) {
+        setError(GLError::InvalidOperation); // level not allocated
+        return;
+    }
+    if (xoffset + width > lvl->width || yoffset + height > lvl->height) {
+        setError(GLError::InvalidValue); // region exceeds allocated level
+        return;
+    }
+    tex->target = target;
+    TextureObject::SubImage sub;
+    sub.target = target; sub.level = level; sub.xoffset = xoffset;
+    sub.yoffset = yoffset; sub.width = width; sub.height = height;
+    sub.format = format; sub.type = type; sub.dim = 2;
+    tex->subimages.push_back(sub);
+    if (tex->backend) tex->backend->texSubImage2D(target, level, xoffset, yoffset,
+                                                 width, height, format, type,
+                                                 data);
+}
+
+void Context::texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                            int zoffset, int width, int height, int depth,
+                            uint32_t format, uint32_t type, const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || width < 0 || height < 0 || depth < 0 || xoffset < 0 ||
+        yoffset < 0 || zoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const TextureObject::Image* lvl = findLevel(tex, level);
+    if (lvl == nullptr) {
+        setError(GLError::InvalidOperation); // level not allocated
+        return;
+    }
+    if (xoffset + width > lvl->width || yoffset + height > lvl->height) {
+        setError(GLError::InvalidValue); // region exceeds allocated level
+        return;
+    }
+    tex->target = target;
+    TextureObject::SubImage sub;
+    sub.target = target; sub.level = level; sub.xoffset = xoffset;
+    sub.yoffset = yoffset; sub.zoffset = zoffset; sub.width = width;
+    sub.height = height; sub.depth = depth; sub.format = format;
+    sub.type = type; sub.dim = 3;
+    tex->subimages.push_back(sub);
+    if (tex->backend) tex->backend->texSubImage3D(target, level, xoffset, yoffset,
+                                                 zoffset, width, height, depth,
+                                                 format, type, data);
+}
+
+void Context::copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                             int x, int y, int width, int border) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || width < 0 || border != 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    if (tex->backend) tex->backend->copyTexImage1D(target, level, internalFormat,
+                                                  x, y, width, border);
+}
+
+void Context::copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                             int x, int y, int width, int height, int border) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || width < 0 || height < 0 || border != 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    if (tex->backend) tex->backend->copyTexImage2D(target, level, internalFormat,
+                                                  x, y, width, height, border);
+}
+
 void Context::getTextureParameteriv(GLObjectName texture, GLenum pname,
                                     int32_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {

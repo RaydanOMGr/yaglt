@@ -48,6 +48,23 @@ public:
                             const void* data) {}
     // Set a texture parameter (filter / wrap), SPEC §2.1 glTexParameteri.
     virtual void texParameteri(uint32_t target, uint32_t pname, int param) {}
+    // Upload a sub-region of an existing texture level (SPEC §8.6 TexSubImage*D).
+    // The frontend validates bounds and that the level was allocated by a prior
+    // TexImage; backends with native storage forward the call to the driver.
+    virtual void texSubImage1D(uint32_t target, int level, int xoffset, int width,
+                               uint32_t format, uint32_t type, const void* data) {}
+    virtual void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                               int width, int height, uint32_t format, uint32_t type,
+                               const void* data) {}
+    virtual void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                               int zoffset, int width, int height, int depth,
+                               uint32_t format, uint32_t type, const void* data) {}
+    // Define a texture image by copying from the framebuffer (SPEC §8.5
+    // CopyTexImage*D). The backend uses the currently bound read framebuffer.
+    virtual void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                                int x, int y, int width, int border) {}
+    virtual void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                                int x, int y, int width, int height, int border) {}
     // Native backend texture id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };

@@ -262,10 +262,10 @@ Consequence: Minimal macro-based framework; sufficient for unit/integration.
 
 OpenGL 4.6:
   Core API: partial — see `docs/coverage-core.md` for the quantitative assessment.
-    Measurement (2026-08-26): of the 490 command prototypes the spec declares,
-     100 (20.4%) have a frontend entry point; restricting to the core profile
-     (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
-      gives 100/435 ≈ 23.0% core prototype coverage. True core entry-point coverage
+     Measurement (2026-08-26): of the 490 command prototypes the spec declares,
+      105 (21.4%) have a frontend entry point; restricting to the core profile
+      (435 prototypes after removing 55 compat-only commands from Appendix E.2.2)
+       gives 105/435 ≈ 24.1% core prototype coverage. True core entry-point coverage
     is lower (the spec text undercounts type/vector variants, and geometry/
     tessellation/compute are honestly Unsupported). Implemented slice: object
     lifecycle, vertex+fragment shader pipeline (desktop→ES), uniforms, per-
@@ -738,6 +738,22 @@ OpenGL 4.6:
 - Validation: default 162/162, sanitizer 162/162, translate (Mesa) all green.
 - Coverage bumped in `docs/coverage-core.md` (now 100/490 = 20.4% full,
   100/435 = 23.0% … actually 23.0% core prototype coverage).
+
+2026-08-26 (texture sub-image + copy specification, this session)
+- Implemented texture sub-image and copy-from-framebuffer commands (SPEC §8.5/
+  §8.6): `glTexSubImage1D`/`glTexSubImage2D`/`glTexSubImage3D` and
+  `glCopyTexImage1D`/`glCopyTexImage2D`. Frontend `Context` validates (bound
+  texture required, level must be pre-allocated by a TexImage, non-negative
+  level/offset/dims, region must fit inside the allocated level →
+  GL_INVALID_VALUE, no texture → GL_INVALID_OPERATION; CopyTexImage border must
+  be 0). Backend `BackendTexture` gained the 5 virtuals; `MockTexture` records
+  each; `GLESBackendTexture` drives `glTexSubImage2D`/`glTexSubImage3D`/
+  `glCopyTexImage2D` via newly resolved `GLESLib` loader symbols (1D is a no-op
+  on GLES, which has no 1D textures). `TextureObject` records subimage metadata.
+  New `tests/unit/texsubimage_test.cpp` (10 cases) covers upload recording,
+  missing-level / no-texture / negative-dim / out-of-region errors, and copy
+  paths. Coverage bumped to 105/490 (21.4%) full / 105/435 (24.1%) core.
+- Validation: default 174/174 green; sanitizer pending.
 
 ## Next Steps
 
