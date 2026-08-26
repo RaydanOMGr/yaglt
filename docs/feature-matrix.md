@@ -57,6 +57,26 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | Shader translation | Emulated (ES) | `GLESShaderCompiler` compiles GLSL ES on driver; `TranslatingGLESShaderCompiler` runs desktop GLSL → glslang → SPIRV-Cross → GLSL ES 3.10. Uniform/storage blocks auto-bound via 420pack. Verified end-to-end on Mesa. |
 | Vulkan backend | Not implemented | interfaces reserved in `src/backend/vulkan` |
 
+## Emulation roadmap (future heavy lifting)
+
+Geometry shaders, tessellation (hull/domain), and compute shaders are currently
+`Unsupported` (honestly reported). They MUST eventually be supported — the goal is
+"not feature reduction" (SPEC §1). Planned approach: **heavy emulation**, not native
+backend passthrough, because GLES has no geometry/tessellation/compute stages:
+
+- **Geometry shaders** → expand primitives on CPU or via a vertex/fragment
+  expansion pass; emit extra instances, feed a transformed vertex stream back
+  through the GLES pipeline.
+- **Tessellation** → CPU or compute-free evaluation of the patch + tessellation
+  factors; generate the subdivided vertex grid and feed it as a draw.
+- **Compute** → emulate via fragment-shader "transform feedback"-style passes or
+  multi-pass rasterization into textures (GPU-driven), with a CPU fallback for
+  platforms lacking the needed GLES features.
+
+All three require the capability system to select the emulation path once, keeping
+the scattered-version-branch rule (SPEC §4/§18) intact. Tracked as a phase-3+
+milestone; not started.
+
 ## Legend
 
 - `Native` — backend provides directly.
