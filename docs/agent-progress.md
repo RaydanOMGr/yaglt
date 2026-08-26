@@ -507,6 +507,15 @@ OpenGL 4.6:
     `Context`/`gl_api` expose `flushCommands`/`finishCommands`/`glFlush`/`glFinish`.
   - Validation: default 97/97, sanitizer 97/97 green.
 
+- [x] Framebuffer readback (SPEC §2.1, this session).
+  - `glReadPixels` flushes tracked state then reads the bound framebuffer via the
+    new `IGraphicsBackend::readPixels` pure virtual. Non-positive width/height →
+    `GL_INVALID_VALUE`, no backend call. `GLESLib` resolves `glReadPixels`
+    (required); `GLESBackend` drives it; `MockBackend` records the call.
+    `Context`/`gl_api` expose `readPixels`/`glReadPixels`. New
+    `tests/unit/readpixels_test.cpp` covers forward-after-flush and invalid-size.
+  - Validation: default 99/99, sanitizer 99/99, translate (Mesa) 106/106 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

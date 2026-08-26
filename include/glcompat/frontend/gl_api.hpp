@@ -161,6 +161,11 @@ void glClear(GLuint mask);
 void glFlush();
 void glFinish();
 
+// Read back pixels from the bound framebuffer (SPEC §2.1). Non-positive
+// width/height reports GL_INVALID_VALUE.
+void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
+                  GLenum type, GLvoid* pixels);
+
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for
 // unchanged state. Call this at draw / state-flush time.

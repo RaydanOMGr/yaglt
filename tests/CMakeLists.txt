@@ -23,6 +23,7 @@ add_executable(yaglt_tests
     unit/transform_feedback_test.cpp
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
+    unit/readpixels_test.cpp
     backend/gles_backend_test.cpp
 )
 

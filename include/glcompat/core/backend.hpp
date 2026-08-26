@@ -62,6 +62,11 @@ public:
     virtual void flush() = 0;
     virtual void finish() = 0;
 
+    // Read back pixels from the bound framebuffer (SPEC §2.1). The frontend
+    // flushes tracked state first so the backend reads the current framebuffer.
+    virtual void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                            uint32_t format, uint32_t type, void* pixels) = 0;
+
     virtual std::string describe() const = 0;
 };
 

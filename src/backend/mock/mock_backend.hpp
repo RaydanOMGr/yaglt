@@ -91,6 +91,10 @@ public:
     uint32_t lastClearMask = 0;
     int flushCalls = 0;
     int finishCalls = 0;
+    int readPixelsCalls = 0;
+    int32_t lastReadX = 0, lastReadY = 0, lastReadW = 0, lastReadH = 0;
+    uint32_t lastReadFormat = 0, lastReadType = 0;
+    void* lastReadPixels = nullptr;
 
     void enable(GLenum cap) override {
         ++enableCalls;
@@ -250,6 +254,17 @@ public:
     }
     void flush() override { ++flushCalls; }
     void finish() override { ++finishCalls; }
+    void readPixels(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t format,
+                    uint32_t type, void* pixels) override {
+        ++readPixelsCalls;
+        lastReadX = x;
+        lastReadY = y;
+        lastReadW = w;
+        lastReadH = h;
+        lastReadFormat = format;
+        lastReadType = type;
+        lastReadPixels = pixels;
+    }
 
 private:
     CapabilityTable capabilities_;

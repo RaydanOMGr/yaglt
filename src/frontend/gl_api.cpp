@@ -485,6 +485,12 @@ void glFinish() {
     g_current->finishCommands();
 }
 
+void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
+                  GLenum type, GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->readPixels(x, y, width, height, format, type, pixels);
+}
+
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (g_current == nullptr) return;
     g_current->drawArrays(mode, first, count);

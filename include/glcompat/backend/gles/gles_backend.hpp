@@ -99,6 +99,10 @@ public:
     void flush() override;
     void finish() override;
 
+    // Read back pixels from the bound framebuffer (SPEC §2.1).
+    void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                    uint32_t format, uint32_t type, void* pixels) override;
+
 private:
     GLESLibPtr lib_;
     LinuxCapabilities platform_;

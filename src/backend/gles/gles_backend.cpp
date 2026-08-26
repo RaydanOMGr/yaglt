@@ -320,4 +320,10 @@ void GLESBackend::finish() {
     if (lib_->glFinish) lib_->glFinish();
 }
 
+void GLESBackend::readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                             uint32_t format, uint32_t type, void* pixels) {
+    if (lib_->glReadPixels)
+        lib_->glReadPixels(x, y, width, height, format, type, pixels);
+}
+
 } // namespace glcompat

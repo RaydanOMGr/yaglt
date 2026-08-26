@@ -137,6 +137,12 @@ public:
     void flushCommands();
     void finishCommands();
 
+    // --- Framebuffer readback (SPEC §2.1) ---
+    // Reads pixels from the bound framebuffer (after a state flush). A non-positive
+    // width/height reports GL_INVALID_VALUE honestly.
+    void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                    uint32_t format, uint32_t type, void* pixels);
+
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
     // backend immediately (it affects subsequent texture/image uploads).
