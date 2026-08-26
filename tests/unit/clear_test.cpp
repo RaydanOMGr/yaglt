@@ -95,6 +95,19 @@ TEST_CASE("glClear_invalid_mask_is_gl_invalid_value") {
     setCurrentContext(nullptr);
 }
 
+TEST_CASE("glFlush_and_glFinish_forward_to_backend") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    glFlush();
+    glFinish();
+    EXPECT_EQ(backend.flushCalls, 1);
+    EXPECT_EQ(backend.finishCalls, 1);
+
+    setCurrentContext(nullptr);
+}
+
 TEST_CASE("glClear_pushes_color_then_clears_at_draw_time") {
     MockBackend backend;
     Context ctx(backend);

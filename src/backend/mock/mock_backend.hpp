@@ -89,6 +89,8 @@ public:
     double lastClearDepth = 1.0;
     int clearCalls = 0;
     uint32_t lastClearMask = 0;
+    int flushCalls = 0;
+    int finishCalls = 0;
 
     void enable(GLenum cap) override {
         ++enableCalls;
@@ -246,6 +248,8 @@ public:
         ++clearCalls;
         lastClearMask = mask;
     }
+    void flush() override { ++flushCalls; }
+    void finish() override { ++finishCalls; }
 
 private:
     CapabilityTable capabilities_;

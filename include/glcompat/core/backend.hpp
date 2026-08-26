@@ -57,6 +57,11 @@ public:
     // backend issues the native clear with the current clear values.
     virtual void clear(uint32_t mask) = 0;
 
+    // Command stream flush / finish (SPEC §2.1). glFlush empties the GL command
+    // buffer; glFinish blocks until all issued commands complete.
+    virtual void flush() = 0;
+    virtual void finish() = 0;
+
     virtual std::string describe() const = 0;
 };
 

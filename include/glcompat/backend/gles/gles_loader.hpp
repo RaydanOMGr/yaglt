@@ -95,6 +95,8 @@ struct GLESLib {
     void (*glClearColor)(GLfloat, GLfloat, GLfloat, GLfloat) = nullptr;
     void (*glClearDepthf)(GLfloat) = nullptr;
     void (*glClear)(GLbitfield) = nullptr;
+    void (*glFlush)(void) = nullptr;
+    void (*glFinish)(void) = nullptr;
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 

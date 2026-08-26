@@ -475,6 +475,16 @@ void glClear(GLuint mask) {
     g_current->clear(mask);
 }
 
+void glFlush() {
+    if (g_current == nullptr) return;
+    g_current->flushCommands();
+}
+
+void glFinish() {
+    if (g_current == nullptr) return;
+    g_current->finishCommands();
+}
+
 void glDrawArrays(GLenum mode, GLint first, GLsizei count) {
     if (g_current == nullptr) return;
     g_current->drawArrays(mode, first, count);

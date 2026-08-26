@@ -1039,6 +1039,14 @@ void Context::clear(uint32_t mask) {
     backend_.clear(mask);
 }
 
+void Context::flushCommands() {
+    backend_.flush();
+}
+
+void Context::finishCommands() {
+    backend_.finish();
+}
+
 // --- Uniforms (SPEC §8) ---
 
 BackendProgram* Context::activeBackendProgram() {

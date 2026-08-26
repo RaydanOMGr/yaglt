@@ -133,6 +133,10 @@ public:
     void setClearDepth(double d);
     void clear(uint32_t mask);
 
+    // --- Command stream (SPEC §2.1) ---
+    void flushCommands();
+    void finishCommands();
+
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
     // backend immediately (it affects subsequent texture/image uploads).

@@ -312,4 +312,12 @@ void GLESBackend::clear(uint32_t mask) {
     if (lib_->glClear) lib_->glClear(mask);
 }
 
+void GLESBackend::flush() {
+    if (lib_->glFlush) lib_->glFlush();
+}
+
+void GLESBackend::finish() {
+    if (lib_->glFinish) lib_->glFinish();
+}
+
 } // namespace glcompat

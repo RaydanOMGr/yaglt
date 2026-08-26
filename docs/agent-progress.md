@@ -500,6 +500,13 @@ OpenGL 4.6:
     push, invalid-mask error, and clear-after-flush.
   - Validation: default 96/96, sanitizer 96/96, translate (Mesa) 103/103 green.
 
+- [x] Command stream flush/finish (SPEC §2.1, this session).
+  - `glFlush`/`glFinish` forward to the backend via new `IGraphicsBackend::
+    flush()`/`finish()` pure virtuals. `GLESLib` resolves `glFlush`/`glFinish`
+    (required); `GLESBackend` drives them; `MockBackend` records the calls.
+    `Context`/`gl_api` expose `flushCommands`/`finishCommands`/`glFlush`/`glFinish`.
+  - Validation: default 97/97, sanitizer 97/97 green.
+
 ## Next Steps
 
 1. Continue the object/state API: uniform setting (`glUniform*` on the active

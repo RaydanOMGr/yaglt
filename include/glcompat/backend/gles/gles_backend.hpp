@@ -95,6 +95,10 @@ public:
     // clear with the current values.
     void clear(uint32_t mask) override;
 
+    // Command stream flush / finish (SPEC §2.1).
+    void flush() override;
+    void finish() override;
+
 private:
     GLESLibPtr lib_;
     LinuxCapabilities platform_;

@@ -157,6 +157,10 @@ void glClearDepth(GLdouble depth);
 void glClearDepthf(GLfloat depth);
 void glClear(GLuint mask);
 
+// Command stream flush / finish (SPEC §2.1).
+void glFlush();
+void glFinish();
+
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for
 // unchanged state. Call this at draw / state-flush time.

@@ -99,6 +99,8 @@ bool GLESLib::load() {
     ok &= resolve(gles, glClearColor, "glClearColor");
     ok &= resolve(gles, glClearDepthf, "glClearDepthf");
     ok &= resolve(gles, glClear, "glClear");
+    ok &= resolve(gles, glFlush, "glFlush");
+    ok &= resolve(gles, glFinish, "glFinish");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");
