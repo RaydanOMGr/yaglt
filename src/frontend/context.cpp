@@ -2,7 +2,9 @@
 #include "glcompat/core/capabilities.hpp"
 #include "glcompat/core/factory.hpp"
 
+#include <cctype>
 #include <cstdint>
+#include <string>
 
 namespace glcompat {
 
@@ -129,6 +131,41 @@ Feature shaderStageFeature(uint32_t stage) {
     case GL_COMPUTE_SHADER: return Feature::ComputeShaders;
     default: return Feature::FeatureCount; // unknown stage -> invalid enum
     }
+}
+
+// Highest GLSL versions YAGLT can translate/emit. Above these, the frontend
+// rejects the shader before attempting translation (journal Next Step #3).
+constexpr int kMaxDesktopGLSLVersion = 460; // desktop OpenGL 4.6 profile
+constexpr int kMaxESGLSLVersion = 320;       // OpenGL ES 3.2
+
+// Parse a `#version NNN [profile]` directive from shader source. Returns true
+// when a directive is found; fills *version (e.g. 330) and *es (true for the
+// `es` profile). Desktop profiles (core/compatibility/unspecified) yield es=false.
+bool parseVersionDirective(const std::string& src, int* version, bool* es) {
+    size_t pos = src.find("#version");
+    if (pos == std::string::npos) return false;
+    size_t i = pos + 8;
+    while (i < src.size() && (src[i] == ' ' || src[i] == '\t')) ++i;
+    int v = 0;
+    bool got = false;
+    while (i < src.size() && std::isdigit(static_cast<unsigned char>(src[i]))) {
+        v = v * 10 + (src[i] - '0');
+        got = true;
+        ++i;
+    }
+    if (!got) return false;
+    *version = v;
+    while (i < src.size() && (src[i] == ' ' || src[i] == '\t')) ++i;
+    bool isEs = false;
+    if (i < src.size() && std::isalpha(static_cast<unsigned char>(src[i]))) {
+        size_t tok = i;
+        while (i < src.size() &&
+               (std::isalnum(static_cast<unsigned char>(src[i])) || src[i] == '_'))
+            ++i;
+        if (src.substr(tok, i - tok) == "es") isEs = true;
+    }
+    *es = isEs;
+    return true;
 }
 
 // Map an indexed buffer target to the capability that gates it.
@@ -588,6 +625,24 @@ void Context::compileShader(GLObjectName shader) {
         return;
     }
     std::string out, err;
+    // Reject GLSL versions beyond what YAGLT can translate before involving the
+    // translator/backend (SPEC §8: fail fast, report honestly). Desktop profiles
+    // are capped at 4.60; ES at 3.20. The COMPILE_STATUS path carries the
+    // diagnostic (standard GL semantics: no glGetError for bad source).
+    {
+        int ver = 0;
+        bool es = false;
+        if (parseVersionDirective(s->source, &ver, &es)) {
+            int maxVer = es ? kMaxESGLSLVersion : kMaxDesktopGLSLVersion;
+            if (ver > maxVer) {
+                s->compiled = false;
+                s->infoLog = "YAGLT: unsupported GLSL version " + std::to_string(ver) +
+                             (es ? " es (max " : " (max ") +
+                             std::to_string(maxVer) + ")";
+                return;
+            }
+        }
+    }
     // Translate desktop GLSL -> backend source when a translator is wired in.
     // On failure we report the translation error honestly (no fake success).
     if (!backend_.shaderCompiler().compile(s->source, s->stage, out, err)) {

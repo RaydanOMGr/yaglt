@@ -416,6 +416,16 @@ OpenGL 4.6:
 
 ## Recent Work
 
+2026-08-26 (GLSL version/profile capability check, this session)
+- Journal Next Step #3: `Context::compileShader` now rejects shaders whose
+  `#version` exceeds the translatable ceiling before involving the translator or
+  backend (SPEC §8: fail fast, honest reporting). Desktop profiles capped at 4.60,
+  ES at 3.20. A `parseVersionDirective` helper extracts `NNN [profile]`; rejection
+  sets COMPILE_STATUS false + an info-log diagnostic (standard GL semantics, no
+  glGetError). Supported versions still proceed to translation.
+- New `tests/unit/glsl_version_check_test.cpp`. Validation: default + sanitizer +
+  translate (Mesa) suites green.
+
 2026-08-26 (info-log retrieval, this session)
 - Added `glGetShaderInfoLog` / `glGetProgramInfoLog` (SPEC §7.3 / §7.14) to
   complement the GL_INFO_LOG_LENGTH query added previously. `Context` gained

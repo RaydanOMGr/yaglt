@@ -19,6 +19,7 @@ add_executable(yaglt_tests
     unit/shader_stage_test.cpp
     unit/shader_program_query_test.cpp
     unit/infolog_test.cpp
+    unit/glsl_version_check_test.cpp
     backend/gles_backend_test.cpp
 )
 
