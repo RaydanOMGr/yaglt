@@ -139,6 +139,31 @@ void glEndTransformFeedback();
 void glPauseTransformFeedback();
 void glResumeTransformFeedback();
 
+// --- Query objects (SPEC §4 / §19) ---
+GLuint glGenQuery();
+void glGenQueries(GLsizei n, GLuint* names);
+void glDeleteQuery(GLuint id);
+void glDeleteQueries(GLsizei n, const GLuint* names);
+GLboolean glIsQuery(GLuint id);
+void glBeginQuery(GLenum target, GLuint id);
+void glEndQuery(GLenum target);
+void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id);
+void glEndQueryIndexed(GLenum target, GLuint index);
+void glGetQueryiv(GLenum target, GLenum pname, GLint* params);
+void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
+void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params);
+void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);
+void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64* params);
+
+// --- Sync objects (SPEC §4 / §20, ARB_sync) ---
+GLsync glFenceSync(GLenum condition, GLbitfield flags);
+GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout);
+void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout);
+void glDeleteSync(GLsync sync);
+GLboolean glIsSync(GLsync sync);
+void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length,
+                GLint* values);
+
 // --- Sampler objects (SPEC §8.2) ---
 GLuint glGenSampler();
 void glGenSamplers(GLsizei n, GLuint* samplers);

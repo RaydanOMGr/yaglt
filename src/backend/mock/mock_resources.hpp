@@ -276,6 +276,21 @@ public:
     void pause() override { ++pauseCalls; }
     void resume() override { ++resumeCalls; }
 };
+class MockQuery : public BackendQuery {
+public:
+    int id = 0;
+    int beginCalls = 0, endCalls = 0;
+    uint32_t lastBeginTarget = 0;
+    // Test-injected result so getQueryObject* can be exercised deterministically.
+    int64_t resultValue = 0;
+    bool hasResult = false;
+    void begin(uint32_t target) override { ++beginCalls; lastBeginTarget = target; }
+    void end() override { ++endCalls; }
+    void queryResult(int64_t* value, bool* available) override {
+        *value = resultValue;
+        *available = hasResult;
+    }
+};
 class MockShader : public BackendShader {
 public:
     int id = 0;

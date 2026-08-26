@@ -346,6 +346,112 @@ void glResumeTransformFeedback() {
     g_current->resumeTransformFeedback();
 }
 
+// --- Query objects (SPEC §4 / §19) ---
+
+GLuint glGenQuery() {
+    if (g_current == nullptr) return 0;
+    return g_current->genQuery();
+}
+
+void glGenQueries(GLsizei n, GLuint* names) {
+    if (g_current == nullptr || n < 0) return;
+    g_current->genQueries(static_cast<uint32_t>(n), names);
+}
+
+void glDeleteQuery(GLuint id) {
+    if (g_current == nullptr) return;
+    g_current->deleteQuery(id);
+}
+
+void glDeleteQueries(GLsizei n, const GLuint* names) {
+    if (g_current == nullptr || n < 0) return;
+    g_current->deleteQueries(static_cast<uint32_t>(n), names);
+}
+
+GLboolean glIsQuery(GLuint id) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isQuery(id) ? GL_TRUE : GL_FALSE;
+}
+
+void glBeginQuery(GLenum target, GLuint id) {
+    if (g_current == nullptr) return;
+    g_current->beginQuery(target, id);
+}
+
+void glEndQuery(GLenum target) {
+    if (g_current == nullptr) return;
+    g_current->endQuery(target);
+}
+
+void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id) {
+    if (g_current == nullptr) return;
+    g_current->beginQueryIndexed(target, index, id);
+}
+
+void glEndQueryIndexed(GLenum target, GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->endQueryIndexed(target, index);
+}
+
+void glGetQueryiv(GLenum target, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryiv(target, pname, params);
+}
+
+void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryObjectiv(id, pname, params);
+}
+
+void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryObjectuiv(id, pname, params);
+}
+
+void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryObjecti64v(id, pname, params);
+}
+
+void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryObjectui64v(id, pname, params);
+}
+
+// --- Sync objects (SPEC §4 / §20, ARB_sync) ---
+
+GLsync glFenceSync(GLenum condition, GLbitfield flags) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->fenceSync(condition, flags);
+}
+
+GLenum glClientWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
+    if (g_current == nullptr) return GL_WAIT_FAILED;
+    return g_current->clientWaitSync(sync, flags, timeout);
+}
+
+void glWaitSync(GLsync sync, GLbitfield flags, GLuint64 timeout) {
+    if (g_current == nullptr) return;
+    g_current->waitSync(sync, flags, timeout);
+}
+
+void glDeleteSync(GLsync sync) {
+    if (g_current == nullptr) return;
+    g_current->deleteSync(sync);
+}
+
+GLboolean glIsSync(GLsync sync) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isSync(sync) ? GL_TRUE : GL_FALSE;
+}
+
+void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length,
+                 GLint* values) {
+    if (g_current == nullptr) return;
+    g_current->getSynciv(sync, pname, static_cast<uint32_t>(bufSize),
+                         length, values);
+}
+
 // --- Sampler objects (SPEC §8.2) ---
 
 GLuint glGenSampler() {

@@ -260,6 +260,50 @@ struct GLESBackendTransformFeedback : BackendTransformFeedback {
     GLuint handle = 0;
 };
 
+// Real GLES query object (SPEC §4 / §19). The native query is generated lazily
+// at construction; begin/end drive the driver and queryResult reads the counter
+// (via ui64v when available, falling back to uiv).
+struct GLESBackendQuery : BackendQuery {
+    GLESBackendQuery(GLESLibPtr lib) : lib(lib) {
+        if (lib && lib->loaded && lib->glGenQueries)
+            lib->glGenQueries(1, &handle);
+    }
+    ~GLESBackendQuery() override {
+        if (lib && lib->loaded && lib->glDeleteQueries && handle)
+            lib->glDeleteQueries(1, &handle);
+    }
+    void begin(uint32_t target) override {
+        activeTarget = target;
+        if (lib && lib->loaded && lib->glBeginQuery && handle)
+            lib->glBeginQuery(target, handle);
+    }
+    void end() override {
+        if (lib && lib->loaded && lib->glEndQuery)
+            lib->glEndQuery(activeTarget); // target must match begin
+    }
+    void queryResult(int64_t* value, bool* available) override {
+        *value = 0;
+        *available = false;
+        if (!lib || !lib->loaded || handle == 0) return;
+        if (lib->glGetQueryObjectui64v) {
+            GLuint64 v = 0;
+            lib->glGetQueryObjectui64v(handle, GL_QUERY_RESULT_AVAILABLE, &v);
+            *available = (v != 0);
+            lib->glGetQueryObjectui64v(handle, GL_QUERY_RESULT, &v);
+            *value = static_cast<int64_t>(v);
+        } else if (lib->glGetQueryObjectuiv) {
+            GLuint v = 0;
+            lib->glGetQueryObjectuiv(handle, GL_QUERY_RESULT_AVAILABLE, &v);
+            *available = (v != 0);
+            lib->glGetQueryObjectuiv(handle, GL_QUERY_RESULT, &v);
+            *value = static_cast<int64_t>(v);
+        }
+    }
+    GLESLibPtr lib;
+    GLuint handle = 0;
+    uint32_t activeTarget = 0;
+};
+
 // Real GLES shader object. Created at compile time and kept alive until the
 // frontend releases the owning shader object.
 struct GLESBackendShader : BackendShader {

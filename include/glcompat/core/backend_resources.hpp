@@ -118,6 +118,21 @@ public:
     virtual uint32_t nativeId() const { return 0; }
 };
 
+// Query object (SPEC §4 / §19). Occlusion/primitive/timer queries capture
+// counter values during drawing. Defaults are no-ops so backends opt in.
+// `queryResult` fills the most recent result value and availability; the
+// frontend interprets the pname (QUERY_RESULT / QUERY_RESULT_AVAILABLE).
+class BackendQuery {
+public:
+    virtual ~BackendQuery() = default;
+    virtual void begin(uint32_t target) {}
+    virtual void end() {}
+    virtual void queryResult(int64_t* value, bool* available) {
+        *value = 0;
+        *available = false;
+    }
+};
+
 // Transform feedback object (SPEC §13.3). Captures primitives during drawing into
 // bound transform-feedback buffers. Defaults are no-ops so backends opt in.
 class BackendTransformFeedback {

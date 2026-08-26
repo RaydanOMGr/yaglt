@@ -124,6 +124,19 @@ struct GLESLib {
     void (*glPauseTransformFeedback)(void) = nullptr;
     void (*glResumeTransformFeedback)(void) = nullptr;
 
+    // Query objects (SPEC §4 / §19). Core in GLES 3.0+; resolved optionally so
+    // load() still succeeds on a driver that lacks them (capability reports
+    // unsupported).
+    void (*glGenQueries)(GLsizei, GLuint*) = nullptr;
+    void (*glDeleteQueries)(GLsizei, const GLuint*) = nullptr;
+    GLboolean (*glIsQuery)(GLuint) = nullptr;
+    void (*glBeginQuery)(GLenum, GLuint) = nullptr;
+    void (*glEndQuery)(GLenum) = nullptr;
+    void (*glGetQueryiv)(GLenum, GLenum, GLint*) = nullptr;
+    void (*glGetQueryObjectiv)(GLuint, GLenum, GLint*) = nullptr;
+    void (*glGetQueryObjectuiv)(GLuint, GLenum, GLuint*) = nullptr;
+    void (*glGetQueryObjectui64v)(GLuint, GLenum, GLuint64*) = nullptr;
+
     // Sampler objects (SPEC §8.2, GLES 3.0+). Resolved optionally so load()
     // still succeeds on a driver that lacks them (capability reports unsupported).
     void (*glGenSamplers)(GLsizei, GLuint*) = nullptr;

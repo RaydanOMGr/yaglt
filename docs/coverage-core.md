@@ -35,10 +35,10 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 111 | **22.7%** |
-| Core profile only (spec − 55 removed commands) | 435 | 111 | **25.5%** |
+| Full spec (compat + core) | 490 | 131 | **26.7%** |
+| Core profile only (spec − 55 removed commands) | 435 | 131 | **30.1%** |
 
-All 100 covered commands are real `gl_api` entry points with frontend semantics
+All 131 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -68,16 +68,15 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush). Missing: **`glBlitFramebuffer`** (and `BlitNamedFramebuffer`), `glInvalidateFramebuffer`, `glColorMask`/`glDepthMask` present, `glStencilMask` present; **logic op**, **sRGB/alpha-to-coverage**, **`glClampColor`** |
 | §17 (fragment op details — alpha test, dither, logical op) | ❌ | alpha test removed-in-core; logical op / dither not implemented |
 | §18 (pixels: ReadPixels done; Copy/DrawPixels removed-compat) | 🟡 | `glReadPixels` implemented; `glPixelStorei` implemented |
-| §4 / §19 Sync objects & fences | ❌ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` — not implemented |
-| §4 / §20 Query objects (occlusion, timer, pipeline, primitiv
-ive) | ❌ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQuery*` — not implemented |
+| §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
+| §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🚫 | removed-in-core; not implemented (correct) |
 | §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
 | Shader stages | 🚫 | **Geometry, Tessellation, Compute** honestly **Unsupported** (no entry points; capability-gated). Only vertex + fragment stages translate (desktop→GLSL ES via glslang + SPIRV-Cross). |
 
-## The 100 covered core command prototypes
+## The 131 covered core command prototypes
 
-ActiveTexture, AttachShader, BeginTransformFeedback, BindBuffer,
+ActiveTexture, AttachShader, BeginQuery, BeginQueryIndexed, BeginTransformFeedback, BindBuffer,
 BindBufferBase, BindBufferRange, BufferStorage, BufferSubData,
 BindFramebuffer, BindRenderbuffer,
 CopyTexImage1D, CopyTexImage2D,
@@ -101,6 +100,9 @@ ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
 StencilOp, TexImage2D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
 TexParameteriv, Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
 Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
+DeleteQueries, DeleteQuery, EndQuery, EndQueryIndexed, FenceSync, ClientWaitSync,
+WaitSync, DeleteSync, IsSync, GetSynciv, GenQueries, GenQuery, GetQueryiv,
+GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, IsQuery.
 
 (Plus the type/vector variants already present in `gl_api`: `glUniform1fv`,
 `glUniform1iv`, `glUniformMatrix4fv`, `glGetString`, `glGetError`,

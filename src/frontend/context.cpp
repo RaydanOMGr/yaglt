@@ -1198,6 +1198,294 @@ void Context::resumeTransformFeedback() {
     transformFeedbackPaused_ = false;
 }
 
+// --- Query objects (SPEC §4 / §19) ---
+
+GLObjectName Context::genQuery() {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    GLObjectName name = nextName_++;
+    auto obj = std::make_unique<QueryObject>(name);
+    obj->backend = backend_.resourceFactory().createQuery();
+    queries_.emplace(name, std::move(obj));
+    return name;
+}
+
+void Context::genQueries(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genQuery();
+}
+
+void Context::deleteQuery(GLObjectName name) {
+    auto it = queries_.find(name);
+    if (it == queries_.end()) return;
+    // A query active at delete time is first ended (SPEC §4: deleting an active
+    // query object ends its capture on that target).
+    if (it->second->active) {
+        for (auto ait = activeQueries_.begin(); ait != activeQueries_.end();) {
+            if (ait->second == name) ait = activeQueries_.erase(ait);
+            else ++ait;
+        }
+    }
+    queries_.erase(it);
+}
+
+void Context::deleteQueries(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteQuery(names[i]);
+}
+
+bool Context::isQuery(GLObjectName name) const {
+    return queries_.find(name) != queries_.end();
+}
+
+void Context::beginQuery(uint32_t target, GLObjectName id) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // ungenerated id
+        return;
+    }
+    if (q->active || activeQueries_.count(target)) {
+        setError(GLError::InvalidOperation); // already active
+        return;
+    }
+    q->target = target;
+    q->active = true;
+    activeQueries_[target] = id;
+    if (q->backend) q->backend->begin(target);
+}
+
+void Context::endQuery(uint32_t target) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    auto it = activeQueries_.find(target);
+    if (it == activeQueries_.end()) {
+        setError(GLError::InvalidOperation); // no active query for target
+        return;
+    }
+    if (QueryObject* q = getQuery(it->second)) {
+        if (q->backend) q->backend->end();
+        q->active = false;
+    }
+    activeQueries_.erase(it);
+}
+
+void Context::beginQueryIndexed(uint32_t target, uint32_t /*index*/, GLObjectName id) {
+    // Indexed variants only exist for primitive/tf-written counters (SPEC §4).
+    if (target != GL_PRIMITIVES_GENERATED &&
+        target != GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    beginQuery(target, id);
+}
+
+void Context::endQueryIndexed(uint32_t target, uint32_t /*index*/) {
+    if (target != GL_PRIMITIVES_GENERATED &&
+        target != GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    endQuery(target);
+}
+
+QueryObject* Context::getQuery(GLObjectName name) {
+    auto it = queries_.find(name);
+    return it == queries_.end() ? nullptr : it->second.get();
+}
+
+const QueryObject* Context::getQuery(GLObjectName name) const {
+    auto it = queries_.find(name);
+    return it == queries_.end() ? nullptr : it->second.get();
+}
+
+void Context::getQueryiv(uint32_t target, uint32_t pname, int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!params) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+        case GL_CURRENT_QUERY: {
+            auto it = activeQueries_.find(target);
+            *params = (it == activeQueries_.end()) ? 0
+                                                  : static_cast<int32_t>(it->second);
+            return;
+        }
+        case GL_QUERY_COUNTER_BITS:
+            // Boolean-style queries report 0 counter bits; a real driver returns
+            // the counter width. The mock has no counter, so 0 is honest.
+            *params = 0;
+            return;
+        default:
+            setError(GLError::InvalidEnum);
+            return;
+    }
+}
+
+void Context::getQueryObjectiv(GLObjectName id, uint32_t pname, int32_t* params) {
+    getQueryObjectImpl(id, pname, reinterpret_cast<void*>(params), /*is64=*/false,
+                       /*isSigned=*/true);
+}
+
+void Context::getQueryObjectuiv(GLObjectName id, uint32_t pname, uint32_t* params) {
+    getQueryObjectImpl(id, pname, reinterpret_cast<void*>(params), /*is64=*/false,
+                       /*isSigned=*/false);
+}
+
+void Context::getQueryObjecti64v(GLObjectName id, uint32_t pname, int64_t* params) {
+    getQueryObjectImpl(id, pname, reinterpret_cast<void*>(params), /*is64=*/true,
+                       /*isSigned=*/true);
+}
+
+void Context::getQueryObjectui64v(GLObjectName id, uint32_t pname, uint64_t* params) {
+    getQueryObjectImpl(id, pname, reinterpret_cast<void*>(params), /*is64=*/true,
+                       /*isSigned=*/false);
+}
+
+// Shared body for glGetQueryObject* (SPEC §4): reads the cached result/availability
+// from the backend query resource and writes it in the requested width/sign.
+void Context::getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params,
+                                 bool is64, bool isSigned) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!params) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // ungenerated id
+        return;
+    }
+    int64_t value = 0;
+    bool available = false;
+    if (q->backend) q->backend->queryResult(&value, &available);
+    switch (pname) {
+        case GL_QUERY_RESULT:
+            if (is64) {
+                if (isSigned) *static_cast<int64_t*>(params) = value;
+                else *static_cast<uint64_t*>(params) = static_cast<uint64_t>(value);
+            } else {
+                if (isSigned) *static_cast<int32_t*>(params) = static_cast<int32_t>(value);
+                else *static_cast<uint32_t*>(params) = static_cast<uint32_t>(value);
+            }
+            return;
+        case GL_QUERY_RESULT_AVAILABLE:
+            if (is64) {
+                if (isSigned) *static_cast<int64_t*>(params) = available ? GL_TRUE : GL_FALSE;
+                else *static_cast<uint64_t*>(params) = available ? GL_TRUE : GL_FALSE;
+            } else {
+                if (isSigned) *static_cast<int32_t*>(params) = available ? GL_TRUE : GL_FALSE;
+                else *static_cast<uint32_t*>(params) = available ? GL_TRUE : GL_FALSE;
+            }
+            return;
+        default:
+            setError(GLError::InvalidEnum);
+            return;
+    }
+}
+
+// --- Sync objects (SPEC §4 / §20, ARB_sync) ---
+
+GLsync Context::fenceSync(uint32_t condition, uint32_t flags) {
+    if (!backend_.capabilities().isSupported(Feature::SyncObjects)) {
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (condition != GL_SYNC_GPU_COMMANDS_COMPLETE) {
+        setError(GLError::InvalidEnum);
+        return nullptr;
+    }
+    // Flush pending commands so the fence will eventually be signaled (SPEC §20:
+    // the fence tracks completion of previously issued GPU commands).
+    backend_.flush();
+    auto obj = std::make_unique<SyncObject>(nextName_++);
+    obj->condition = condition;
+    obj->flags = flags;
+    GLsync sync = reinterpret_cast<GLsync>(obj.get());
+    syncs_.push_back(std::move(obj));
+    return sync;
+}
+
+GLenum Context::clientWaitSync(GLsync sync, uint32_t /*flags*/, uint64_t /*timeout*/) {
+    if (!isSync(sync)) return GL_WAIT_FAILED;
+    // The mock has no real GPU timeline; a fence is treated as already satisfied.
+    SyncObject* s = reinterpret_cast<SyncObject*>(sync);
+    s->signaled = true;
+    return GL_ALREADY_SIGNALED;
+}
+
+void Context::waitSync(GLsync sync, uint32_t /*flags*/, uint64_t /*timeout*/) {
+    if (!isSync(sync)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Server-side stall; no observable effect in the mock.
+    reinterpret_cast<SyncObject*>(sync)->signaled = true;
+}
+
+void Context::deleteSync(GLsync sync) {
+    if (!isSync(sync)) return; // non-sync / already-deleted is a silent no-op
+    GLObjectName needle = reinterpret_cast<SyncObject*>(sync)->name;
+    for (auto it = syncs_.begin(); it != syncs_.end(); ++it) {
+        if ((*it)->name == needle) {
+            syncs_.erase(it);
+            return;
+        }
+    }
+}
+
+bool Context::isSync(GLsync sync) const {
+    if (!sync) return false;
+    const auto* p = reinterpret_cast<const SyncObject*>(sync);
+    for (const auto& s : syncs_) {
+        if (s.get() == p) return true;
+    }
+    return false;
+}
+
+void Context::getSynciv(GLsync sync, uint32_t pname, uint32_t bufSize,
+                        int32_t* length, int32_t* values) {
+    if (!isSync(sync)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (bufSize < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    SyncObject* s = reinterpret_cast<SyncObject*>(sync);
+    int32_t out = 0;
+    switch (pname) {
+        case GL_SYNC_STATUS:
+            out = s->signaled ? static_cast<int32_t>(GL_SIGNALED)
+                              : static_cast<int32_t>(GL_UNSIGNALED);
+            break;
+        case GL_SYNC_CONDITION:
+            out = static_cast<int32_t>(s->condition);
+            break;
+        case GL_SYNC_FLAGS:
+            out = static_cast<int32_t>(s->flags);
+            break;
+        default:
+            setError(GLError::InvalidEnum);
+            return;
+    }
+    if (length) *length = 1;
+    if (values) *values = out;
+}
+
 // --- Sampler objects (SPEC §8.2) ---
 
 GLObjectName Context::genSampler() {

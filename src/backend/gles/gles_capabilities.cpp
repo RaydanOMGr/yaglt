@@ -55,6 +55,11 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
                                         : S::Unsupported);
     // Sampler objects are core in GLES 3.0 (glBindSampler / glSamplerParameteri).
     table.set(F::SamplerObjects, es3 ? S::Native : S::Unsupported);
+
+    // Occlusion / primitive / timer queries are core in GLES 3.0 (glBeginQuery,
+    // glEndQuery, glGetQueryObjectuiv); sync fences are core in GLES 3.0 too.
+    table.set(F::Queries, es3 ? S::Native : S::Unsupported);
+    table.set(F::SyncObjects, es3 ? S::Native : S::Unsupported);
 }
 
 } // namespace glcompat

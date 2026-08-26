@@ -164,6 +164,17 @@ bool GLESLib::load() {
     resolve(gles, glSamplerParameteri, "glSamplerParameteri");
     resolve(gles, glIsSampler, "glIsSampler");
 
+    // Query objects (ES 3.0+); resolved optionally.
+    resolve(gles, glGenQueries, "glGenQueries");
+    resolve(gles, glDeleteQueries, "glDeleteQueries");
+    resolve(gles, glIsQuery, "glIsQuery");
+    resolve(gles, glBeginQuery, "glBeginQuery");
+    resolve(gles, glEndQuery, "glEndQuery");
+    resolve(gles, glGetQueryiv, "glGetQueryiv");
+    resolve(gles, glGetQueryObjectiv, "glGetQueryObjectiv");
+    resolve(gles, glGetQueryObjectuiv, "glGetQueryObjectuiv");
+    resolve(gles, glGetQueryObjectui64v, "glGetQueryObjectui64v");
+
     // Vertex attributes are ES 2.0+; resolve optionally so load() still succeeds
     // if a driver somehow lacks them.
     resolve(gles, glGetAttribLocation, "glGetAttribLocation");

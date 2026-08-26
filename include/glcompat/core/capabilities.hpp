@@ -42,6 +42,9 @@ enum class Feature {
     ProgramPipelines,
     DirectStateAccess,
     SamplerObjects,
+    // Queries / sync (SPEC §4 / §19 / §20)
+    Queries,
+    SyncObjects,
     // Sentinel
     FeatureCount
 };

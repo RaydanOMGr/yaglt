@@ -785,9 +785,9 @@ OpenGL 4.6:
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-    Per `docs/coverage-core.md` (2026-08-26) now 100/490 (20.4%) have a
-    frontend entry point; core-only is 100/435 (23.0%). The standing
-    objective is to reach **full coverage of all 490 spec command prototypes** —
+     Per `docs/coverage-core.md` (2026-08-26) now 131/490 (26.7%) have a
+     frontend entry point; core-only is 131/435 (30.1%). The standing
+     objective is to reach **full coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per
     `docs/feature-matrix.md` "Compatibility Profile"). Track progress against
@@ -813,10 +813,46 @@ OpenGL 4.6:
    dispatcher to the real driver. Enables transparent context wrapping + call
    interception for unmodified apps. Thin dispatch layer, not a new backend.
    (See `docs/architecture.md` "Planned: libEGL.so drop-in wrapper".)
-5. Commit each coherent step; update this journal.
-6. **Compatibility Profile** (deprecated fixed-function API) is planned but
-   gated — see `docs/feature-matrix.md` "Compatibility Profile": only enable it
-   when EGL explicitly selects a compat profile; only begin implementation once
-   a majority of core is done and remaining core is slower/harder; emulate via
-   record-then-replay into a generated GLSL shader. Shipping GLSL in the tree is
-   fine.
+ 5. Commit each coherent step; update this journal.
+ 6. **Compatibility Profile** (deprecated fixed-function API) is planned but
+    gated — see `docs/feature-matrix.md` "Compatibility Profile": only enable it
+    when EGL explicitly selects a compat profile; only begin implementation once
+    a majority of core is done and remaining core is slower/harder; emulate via
+    record-then-replay into a generated GLSL shader. Shipping GLSL in the tree is
+    fine.
+
+## Recent Work
+
+2026-08-26 (query objects + sync fences, this session)
+- Implemented Query objects (SPEC §4 / §19) and Sync fences (SPEC §4 / §20,
+  ARB_sync) — closing the journal's queries+sync priority gap and adding 20
+  command prototypes toward full 490 coverage (now 131/490 = 26.7% full,
+  131/435 = 30.1% core).
+- **Query objects**: `glGenQuery`/`glGenQueries`/`glDeleteQuery`/`glDeleteQueries`/
+  `glIsQuery`/`glBeginQuery`/`glEndQuery`/`glBeginQueryIndexed`/`glEndQueryIndexed`/
+  `glGetQueryiv`/`glGetQueryObjectiv`/`glGetQueryObjectuiv`/`glGetQueryObjecti64v`/
+  `glGetQueryObjectui64v`. Object model `QueryObject` owns an opaque
+  `BackendQuery`; one active query per target; begin-already-active / end-with-
+  none / begin-ungenerated-id → `GL_INVALID_OPERATION`; indexed variants require a
+  counter target (PRIMITIVES_GENERATED / TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN)
+  else `GL_INVALID_ENUM`. `getQueryiv` CURRENT_QUERY reads the active id (frontend
+  state, SPEC §10); results read the cached backend value. `Feature::Queries`
+  added; Native in mock + GLES (ES 3.0).
+- **Sync fences**: `glFenceSync`/`glClientWaitSync`/`glWaitSync`/`glDeleteSync`/
+  `glIsSync`/`glGetSynciv`. `fenceSync` returns an opaque `GLsync` that is the
+  frontend-owned `SyncObject` pointer (the raw pointer never reaches the backend,
+  SPEC §3) and flushes the backend so the fence will eventually be signaled;
+  unknown condition → `GL_INVALID_ENUM`. `getSynciv` reports SYNC_STATUS /
+  SYNC_CONDITION / SYNC_FLAGS; non-sync → `GL_INVALID_OPERATION`, `waitSync`
+  non-sync → `GL_INVALID_VALUE`; `deleteSync` on a non-sync is a silent no-op.
+  `Feature::SyncObjects` added; Native in mock + GLES (ES 3.0).
+- **Backend**: `BackendQuery` + `IResourceFactory::createQuery`; `MockQuery`
+  records begin/end and a test-injected result; `GLESBackendQuery` drives
+  `glGenQueries`/`glBeginQuery`/`glEndQuery`/`glGetQueryObjectuiv(ui64v)` via
+  optional `GLESLib` symbols (resolved defensively so load() still succeeds when
+  absent). `GLsync`/`GLint64`/`GLuint64` added to the frontend type layer.
+- New `tests/unit/query_sync_test.cpp` (mock path: gen/delete/is, begin/end
+  lifecycle + validation, indexed-target gating, getQuery* result/counter reads,
+  unsupported-capability paths, full sync fence lifecycle + error paths). All
+  suites green: default 187→**, sanitizer, and translate (Mesa) builds pass.
+

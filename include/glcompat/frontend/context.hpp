@@ -264,6 +264,44 @@ public:
     void pauseTransformFeedback();
     void resumeTransformFeedback();
 
+    // --- Query objects (SPEC §4 / §19) ---
+    // Capability-gated by Queries. gen/bind/delete manage the frontend query
+    // objects; begin/end bracket a capture of the given target. A query cannot
+    // be begun twice (already active) and end requires a matching active query.
+    GLObjectName genQuery();
+    void genQueries(uint32_t n, GLObjectName* names);
+    void deleteQuery(GLObjectName name);
+    void deleteQueries(uint32_t n, const GLObjectName* names);
+    bool isQuery(GLObjectName name) const;
+    void beginQuery(uint32_t target, GLObjectName id);
+    void endQuery(uint32_t target);
+    void beginQueryIndexed(uint32_t target, uint32_t index, GLObjectName id);
+    void endQueryIndexed(uint32_t target, uint32_t index);
+    QueryObject* getQuery(GLObjectName name);
+    const QueryObject* getQuery(GLObjectName name) const;
+    // Query parameter queries (SPEC §4 / §19, glGetQueryiv / glGetQueryObject*).
+    // Frontend-owned values: CURRENT_QUERY reads the active query for `target`;
+    // QUERY_RESULT / QUERY_RESULT_AVAILABLE read the cached result. Unknown
+    // pname yields GL_INVALID_ENUM; an unknown query id yields GL_INVALID_OPERATION.
+    void getQueryiv(uint32_t target, uint32_t pname, int32_t* params);
+    void getQueryObjectiv(GLObjectName id, uint32_t pname, int32_t* params);
+    void getQueryObjectuiv(GLObjectName id, uint32_t pname, uint32_t* params);
+    void getQueryObjecti64v(GLObjectName id, uint32_t pname, int64_t* params);
+    void getQueryObjectui64v(GLObjectName id, uint32_t pname, uint64_t* params);
+
+    // --- Sync objects (SPEC §4 / §20, ARB_sync) ---
+    // Capability-gated by SyncObjects. fenceSync creates a GPU-commands-complete
+    // fence and returns an opaque GLsync; clientWaitSync / waitSync order on it;
+    // deleteSync / isSync / getSynciv manage it. The frontend owns the SyncObject
+    // and never exposes the raw pointer to the backend (SPEC §3).
+    GLsync fenceSync(uint32_t condition, uint32_t flags);
+    GLenum clientWaitSync(GLsync sync, uint32_t flags, uint64_t timeout);
+    void waitSync(GLsync sync, uint32_t flags, uint64_t timeout);
+    void deleteSync(GLsync sync);
+    bool isSync(GLsync sync) const;
+    void getSynciv(GLsync sync, uint32_t pname, uint32_t bufSize, int32_t* length,
+                   int32_t* values);
+
     // --- Sampler objects (SPEC §8.2) ---
     // Capability-gated by SamplerObjects. gen/bind/delete manage the frontend
     // sampler objects; samplerParameteri sets scalar sampler parameters and is
@@ -373,6 +411,11 @@ public:
     bool isEnabled(uint32_t cap);
 
 private:
+    // Shared body for glGetQueryObject* (SPEC §4): reads the cached result /
+    // availability from the backend query resource into the requested width/sign.
+    void getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params, bool is64,
+                            bool isSigned);
+
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.
     BackendProgram* activeBackendProgram();
@@ -392,6 +435,11 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;
     std::unordered_map<GLObjectName, std::unique_ptr<TransformFeedbackObject>>
         transformFeedbacks_;
+    std::unordered_map<GLObjectName, std::unique_ptr<QueryObject>> queries_;
+    // Active query per target (SPEC §4: only one query per target may be active).
+    std::unordered_map<uint32_t, GLObjectName> activeQueries_;
+    // Frontend-owned sync objects. The raw pointer doubles as the opaque GLsync.
+    std::vector<std::unique_ptr<SyncObject>> syncs_;
 
     bool vertexStateDirty_ = false;
     bool transformFeedbackActive_ = false;

@@ -62,9 +62,25 @@ public:
 
     GLObjectName name = 0;
     uint32_t target = GL_TEXTURE_2D;        // last bound/targeted target
-    std::unordered_map<uint32_t, int> params; // pname -> param
+    std::unordered_map<uint32_t, int> params;   // scalar int pname -> param
+    std::unordered_map<uint32_t, float> paramsf; // scalar float pname -> param
+    std::unordered_map<uint32_t, std::vector<float>> paramsfv; // float vector
+    std::unordered_map<uint32_t, std::vector<int>> paramsiv;    // int vector
     std::vector<Image> images;              // allocated levels (glTexImage2D)
     bool storageSet = false;
+
+    // Recorded sub-image uploads (glTexSubImage*D), used for completeness queries
+    // and tests. The backend resource sees the native call.
+    struct SubImage {
+        uint32_t target = 0;
+        int level = 0;
+        int xoffset = 0, yoffset = 0, zoffset = 0;
+        int width = 0, height = 0, depth = 0;
+        uint32_t format = 0, type = 0;
+        int dim = 2; // 1, 2, or 3
+    };
+    std::vector<SubImage> subimages;
+
     std::unique_ptr<BackendTexture> backend;
 };
 
@@ -156,6 +172,31 @@ public:
     explicit TransformFeedbackObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
     std::unique_ptr<BackendTransformFeedback> backend;
+};
+
+// Frontend query object (SPEC §4 / §19). Owns an opaque backend query resource
+// and records whether it is currently active (between begin/end) and the target
+// it was begun against. The last query result is cached on the frontend so
+// glGetQueryObject* reads frontend-owned state (SPEC §10).
+class QueryObject {
+public:
+    explicit QueryObject(GLObjectName n) : name(n) {}
+    GLObjectName name = 0;
+    uint32_t target = 0;   // target used at beginQuery
+    bool active = false;   // currently between beginQuery / endQuery
+    std::unique_ptr<BackendQuery> backend;
+};
+
+// Frontend sync object (SPEC §4 / §20, ARB_sync). Fence syncs order GPU command
+// completion. The frontend owns the object and hands back an opaque GLsync
+// pointer; the condition/flags are recorded here.
+class SyncObject {
+public:
+    explicit SyncObject(uint32_t id) : name(id) {}
+    GLObjectName name = 0;
+    uint32_t condition = 0; // GL_SYNC_GPU_COMMANDS_COMPLETE
+    uint32_t flags = 0;
+    bool signaled = false;   // becomes true once commands complete
 };
 
 // Frontend shader object (SPEC §8). Source + compile status live here, decoupled

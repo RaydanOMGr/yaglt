@@ -19,6 +19,14 @@ using GLchar = char;
 using GLboolean = unsigned char;
 using GLbitfield = uint32_t;
 using GLubyte = unsigned char;
+using GLuint64 = uint64_t;
+using GLint64 = int64_t;
+
+// Opaque sync object handle (SPEC §4 / §20, ARB_sync). The frontend owns the
+// SyncObject instance and hands back an opaque pointer; the backend never sees
+// the raw pointer (SPEC §3: backend handles never leak into the generic API).
+struct __GLsync;
+using GLsync = __GLsync*;
 
 // Selected OpenGL constants required by the implemented API subset.
 // Values match the desktop GL specification so the frontend is compatible.
@@ -305,5 +313,33 @@ constexpr GLenum GL_BLEND_DST_ALPHA = 0x80CC;
 constexpr GLenum GL_BLEND_EQUATION_RGB = 0x8009;
 constexpr GLenum GL_BLEND_EQUATION_ALPHA = 0x883D;
 constexpr GLenum GL_BLEND_COLOR = 0x8005;
+
+// Query object targets (SPEC §4 / §19).
+constexpr GLenum GL_SAMPLES_PASSED = 0x8914;
+constexpr GLenum GL_ANY_SAMPLES_PASSED = 0x8C2F;
+constexpr GLenum GL_ANY_SAMPLES_PASSED_CONSERVATIVE = 0x8D6A;
+constexpr GLenum GL_PRIMITIVES_GENERATED = 0x8C87;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = 0x8C88;
+constexpr GLenum GL_TIME_ELAPSED = 0x88BF;
+constexpr GLenum GL_TIMESTAMP = 0x8E28;
+
+// Query parameter names (SPEC §4 / §19, glGetQueryiv / glGetQueryObject*).
+constexpr GLenum GL_QUERY_COUNTER_BITS = 0x8864;
+constexpr GLenum GL_CURRENT_QUERY = 0x8865;
+constexpr GLenum GL_QUERY_RESULT = 0x8866;
+constexpr GLenum GL_QUERY_RESULT_AVAILABLE = 0x8867;
+
+// Sync object parameters / status (SPEC §4 / §20, ARB_sync).
+constexpr GLenum GL_SYNC_STATUS = 0x9114;
+constexpr GLenum GL_SIGNALED = 0x9119;
+constexpr GLenum GL_UNSIGNALED = 0x9118;
+constexpr GLenum GL_SYNC_CONDITION = 0x9113;
+constexpr GLenum GL_SYNC_GPU_COMMANDS_COMPLETE = 0x9117;
+constexpr GLenum GL_SYNC_FLAGS = 0x9115;
+constexpr GLenum GL_ALREADY_SIGNALED = 0x911A;
+constexpr GLenum GL_TIMEOUT_EXPIRED = 0x911B;
+constexpr GLenum GL_CONDITION_SATISFIED = 0x911C;
+constexpr GLenum GL_WAIT_FAILED = 0x911D;
+constexpr GLenum GL_SYNC_FLUSH_COMMANDS_BIT = 0x00000001;
 
 } // namespace glcompat
