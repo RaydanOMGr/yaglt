@@ -18,6 +18,8 @@ public:
     GLObjectName name = 0;
     std::unique_ptr<BackendBuffer> backend;
     uint32_t target = 0; // last bound target, 0 = unbound
+    intptr_t size = 0;   // last glBufferData size
+    uint32_t usage = 0;  // last glBufferData usage
 };
 
 class TextureObject {

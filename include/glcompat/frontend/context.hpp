@@ -25,37 +25,48 @@ public:
 
     // --- Buffers ---
     GLObjectName genBuffer();
+    void genBuffers(uint32_t n, GLObjectName* names);
     void bindBuffer(uint32_t target, GLObjectName name);
     GLObjectName boundBuffer(uint32_t target) const;
     void deleteBuffer(GLObjectName name);
+    void deleteBuffers(uint32_t n, const GLObjectName* names);
+    void bufferData(uint32_t target, intptr_t size, uint32_t usage);
     BufferObject* getBuffer(GLObjectName name);
 
     // --- Textures ---
     GLObjectName genTexture();
+    void genTextures(uint32_t n, GLObjectName* names);
     void bindTexture(GLObjectName name);
     GLObjectName boundTexture() const;
     void deleteTexture(GLObjectName name);
+    void deleteTextures(uint32_t n, const GLObjectName* names);
     TextureObject* getTexture(GLObjectName name);
 
     // --- Renderbuffers ---
     GLObjectName genRenderbuffer();
+    void genRenderbuffers(uint32_t n, GLObjectName* names);
     void bindRenderbuffer(GLObjectName name);
     GLObjectName boundRenderbuffer() const;
     void deleteRenderbuffer(GLObjectName name);
+    void deleteRenderbuffers(uint32_t n, const GLObjectName* names);
     RenderbufferObject* getRenderbuffer(GLObjectName name);
 
     // --- Framebuffers ---
     GLObjectName genFramebuffer();
+    void genFramebuffers(uint32_t n, GLObjectName* names);
     void bindFramebuffer(GLObjectName name);
     GLObjectName boundFramebuffer() const;
     void deleteFramebuffer(GLObjectName name);
+    void deleteFramebuffers(uint32_t n, const GLObjectName* names);
     FramebufferObject* getFramebuffer(GLObjectName name);
 
     // --- Vertex arrays ---
     GLObjectName genVertexArray();
+    void genVertexArrays(uint32_t n, GLObjectName* names);
     void bindVertexArray(GLObjectName name);
     GLObjectName boundVertexArray() const;
     void deleteVertexArray(GLObjectName name);
+    void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
 
 private:

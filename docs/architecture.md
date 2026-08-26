@@ -57,9 +57,28 @@ OpenGL object identity is distinct from any backend handle. Backend resources
 may be recreated, lazily allocated, or emulated; the frontend object model
 owns the `unique_ptr` to the backend resource.
 
+## Frontend GL type layer
+
+The public API surface (`include/glcompat/frontend/gl_api.hpp`) uses a small,
+self-contained type/constant layer in `gl_types.hpp` (`GLenum`, `GLuint`,
+`GL_ARRAY_BUFFER`, …) whose values match the desktop GL specification. This
+keeps the frontend backend-agnostic and free of any single native header set.
+
+## Native API headers (vendored)
+
+`include/` also vendors Khronos native headers for backend implementations:
+`GL/` (desktop reference), `GLES/`, `GLES2/`, `GLES3/` (GLES backend),
+`EGL/` (headless surfaceless contexts on Linux/Android), and `vulkan/`
+(future backend). `KHR/khrplatform.h` is provided so `glext.h` / `GLES3/gl3.h`
+/ `EGL/egl.h` compile. These are consumed by backends, not by the frontend
+type layer. The Vulkan subset is currently partial (some `vk_video/*`
+sub-headers are absent); it becomes relevant only when the Vulkan backend
+starts.
+
 ## Current gaps
 
-The OpenGL 4.6 frontend API, real GLES backend, shader translation pipeline,
-and most object/state subsystems are not yet implemented. Phase 1 establishes
-the interfaces, the mock backend, the capability system, and the headless test
-harness so subsequent phases build on a verified foundation.
+The OpenGL 4.6 frontend API is partially exposed (object management + error
+path). Real GLES backend, shader translation pipeline, and most object/state
+subsystems are not yet implemented. Phase 1 establishes the interfaces, the
+mock backend, the capability system, and the headless test harness so
+subsequent phases build on a verified foundation.

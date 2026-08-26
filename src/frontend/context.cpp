@@ -58,6 +58,33 @@ BufferObject* Context::getBuffer(GLObjectName name) {
     return it == buffers_.end() ? nullptr : it->second.get();
 }
 
+void Context::genBuffers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) {
+        names[i] = genBuffer();
+    }
+}
+
+void Context::deleteBuffers(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) {
+        deleteBuffer(names[i]);
+    }
+}
+
+void Context::bufferData(uint32_t target, intptr_t size, uint32_t usage) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    obj->size = size;
+    obj->usage = usage;
+}
+
 GLObjectName Context::genTexture() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<TextureObject>(name);
@@ -86,6 +113,13 @@ void Context::deleteTexture(GLObjectName name) {
 TextureObject* Context::getTexture(GLObjectName name) {
     auto it = textures_.find(name);
     return it == textures_.end() ? nullptr : it->second.get();
+}
+
+void Context::genTextures(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genTexture();
+}
+void Context::deleteTextures(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteTexture(names[i]);
 }
 
 GLObjectName Context::genRenderbuffer() {
@@ -118,6 +152,13 @@ RenderbufferObject* Context::getRenderbuffer(GLObjectName name) {
     return it == renderbuffers_.end() ? nullptr : it->second.get();
 }
 
+void Context::genRenderbuffers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genRenderbuffer();
+}
+void Context::deleteRenderbuffers(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteRenderbuffer(names[i]);
+}
+
 GLObjectName Context::genFramebuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<FramebufferObject>(name);
@@ -148,6 +189,13 @@ FramebufferObject* Context::getFramebuffer(GLObjectName name) {
     return it == framebuffers_.end() ? nullptr : it->second.get();
 }
 
+void Context::genFramebuffers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genFramebuffer();
+}
+void Context::deleteFramebuffers(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteFramebuffer(names[i]);
+}
+
 GLObjectName Context::genVertexArray() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<VertexArrayObject>(name);
@@ -176,6 +224,13 @@ void Context::deleteVertexArray(GLObjectName name) {
 VertexArrayObject* Context::getVertexArray(GLObjectName name) {
     auto it = vertexArrays_.find(name);
     return it == vertexArrays_.end() ? nullptr : it->second.get();
+}
+
+void Context::genVertexArrays(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genVertexArray();
+}
+void Context::deleteVertexArrays(uint32_t n, const GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) deleteVertexArray(names[i]);
 }
 
 } // namespace glcompat

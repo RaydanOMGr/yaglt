@@ -5,8 +5,8 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 2 — Core OpenGL Objects
-Overall status: Early implementation (foundation + object model)
+Current milestone: Phase 3 — Core Rendering (API surface + GLES backend prep)
+Overall status: Early implementation (foundation + object model + GL dispatch)
 Last updated: 2026-08-26
 Known major blockers:
 - OpenGL 4.6 public API entry points (glGenBuffers etc.) not yet exposed.
@@ -41,13 +41,22 @@ Known major blockers:
   - Object classes (Buffer/Texture/RBO/FBO/VAO) own `unique_ptr<BackendX>`.
   - `GLError` getError/setError; InvalidOperation on binding ungenerated name.
   - `tests/unit/object_test.cpp` covers gen/bind/delete/error vs mock.
+- [x] Public GL dispatch surface (`glcompat` namespace)
+  - `gl_api.hpp/.cpp`: glGen*/glBind*/glDelete* for buffers, textures,
+    RBO, FBO, VAO; glBufferData; glGetError; current-context registry.
+  - Self-contained `gl_types.hpp` GL type/constant layer (values match spec).
+  - `tests/unit/gl_api_test.cpp` exercises dispatch + error via mock.
+- [x] Vendored Khronos native headers
+  - `include/GL`, `GLES`, `GLES2`, `GLES3`, `EGL`, `vulkan` added; added
+    missing `KHR/khrplatform.h` so glext/GLES3/EGL compile.
+  - Used by backends only; frontend keeps its own lightweight type layer.
 
 ## In Progress
 
-- [ ] Expose OpenGL 4.6 public API entry points (glGenBuffers, glBindBuffer, ...)
-      dispatching into `Context`.
-- [ ] Real GLES backend (interfaces reserved in `src/backend/gles`).
+- [ ] Real GLES backend foundation (consume `GLES3`/`EGL` headers; headless
+      surfaceless context on Linux/Mesa; capability detection).
 - [ ] State tracking subsystem (`src/state`).
+- [ ] Shader translation pipeline behind `IShaderCompiler`.
 
 ## TODO
 
@@ -103,14 +112,15 @@ OpenGL 4.6:
 - Self-contained test framework.
 - Phase 2: Frontend `Context`, object model (Buffer/Texture/RBO/FBO/VAO),
   `GLError` handling, object lifecycle tests.
+- Public GL dispatch surface (`gl_api`) over `Context`; gl_types layer.
+- Vendored Khronos native headers (GL/GLES/EGL/Vulkan) + KHR/khrplatform.h.
 - Architecture / feature-matrix / README docs.
 
 ## Next Steps
 
-1. Expose OpenGL 4.6 public API entry points (glGen*/glBind*/glDelete*) that
-   dispatch into `Context`.
+1. Begin GLES backend foundation: consume `GLES3`/`EGL` headers, create a
+   headless surfaceless EGL context on Linux/Mesa, populate CapabilityTable
+   from real version/extension detection.
 2. Add state-tracking subsystem (buffers/textures/bindings) in `src/state`.
-3. Implement core object model (buffers, textures, VAO, FBO) with
-   lifetime tracking and `unique_ptr<BackendX>` ownership.
-4. Begin GLES backend foundation + headless EGL context for real validation.
-5. Commit each coherent step; update this journal.
+3. Implement shader translation pipeline behind `IShaderCompiler`.
+4. Commit each coherent step; update this journal.
