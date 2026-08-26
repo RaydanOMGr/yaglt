@@ -30,6 +30,15 @@ target_sources(yaglt_core PRIVATE
     platform/linux/linux_capabilities.hpp
 )
 
+# Android platform capabilities (SPEC §5/§18). This is portable selection logic
+# (SDK-version -> implementation) with no Android header dependencies, so it is
+# compiled everywhere and unit-tested on host. The actual native Android API
+# calls inside the abstraction are guarded for the device build.
+target_sources(yaglt_core PRIVATE
+    platform/android/android_capabilities.cpp
+    platform/android/android_shared_memory.cpp
+)
+
 # Optional: build against Mesa's android_stub headers on a non-Android host to
 # exercise the Android platform path (SPEC §5/§18). The stub needs the compat
 # shim (force-included) because it uses NDK nullability/availability macros.

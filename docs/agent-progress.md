@@ -163,7 +163,7 @@ Known major blockers:
 - [x] P1: Implement shader translation pipeline behind `IShaderCompiler`.
 - [x] P0: Implement uniform setting (`glUniform*`) on the active program.
 - [ ] P1: Implement renderbuffer storage + full draw (texture+program) e2e on GLES/Mesa.
-- [ ] P1: Android platform capabilities + SDK 21 fallback abstraction.
+- [x] P1: Android platform capabilities + SDK 21 fallback abstraction.
 - [ ] P2: Capability-driven emulation selection scaffolding.
 - [ ] P3: Structured logging categories (CORE/STATE/RESOURCE/...).
 
@@ -371,6 +371,22 @@ OpenGL 4.6:
 - Verified end-to-end: `shader_translate_test` translates a desktop UBO vertex
   shader to GLSL ES (block member preserved), and `gles_e2e_shader_test`
   compiles the translated UBO shader on the real Mesa/GLES driver (ES 3.1).
+
+## Recent Work
+
+2026-08-26 (Android platform capabilities + SDK 21 fallback, this session)
+- SPEC §5/§18: centralized Android capability handling. New
+  `AndroidCapabilities` (`src/platform/android/android_capabilities.cpp`,
+  `include/glcompat/platform/android/android_capabilities.hpp`) implements
+  `IPlatformCapabilities`, resolving SDK-level decisions once at init.
+- New `ISharedMemory` abstraction + `createSharedMemory(sdk, size)` factory:
+  API >= 26 -> `NativeSharedMemory` (ashmem), API 21-25 ->
+  `FallbackSharedMemory`. Native Android API calls guarded for the device build;
+  selection logic is portable and host-tested (SPEC §5 example pattern).
+- Compiled into `yaglt_core` unconditionally (no Android header deps); new
+  `tests/unit/android_capabilities_test.cpp` covers identity, SDK->impl
+  selection, and both native/fallback map paths.
+- Validation: default + sanitizer suites green (66/66).
 
 ## Next Steps
 
