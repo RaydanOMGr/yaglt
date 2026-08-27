@@ -269,6 +269,10 @@ public:
     virtual bool link(std::string& log) = 0;
     // Attribute location for `name` after linking (-1 if absent).
     virtual int getAttribLocation(const std::string& name) const = 0;
+    // Bind generic vertex attribute `index` to the attribute variable `name`
+    // (SPEC §7.3.7 glBindAttribLocation). Called before link(); takes effect on
+    // the next link. Default no-op so backends opt in.
+    virtual void bindAttribLocation(const std::string& name, int index) {}
     // Native backend program id (e.g. driver GLuint). 0 when not linked.
     virtual uint32_t nativeId() const = 0;
 

@@ -602,6 +602,11 @@ struct GLESBackendProgram : BackendProgram {
         if (!lib || !lib->driverLive() || handle == 0) return -1;
         return static_cast<int>(lib->glGetAttribLocation(handle, name.c_str()));
     }
+    void bindAttribLocation(const std::string& name, int index) override {
+        if (lib && lib->driverLive() && handle != 0 && lib->glBindAttribLocation)
+            lib->glBindAttribLocation(handle, static_cast<GLuint>(index),
+                                     name.c_str());
+    }
     uint32_t nativeId() const override { return handle; }
 
     int getUniformLocation(const std::string& name) const override {

@@ -4252,6 +4252,10 @@ void Context::linkProgram(GLObjectName program) {
             if (s->backend) p->backend->attach(*s->backend);
         }
     }
+    // Apply any pre-link attribute bindings (SPEC §7.3.7 glBindAttribLocation).
+    for (const auto& b : p->attribBindings) {
+        if (p->backend) p->backend->bindAttribLocation(b.first, b.second);
+    }
     std::string log;
     bool ok = p->backend ? p->backend->link(log) : false;
     p->linked = ok;
@@ -4279,6 +4283,18 @@ int Context::getAttribLocation(GLObjectName program, const std::string& name) co
     const ProgramObject* p = getProgram(program);
     if (p == nullptr || !p->linked || !p->backend) return -1;
     return p->backend->getAttribLocation(name);
+}
+
+void Context::bindAttribLocation(GLObjectName program, uint32_t index,
+                                 const std::string& name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Record the binding; it is applied to the backend program at the next link
+    // (SPEC §7.3.7: bindAttribLocation only takes effect on subsequent link).
+    p->attribBindings[name] = static_cast<int>(index);
 }
 
 void Context::deleteProgram(GLObjectName program) {

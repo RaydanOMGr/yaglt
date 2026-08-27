@@ -1262,6 +1262,11 @@ GLint glGetAttribLocation(GLuint program, const GLchar* name) {
     return g_current->getAttribLocation(program, name ? name : "");
 }
 
+void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->bindAttribLocation(program, index, name ? name : "");
+}
+
 // --- Uniforms (SPEC §8) ---
 
 GLint glGetUniformLocation(GLuint program, const GLchar* name) {

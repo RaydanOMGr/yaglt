@@ -1386,4 +1386,28 @@ crashed agent, this session)
 - Validation: default 369/369 green; sanitizer 379/379 green with the single pre-existing
   `shader_translate_test` 1D-emulation quirk (unrelated to this change; translator untouched).
 
-## Next Steps
+2026-08-27 (glBindAttribLocation — SPEC §7.3.7, this session)
+- Implemented `glBindAttribLocation` (generic attribute index → attribute variable
+  name binding before link). `BackendProgram` gained a `bindAttribLocation(name, index)`
+  virtual (default no-op). `ProgramObject` gained an `attribBindings` map
+  (name→index). `Context::bindAttribLocation` records the request (unknown program →
+  `GL_INVALID_OPERATION`) and `Context::linkProgram` now replays every recorded binding
+  onto the backend program immediately before `BackendProgram::link`, so the binding
+  takes effect on the next link per spec.
+- `MockProgram` records `boundAttribLocations` and `getAttribLocation` prefers a
+  prior binding over its auto-assigned location (so the binding is authoritative and
+  testable without a real driver). `GLESBackendProgram` forwards to
+  `lib->glBindAttribLocation` (already resolved in `GLESLib`; core in GLES 2.0+).
+- Public `gl_api` exposes `glBindAttribLocation`; `glGetAttribLocation` already existed.
+- New `tests/unit/bind_attrib_location_test.cpp` (4 cases): unknown-program error,
+  recording on the `ProgramObject`, pre-link binding applied to the backend and
+  winning over the mock's default location, and re-bind-then-relink changing the
+  location. Registered in `tests/CMakeLists.txt`.
+- Validation: default 373/373 green (369 → 373, +4 cases). Coverage: §7 Programs row
+  updated (BindAttribLocation removed from missing).
+
+## Next Steps (carried)
+- Remaining §7 gaps: compute shaders, shader binaries.
+- Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
+- §11: `glProvokingVertex`. §15/§16: sRGB / alpha-to-coverage, `glClampColor`.
+- §10: indirect draw.

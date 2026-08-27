@@ -542,6 +542,10 @@ public:
         return true;
     }
     int getAttribLocation(const std::string& name) const override {
+        // A prior glBindAttribLocation takes precedence over the mock's
+        // auto-assigned location (SPEC §7.3.7: bound locations are authoritative).
+        auto bound = boundAttribLocations.find(name);
+        if (bound != boundAttribLocations.end()) return bound->second;
         auto it = attribLocations.find(name);
         if (it != attribLocations.end()) return it->second;
         // Assign a stable, deterministic location per name (like a driver would).
@@ -549,6 +553,11 @@ public:
         const_cast<MockProgram*>(this)->attribLocations[name] = loc;
         return loc;
     }
+    // Records a glBindAttribLocation request (SPEC §7.3.7). Observable in tests.
+    void bindAttribLocation(const std::string& name, int index) override {
+        boundAttribLocations[name] = index;
+    }
+    std::map<std::string, int> boundAttribLocations;
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 
     // Uniform recording (observable in tests). Locations and args captured.

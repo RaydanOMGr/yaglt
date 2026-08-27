@@ -674,6 +674,12 @@ public:
     bool isProgramLinked(GLObjectName program) const;
     std::string programInfoLog(GLObjectName program) const;
     int getAttribLocation(GLObjectName program, const std::string& name) const;
+    // Bind a generic vertex attribute index to an attribute variable name before
+    // linking (SPEC §7.3.7 glBindAttribLocation). Records the request on the
+    // program; applied to the backend at the next linkProgram. An unknown program
+    // reports GL_INVALID_OPERATION honestly.
+    void bindAttribLocation(GLObjectName program, uint32_t index,
+                           const std::string& name);
     void deleteProgram(GLObjectName program);
     ProgramObject* getProgram(GLObjectName name);
     const ProgramObject* getProgram(GLObjectName name) const;

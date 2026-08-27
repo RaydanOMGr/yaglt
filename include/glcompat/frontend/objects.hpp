@@ -272,6 +272,9 @@ public:
     bool separable = false;
     std::string infoLog;
     std::unique_ptr<BackendProgram> backend;
+    // Generic attribute bindings requested via glBindAttribLocation before link.
+    // name -> index; applied to the backend program at the next link (SPEC §7.3.7).
+    std::map<std::string, int> attribBindings;
 };
 
 // Frontend program-pipeline object (SPEC §7.4). Maps each shader stage to the
