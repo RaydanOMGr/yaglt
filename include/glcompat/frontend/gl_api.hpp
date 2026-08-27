@@ -597,6 +597,24 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
 // attribute instance step rate on the bound VAO; 0 = per-vertex, >0 = per-instance.
 void glVertexAttribDivisor(GLuint index, GLuint divisor);
 
+// Current generic vertex attribute values (SPEC §10.2). Recorded on the bound
+// VAO; used when an attribute is disabled (not array-sourced). Out-of-range
+// index -> GL_INVALID_VALUE; no VAO bound -> GL_INVALID_OPERATION.
+void glVertexAttrib1f(GLuint index, GLfloat x);
+void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y);
+void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z);
+void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
+void glVertexAttrib1fv(GLuint index, const GLfloat* v);
+void glVertexAttrib2fv(GLuint index, const GLfloat* v);
+void glVertexAttrib3fv(GLuint index, const GLfloat* v);
+void glVertexAttrib4fv(GLuint index, const GLfloat* v);
+void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w);
+void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
+void glVertexAttribI4iv(GLuint index, const GLint* v);
+void glVertexAttribI4uiv(GLuint index, const GLuint* v);
+void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params);
+void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params);
+
 // Draw expansion (SPEC §10). Multi-draw, range-bounded indexed draw, and
 // base-vertex indexed draw. Each flushes tracked state first; non-instanced
 // variants require an active program; capability-gated per the feature table.

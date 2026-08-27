@@ -230,6 +230,9 @@ constexpr GLenum GL_RGBA32UI = 0x8D70;
 
 // Texture-unit state queries (SPEC §2.1 / §10).
 constexpr GLenum GL_ACTIVE_TEXTURE = 0x84E0;
+
+// Vertex attribute state queries (SPEC §10.2 / §10.3).
+constexpr GLenum GL_CURRENT_VERTEX_ATTRIB = 0x8626;
 constexpr GLenum GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 constexpr GLenum GL_MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 constexpr GLenum GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;

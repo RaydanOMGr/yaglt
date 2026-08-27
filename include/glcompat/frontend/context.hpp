@@ -734,6 +734,29 @@ public:
     // flush time only when non-zero (SPEC §10: no redundant native call).
     void vertexAttribDivisor(uint32_t index, uint32_t divisor);
 
+    // Current generic vertex attribute values (SPEC §10.2). These feed a shader
+    // attribute when it is disabled (not array-sourced). Recorded on the bound
+    // VAO; no VAO bound -> GL_INVALID_OPERATION. Index >= kMaxVertexAttribs ->
+    // GL_INVALID_VALUE. Float family sets currentType = GL_FLOAT; integer family
+    // (I) sets GL_INT / GL_UNSIGNED_INT and stores integral values.
+    void vertexAttrib1f(uint32_t index, float x);
+    void vertexAttrib2f(uint32_t index, float x, float y);
+    void vertexAttrib3f(uint32_t index, float x, float y, float z);
+    void vertexAttrib4f(uint32_t index, float x, float y, float z, float w);
+    void vertexAttrib1fv(uint32_t index, const float* v);
+    void vertexAttrib2fv(uint32_t index, const float* v);
+    void vertexAttrib3fv(uint32_t index, const float* v);
+    void vertexAttrib4fv(uint32_t index, const float* v);
+    void vertexAttribI4i(uint32_t index, int32_t x, int32_t y, int32_t z, int32_t w);
+    void vertexAttribI4ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z, uint32_t w);
+    void vertexAttribI4iv(uint32_t index, const int32_t* v);
+    void vertexAttribI4uiv(uint32_t index, const uint32_t* v);
+    // Query per-attribute state. Only GL_CURRENT_VERTEX_ATTRIB is supported; any
+    // other pname -> GL_INVALID_ENUM. fv returns the value as float; iv returns
+    // the value as int (truncating for the float family).
+    void getVertexAttribfv(uint32_t index, GLenum pname, float* params);
+    void getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params);
+
     // --- Draw (SPEC §2.1) ---
     // Flush tracked pipeline state to the backend, then issue the draw. Drawing
     // with no active program is GL_INVALID_OPERATION (core profile). Instanced

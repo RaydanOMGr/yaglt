@@ -4663,6 +4663,113 @@ void Context::vertexAttribDivisor(uint32_t index, uint32_t divisor) {
     vertexStateDirty_ = true;
 }
 
+// --- Current generic vertex attribute values (SPEC §10.2) ---
+
+// GL guarantees at least 16 vertex attributes; the flush only iterates recorded
+// ones, so a fixed cap here merely guards the required GL_INVALID_VALUE path.
+static constexpr uint32_t kMaxVertexAttribs = 16;
+
+namespace {
+void setAttribCurrent(VertexArrayObject::AttribState& a, const double v[4],
+                     uint32_t type) {
+    for (int i = 0; i < 4; ++i) a.currentValue[i] = v[i];
+    a.currentType = type;
+}
+}  // namespace
+
+void Context::vertexAttrib1f(uint32_t index, float x) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, 0.0, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
+}
+
+void Context::vertexAttrib2f(uint32_t index, float x, float y) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
+}
+
+void Context::vertexAttrib3f(uint32_t index, float x, float y, float z) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, z, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
+}
+
+void Context::vertexAttrib4f(uint32_t index, float x, float y, float z, float w) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, z, w};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
+}
+
+void Context::vertexAttrib1fv(uint32_t index, const float* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib1f(index, v[0]);
+}
+
+void Context::vertexAttrib2fv(uint32_t index, const float* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib2f(index, v[0], v[1]);
+}
+
+void Context::vertexAttrib3fv(uint32_t index, const float* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib3f(index, v[0], v[1], v[2]);
+}
+
+void Context::vertexAttrib4fv(uint32_t index, const float* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib4f(index, v[0], v[1], v[2], v[3]);
+}
+
+void Context::vertexAttribI4i(uint32_t index, int32_t x, int32_t y, int32_t z,
+                              int32_t w) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), double(w)};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_INT);
+}
+
+void Context::vertexAttribI4ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z,
+                               uint32_t w) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), double(w)};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v,
+                     GL_UNSIGNED_INT);
+}
+
+void Context::vertexAttribI4iv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI4i(index, v[0], v[1], v[2], v[3]);
+}
+
+void Context::vertexAttribI4uiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI4ui(index, v[0], v[1], v[2], v[3]);
+}
+
+void Context::getVertexAttribfv(uint32_t index, GLenum pname, float* params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    for (int i = 0; i < 4; ++i) params[i] = float(a.currentValue[i]);
+}
+
+void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    for (int i = 0; i < 4; ++i) params[i] = int32_t(a.currentValue[i]);
+}
+
 // --- Direct State Access vertex arrays (SPEC §10.3.1) ---
 
 void Context::createVertexArrays(uint32_t n, GLObjectName* names) {

@@ -172,6 +172,13 @@ public:
         // Offset of this attribute's first component within its vertex buffer
         // binding (glVertexArrayAttrib*Format relativeoffset).
         intptr_t relativeoffset = 0;
+        // Current generic vertex attribute value (SPEC §10.2). Used when the
+        // attribute is disabled (not sourced from a vertex buffer array). GL
+        // keeps these as double-precision; the I (integer) family stores integral
+        // values that round-trip through glGetVertexAttribiv. Defaults match the
+        // GL initial state (w = 1).
+        double currentValue[4] = {0.0, 0.0, 0.0, 1.0};
+        uint32_t currentType = GL_FLOAT; // GL_FLOAT / GL_INT / GL_UNSIGNED_INT
     };
     std::vector<AttribState> attribs;
 

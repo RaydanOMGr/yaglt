@@ -1699,6 +1699,76 @@ void glVertexAttribDivisor(GLuint index, GLuint divisor) {
     g_current->vertexAttribDivisor(index, divisor);
 }
 
+void glVertexAttrib1f(GLuint index, GLfloat x) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1f(index, x);
+}
+
+void glVertexAttrib2f(GLuint index, GLfloat x, GLfloat y) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2f(index, x, y);
+}
+
+void glVertexAttrib3f(GLuint index, GLfloat x, GLfloat y, GLfloat z) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3f(index, x, y, z);
+}
+
+void glVertexAttrib4f(GLuint index, GLfloat x, GLfloat y, GLfloat z, GLfloat w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4f(index, x, y, z, w);
+}
+
+void glVertexAttrib1fv(GLuint index, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1fv(index, v);
+}
+
+void glVertexAttrib2fv(GLuint index, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2fv(index, v);
+}
+
+void glVertexAttrib3fv(GLuint index, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3fv(index, v);
+}
+
+void glVertexAttrib4fv(GLuint index, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4fv(index, v);
+}
+
+void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4i(index, x, y, z, w);
+}
+
+void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4ui(index, x, y, z, w);
+}
+
+void glVertexAttribI4iv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4iv(index, v);
+}
+
+void glVertexAttribI4uiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4uiv(index, v);
+}
+
+void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribfv(index, pname, params);
+}
+
+void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribiv(index, pname, params);
+}
+
 void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
                        GLsizei drawcount) {
     if (g_current == nullptr) return;
