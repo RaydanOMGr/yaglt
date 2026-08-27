@@ -144,6 +144,17 @@ bool GLESLib::load() {
     resolve(gles, glTexSubImage3D, "glTexSubImage3D");
     resolve(gles, glCopyTexImage1D, "glCopyTexImage1D");
     resolve(gles, glCopyTexImage2D, "glCopyTexImage2D");
+    // Immutable texture storage + DSA helpers (GL 4.2/4.5). Resolved optionally so
+    // load() still succeeds on drivers that lack them.
+    resolve(gles, glTexStorage1D, "glTexStorage1D");
+    resolve(gles, glTexStorage2D, "glTexStorage2D");
+    resolve(gles, glTexStorage3D, "glTexStorage3D");
+    resolve(gles, glGenerateMipmap, "glGenerateMipmap");
+    resolve(gles, glGetTexImage, "glGetTexImage");
+    resolve(gles, glGetTexLevelParameteriv, "glGetTexLevelParameteriv");
+    resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
+    resolve(gles, glTexBuffer, "glTexBuffer");
+    resolve(gles, glTexBufferRange, "glTexBufferRange");
     ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");

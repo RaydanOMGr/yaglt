@@ -229,6 +229,129 @@ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
     g_current->getTextureParameteriv(texture, pname, params);
 }
 
+void glCreateTextures(GLenum target, GLsizei n, GLuint* textures) {
+    if (g_current == nullptr) return;
+    g_current->createTextures(target, static_cast<uint32_t>(n), textures);
+}
+
+void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width) {
+    if (g_current == nullptr) return;
+    g_current->textureStorage1D(texture, static_cast<int>(levels),
+                               static_cast<uint32_t>(internalFormat),
+                               static_cast<int>(width));
+}
+
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->textureStorage2D(texture, static_cast<int>(levels),
+                               static_cast<uint32_t>(internalFormat),
+                               static_cast<int>(width), static_cast<int>(height));
+}
+
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width, GLsizei height, GLsizei depth) {
+    if (g_current == nullptr) return;
+    g_current->textureStorage3D(texture, static_cast<int>(levels),
+                               static_cast<uint32_t>(internalFormat),
+                               static_cast<int>(width), static_cast<int>(height),
+                               static_cast<int>(depth));
+}
+
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width,
+                         GLenum format, GLenum type, const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->textureSubImage1D(texture, level, xoffset, static_cast<int>(width),
+                                 static_cast<uint32_t>(format),
+                                 static_cast<uint32_t>(type), pixels);
+}
+
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                         GLsizei width, GLsizei height, GLenum format, GLenum type,
+                         const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->textureSubImage2D(texture, level, xoffset, yoffset,
+                                 static_cast<int>(width), static_cast<int>(height),
+                                 static_cast<uint32_t>(format),
+                                 static_cast<uint32_t>(type), pixels);
+}
+
+void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                         GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                         GLenum format, GLenum type, const GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->textureSubImage3D(texture, level, xoffset, yoffset, zoffset,
+                                 static_cast<int>(width), static_cast<int>(height),
+                                 static_cast<int>(depth),
+                                 static_cast<uint32_t>(format),
+                                 static_cast<uint32_t>(type), pixels);
+}
+
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->textureParameteri(texture, pname, static_cast<int>(param));
+}
+
+void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param) {
+    if (g_current == nullptr) return;
+    g_current->textureParameterf(texture, pname, param);
+}
+
+void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* params,
+                          GLsizei count) {
+    if (g_current == nullptr) return;
+    g_current->textureParameterfv(texture, pname, params, static_cast<int>(count));
+}
+
+void glTextureParameteriv(GLuint texture, GLenum pname, const GLint* params,
+                          GLsizei count) {
+    if (g_current == nullptr) return;
+    g_current->textureParameteriv(texture, pname, params, static_cast<int>(count));
+}
+
+void glGenerateTextureMipmap(GLuint texture) {
+    if (g_current == nullptr) return;
+    g_current->generateTextureMipmap(texture);
+}
+
+void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureParameterfv(texture, pname, params);
+}
+
+void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname,
+                                  GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureLevelParameteriv(texture, level, pname, params);
+}
+
+void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname,
+                                  GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureLevelParameterfv(texture, level, pname, params);
+}
+
+void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                       GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->getTextureImage(texture, level, static_cast<uint32_t>(format),
+                              static_cast<uint32_t>(type), pixels);
+}
+
+void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->textureBuffer(texture, static_cast<uint32_t>(internalFormat),
+                             buffer);
+}
+
+void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
+                          GLintptr offset, GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->textureBufferRange(texture, static_cast<uint32_t>(internalFormat),
+                                 buffer, offset, size);
+}
+
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers) {
     if (g_current == nullptr) return;
     g_current->genRenderbuffers(static_cast<uint32_t>(n), renderbuffers);

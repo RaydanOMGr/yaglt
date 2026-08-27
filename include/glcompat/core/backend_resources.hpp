@@ -74,7 +74,38 @@ public:
     virtual void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
                                 int x, int y, int width, int border) {}
     virtual void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
-                                int x, int y, int width, int height, int border) {}
+                                 int x, int y, int width, int height, int border) {}
+    // Allocate immutable storage for one texture level (SPEC §2.1 / §8.1,
+    // glTextureStorage*D DSA). `levels` is the total mip levels; width/height/
+    // depth the level-0 dimensions. GLES has no 1D textures so storage1D is a
+    // no-op on that backend.
+    virtual void storage1D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width) {}
+    virtual void storage2D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width, int height) {}
+    virtual void storage3D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width, int height, int depth) {}
+    // Regenerate the full mipmap chain (SPEC §8.1 glGenerateTextureMipmap).
+    virtual void generateMipmap(uint32_t target) {}
+    // Bind a buffer object as the texture's texel store (SPEC §8.9 glTextureBuffer
+    // / glTextureBufferRange). `bufferNativeId` is the backend-native buffer id.
+    virtual void textureBuffer(uint32_t target, uint32_t internalFormat,
+                               uint32_t bufferNativeId) {}
+    virtual void textureBufferRange(uint32_t target, uint32_t internalFormat,
+                                    uint32_t bufferNativeId, intptr_t offset,
+                                    intptr_t size) {}
+    // Level queries (SPEC §8.1 glGetTextureLevelParameter*). The frontend owns
+    // width/height/depth/internalFormat for allocated storage; backends with
+    // native introspection override these for completeness.
+    virtual void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
+                                     int32_t* params) {}
+    virtual void getLevelParameterfv(uint32_t target, int level, uint32_t pname,
+                                     float* params) {}
+    // Read texel data back (SPEC §8.1 glGetTextureImage). The frontend forwards
+    // to the backend, which serves driver memory; backends without native reads
+    // are no-ops (the mock records the call).
+    virtual void getTexImage(uint32_t target, int level, uint32_t format,
+                             uint32_t type, void* pixels) {}
     // Native backend texture id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };

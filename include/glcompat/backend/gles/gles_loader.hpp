@@ -168,9 +168,23 @@ struct GLESLib {
     void (*glTexSubImage3D)(GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei,
                             GLsizei, GLenum, GLenum, const void*) = nullptr;
     void (*glCopyTexImage1D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei,
-                             GLint) = nullptr;
+                              GLint) = nullptr;
     void (*glCopyTexImage2D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei,
-                             GLint) = nullptr;
+                              GLint) = nullptr;
+
+    // Immutable texture storage + DSA helpers (SPEC §8.1, GL 4.2/4.5). Resolved
+    // optionally so load() still succeeds on drivers that lack them (the
+    // capability system reports immutable storage unsupported when absent).
+    void (*glTexStorage1D)(GLenum, GLsizei, GLenum, GLsizei) = nullptr;
+    void (*glTexStorage2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei) = nullptr;
+    void (*glTexStorage3D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei) = nullptr;
+    void (*glGenerateMipmap)(GLenum) = nullptr;
+    void (*glGetTexImage)(GLenum, GLint, GLenum, GLenum, void*) = nullptr;
+    void (*glGetTexLevelParameteriv)(GLenum, GLint, GLenum, GLint*) = nullptr;
+    void (*glGetTexLevelParameterfv)(GLenum, GLint, GLenum, GLfloat*) = nullptr;
+    void (*glTexBuffer)(GLenum, GLenum, GLuint) = nullptr;
+    void (*glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr) = nullptr;
+
     void (*glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint) = nullptr;
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;

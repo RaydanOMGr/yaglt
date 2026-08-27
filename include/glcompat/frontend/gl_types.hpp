@@ -99,6 +99,22 @@ constexpr GLenum GL_TEXTURE_CUBE_MAP = 0x8513;
 constexpr GLenum GL_TEXTURE_CUBE_MAP_ARRAY = 0x9009;
 constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE = 0x9100;
 constexpr GLenum GL_TEXTURE_2D_MULTISAMPLE_ARRAY = 0x9102;
+constexpr GLenum GL_TEXTURE_BUFFER = 0x8C2A;
+constexpr GLenum GL_TEXTURE_BUFFER_DATA_STORE_BINDING = 0x8C2D;
+
+// Texture object parameter / level queries (SPEC §8.1 / §22, DSA getTex*).
+constexpr GLenum GL_TEXTURE_WIDTH = 0x1000;
+constexpr GLenum GL_TEXTURE_HEIGHT = 0x1001;
+constexpr GLenum GL_TEXTURE_DEPTH = 0x8071;
+constexpr GLenum GL_TEXTURE_INTERNAL_FORMAT = 0x1003;
+constexpr GLenum GL_TEXTURE_RED_TYPE = 0x8C10;
+constexpr GLenum GL_TEXTURE_GREEN_TYPE = 0x8C11;
+constexpr GLenum GL_TEXTURE_BLUE_TYPE = 0x8C12;
+constexpr GLenum GL_TEXTURE_ALPHA_TYPE = 0x8C13;
+constexpr GLenum GL_TEXTURE_SAMPLES = 0x9106;
+constexpr GLenum GL_TEXTURE_FIXED_SAMPLE_LOCATIONS = 0x9107;
+constexpr GLenum GL_TEXTURE_IMMUTABLE_FORMAT = 0x912F;
+constexpr GLenum GL_TEXTURE_IMMUTABLE_LEVELS = 0x82DF;
 constexpr GLenum GL_TEXTURE_MIN_FILTER = 0x2801;
 constexpr GLenum GL_TEXTURE_MAG_FILTER = 0x2800;
 constexpr GLenum GL_TEXTURE_WRAP_S = 0x2802;

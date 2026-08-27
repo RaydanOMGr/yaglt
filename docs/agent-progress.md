@@ -883,6 +883,30 @@ crashed agent, this session)
 
 ## Recent Work
 
+2026-08-27 (DSA texture object surface, this session)
+- Implemented the Direct State Access texture object surface (SPEC §2.1 / §8.1):
+  `glCreateTextures`, `glTextureStorage1D/2D/3D`, `glTextureSubImage1D/2D/3D`,
+  `glTextureParameteri`/`f`/`fv`/`iv`, `glGenerateTextureMipmap`,
+  `glGetTextureParameterfv`, `glGetTextureLevelParameteriv`/`fv`, `glGetTextureImage`,
+  `glTextureBuffer`/`glTextureBufferRange`. These operate on an explicit named
+  texture's backend resource (no global bind needed), pushing only changed state;
+  frontend owns storage dims so `glGetTextureLevelParameter*` reads width/height/
+  depth/internal format without a driver round-trip (SPEC §10). Capability-gated by
+  `DirectStateAccess` (now `Emulated` on every backend — YAGLT emulates DSA by
+  binding the named object's backend resource before each driver call, so the DSA
+  entry points are available even where the driver lacks `GL_EXT_direct_state_access`).
+- Backend: `BackendTexture` gained `storage1D/2D/3D`, `generateMipmap`, `textureBuffer`,
+  `textureBufferRange`, `getLevelParameteriv`/`fv`, `getTexImage` virtuals (default
+  no-op). `GLESBackendTexture` binds its handle then drives `glTexStorage*D` /
+  `glGenerateMipmap` / `glTexBuffer(Range)` / `glGetTexImage` / `glGetTexLevelParameter*`
+  (resolved as optional `GLESLib` symbols). `MockTexture` records every call. New
+  `tests/unit/dsa_named_texture_test.cpp` (15 cases) covers creation, storage
+  validation, sub-image storage requirement + bounds, parameter round-trip, mipmap,
+  level queries, image readback, buffer binding, unsupported-mode and ungenerated-
+  name error paths. Coverage now 154/490 (31.4%) full / 154/435 (35.4%) core.
+- Validation: default 226/226 green; sanitizer (ASan/UBSan + shader translate)
+  219/219 green.
+
 2026-08-26 (query objects + sync fences, this session)
 - Implemented Query objects (SPEC §4 / §19) and Sync fences (SPEC §4 / §20,
   ARB_sync) — closing the journal's queries+sync priority gap and adding 20

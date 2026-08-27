@@ -834,7 +834,7 @@ void Context::copyTexImage2D(uint32_t target, int level, uint32_t internalFormat
 }
 
 void Context::getTextureParameteriv(GLObjectName texture, GLenum pname,
-                                    int32_t* params) {
+                                     int32_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);
         return;
@@ -854,6 +854,361 @@ void Context::getTextureParameteriv(GLObjectName texture, GLenum pname,
     }
     auto it = tex->params.find(pname);
     *params = (it != tex->params.end()) ? it->second : 0;
+}
+
+namespace {
+// Resolve a DSA texture op: returns the texture object or nullptr when the op
+// must be refused (error already set). `name` is the explicit object name.
+TextureObject* dsaTexture(Context& ctx, GLObjectName name) {
+    if (!ctx.backend().capabilities().isSupported(Feature::DirectStateAccess)) {
+        ctx.setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (name == 0 || ctx.getTexture(name) == nullptr) {
+        ctx.setError(GLError::InvalidOperation); // ungenerated / default name
+        return nullptr;
+    }
+    return ctx.getTexture(name);
+}
+} // namespace
+
+void Context::createTextures(uint32_t target, uint32_t n, GLObjectName* names) {
+    if (!isValidTextureTarget(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        GLObjectName name = genTexture();
+        if (TextureObject* tex = getTexture(name)) tex->target = target;
+        names[i] = name;
+    }
+}
+
+void Context::textureStorage1D(GLObjectName texture, int levels,
+                               uint32_t internalFormat, int width) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (levels < 1 || width < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_1D;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = 1;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend) tex->backend->storage1D(GL_TEXTURE_1D, levels, internalFormat,
+                                              width);
+}
+
+void Context::textureStorage2D(GLObjectName texture, int levels,
+                               uint32_t internalFormat, int width, int height) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (levels < 1 || width < 1 || height < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_2D;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend) tex->backend->storage2D(GL_TEXTURE_2D, levels, internalFormat,
+                                              width, height);
+}
+
+void Context::textureStorage3D(GLObjectName texture, int levels,
+                               uint32_t internalFormat, int width, int height,
+                               int depth) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (levels < 1 || width < 1 || height < 1 || depth < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_3D;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = depth;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage3D(GL_TEXTURE_3D, levels, internalFormat, width,
+                                height, depth);
+}
+
+void Context::textureSubImage1D(GLObjectName texture, int level, int xoffset,
+                                int width, uint32_t format, uint32_t type,
+                                const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || width < 0 || xoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    if (tex->immutableStorage &&
+        (xoffset + width >
+         (tex->storageBaseWidth >> level ? tex->storageBaseWidth >> level : 1))) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_1D;
+    if (tex->backend)
+        tex->backend->texSubImage1D(GL_TEXTURE_1D, level, xoffset, width, format,
+                                    type, data);
+}
+
+void Context::textureSubImage2D(GLObjectName texture, int level, int xoffset,
+                                int yoffset, int width, int height,
+                                uint32_t format, uint32_t type, const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || width < 0 || height < 0 || xoffset < 0 || yoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    if (tex->immutableStorage) {
+        int w = tex->storageBaseWidth >> level ? tex->storageBaseWidth >> level : 1;
+        int h = tex->storageBaseHeight >> level ? tex->storageBaseHeight >> level : 1;
+        if (xoffset + width > w || yoffset + height > h) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+    }
+    tex->target = GL_TEXTURE_2D;
+    if (tex->backend)
+        tex->backend->texSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, width,
+                                    height, format, type, data);
+}
+
+void Context::textureSubImage3D(GLObjectName texture, int level, int xoffset,
+                                int yoffset, int zoffset, int width, int height,
+                                int depth, uint32_t format, uint32_t type,
+                                const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || width < 0 || height < 0 || depth < 0 || xoffset < 0 ||
+        yoffset < 0 || zoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    tex->target = GL_TEXTURE_3D;
+    if (tex->backend)
+        tex->backend->texSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset, zoffset,
+                                    width, height, depth, format, type, data);
+}
+
+void Context::textureParameteri(GLObjectName texture, uint32_t pname, int param) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    tex->params[pname] = param;
+    if (tex->backend) tex->backend->texParameteri(tex->target, pname, param);
+}
+
+void Context::textureParameterf(GLObjectName texture, uint32_t pname, float param) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    tex->paramsf[pname] = param;
+    if (tex->backend) tex->backend->texParameterf(tex->target, pname, param);
+}
+
+void Context::textureParameterfv(GLObjectName texture, uint32_t pname,
+                                 const float* params, int count) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->paramsfv[pname].assign(params, params + count);
+    if (tex->backend) tex->backend->texParameterfv(tex->target, pname, params, count);
+}
+
+void Context::textureParameteriv(GLObjectName texture, uint32_t pname,
+                                 const int* params, int count) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->paramsiv[pname].assign(params, params + count);
+    if (tex->backend) tex->backend->texParameteriv(tex->target, pname, params, count);
+}
+
+void Context::generateTextureMipmap(GLObjectName texture) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (tex->backend) tex->backend->generateMipmap(tex->target);
+}
+
+void Context::getTextureParameterfv(GLObjectName texture, GLenum pname,
+                                    float* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    TextureObject* tex = getTexture(texture);
+    if (tex == nullptr) {
+        *params = 0.0f; // default (name 0) texture object
+        return;
+    }
+    auto fi = tex->paramsf.find(pname);
+    if (fi != tex->paramsf.end()) {
+        *params = fi->second;
+        return;
+    }
+    auto fv = tex->paramsfv.find(pname);
+    if (fv != tex->paramsfv.end() && !fv->second.empty()) {
+        *params = fv->second[0];
+        return;
+    }
+    *params = 0.0f; // GL default for an unset parameter
+}
+
+void Context::getTextureLevelParameteriv(GLObjectName texture, int level,
+                                         GLenum pname, int32_t* params) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (level < 0 || level >= tex->storageLevels) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int w = tex->storageBaseWidth >> level ? tex->storageBaseWidth >> level : 1;
+    int h = tex->storageBaseHeight >> level ? tex->storageBaseHeight >> level : 1;
+    int d = tex->storageBaseDepth >> level ? tex->storageBaseDepth >> level : 1;
+    switch (pname) {
+    case GL_TEXTURE_WIDTH: *params = w; break;
+    case GL_TEXTURE_HEIGHT: *params = h; break;
+    case GL_TEXTURE_DEPTH: *params = d; break;
+    case GL_TEXTURE_INTERNAL_FORMAT:
+        *params = static_cast<int32_t>(tex->storageInternalFormat);
+        break;
+    default:
+        // Unknown pname: ask the backend (driver introspection) when present.
+        if (tex->backend) tex->backend->getLevelParameteriv(tex->target, level,
+                                                           pname, params);
+        else *params = 0;
+        return;
+    }
+    // Frontend owns these values; do not round-trip to the backend.
+}
+
+void Context::getTextureLevelParameterfv(GLObjectName texture, int level,
+                                         GLenum pname, float* params) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (level < 0 || level >= tex->storageLevels) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int w = tex->storageBaseWidth >> level ? tex->storageBaseWidth >> level : 1;
+    int h = tex->storageBaseHeight >> level ? tex->storageBaseHeight >> level : 1;
+    int d = tex->storageBaseDepth >> level ? tex->storageBaseDepth >> level : 1;
+    switch (pname) {
+    case GL_TEXTURE_WIDTH: *params = static_cast<float>(w); break;
+    case GL_TEXTURE_HEIGHT: *params = static_cast<float>(h); break;
+    case GL_TEXTURE_DEPTH: *params = static_cast<float>(d); break;
+    case GL_TEXTURE_INTERNAL_FORMAT:
+        *params = static_cast<float>(tex->storageInternalFormat);
+        break;
+    default:
+        if (tex->backend) tex->backend->getLevelParameterfv(tex->target, level,
+                                                           pname, params);
+        else *params = 0.0f;
+        return;
+    }
+}
+
+void Context::getTextureImage(GLObjectName texture, int level, uint32_t format,
+                              uint32_t type, void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getTexImage(tex->target, level, format, type,
+                                                pixels);
+}
+
+void Context::textureBuffer(GLObjectName texture, uint32_t internalFormat,
+                            GLObjectName buffer) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    uint32_t nativeBuffer = 0;
+    if (buffer != 0) {
+        if (auto* b = getBuffer(buffer))
+            nativeBuffer = b->backend ? b->backend->nativeId() : 0;
+    }
+    tex->target = GL_TEXTURE_BUFFER;
+    if (tex->backend)
+        tex->backend->textureBuffer(GL_TEXTURE_BUFFER, internalFormat, nativeBuffer);
+}
+
+void Context::textureBufferRange(GLObjectName texture, uint32_t internalFormat,
+                                 GLObjectName buffer, intptr_t offset,
+                                 intptr_t size) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    if (offset < 0 || size < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t nativeBuffer = 0;
+    if (buffer != 0) {
+        if (auto* b = getBuffer(buffer))
+            nativeBuffer = b->backend ? b->backend->nativeId() : 0;
+    }
+    tex->target = GL_TEXTURE_BUFFER;
+    if (tex->backend)
+        tex->backend->textureBufferRange(GL_TEXTURE_BUFFER, internalFormat,
+                                         nativeBuffer, offset, size);
 }
 
 GLObjectName Context::genRenderbuffer() {

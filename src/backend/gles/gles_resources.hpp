@@ -163,11 +163,78 @@ struct GLESBackendTexture : BackendTexture {
                               x, y, width, border);
     }
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
-                        int x, int y, int width, int height, int border) override {
+                         int x, int y, int width, int height, int border) override {
         if (!lib || !lib->driverLive() || !lib->glCopyTexImage2D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glCopyTexImage2D(target, level, glesSizedInternalFormat(internalFormat),
                               x, y, width, height, border);
+    }
+    void storage1D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width) override {
+        // OpenGL ES has no 1D textures; the call is a no-op on this backend.
+        if (!lib || !lib->driverLive() || !lib->glTexStorage1D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexStorage1D(target, static_cast<GLsizei>(levels),
+                            glesSizedInternalFormat(internalFormat),
+                            static_cast<GLsizei>(width));
+    }
+    void storage2D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width, int height) override {
+        if (!lib || !lib->driverLive() || !lib->glTexStorage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexStorage2D(target, static_cast<GLsizei>(levels),
+                            glesSizedInternalFormat(internalFormat),
+                            static_cast<GLsizei>(width),
+                            static_cast<GLsizei>(height));
+    }
+    void storage3D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width, int height, int depth) override {
+        if (!lib || !lib->driverLive() || !lib->glTexStorage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexStorage3D(target, static_cast<GLsizei>(levels),
+                            glesSizedInternalFormat(internalFormat),
+                            static_cast<GLsizei>(width), static_cast<GLsizei>(height),
+                            static_cast<GLsizei>(depth));
+    }
+    void generateMipmap(uint32_t target) override {
+        if (!lib || !lib->driverLive() || !lib->glGenerateMipmap) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glGenerateMipmap(target);
+    }
+    void textureBuffer(uint32_t target, uint32_t internalFormat,
+                       uint32_t bufferNativeId) override {
+        if (!lib || !lib->driverLive() || !lib->glTexBuffer) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexBuffer(target, glesSizedInternalFormat(internalFormat),
+                        bufferNativeId);
+    }
+    void textureBufferRange(uint32_t target, uint32_t internalFormat,
+                            uint32_t bufferNativeId, intptr_t offset,
+                            intptr_t size) override {
+        if (!lib || !lib->driverLive() || !lib->glTexBufferRange) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexBufferRange(target, glesSizedInternalFormat(internalFormat),
+                              bufferNativeId, offset, size);
+    }
+    void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
+                             int32_t* params) override {
+        if (!lib || !lib->driverLive() || !lib->glGetTexLevelParameteriv || !params)
+            return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glGetTexLevelParameteriv(target, level, pname, params);
+    }
+    void getLevelParameterfv(uint32_t target, int level, uint32_t pname,
+                             float* params) override {
+        if (!lib || !lib->driverLive() || !lib->glGetTexLevelParameterfv || !params)
+            return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glGetTexLevelParameterfv(target, level, pname, params);
+    }
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     void* pixels) override {
+        if (!lib || !lib->driverLive() || !lib->glGetTexImage) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glGetTexImage(target, level, format, type, pixels);
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;

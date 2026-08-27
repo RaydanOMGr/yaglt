@@ -107,6 +107,42 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params);
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
 
+// Direct State Access texture surface (SPEC §2.1 / §8.1). Operate on an explicit
+// named texture object instead of the bound one; capability-gated by
+// DirectStateAccess (Emulated: YAGLT emulates DSA via the object's backend).
+void glCreateTextures(GLenum target, GLsizei n, GLuint* textures);
+void glTextureStorage1D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width);
+void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width, GLsizei height);
+void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalFormat,
+                        GLsizei width, GLsizei height, GLsizei depth);
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width,
+                         GLenum format, GLenum type, const GLvoid* pixels);
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                         GLsizei width, GLsizei height, GLenum format, GLenum type,
+                         const GLvoid* pixels);
+void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                         GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                         GLenum format, GLenum type, const GLvoid* pixels);
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
+void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param);
+void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* params,
+                          GLsizei count);
+void glTextureParameteriv(GLuint texture, GLenum pname, const GLint* params,
+                          GLsizei count);
+void glGenerateTextureMipmap(GLuint texture);
+void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params);
+void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname,
+                                  GLint* params);
+void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname,
+                                  GLfloat* params);
+void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                       GLvoid* pixels);
+void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);
+void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
+                          GLintptr offset, GLsizeiptr size);
+
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);
 void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);

@@ -69,6 +69,15 @@ public:
     std::vector<Image> images;              // allocated levels (glTexImage2D)
     bool storageSet = false;
 
+    // Immutable storage (glTextureStorage*D, DSA / SPEC §8.1). Once set the
+    // levels and base dimensions drive glGetTextureLevelParameter* queries.
+    int storageLevels = 0;
+    int storageBaseWidth = 0;
+    int storageBaseHeight = 0;
+    int storageBaseDepth = 0;
+    uint32_t storageInternalFormat = 0;
+    bool immutableStorage = false;
+
     // Recorded sub-image uploads (glTexSubImage*D), used for completeness queries
     // and tests. The backend resource sees the native call.
     struct SubImage {

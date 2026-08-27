@@ -54,10 +54,11 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     // Separate program pipelines available via EXT on ES3.1-class drivers.
     table.set(F::ProgramPipelines,
               (es31 || has("GL_EXT_separate_shader_objects")) ? S::Emulated : S::Unsupported);
-    // Direct state access is desktop GL; GLES uses object-binding semantics.
-    table.set(F::DirectStateAccess, has("GL_EXT_direct_state_access")
-                                        ? S::Emulated
-                                        : S::Unsupported);
+    // Direct state access is desktop GL, but YAGLT emulates it for every backend
+    // by operating on the named object's backend resource (the backend resource
+    // binds itself before each driver call), so the DSA entry points are
+    // available regardless of any driver-provided DSA extension.
+    table.set(F::DirectStateAccess, S::Emulated);
     // Sampler objects are core in GLES 3.0 (glBindSampler / glSamplerParameteri).
     table.set(F::SamplerObjects, es3 ? S::Native : S::Unsupported);
 

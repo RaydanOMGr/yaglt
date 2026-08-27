@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 143 | **29.2%** |
-| Core profile only (spec − 55 removed commands) | 435 | 143 | **32.9%** |
+| Full spec (compat + core) | 490 | 154 | **31.4%** |
+| Core profile only (spec − 55 removed commands) | 435 | 154 | **35.4%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -44,7 +44,7 @@ signal.
 > mask, sample coverage, primitive restart) are already implemented but not yet
 > folded into the per-area table below. Regenerate for an exact tally.
 
-All 138 covered commands are real `gl_api` entry points with frontend semantics
+All 154 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -64,7 +64,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled` |
 | §6 Buffer objects | 🟡 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`. Missing: `BufferSubData`, `BufferStorage` (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, `InvalidateBuffer*`, `GetBufferSubData`, buffer queries |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate. Missing: `BindAttribLocation`, program **pipelines** (§7.4), **subroutines**, **compute** shaders, shader binaries |
-| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`). Missing: 1D/3D/cube/array/rect targets (texImage), full param coverage, `GetTexImage`, **multisample textures**, **buffer textures**, texture views, full **Named* (DSA object) surface** |
+| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: 1D/3D/cube/array/rect targets (TexImage), full param coverage, `GetTexImage` multisample, **multisample textures**, texture views, full **Named* (DSA object) surface** for FBO/RBO/VA |
 | §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). Missing: indirect draw, other `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
@@ -107,7 +107,12 @@ GetShaderInfoLog, GetShaderiv, LinkProgram, MapBuffer, MapBufferRange,
 PauseTransformFeedback, ReadPixels, RenderbufferStorage,
 ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
 StencilOp, TexImage2D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
-TexParameteriv, Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
+TexParameteriv, TextureParameteri, TextureParameterf, TextureParameterfv, TextureParameteriv,
+CreateTextures, TextureStorage1D, TextureStorage2D, TextureStorage3D,
+TextureSubImage1D, TextureSubImage2D, TextureSubImage3D, GenerateTextureMipmap,
+GetTextureParameterfv, GetTextureLevelParameteriv, GetTextureLevelParameterfv,
+GetTextureImage, TextureBuffer, TextureBufferRange,
+Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
 Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
 DeleteQueries, DeleteQuery, EndQuery, EndQueryIndexed, FenceSync, ClientWaitSync,
 WaitSync, DeleteSync, IsSync, GetSynciv, GenQueries, GenQuery, GetQueryiv,

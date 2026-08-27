@@ -159,7 +159,47 @@ public:
     void getTexParameteriv(GLenum target, GLenum pname, int32_t* params);
     void getTexParameterfv(GLenum target, GLenum pname, float* params);
     void getTextureParameteriv(GLObjectName texture, GLenum pname,
-                               int32_t* params);
+                                int32_t* params);
+
+    // --- Direct State Access texture surface (SPEC §2.1 / §8.1) ---
+    // Operate on an explicit, named texture object instead of the bound one.
+    // Capability-gated by DirectStateAccess (Emulated: YAGLT emulates DSA via the
+    // object's backend resource). createTextures generates names and records the
+    // implied target; the *storage / *subImage / *parameter / *buffer entry
+    // points validate the name and forward to the backend resource.
+    void createTextures(uint32_t target, uint32_t n, GLObjectName* names);
+    void textureStorage1D(GLObjectName texture, int levels, uint32_t internalFormat,
+                          int width);
+    void textureStorage2D(GLObjectName texture, int levels, uint32_t internalFormat,
+                          int width, int height);
+    void textureStorage3D(GLObjectName texture, int levels, uint32_t internalFormat,
+                          int width, int height, int depth);
+    void textureSubImage1D(GLObjectName texture, int level, int xoffset, int width,
+                           uint32_t format, uint32_t type, const void* data);
+    void textureSubImage2D(GLObjectName texture, int level, int xoffset, int yoffset,
+                           int width, int height, uint32_t format, uint32_t type,
+                           const void* data);
+    void textureSubImage3D(GLObjectName texture, int level, int xoffset, int yoffset,
+                           int zoffset, int width, int height, int depth,
+                           uint32_t format, uint32_t type, const void* data);
+    void textureParameteri(GLObjectName texture, uint32_t pname, int param);
+    void textureParameterf(GLObjectName texture, uint32_t pname, float param);
+    void textureParameterfv(GLObjectName texture, uint32_t pname, const float* params,
+                            int count);
+    void textureParameteriv(GLObjectName texture, uint32_t pname, const int* params,
+                            int count);
+    void generateTextureMipmap(GLObjectName texture);
+    void getTextureParameterfv(GLObjectName texture, GLenum pname, float* params);
+    void getTextureLevelParameteriv(GLObjectName texture, int level, GLenum pname,
+                                   int32_t* params);
+    void getTextureLevelParameterfv(GLObjectName texture, int level, GLenum pname,
+                                    float* params);
+    void getTextureImage(GLObjectName texture, int level, uint32_t format,
+                         uint32_t type, void* pixels);
+    void textureBuffer(GLObjectName texture, uint32_t internalFormat,
+                       GLObjectName buffer);
+    void textureBufferRange(GLObjectName texture, uint32_t internalFormat,
+                            GLObjectName buffer, intptr_t offset, intptr_t size);
 
     // --- Renderbuffers ---
     GLObjectName genRenderbuffer();

@@ -189,11 +189,71 @@ public:
         lastCopyWidth = width; lastCopyBorder = border;
     }
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
-                        int x, int y, int width, int height, int border) override {
+                         int x, int y, int width, int height, int border) override {
         ++copyTexImage2DCalls;
         lastSubTarget = target; lastSubLevel = level;
         lastCopyInternalFormat = internalFormat; lastCopyX = x; lastCopyY = y;
         lastCopyWidth = width; lastCopyHeight = height; lastCopyBorder = border;
+    }
+    int storage1DCalls = 0, storage2DCalls = 0, storage3DCalls = 0;
+    int generateMipmapCalls = 0;
+    int textureBufferCalls = 0, textureBufferRangeCalls = 0;
+    int getTexImageCalls = 0, getLevelParameterCalls = 0;
+    uint32_t lastStorageTarget = 0, lastStorageInternalFormat = 0;
+    uint32_t lastBufferInternalFormat = 0;
+    uint32_t lastBufferNativeId = 0;
+    intptr_t lastBufferOffset = 0, lastBufferSize = 0;
+    int lastStorageLevels = 0, lastStorageW = 0, lastStorageH = 0, lastStorageD = 0;
+    int lastLevelParamLevel = 0;
+    uint32_t lastLevelParamPname = 0;
+    void storage1D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width) override {
+        ++storage1DCalls; lastStorageTarget = target; lastStorageLevels = levels;
+        lastStorageInternalFormat = internalFormat; lastStorageW = width;
+    }
+    void storage2D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width, int height) override {
+        ++storage2DCalls; lastStorageTarget = target; lastStorageLevels = levels;
+        lastStorageInternalFormat = internalFormat; lastStorageW = width;
+        lastStorageH = height;
+    }
+    void storage3D(uint32_t target, int levels, uint32_t internalFormat,
+                   int width, int height, int depth) override {
+        ++storage3DCalls; lastStorageTarget = target; lastStorageLevels = levels;
+        lastStorageInternalFormat = internalFormat; lastStorageW = width;
+        lastStorageH = height; lastStorageD = depth;
+    }
+    void generateMipmap(uint32_t target) override {
+        ++generateMipmapCalls; lastSubTarget = target;
+    }
+    void textureBuffer(uint32_t target, uint32_t internalFormat,
+                       uint32_t bufferNativeId) override {
+        ++textureBufferCalls; lastStorageTarget = target;
+        lastBufferInternalFormat = internalFormat; lastBufferNativeId = bufferNativeId;
+        lastBufferOffset = 0;
+    }
+    void textureBufferRange(uint32_t target, uint32_t internalFormat,
+                            uint32_t bufferNativeId, intptr_t offset,
+                            intptr_t size) override {
+        ++textureBufferRangeCalls; lastStorageTarget = target;
+        lastBufferInternalFormat = internalFormat; lastBufferNativeId = bufferNativeId;
+        lastBufferOffset = offset; lastBufferSize = size;
+    }
+    void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
+                             int32_t* params) override {
+        ++getLevelParameterCalls; lastStorageTarget = target;
+        lastLevelParamLevel = level; lastLevelParamPname = pname; (void)params;
+    }
+    void getLevelParameterfv(uint32_t target, int level, uint32_t pname,
+                             float* params) override {
+        ++getLevelParameterCalls; lastStorageTarget = target;
+        lastLevelParamLevel = level; lastLevelParamPname = pname; (void)params;
+    }
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     void* pixels) override {
+        ++getTexImageCalls; lastSubTarget = target; lastSubLevel = level;
+        lastCopyInternalFormat = format; lastCopyBorder = static_cast<int>(type);
+        (void)pixels;
     }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
