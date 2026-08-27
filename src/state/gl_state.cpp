@@ -7,6 +7,9 @@ GLStateTracker::GLStateTracker() {
     texUnitsApplied_.resize(kMaxTextureUnits);
     samplerBound_.assign(kMaxTextureUnits, 0);
     samplerBoundApplied_.assign(kMaxTextureUnits, 0);
+    // SPEC §17.3.7: dithering is enabled by default.
+    capsCurrent_[0x0BD0 /* GL_DITHER */] = true;
+    capsApplied_[0x0BD0 /* GL_DITHER */] = true;
 }
 
 bool GLStateTracker::setCapability(GLenum cap, bool enabled) {
@@ -708,6 +711,7 @@ bool isTrackedCap(GLenum cap) {
     return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0B44 /* GL_CULL_FACE */ ||
            cap == 0x0B71 /* GL_DEPTH_TEST */ ||
            cap == 0x0B90 /* GL_STENCIL_TEST */ ||
+           cap == 0x0BD0 /* GL_DITHER */ ||
            cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
            cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */ ||
             cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */ ||
@@ -725,6 +729,7 @@ GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
 int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     switch (p) {
     case 0x0BE2: case 0x0B44: case 0x0B71: case 0x0B90: case 0x0C11: // caps
+    case 0x0BD0: // GL_DITHER
         if (!isTrackedCap(p)) return 0;
         out[0] = capValue(capsCurrent_, p);
         return 1;
@@ -904,6 +909,9 @@ void GLStateTracker::reset() {
     capsCurrent_.clear();
     capsApplied_.clear();
     capsDirty_ = false;
+    // SPEC §17.3.7: dithering is enabled by default.
+    capsCurrent_[0x0BD0 /* GL_DITHER */] = true;
+    capsApplied_[0x0BD0 /* GL_DITHER */] = true;
     activeProgram_ = 0;
     activeProgramApplied_ = 0;
     programDirty_ = false;

@@ -57,9 +57,13 @@ TEST_CASE("glget: capability and isEnabled agree") {
     // CULL_FACE default off, DEPTH_TEST off.
     EXPECT_FALSE(glIsEnabled(GL_CULL_FACE));
 
-    // Untracked cap -> error, glIsEnabled returns false.
-    EXPECT_FALSE(glIsEnabled(GL_DITHER));
-    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+    // GL_DITHER is tracked and enabled by default (SPEC §17.3.7); querying it is
+    // valid and returns true.
+    EXPECT_TRUE(glIsEnabled(GL_DITHER));
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    GLint d = 0;
+    glGetIntegerv(GL_DITHER, &d);
+    EXPECT_EQ(d, 1);
 
     setCurrentContext(nullptr);
 }

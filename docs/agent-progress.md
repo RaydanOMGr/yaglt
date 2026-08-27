@@ -1492,6 +1492,24 @@ crashed agent, this session)
   single pre-existing unrelated `shader_translate_test.cpp:53` 1D quirk. Coverage §11 row
   updated (provoking vertex done).
 
+2026-08-28 (cube-map faces, generic vertex attribs, glHint — this session)
+- Cube-map face TexImage (SPEC §8.1), commit `37a8584`: added 6
+  `GL_TEXTURE_CUBE_MAP_POSITIVE/NEGATIVE_*X/Y/Z` enums; `normalizeTextureTarget()`
+  folds faces → `GL_TEXTURE_CUBE_MAP`; used in `GLStateTracker::boundTextureForTarget`
+  and `tex->target`. `tests/unit/teximage_cube_test.cpp` (3 cases). Default 389/389.
+- Generic vertex attribute values (SPEC §10.2), commit `0a0c6e9`:
+  `glVertexAttrib1f..4f`/`*fv`, `glVertexAttribI4i`/`I4ui`/`I4iv`/`I4uiv`,
+  `glGetVertexAttribfv/iv` for `GL_CURRENT_VERTEX_ATTRIB`; recorded on bound VAO;
+  validation (no VAO → INVALID_OPERATION, index≥16 → INVALID_VALUE, unknown pname →
+  INVALID_ENUM). `tests/unit/vertex_attrib_generic_test.cpp` (9 cases). Default 397/397.
+- `glHint` (SPEC §21.1.1), commit `8ec5ba5`: hint target/mode constants in
+  `gl_types.hpp`; `GLStateSink::hint` pure virtual; `GLState::setHint`/`getHint` with
+  push-on-flush; mock backend records; GLES backend forwards `glHint`; `Context::hint`/
+  `getHint` validate (`isValidHintTarget`/`isValidHintMode`); `gl_api` wired.
+  `tests/unit/hint_test.cpp` (2 cases). Default 399/399, sanitizer 409/409 (+1 pre-existing
+  unrelated `shader_translate_test.cpp:53` empty-source quirk, unchanged this session).
+  Coverage §21 row updated (glHint done).
+
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.
 - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
