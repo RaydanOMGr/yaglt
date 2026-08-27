@@ -26,7 +26,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | GeometryShaders | Unsupported | — |
 | TessellationShaders | Unsupported | — |
 | ComputeShaders | Unsupported | — |
-| VertexArrayObjects | Native | `MockResourceFactory::createVertexArray` |
+| VertexArrayObjects | Native | `MockResourceFactory::createVertexArray`; DSA vertex-array surface (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, `glEnable/DisableVertexArrayAttrib`) implemented under `DirectStateAccess` (Emulated), replayed via the unified flush path |
 | InstancedRendering | Native | (planned) |
 | FramebufferObjects | Native | `MockResourceFactory::createFramebuffer` |
 | RenderbufferObjects | Native | `MockResourceFactory::createRenderbuffer` |

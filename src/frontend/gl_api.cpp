@@ -565,6 +565,73 @@ void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) {
     g_current->deleteVertexArrays(static_cast<uint32_t>(n), arrays);
 }
 
+// Direct State Access vertex-array surface (SPEC §10.3.1).
+void glCreateVertexArrays(GLsizei n, GLuint* arrays) {
+    if (g_current == nullptr) return;
+    g_current->createVertexArrays(static_cast<uint32_t>(n), arrays);
+}
+void glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayElementBuffer(vaobj, buffer);
+}
+void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->enableVertexArrayAttrib(vaobj, index);
+}
+void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->disableVertexArrayAttrib(vaobj, index);
+}
+void glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer,
+                               GLintptr offset, GLsizei stride) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayVertexBuffer(vaobj, bindingindex, buffer,
+                                       static_cast<intptr_t>(offset),
+                                       static_cast<int32_t>(stride));
+}
+void glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count,
+                                const GLuint* buffers, const GLintptr* offsets,
+                                const GLsizei* strides) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayVertexBuffers(
+        vaobj, first, static_cast<uint32_t>(count),
+        reinterpret_cast<const GLObjectName*>(buffers),
+        reinterpret_cast<const intptr_t*>(offsets),
+        reinterpret_cast<const int32_t*>(strides));
+}
+void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLboolean normalized,
+                               GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayAttribFormat(vaobj, attribindex,
+                                       static_cast<int32_t>(size), type,
+                                       normalized != 0, relativeoffset);
+}
+void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                                GLenum type, GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayAttribIFormat(vaobj, attribindex,
+                                        static_cast<int32_t>(size), type,
+                                        relativeoffset);
+}
+void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                                GLenum type, GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayAttribLFormat(vaobj, attribindex,
+                                        static_cast<int32_t>(size), type,
+                                        relativeoffset);
+}
+void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex,
+                                GLuint bindingindex) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayAttribBinding(vaobj, attribindex, bindingindex);
+}
+void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex,
+                                 GLuint divisor) {
+    if (g_current == nullptr) return;
+    g_current->vertexArrayBindingDivisor(vaobj, bindingindex, divisor);
+}
+
 // --- Transform feedback (SPEC §13.3) ---
 
 GLuint glGenTransformFeedback() {

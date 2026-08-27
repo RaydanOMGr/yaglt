@@ -380,6 +380,36 @@ public:
     void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
 
+    // Direct State Access vertex-array surface (SPEC §10.3.1). Capability-gated
+    // by DirectStateAccess: each function operates on the named VAO's backend
+    // resource directly, with no bound-VAO side effect. createVertexArrays is the
+    // DSA allocator (equivalent to genVertexArrays here). The separate
+    // attribute-format model (attrib <-> binding points) is emulated by recording
+    // state on the frontend VAO and replaying it through the legacy flush path.
+    void createVertexArrays(uint32_t n, GLObjectName* names);
+    void vertexArrayElementBuffer(GLObjectName vao, GLObjectName buffer);
+    void enableVertexArrayAttrib(GLObjectName vao, uint32_t index);
+    void disableVertexArrayAttrib(GLObjectName vao, uint32_t index);
+    void vertexArrayVertexBuffer(GLObjectName vao, uint32_t bindingindex,
+                                 GLObjectName buffer, intptr_t offset,
+                                 int32_t stride);
+    void vertexArrayVertexBuffers(GLObjectName vao, uint32_t first, uint32_t count,
+                                  const GLObjectName* buffers,
+                                  const intptr_t* offsets, const int32_t* strides);
+    void vertexArrayAttribFormat(GLObjectName vao, uint32_t attribindex,
+                                 int32_t size, uint32_t type, bool normalized,
+                                 uint32_t relativeoffset);
+    void vertexArrayAttribIFormat(GLObjectName vao, uint32_t attribindex,
+                                  int32_t size, uint32_t type,
+                                  uint32_t relativeoffset);
+    void vertexArrayAttribLFormat(GLObjectName vao, uint32_t attribindex,
+                                  int32_t size, uint32_t type,
+                                  uint32_t relativeoffset);
+    void vertexArrayAttribBinding(GLObjectName vao, uint32_t attribindex,
+                                  uint32_t bindingindex);
+    void vertexArrayBindingDivisor(GLObjectName vao, uint32_t bindingindex,
+                                   uint32_t divisor);
+
     // --- Transform feedback (SPEC §13.3) ---
     // Capability-gated by TransformFeedback. gen/bind/delete manage the frontend
     // TF objects; begin/end/pause/resume drive capture and are validated (e.g.

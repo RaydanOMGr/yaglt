@@ -218,6 +218,28 @@ void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
 
+// Direct State Access vertex-array surface (SPEC §10.3.1).
+void glCreateVertexArrays(GLsizei n, GLuint* arrays);
+void glVertexArrayElementBuffer(GLuint vaobj, GLuint buffer);
+void glEnableVertexArrayAttrib(GLuint vaobj, GLuint index);
+void glDisableVertexArrayAttrib(GLuint vaobj, GLuint index);
+void glVertexArrayVertexBuffer(GLuint vaobj, GLuint bindingindex, GLuint buffer,
+                               GLintptr offset, GLsizei stride);
+void glVertexArrayVertexBuffers(GLuint vaobj, GLuint first, GLsizei count,
+                                const GLuint* buffers, const GLintptr* offsets,
+                                const GLsizei* strides);
+void glVertexArrayAttribFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                               GLenum type, GLboolean normalized,
+                               GLuint relativeoffset);
+void glVertexArrayAttribIFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                                GLenum type, GLuint relativeoffset);
+void glVertexArrayAttribLFormat(GLuint vaobj, GLuint attribindex, GLint size,
+                                GLenum type, GLuint relativeoffset);
+void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex,
+                                GLuint bindingindex);
+void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex,
+                                 GLuint divisor);
+
 // --- Transform feedback (SPEC §13.3) ---
 GLuint glGenTransformFeedback();
 void glGenTransformFeedbacks(GLsizei n, GLuint* names);

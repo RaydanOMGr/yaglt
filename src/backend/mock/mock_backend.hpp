@@ -72,6 +72,30 @@ public:
     GLenum lastDisableCap = 0;
     std::vector<std::pair<GLenum, bool>> capCalls;
 
+    // Recording helpers for vertex-array flush assertions (DSA tests need the
+    // full per-attribute sequence, not just the last call).
+    struct VertexAttribPtrRecord {
+        uint32_t index = 0;
+        int32_t size = 0;
+        uint32_t type = 0;
+        bool normalized = false;
+        int32_t stride = 0;
+        intptr_t offset = 0;
+    };
+    struct BufferBindRecord {
+        uint32_t target = 0;
+        uint32_t buffer = 0;
+    };
+    struct VertexAttribDivisorRecord {
+        uint32_t index = 0;
+        uint32_t divisor = 0;
+    };
+    std::vector<uint32_t> enableVertexAttribOrder;
+    std::vector<uint32_t> disableVertexAttribOrder;
+    std::vector<VertexAttribPtrRecord> vertexAttribPtrs;
+    std::vector<BufferBindRecord> bufferBinds;
+    std::vector<VertexAttribDivisorRecord> attribDivisors;
+
     int useProgramCalls = 0;
     GLObjectName lastProgram = 0;
 
@@ -286,10 +310,12 @@ public:
     void enableVertexAttribArray(uint32_t index) override {
         ++enableVertexAttribArrayCalls;
         lastAttribIndex = index;
+        enableVertexAttribOrder.push_back(index);
     }
     void disableVertexAttribArray(uint32_t index) override {
         ++disableVertexAttribArrayCalls;
         lastAttribIndex = index;
+        disableVertexAttribOrder.push_back(index);
     }
     void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                               bool normalized, int32_t stride,
@@ -301,6 +327,8 @@ public:
         lastAttribNormalized = normalized;
         lastAttribStride = stride;
         lastAttribOffset = offset;
+        vertexAttribPtrs.push_back(
+            {index, size, type, normalized, stride, offset});
     }
     int vertexAttribDivisorCalls = 0;
     uint32_t lastAttribDivisorIndex = 0;
@@ -309,6 +337,7 @@ public:
         ++vertexAttribDivisorCalls;
         lastAttribDivisorIndex = index;
         lastAttribDivisor = divisor;
+        attribDivisors.push_back({index, divisor});
     }
     int bindBufferCalls = 0;
     uint32_t lastBindBufferTarget = 0;
@@ -317,6 +346,7 @@ public:
         ++bindBufferCalls;
         lastBindBufferTarget = target;
         lastBindBufferName = buffer;
+        bufferBinds.push_back({target, buffer});
     }
 
     // Texture units (SPEC §2.1). Recorded so tests can assert the frontend

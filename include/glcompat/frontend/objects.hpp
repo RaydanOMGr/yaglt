@@ -3,6 +3,7 @@
 #include "glcompat/core/backend_resources.hpp"
 #include "glcompat/frontend/gl_types.hpp"
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -161,8 +162,32 @@ public:
         // Per-attribute divisor (SPEC §10, glVertexAttribDivisor). 0 = advance once
         // per vertex (the GL default); >0 advances once per `divisor` instances.
         uint32_t divisor = 0;
+        // Vertex buffer binding point this attribute sources from (SPEC §10.3.1,
+        // the separate attribute-format model introduced with DSA). Defaults to
+        // the attribute index so the legacy single-binding path
+        // (glVertexAttribPointer) keeps working unchanged.
+        uint32_t binding = 0;
+        // Offset of this attribute's first component within its vertex buffer
+        // binding (glVertexArrayAttrib*Format relativeoffset).
+        intptr_t relativeoffset = 0;
     };
     std::vector<AttribState> attribs;
+
+    // Vertex buffer binding points (SPEC §10.3.1). Indexed by binding index; a
+    // binding couples a buffer object with a base offset, stride, and divisor.
+    // The separate-format model lets several attributes share one interleaved
+    // buffer through distinct binding points and relative offsets.
+    struct VertexBufferBinding {
+        GLObjectName buffer = 0;
+        intptr_t offset = 0;
+        int32_t stride = 0;
+        uint32_t divisor = 0;
+    };
+    std::map<uint32_t, VertexBufferBinding> bindings;
+
+    // Element array buffer bound to this VAO (glVertexArrayElementBuffer,
+    // SPEC §10.3.1). 0 means no element buffer is attached.
+    GLObjectName elementBuffer = 0;
 
     AttribState& attrib(uint32_t index) {
         for (auto& a : attribs) {
@@ -172,6 +197,7 @@ public:
         attribs.back().index = index;
         return attribs.back();
     }
+    VertexBufferBinding& binding(uint32_t index) { return bindings[index]; }
 };
 
 // Frontend sampler object (SPEC §8.2). Owns an opaque backend sampler resource

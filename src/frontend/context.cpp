@@ -2474,22 +2474,38 @@ void Context::flushState() {
             if (boundVertexArray_ != 0) {
                 if (VertexArrayObject* vao = getVertexArray(boundVertexArray_)) {
                     sink->bindVertexArray(boundVertexArray_);
+                    // The element array buffer is part of VAO state on GLES; bind
+                    // it while the VAO is bound so it is captured (SPEC §10.3.1).
+                    if (vao->elementBuffer != 0) {
+                        sink->bindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                                         vao->elementBuffer);
+                    }
+                    VertexArrayObject::VertexBufferBinding empty{};
                     for (const auto& a : vao->attribs) {
                         if (a.enabled)
                             sink->enableVertexAttribArray(a.index);
                         else
                             sink->disableVertexAttribArray(a.index);
+                        // Resolve the attribute's vertex buffer binding point
+                        // (SPEC §10.3.1 separate model). The final attribute
+                        // pointer = binding.offset + attrib.relativeoffset.
+                        auto bit = vao->bindings.find(a.binding);
+                        const VertexArrayObject::VertexBufferBinding& b =
+                            (bit != vao->bindings.end()) ? bit->second : empty;
                         // GLES captures the attribute's buffer binding from the
-                        // ARRAY_BUFFER bound at gl*VertexAttribPointer time; bind
+                        // bound ARRAY_BUFFER at gl*VertexAttribPointer time; bind
                         // it (frontend name -> native id) before the native call.
-                        sink->bindBuffer(GL_ARRAY_BUFFER, a.buffer);
-                        sink->vertexAttribPointer(a.index, a.size, a.type,
-                                                  a.normalized, a.stride,
-                                                  a.offset);
+                        // Pushed for every recorded attribute (SPEC §10: the
+                        // legacy path always issued the pointer, even with no
+                        // buffer bound), so the driver state stays consistent.
+                        sink->bindBuffer(GL_ARRAY_BUFFER, b.buffer);
+                        sink->vertexAttribPointer(
+                            a.index, a.size, a.type, a.normalized, b.stride,
+                            b.offset + a.relativeoffset);
                         // Non-zero divisor is pushed; 0 is the GL default so it
                         // needs no native call (SPEC §10: skip redundant state).
-                        if (a.divisor != 0)
-                            sink->vertexAttribDivisor(a.index, a.divisor);
+                        if (b.divisor != 0)
+                            sink->vertexAttribDivisor(a.index, b.divisor);
                     }
                 }
             }
@@ -2973,7 +2989,8 @@ void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
         setError(GLError::InvalidOperation);
         return;
     }
-    auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    auto* vao = getVertexArray(boundVertexArray_);
+    auto& a = vao->attrib(index);
     a.size = size;
     a.type = type;
     a.normalized = normalized;
@@ -2981,6 +2998,17 @@ void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
     a.offset = offset;
     a.buffer = boundBuffer(GL_ARRAY_BUFFER);
     a.enabled = true;
+    // Default to the single-binding model: attribute i is fed by binding i.
+    a.binding = index;
+    a.relativeoffset = 0;
+    // Mirror the attribute's buffer/offset/stride/divisor into the binding so the
+    // flush can derive the native vertexAttribPointer purely from binding points
+    // (unifying the legacy and DSA paths).
+    auto& b = vao->bindings[index];
+    b.buffer = a.buffer;
+    b.offset = offset;
+    b.stride = stride;
+    b.divisor = a.divisor;
     vertexStateDirty_ = true;
 }
 
@@ -2993,7 +3021,233 @@ void Context::vertexAttribDivisor(uint32_t index, uint32_t divisor) {
         setError(GLError::InvalidOperation);
         return;
     }
-    getVertexArray(boundVertexArray_)->attrib(index).divisor = divisor;
+    auto* vao = getVertexArray(boundVertexArray_);
+    auto& a = vao->attrib(index);
+    a.divisor = divisor;
+    vao->bindings[a.binding].divisor = divisor;
+    vertexStateDirty_ = true;
+}
+
+// --- Direct State Access vertex arrays (SPEC §10.3.1) ---
+
+void Context::createVertexArrays(uint32_t n, GLObjectName* names) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) names[i] = genVertexArray();
+}
+
+void Context::vertexArrayElementBuffer(GLObjectName vaoName,
+                                       GLObjectName buffer) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated VAO name
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    vao->elementBuffer = buffer;
+    vertexStateDirty_ = true;
+}
+
+void Context::enableVertexArrayAttrib(GLObjectName vaoName, uint32_t index) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    vao->attrib(index).enabled = true;
+    vertexStateDirty_ = true;
+}
+
+void Context::disableVertexArrayAttrib(GLObjectName vaoName, uint32_t index) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    vao->attrib(index).enabled = false;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayVertexBuffer(GLObjectName vaoName,
+                                      uint32_t bindingindex,
+                                      GLObjectName buffer, intptr_t offset,
+                                      int32_t stride) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    auto& b = vao->bindings[bindingindex];
+    b.buffer = buffer;
+    b.offset = offset;
+    b.stride = stride;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayVertexBuffers(GLObjectName vaoName, uint32_t first,
+                                       uint32_t count, const GLObjectName* buffers,
+                                       const intptr_t* offsets,
+                                       const int32_t* strides) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffers == nullptr || offsets == nullptr || strides == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t bindingindex = first + i;
+        if (buffers[i] != 0 &&
+            buffers_.find(buffers[i]) == buffers_.end()) {
+            setError(GLError::InvalidOperation); // ungenerated buffer name
+            return;
+        }
+        auto& b = vao->bindings[bindingindex];
+        b.buffer = buffers[i];
+        b.offset = offsets[i];
+        b.stride = strides[i];
+    }
+    vertexStateDirty_ = true;
+}
+
+// Shared body for the three *Attrib*Format variants (SPEC §10.3.1): they differ
+// only in whether the attribute is normalized and the value type family.
+static void setAttribFormat(VertexArrayObject& vao, uint32_t attribindex,
+                            int32_t size, uint32_t type, bool normalized,
+                            uint32_t relativeoffset) {
+    auto& a = vao.attrib(attribindex);
+    a.size = size;
+    a.type = type;
+    a.normalized = normalized;
+    a.relativeoffset = relativeoffset;
+}
+
+void Context::vertexArrayAttribFormat(GLObjectName vaoName, uint32_t attribindex,
+                                      int32_t size, uint32_t type, bool normalized,
+                                      uint32_t relativeoffset) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    setAttribFormat(*vao, attribindex, size, type, normalized, relativeoffset);
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayAttribIFormat(GLObjectName vaoName, uint32_t attribindex,
+                                       int32_t size, uint32_t type,
+                                       uint32_t relativeoffset) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Integer attributes are never normalized (SPEC §10.3.1, glVertexArrayAttrib
+    // IFormat).
+    setAttribFormat(*vao, attribindex, size, type, false, relativeoffset);
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayAttribLFormat(GLObjectName vaoName, uint32_t attribindex,
+                                       int32_t size, uint32_t type,
+                                       uint32_t relativeoffset) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Double-precision attributes are never normalized (SPEC §10.3.1, glVertex
+    // ArrayAttribLFormat).
+    setAttribFormat(*vao, attribindex, size, type, false, relativeoffset);
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayAttribBinding(GLObjectName vaoName, uint32_t attribindex,
+                                       uint32_t bindingindex) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    vao->attrib(attribindex).binding = bindingindex;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexArrayBindingDivisor(GLObjectName vaoName,
+                                        uint32_t bindingindex, uint32_t divisor) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vao = getVertexArray(vaoName);
+    if (vao == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    vao->bindings[bindingindex].divisor = divisor;
     vertexStateDirty_ = true;
 }
 

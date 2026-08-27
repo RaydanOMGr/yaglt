@@ -1095,4 +1095,35 @@ crashed agent, this session)
   `build_san` failure is the pre-existing translator-absent `shader_translate_test`
   config quirk, unrelated to this change).
 
+2026-08-27 (DSA vertex-array surface, this session)
+- Implemented the Direct State Access vertex-array surface (SPEC §10.3.1),
+  completing the Full DSA surface priority. Capability-gated by
+  `DirectStateAccess` (Emulated). New `Context` methods (and matching `gl*`
+  entry points in `gl_api`): `createVertexArrays`, `vertexArrayElementBuffer`,
+  `enable/disableVertexArrayAttrib`, `vertexArrayVertexBuffer(s)`,
+  `vertexArrayAttribFormat/IFormat/LFormat`, `vertexArrayAttribBinding`,
+  `vertexArrayBindingDivisor`.
+- Frontend `VertexArrayObject` extended with a separate attribute-format model:
+  each attribute references a `VertexBufferBinding` (buffer + base offset +
+  stride + divisor), and a `relativeoffset` is added to the binding offset when
+  the native `glVertexAttribPointer` is replayed. The legacy `vertexAttribPointer`
+  / `vertexAttribDivisor` now also populate the binding map, so the unified
+  flush path serves both the legacy and DSA models. The element-array buffer is
+  bound (as `GL_ELEMENT_ARRAY_BUFFER`) while the VAO is bound during flush.
+- Honest validation: ungenerated VAO/buffer → `GL_INVALID_OPERATION`; null
+  pointer arrays in `vertexArrayVertexBuffers` → `GL_INVALID_VALUE`;
+  `vertexArrayAttrib*Format` size outside [1,4] → `GL_INVALID_VALUE`; integer
+  (`IFormat`) / double (`LFormat`) variants force `normalized = false`.
+  DSA gated by `DirectStateAccess` (test uses `setCapability` to exercise the
+  unsupported path → `GL_INVALID_OPERATION`). New
+  `tests/unit/dsa_vertex_array_test.cpp` (11 cases) covers state recording,
+  combined offset replay, distinct binding points, instanced divisor, element
+  buffer bind, integer-format normalization, and a legacy-path regression check.
+  `MockBackend` gained per-call vector recorders for vertex attrib flush
+  assertions.
+- Coverage now ~184/490 (37.6%) full / 184/435 (42.3%) core.
+- Validation: default 269/269 green; sanitizer 277/277 (lone failure = pre-existing
+  translator-absent config quirk); translate/Mesa 241 PASS / 0 FAIL (the only
+  crash is the pre-existing Mesa teardown SEGV). GLES backend path verified.
+
 ## Next Steps
