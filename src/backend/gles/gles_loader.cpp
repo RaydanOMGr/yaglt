@@ -133,6 +133,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");
+    ok &= resolve(gles, glTexImage3D, "glTexImage3D");
     ok &= resolve(gles, glTexParameteri, "glTexParameteri");
     // Parameter setters (float / vector) are core in GLES but resolved defensively.
     resolve(gles, glTexParameterf, "glTexParameterf");

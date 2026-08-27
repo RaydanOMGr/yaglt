@@ -87,6 +87,22 @@ class MockTexture : public BackendTexture {
 public:
     int id = 0;
     int texImage2DCalls = 0;
+    int texImage1DCalls = 0;
+    int texImage3DCalls = 0;
+    uint32_t last1DTarget = 0;
+    int last1DLevel = 0;
+    uint32_t last1DInternalFormat = 0;
+    int last1DWidth = 0;
+    uint32_t last1DFormat = 0;
+    uint32_t last1DType = 0;
+    uint32_t last3DTarget = 0;
+    int last3DLevel = 0;
+    uint32_t last3DInternalFormat = 0;
+    int last3DWidth = 0;
+    int last3DHeight = 0;
+    int last3DDepth = 0;
+    uint32_t last3DFormat = 0;
+    uint32_t last3DType = 0;
     uint32_t lastTarget = 0;
     int lastLevel = 0;
     uint32_t lastInternalFormat = 0;
@@ -108,6 +124,32 @@ public:
         lastHeight = height;
         lastFormat = format;
         lastType = type;
+        (void)data;
+    }
+    void texImage1D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, uint32_t format, uint32_t type,
+                    const void* data) override {
+        ++texImage1DCalls;
+        last1DTarget = target;
+        last1DLevel = level;
+        last1DInternalFormat = internalFormat;
+        last1DWidth = width;
+        last1DFormat = format;
+        last1DType = type;
+        (void)data;
+    }
+    void texImage3D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, int height, int depth, uint32_t format,
+                    uint32_t type, const void* data) override {
+        ++texImage3DCalls;
+        last3DTarget = target;
+        last3DLevel = level;
+        last3DInternalFormat = internalFormat;
+        last3DWidth = width;
+        last3DHeight = height;
+        last3DDepth = depth;
+        last3DFormat = format;
+        last3DType = type;
         (void)data;
     }
     void texParameteri(uint32_t target, uint32_t pname, int param) override {

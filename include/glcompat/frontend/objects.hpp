@@ -55,6 +55,7 @@ public:
         uint32_t internalFormat = 0;
         int width = 0;
         int height = 0;
+        int depth = 0;
         uint32_t format = 0;
         uint32_t type = 0;
         bool hasData = false;

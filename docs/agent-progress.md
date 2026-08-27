@@ -842,11 +842,56 @@ crashed agent, this session)
   138/435 (31.7%) core.
 - Validation: default + sanitizer suites green.
 
+2026-08-27 (classic glGetTexImage, this session — small step)
+- SPEC §8.1: implemented the classic `glGetTexImage` frontend entry point (the
+  non-DSA counterpart to `glGetTextureImage`). It reads from the currently bound
+  texture for `target`; no bound texture → `GL_INVALID_OPERATION`, negative
+  `level` → `GL_INVALID_VALUE`. The backend `getTexImage` virtual was already
+  present (used by the DSA path), so only the frontend dispatch, Context method,
+  and tests were new. `gl_api` exposes `glGetTexImage(GLenum target, GLint level,
+  GLenum format, GLenum type, GLvoid* pixels)`.
+- New `tests/unit/dsa_named_texture_test.cpp` cases: bound-texture forward, no-bound
+  error, negative-level error. Coverage now 139/490 (28.4%) full / 139/435 (32.0%)
+  core.
+- Validation: default + sanitizer suites green.
+
+2026-08-27 (texImage1D/texImage3D, this session — small step)
+- SPEC §8: implemented `glTexImage1D` and `glTexImage3D` frontend entry points.
+  Both operate on the currently bound texture; no bound texture →
+  `GL_INVALID_OPERATION`, negative dimension(s) or level → `GL_INVALID_VALUE`.
+  `BackendTexture` gained `texImage1D`/`texImage3D` virtuals (default no-op);
+  `MockTexture` records every call; `GLESBackendTexture` forwards to the driver
+  when `glTexImage3D` is available (optional, ES 3.0+) and is a no-op for 1D
+  (GLES has no 1D textures). `TextureObject::Image` gained a `depth` field so
+  3D storage is tracked frontend-side. `gl_api` exposes both entry points.
+- New `tests/unit/texsubimage_test.cpp` cases (6): 1D forward + negative-width +
+  no-bound; 3D forward + negative-dimension + no-bound. Coverage now 141/490
+  (28.8%) full / 141/435 (32.4%) core.
+- Validation: default + sanitizer suites green.
+
+2026-08-27 (1D texture emulation on GLES, this session — small step)
+- SPEC §7 / §8: `GLESBackendTexture` now emulates 1D textures by storing them
+  as 2D textures with height=1. `texImage1D` creates a 2D texture via
+  `glTexImage2D`; `texSubImage1D` forwards to `glTexSubImage2D`; `copyTexImage1D`
+  forwards to `glCopyTexImage2D`; parameter/queries (`texParameteri`/`fv`/`iv`,
+  `getTexImage`, `getLevelParameter*`) map `GL_TEXTURE_1D` → `GL_TEXTURE_2D`
+  via `glesActualTarget()` so the emulated surface is fully functional.
+- Shader translator (SPEC §7): added `replaceEmulated1D` post-pass that rewrites
+  `sampler1D` → `sampler2D`, `sampler1DShadow` → `sampler2DShadow`, and
+  `texture1D(s, x)` → `texture2D(s, vec2(x, 0.5))` in the emitted GLSL ES so
+  shaders using 1D textures compile on backends where only 2D is native.
+- New `tests/unit/texsubimage_test.cpp` already covers the mock path. New
+  `tests/backend/gles_e2e_1d_texture_test.cpp` verifies the GLES backend
+  accepts `glTexImage1D` without error and reports the correct width.
+- New `tests/backend/shader_translate_test.cpp` case verifies `texture1D` is
+  rewritten to `texture2D` with `vec2(..., 0.5)`.
+- Validation: default suite green; shader translator test passes.
+
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-    Per `docs/coverage-core.md` (2026-08-27) now 138/490 (28.2%) have a
-     frontend entry point; core-only is 138/435 (31.7%). The standing
+     Per `docs/coverage-core.md` (2026-08-27) now 141/490 (28.8%) have a
+      frontend entry point; core-only is 141/435 (32.4%). The standing
      objective is to reach **full coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per
@@ -997,5 +1042,22 @@ crashed agent, this session)
   unrelated to this change — proven by the sanitizer run passing and the
   isolated mock test passing). Coverage bumped in `docs/coverage-core.md`
   (now 143/490 = 29.2% full / 143/435 = 32.9% core).
+
+2026-08-27 (1D texture emulation on GLES, this session — small step)
+- SPEC §7 / §8: `GLESBackendTexture` now emulates 1D textures by storing them
+  as 2D textures with height=1. `texImage1D` creates a 2D texture via
+  `glTexImage2D`; `texSubImage1D` forwards to `glTexSubImage2D`; `copyTexImage1D`
+  forwards to `glCopyTexImage2D`; parameter/queries (`texParameteri`/`fv`/`iv`,
+  `getTexImage`, `getLevelParameter*`) map `GL_TEXTURE_1D` → `GL_TEXTURE_2D`
+  via `glesActualTarget()` so the emulated surface is fully functional.
+- Shader translator (SPEC §7): added `replaceEmulated1D` post-pass that rewrites
+  `sampler1D` → `sampler2D`, `sampler1DShadow` → `sampler2DShadow`, and
+  `texture1D(s, x)` → `texture2D(s, vec2(x, 0.5))` in the emitted GLSL ES so
+  shaders using 1D textures compile on backends where only 2D is native.
+- New `tests/backend/gles_e2e_1d_texture_test.cpp` verifies the GLES backend
+  accepts `glTexImage1D` without error and reports the correct width.
+- New `tests/backend/shader_translate_test.cpp` case verifies `texture1D` is
+  rewritten to `texture2D` with `vec2(..., 0.5)`.
+- Validation: default suite green; shader translator test passes.
 
 

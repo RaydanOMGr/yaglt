@@ -76,6 +76,11 @@ void glBindTextures(GLuint first, GLsizei count, GLenum target,
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
                  GLsizei height, GLint border, GLenum format, GLenum type,
                  const GLvoid* data);
+void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                  GLenum format, GLenum type, const GLvoid* data);
+void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                  GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                  const GLvoid* data);
 void glTexParameteri(GLenum target, GLenum pname, GLint param);
 // Texture parameter setters (SPEC §8). glTexParameterf sets a float scalar;
 // glTexParameterfv/iv set vector parameters (e.g. GL_TEXTURE_BORDER_COLOR).
@@ -105,6 +110,8 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 // texture for `target`; glGetTextureParameteriv is the DSA variant for an
 // explicit texture object (capability-gated by DirectStateAccess).
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params);
+void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                   GLvoid* pixels);
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
 
 // Direct State Access texture surface (SPEC §2.1 / §8.1). Operate on an explicit

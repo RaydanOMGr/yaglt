@@ -157,6 +157,8 @@ struct GLESLib {
 
     void (*glTexImage2D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLint, GLenum,
                          GLenum, const void*) = nullptr;
+    void (*glTexImage3D)(GLenum, GLint, GLint, GLsizei, GLsizei, GLsizei, GLint,
+                         GLenum, GLenum, const void*) = nullptr;
     void (*glTexParameteri)(GLenum, GLenum, GLint) = nullptr;
     void (*glTexParameterf)(GLenum, GLenum, GLfloat) = nullptr;
     void (*glTexParameterfv)(GLenum, GLenum, const GLfloat*, GLsizei) = nullptr;

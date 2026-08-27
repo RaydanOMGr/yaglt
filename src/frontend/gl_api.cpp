@@ -141,9 +141,27 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
                  const GLvoid* data) {
     if (g_current == nullptr) return;
     g_current->texImage2D(target, level, static_cast<uint32_t>(internalFormat),
-                         static_cast<int>(width), static_cast<int>(height),
-                         static_cast<uint32_t>(format),
-                         static_cast<uint32_t>(type), data);
+                          static_cast<int>(width), static_cast<int>(height),
+                          static_cast<uint32_t>(format),
+                          static_cast<uint32_t>(type), data);
+}
+
+void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                  GLenum format, GLenum type, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->texImage1D(target, level, static_cast<uint32_t>(internalFormat),
+                          static_cast<int>(width), static_cast<uint32_t>(format),
+                          static_cast<uint32_t>(type), data);
+}
+
+void glTexImage3D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
+                  GLsizei height, GLsizei depth, GLenum format, GLenum type,
+                  const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->texImage3D(target, level, static_cast<uint32_t>(internalFormat),
+                          static_cast<int>(width), static_cast<int>(height),
+                          static_cast<int>(depth), static_cast<uint32_t>(format),
+                          static_cast<uint32_t>(type), data);
 }
 
 void glTexParameteri(GLenum target, GLenum pname, GLint param) {
@@ -336,7 +354,14 @@ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                        GLvoid* pixels) {
     if (g_current == nullptr) return;
     g_current->getTextureImage(texture, level, static_cast<uint32_t>(format),
-                              static_cast<uint32_t>(type), pixels);
+                               static_cast<uint32_t>(type), pixels);
+}
+
+void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                   GLvoid* pixels) {
+    if (g_current == nullptr) return;
+    g_current->getTexImage(target, level, static_cast<uint32_t>(format),
+                           static_cast<uint32_t>(type), pixels);
 }
 
 void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer) {

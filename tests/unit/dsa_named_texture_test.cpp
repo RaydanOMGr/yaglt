@@ -156,6 +156,38 @@ TEST_CASE("get_texture_image_forwards_to_backend") {
     EXPECT_EQ(mt->getTexImageCalls, 1);
 }
 
+TEST_CASE("get_tex_image_forwards_to_backend") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
+    ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    unsigned char buf[64] = {0};
+    ctx.getTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* mt = static_cast<MockTexture*>(ctx.getTexture(tex)->backend.get());
+    EXPECT_EQ(mt->getTexImageCalls, 1);
+}
+
+TEST_CASE("get_tex_image_no_bound_texture") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    unsigned char buf[64] = {0};
+    ctx.getTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("get_tex_image_negative_level") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
+    ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 8, 8, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    unsigned char buf[64] = {0};
+    ctx.getTexImage(GL_TEXTURE_2D, -1, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
 TEST_CASE("texture_buffer_binds_buffer_object") {
     auto backend = makeBackend();
     Context ctx(*backend);

@@ -7,6 +7,12 @@
 
 namespace glcompat {
 
+// OpenGL ES has no 1D textures. Map GL_TEXTURE_1D to GL_TEXTURE_2D so the
+// emulated 1D surface is stored as a 2D texture with height=1 on real backends.
+inline uint32_t glesActualTarget(uint32_t target) {
+    return (target == 0x0DE0u) ? GL_TEXTURE_2D : target;
+}
+
 // GLES 3.x requires a *sized* internal format for texture/renderbuffer storage to
 // be color-/depth-renderable (and therefore FBO-complete). Desktop OpenGL accepts
 // unsized formats (GL_RGBA, GL_DEPTH_COMPONENT, ...); the GLES backend promotes them
@@ -100,9 +106,6 @@ struct GLESBackendTexture : BackendTexture {
                      int width, int height, uint32_t format, uint32_t type,
                      const void* data) override {
         if (!lib || !lib->driverLive() || !lib->glTexImage2D) return;
-        // glTexImage2D operates on the texture bound to `target` on the active
-        // unit, so bind our handle first (SPEC §2.1 correctness: the driver's
-        // currently bound texture must be ours, not whatever was bound before).
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexImage2D(target, level,
                           static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
@@ -110,34 +113,56 @@ struct GLESBackendTexture : BackendTexture {
                           static_cast<GLsizei>(height), 0,
                           format, type, data);
     }
+    void texImage1D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, uint32_t format, uint32_t type,
+                    const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glTexImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glTexImage2D(GL_TEXTURE_2D, level,
+                          static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
+                          static_cast<GLsizei>(width), 1, 0,
+                          format, type, data);
+    }
+    void texImage3D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, int height, int depth, uint32_t format,
+                    uint32_t type, const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glTexImage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexImage3D(target, level,
+                          static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
+                          static_cast<GLsizei>(width),
+                          static_cast<GLsizei>(height),
+                          static_cast<GLsizei>(depth), 0,
+                          format, type, data);
+    }
     void texParameteri(uint32_t target, uint32_t pname, int param) override {
         if (!lib || !lib->driverLive() || !lib->glTexParameteri) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexParameteri(target, pname, param);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameteri(glesActualTarget(target), pname, param);
     }
     void texParameterf(uint32_t target, uint32_t pname, float param) override {
         if (!lib || !lib->driverLive() || !lib->glTexParameterf) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexParameterf(target, pname, param);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameterf(glesActualTarget(target), pname, param);
     }
     void texParameterfv(uint32_t target, uint32_t pname, const float* params,
                         int count) override {
         if (!lib || !lib->driverLive() || !lib->glTexParameterfv || !params) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexParameterfv(target, pname, params, count);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameterfv(glesActualTarget(target), pname, params, count);
     }
     void texParameteriv(uint32_t target, uint32_t pname, const int* params,
                         int count) override {
         if (!lib || !lib->driverLive() || !lib->glTexParameteriv || !params) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexParameteriv(target, pname, params, count);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameteriv(glesActualTarget(target), pname, params, count);
     }
     void texSubImage1D(uint32_t target, int level, int xoffset, int width,
                        uint32_t format, uint32_t type, const void* data) override {
-        // OpenGL ES has no 1D textures; the call is a no-op on this backend.
-        if (!lib || !lib->driverLive() || !lib->glTexSubImage1D) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexSubImage1D(target, level, xoffset, width, format, type, data);
+        if (!lib || !lib->driverLive() || !lib->glTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, width, 1,
+                             format, type, data);
     }
     void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
                        int width, int height, uint32_t format, uint32_t type,
@@ -157,10 +182,11 @@ struct GLESBackendTexture : BackendTexture {
     }
     void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int border) override {
-        if (!lib || !lib->driverLive() || !lib->glCopyTexImage1D) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glCopyTexImage1D(target, level, glesSizedInternalFormat(internalFormat),
-                              x, y, width, border);
+        if (!lib || !lib->driverLive() || !lib->glCopyTexImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glCopyTexImage2D(GL_TEXTURE_2D, level,
+                              glesSizedInternalFormat(internalFormat),
+                              x, y, width, 1, border);
     }
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
                          int x, int y, int width, int height, int border) override {
@@ -220,21 +246,21 @@ struct GLESBackendTexture : BackendTexture {
                              int32_t* params) override {
         if (!lib || !lib->driverLive() || !lib->glGetTexLevelParameteriv || !params)
             return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glGetTexLevelParameteriv(target, level, pname, params);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glGetTexLevelParameteriv(glesActualTarget(target), level, pname, params);
     }
     void getLevelParameterfv(uint32_t target, int level, uint32_t pname,
                              float* params) override {
         if (!lib || !lib->driverLive() || !lib->glGetTexLevelParameterfv || !params)
             return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glGetTexLevelParameterfv(target, level, pname, params);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glGetTexLevelParameterfv(glesActualTarget(target), level, pname, params);
     }
     void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
                      void* pixels) override {
         if (!lib || !lib->driverLive() || !lib->glGetTexImage) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glGetTexImage(target, level, format, type, pixels);
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glGetTexImage(glesActualTarget(target), level, format, type, pixels);
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;

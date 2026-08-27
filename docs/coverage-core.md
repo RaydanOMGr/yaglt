@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 154 | **31.4%** |
-| Core profile only (spec − 55 removed commands) | 435 | 154 | **35.4%** |
+| Full spec (compat + core) | 490 | 141 | **28.8%** |
+| Core profile only (spec − 55 removed commands) | 435 | 141 | **32.4%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -106,12 +106,13 @@ GetDoublev, GetFloatv, GetIntegerv, GetProgramInfoLog, GetProgramiv,
 GetShaderInfoLog, GetShaderiv, LinkProgram, MapBuffer, MapBufferRange,
 PauseTransformFeedback, ReadPixels, RenderbufferStorage,
 ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
-StencilOp, TexImage2D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
+StencilOp, TexImage1D, TexImage2D, TexImage3D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
 TexParameteriv, TextureParameteri, TextureParameterf, TextureParameterfv, TextureParameteriv,
 CreateTextures, TextureStorage1D, TextureStorage2D, TextureStorage3D,
 TextureSubImage1D, TextureSubImage2D, TextureSubImage3D, GenerateTextureMipmap,
 GetTextureParameterfv, GetTextureLevelParameteriv, GetTextureLevelParameterfv,
-GetTextureImage, TextureBuffer, TextureBufferRange,
+GetTextureImage, GetTexImage,
+TextureBuffer, TextureBufferRange,
 Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
 Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
 DeleteQueries, DeleteQuery, EndQuery, EndQueryIndexed, FenceSync, ClientWaitSync,
@@ -130,7 +131,7 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
     and `glGetBufferParameteriv` are implemented (frontend owns an authoritative
     CPU data store mirrored to the backend). Remaining: `ClearBuffer*`,
     `InvalidateBuffer*`, `GetBufferSubData`. (§6)
- 2. **Texture completeness** — all non-2D targets, `TexParameterf`/vector
+ 2. **Texture completeness** — 1D emulated as 2D (height=1) on GLES; `TexParameterf`/vector
     pnames + full param coverage, `GetTexImage`, multisample & buffer textures.
     `TexSubImage1D/2D/3D` and `CopyTexImage1D/2D` are now implemented (frontend
     validation + backend virtualization, mock path tested). (§8)

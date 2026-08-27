@@ -85,6 +85,30 @@ std::string assignDefaultLocations(const std::string& src) {
 } // namespace
 
 namespace {
+// OpenGL ES has no 1D textures. After SPIRV-Cross emits GLSL ES, rewrite any
+// remaining `sampler1D` / `texture1D` usage to the 2D equivalent so the shader
+// compiles on backends where 1D is emulated as 2D with height=1 (SPEC §7:
+// shader pipeline transformation).
+std::string replaceEmulated1D(const std::string& src) {
+    static const std::regex samplerRe(R"(sampler1D\b)");
+    std::string out = std::regex_replace(src, samplerRe, "sampler2D");
+    static const std::regex samplerShadowRe(R"(sampler1DShadow\b)");
+    out = std::regex_replace(out, samplerShadowRe, "sampler2DShadow");
+    static const std::regex texRe(R"(texture1D\s*\(\s*(\w+)\s*,\s*([^,]+)\s*(?:,\s*[^)]+)?\s*\))");
+    std::string result;
+    std::string::const_iterator pos = out.cbegin();
+    std::smatch m;
+    while (std::regex_search(pos, out.cend(), m, texRe)) {
+        result.append(pos, m[0].first);
+        result += "texture2D(" + m[1].str() + ", vec2(" + m[2].str() + ", 0.5))";
+        pos = m[0].second;
+    }
+    result.append(pos, out.cend());
+    return result;
+}
+} // namespace
+
+namespace {
 EShLanguage mapStage(uint32_t stage) {
     switch (stage) {
     case 0x8B31: return EShLangVertex;       // GL_VERTEX_SHADER
@@ -171,6 +195,7 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     glsl.set_common_options(opts);
 
     esSource = glsl.compile();
+    esSource = replaceEmulated1D(esSource);
     return true;
 }
 

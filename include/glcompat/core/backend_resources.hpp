@@ -50,6 +50,16 @@ public:
     virtual void texImage2D(uint32_t target, int level, uint32_t internalFormat,
                             int width, int height, uint32_t format, uint32_t type,
                             const void* data) {}
+    // Allocate storage for a 1D texture level (SPEC §8 TexImage1D). `data` may
+    // be null. The default implementation is a no-op; backends opt in.
+    virtual void texImage1D(uint32_t target, int level, uint32_t internalFormat,
+                            int width, uint32_t format, uint32_t type,
+                            const void* data) {}
+    // Allocate storage for a 3D texture level (SPEC §8 TexImage3D). `data` may
+    // be null. The default implementation is a no-op; backends opt in.
+    virtual void texImage3D(uint32_t target, int level, uint32_t internalFormat,
+                            int width, int height, int depth, uint32_t format,
+                            uint32_t type, const void* data) {}
     // Set a texture parameter (SPEC §2.1 glTexParameter*). The frontend keeps the
     // authoritative value and forwards the native call; backends opt in.
     virtual void texParameteri(uint32_t target, uint32_t pname, int param) {}

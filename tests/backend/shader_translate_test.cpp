@@ -38,3 +38,23 @@ TEST_CASE("shader_translator_desktop_uniform_block_to_es") {
         EXPECT_NE(out.find("gl_Position"), std::string::npos);
     }
 }
+
+// 1D textures are emulated on GLES backends as 2D with height=1 (SPEC §7: shader
+// pipeline transformation). The translator must rewrite `sampler1D` /
+// `texture1D` to the 2D equivalent so the output GLSL ES compiles.
+TEST_CASE("shader_translator_1d_emulated_as_2d") {
+    ShaderTranslator t;
+    std::string out, err;
+    const char* src =
+        "#version 330 core\n"
+        "uniform sampler1D s1d;\n"
+        "void main() { vec4 c = texture1D(s1d, 0.5); }\n";
+    bool ok = t.translate(src, 0x8B31 /*GL_VERTEX_SHADER*/, out, err);
+    EXPECT_TRUE(ok);
+    if (ok) {
+        EXPECT_EQ(out.find("sampler1D"), std::string::npos);
+        EXPECT_EQ(out.find("texture1D"), std::string::npos);
+        EXPECT_NE(out.find("sampler2D"), std::string::npos);
+        EXPECT_NE(out.find("texture2D"), std::string::npos);
+    }
+}

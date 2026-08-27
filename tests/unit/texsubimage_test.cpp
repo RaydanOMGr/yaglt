@@ -151,3 +151,65 @@ TEST_CASE("copyteximage1d_records_subimage") {
     EXPECT_EQ(mt->copyTexImage1DCalls, 1);
     EXPECT_EQ(mt->lastCopyWidth, 16);
 }
+
+TEST_CASE("teximage1d_records_storage_and_forwards") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_1D, tex);
+    ctx.texImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 32, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    MockTexture* mt = as<MockTexture>(ctx.getTexture(tex)->backend.get());
+    EXPECT_EQ(mt->texImage1DCalls, 1);
+    EXPECT_EQ(mt->last1DWidth, 32);
+    EXPECT_EQ(mt->last1DLevel, 0);
+}
+
+TEST_CASE("teximage1d_negative_width_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_1D, tex);
+    ctx.texImage1D(GL_TEXTURE_1D, 0, GL_RGBA, -1, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("teximage1d_no_bound_texture_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.texImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 32, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("teximage3d_records_storage_and_forwards") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_3D, tex);
+    ctx.texImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 16, 16, 4, GL_RGBA, GL_UNSIGNED_BYTE,
+                   nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    MockTexture* mt = as<MockTexture>(ctx.getTexture(tex)->backend.get());
+    EXPECT_EQ(mt->texImage3DCalls, 1);
+    EXPECT_EQ(mt->last3DWidth, 16);
+    EXPECT_EQ(mt->last3DHeight, 16);
+    EXPECT_EQ(mt->last3DDepth, 4);
+}
+
+TEST_CASE("teximage3d_negative_dimension_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_3D, tex);
+    ctx.texImage3D(GL_TEXTURE_3D, 0, GL_RGBA, -1, 16, 4, GL_RGBA, GL_UNSIGNED_BYTE,
+                   nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("teximage3d_no_bound_texture_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.texImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 16, 16, 4, GL_RGBA, GL_UNSIGNED_BYTE,
+                   nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}

@@ -121,6 +121,11 @@ public:
     void texImage2D(uint32_t target, int level, uint32_t internalFormat,
                     int width, int height, uint32_t format, uint32_t type,
                     const void* data);
+    void texImage1D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, uint32_t format, uint32_t type, const void* data);
+    void texImage3D(uint32_t target, int level, uint32_t internalFormat,
+                    int width, int height, int depth, uint32_t format,
+                    uint32_t type, const void* data);
     void texParameteri(uint32_t target, uint32_t pname, int param);
     // Texture parameter setters (SPEC §8). glTexParameterf sets a float scalar;
     // glTexParameterfv/iv set vector parameters (e.g. GL_TEXTURE_BORDER_COLOR).
@@ -196,6 +201,8 @@ public:
                                     float* params);
     void getTextureImage(GLObjectName texture, int level, uint32_t format,
                          uint32_t type, void* pixels);
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     void* pixels);
     void textureBuffer(GLObjectName texture, uint32_t internalFormat,
                        GLObjectName buffer);
     void textureBufferRange(GLObjectName texture, uint32_t internalFormat,

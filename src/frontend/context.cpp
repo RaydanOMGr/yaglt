@@ -575,9 +575,6 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
         setError(GLError::InvalidOperation); // no texture bound
         return;
     }
-    // Desktop GL rejects non-power-of-two / invalid sizes depending on feature;
-    // we record storage and forward to the backend. Negative dimensions are an
-    // INVALID_VALUE on the real API.
     if (width < 0 || height < 0 || level < 0) {
         setError(GLError::InvalidValue);
         return;
@@ -591,7 +588,6 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
     img.format = format;
     img.type = type;
     img.hasData = (data != nullptr);
-    // Replace existing level or append.
     bool replaced = false;
     for (auto& e : tex->images) {
         if (e.level == level) { e = img; replaced = true; break; }
@@ -600,6 +596,74 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
     tex->storageSet = true;
     if (tex->backend) {
         tex->backend->texImage2D(target, level, internalFormat, width, height,
+                                 format, type, data);
+    }
+}
+
+void Context::texImage1D(uint32_t target, int level, uint32_t internalFormat,
+                          int width, uint32_t format, uint32_t type,
+                          const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (width < 0 || level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = 1;
+    img.depth = 0;
+    img.format = format;
+    img.type = type;
+    img.hasData = (data != nullptr);
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    if (tex->backend) {
+        tex->backend->texImage1D(target, level, internalFormat, width, format, type,
+                                 data);
+    }
+}
+
+void Context::texImage3D(uint32_t target, int level, uint32_t internalFormat,
+                          int width, int height, int depth, uint32_t format,
+                          uint32_t type, const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (width < 0 || height < 0 || depth < 0 || level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = height;
+    img.depth = depth;
+    img.format = format;
+    img.type = type;
+    img.hasData = (data != nullptr);
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    if (tex->backend) {
+        tex->backend->texImage3D(target, level, internalFormat, width, height, depth,
                                  format, type, data);
     }
 }
@@ -1167,6 +1231,20 @@ void Context::getTextureImage(GLObjectName texture, int level, uint32_t format,
     }
     if (tex->backend) tex->backend->getTexImage(tex->target, level, format, type,
                                                 pixels);
+}
+
+void Context::getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                          void* pixels) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getTexImage(target, level, format, type, pixels);
 }
 
 void Context::textureBuffer(GLObjectName texture, uint32_t internalFormat,
