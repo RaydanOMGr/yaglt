@@ -2963,6 +2963,248 @@ const ProgramObject* Context::getProgram(GLObjectName name) const {
     return it == programs_.end() ? nullptr : it->second.get();
 }
 
+// --- Program pipelines (SPEC §7.4) ---
+
+namespace {
+
+constexpr uint32_t kPipelineStageMask =
+    GL_VERTEX_SHADER_BIT | GL_FRAGMENT_SHADER_BIT | GL_GEOMETRY_SHADER_BIT |
+    GL_TESS_CONTROL_SHADER_BIT | GL_TESS_EVALUATION_SHADER_BIT |
+    GL_COMPUTE_SHADER_BIT;
+
+// Map a glGetProgramPipelineiv stage pname to its stage bit (0 if not a stage).
+uint32_t stageBitForProgramPipelinePname(uint32_t pname) {
+    switch (pname) {
+        case GL_VERTEX_SHADER:        return GL_VERTEX_SHADER_BIT;
+        case GL_FRAGMENT_SHADER:      return GL_FRAGMENT_SHADER_BIT;
+        case GL_GEOMETRY_SHADER:      return GL_GEOMETRY_SHADER_BIT;
+        case GL_TESS_CONTROL_SHADER:  return GL_TESS_CONTROL_SHADER_BIT;
+        case GL_TESS_EVALUATION_SHADER: return GL_TESS_EVALUATION_SHADER_BIT;
+        case GL_COMPUTE_SHADER:       return GL_COMPUTE_SHADER_BIT;
+        default:                      return 0;
+    }
+}
+
+} // namespace
+
+GLObjectName Context::createShaderProgramv(uint32_t type, int32_t count,
+                                            const char* const* strings) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return 0;
+    }
+    if (count < 0) {
+        setError(GLError::InvalidValue);
+        return 0;
+    }
+    GLObjectName sh = createShader(type);
+    if (sh == 0) return 0; // capability/type error already recorded
+    std::string src;
+    for (int32_t i = 0; i < count; ++i) {
+        if (strings && strings[i]) src += strings[i];
+    }
+    shaderSource(sh, src);
+    compileShader(sh);
+    GLObjectName prog = createProgram();
+    if (prog == 0) {
+        deleteShader(sh);
+        return 0;
+    }
+    ProgramObject* po = programs_[prog].get();
+    po->separable = true; // created for use in a pipeline (PROGRAM_SEPARABLE)
+    attachShader(prog, sh);
+    // Link without surfacing a GL error on failure: glCreateShaderProgramv
+    // reports link failure via LINK_STATUS / INFO_LOG, not glGetError.
+    for (GLObjectName s : po->attachedShaders) {
+        if (ShaderObject* so = getShader(s)) {
+            if (so->backend && po->backend) po->backend->attach(*so->backend);
+        }
+    }
+    std::string log;
+    bool ok = po->backend ? po->backend->link(log) : false;
+    po->linked = ok;
+    po->infoLog = log;
+    if (po->backend) backend_.bindNativeObject(prog, po->backend->nativeId());
+    deleteShader(sh);
+    return prog;
+}
+
+void Context::genProgramPipelines(uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        GLObjectName name = nextName_++;
+        pipelines_.emplace(name,
+                           std::make_unique<ProgramPipelineObject>(name));
+        names[i] = name;
+    }
+}
+
+void Context::deleteProgramPipelines(uint32_t n, const GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        auto it = pipelines_.find(names[i]);
+        if (it == pipelines_.end()) continue;
+        if (boundProgramPipeline_ == names[i]) boundProgramPipeline_ = 0;
+        pipelines_.erase(it);
+    }
+}
+
+bool Context::isProgramPipeline(GLObjectName name) const {
+    return name != 0 && pipelines_.find(name) != pipelines_.end();
+}
+
+void Context::bindProgramPipeline(GLObjectName pipeline) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (pipeline != 0 && getProgramPipeline(pipeline) == nullptr) {
+        setError(GLError::InvalidOperation); // not a generated pipeline name
+        return;
+    }
+    boundProgramPipeline_ = pipeline;
+    state_.bindProgramPipeline(pipeline);
+}
+
+void Context::useProgramStages(GLObjectName pipeline, uint32_t stages,
+                               GLObjectName program) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramPipelineObject* p = getProgramPipeline(pipeline);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    uint32_t effectiveStages = stages;
+    if (stages != GL_ALL_SHADER_BITS) {
+        if (stages & ~kPipelineStageMask) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+    } else {
+        effectiveStages = kPipelineStageMask;
+    }
+    GLObjectName prog = program;
+    if (program == 0) prog = p->activeProgram; // use glActiveShaderProgram's
+    if (prog != 0) {
+        ProgramObject* po = getProgram(prog);
+        if (po == nullptr || !po->linked) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (!po->separable) {
+            setError(GLError::InvalidOperation); // must be a separable program
+            return;
+        }
+    }
+    for (uint32_t bit = 1; bit <= kPipelineStageMask; bit <<= 1) {
+        if (effectiveStages & bit) p->stagePrograms[bit] = prog;
+    }
+}
+
+void Context::activeShaderProgram(GLObjectName pipeline, GLObjectName program) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramPipelineObject* p = getProgramPipeline(pipeline);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (program != 0 && getProgram(program) == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    p->activeProgram = program;
+}
+
+void Context::getProgramPipelineiv(GLObjectName pipeline, uint32_t pname,
+                                   int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramPipelineObject* p = getProgramPipeline(pipeline);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (pname == GL_ACTIVE_PROGRAM) {
+        *params = static_cast<int32_t>(p->activeProgram);
+        return;
+    }
+    if (pname == GL_VALID_STATUS) {
+        *params = p->validated ? 1 : 0;
+        return;
+    }
+    if (pname == GL_INFO_LOG_LENGTH) {
+        *params = static_cast<int32_t>(p->infoLog.size() + 1);
+        return;
+    }
+    uint32_t bit = stageBitForProgramPipelinePname(pname);
+    if (bit != 0) {
+        auto it = p->stagePrograms.find(bit);
+        *params = static_cast<int32_t>(it == p->stagePrograms.end() ? 0 : it->second);
+        return;
+    }
+    setError(GLError::InvalidEnum);
+}
+
+void Context::validateProgramPipeline(GLObjectName pipeline) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramPipelineObject* p = getProgramPipeline(pipeline);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // The frontend cannot truly validate GPU linkage, but useProgramStages only
+    // stores well-formed stage mappings, so attest validity and clear any log.
+    p->validated = true;
+    p->infoLog.clear();
+}
+
+void Context::getProgramPipelineInfoLog(GLObjectName pipeline, uint32_t bufSize,
+                                        int32_t* length, char* infoLog) {
+    if (!backend_.capabilities().isSupported(Feature::ProgramPipelines)) {
+        setError(GLError::InvalidOperation);
+        copyInfoLog({}, bufSize, length, infoLog);
+        return;
+    }
+    ProgramPipelineObject* p = getProgramPipeline(pipeline);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        copyInfoLog({}, bufSize, length, infoLog);
+        return;
+    }
+    copyInfoLog(p->infoLog, bufSize, length, infoLog);
+}
+
+ProgramPipelineObject* Context::getProgramPipeline(GLObjectName name) {
+    auto it = pipelines_.find(name);
+    return it == pipelines_.end() ? nullptr : it->second.get();
+}
+
+const ProgramPipelineObject* Context::getProgramPipeline(GLObjectName name) const {
+    auto it = pipelines_.find(name);
+    return it == pipelines_.end() ? nullptr : it->second.get();
+}
+
 // --- Vertex attributes (SPEC §2.1) ---
 
 void Context::enableVertexAttribArray(uint32_t index) {

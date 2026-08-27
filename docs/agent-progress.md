@@ -1126,4 +1126,39 @@ crashed agent, this session)
   translator-absent config quirk); translate/Mesa 241 PASS / 0 FAIL (the only
   crash is the pre-existing Mesa teardown SEGV). GLES backend path verified.
 
+2026-08-27 (Program pipelines, SPEC §7.4, this session)
+- Implemented the program-pipeline object surface (SPEC §7.4). Capability-gated
+  by `ProgramPipelines` (Mock = Emulated, so the full frontend path is testable;
+  GLES = Emulated only where separable programs exist, else Unsupported). New
+  `Context` methods + `gl_api` entry points: `genProgramPipelines`,
+  `deleteProgramPipelines`, `isProgramPipeline`, `bindProgramPipeline`,
+  `createShaderProgramv`, `useProgramStages`, `activeShaderProgram`,
+  `getProgramPipelineiv`, `validateProgramPipeline`, `getProgramPipelineInfoLog`.
+- Frontend `ProgramPipelineObject` owns the stage-bit → program mapping, the
+  active program (for `glUseProgramStages(…,0)`), validation flag, and info log.
+  `ProgramObject` gained a `separable` flag set by `createShaderProgramv`
+  (PROGRAM_SEPARABLE semantics); `useProgramStages` accepts only a linked,
+  separable program, otherwise `GL_INVALID_OPERATION`. `glActiveShaderProgram`
+  + `glUseProgramStages(pipeline, GL_ALL_SHADER_BITS, 0)` maps the active program
+  to every stage.
+- The bound pipeline is tracked independently of the single `glUseProgram` in
+  `GLStateTracker` and forwarded to the backend via a new `GLStateSink::
+  bindProgramPipeline` (Mock records it; GLES records only — a single linked
+  program drives a GLES draw, so per-stage pipeline rendering is not consumed
+  there). `gl_types.hpp` gained the stage bits, `GL_ALL_SHADER_BITS`,
+  `GL_ACTIVE_PROGRAM`, `GL_PROGRAM_SEPARABLE`, and `GL_VALID_STATUS` (= 0x8B83).
+- Honest validation: `getProgramPipelineiv` returns ACTIVE_PROGRAM / per-stage
+  program / VALID_STATUS / INFO_LOG_LENGTH; null params → `GL_INVALID_VALUE`,
+  0/non-pipeline name → `GL_INVALID_OPERATION`, unknown pname → `GL_INVALID_ENUM`;
+  `useProgramStages` with an unknown stage bit → `GL_INVALID_VALUE`; ungenerated
+  pipeline / non-separable program → `GL_INVALID_OPERATION`. New
+  `tests/unit/dsa_program_pipeline_test.cpp` (11 cases). `GLStateSink` gained the
+  `bindProgramPipeline` pure virtual; all sink implementers (MockBackend,
+  GLESBackend, and the test `RecordingSink`s) were updated.
+- Coverage now ~194/490 (39.6%) full / 194/435 (44.6%) core.
+- Validation: default 280/280 green; sanitizer 288/288 (lone failure = pre-existing
+  translator-absent `shader_translate_test` config quirk); translate/Mesa built
+  and the GLES e2e passes under softpipe (288/288, 1 pre-existing quirk; the only
+  crash is the pre-existing Mesa teardown SEGV). GLES backend path verified.
+
 ## Next Steps

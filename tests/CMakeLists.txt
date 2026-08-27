@@ -42,6 +42,7 @@ add_executable(yaglt_tests
     unit/logicop_blit_invalidate_test.cpp
     unit/colormask_test.cpp
     unit/samplecoverage_test.cpp
+    unit/dsa_program_pipeline_test.cpp
     unit/primitive_restart_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp

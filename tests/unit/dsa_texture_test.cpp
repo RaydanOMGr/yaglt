@@ -25,6 +25,7 @@ struct UnitRecordingSink : GLStateSink {
     void enable(GLenum) override {}
     void disable(GLenum) override {}
     void useProgram(uint32_t) override {}
+    void bindProgramPipeline(uint32_t) override {}
     void blendFuncSeparate(uint32_t, uint32_t, uint32_t, uint32_t) override {}
     void blendEquationSeparate(uint32_t, uint32_t) override {}
     void blendColor(float, float, float, float) override {}

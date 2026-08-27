@@ -19,6 +19,14 @@ public:
 
     virtual void useProgram(uint32_t prog) = 0;
 
+    // Program pipeline (glBindProgramPipeline, SPEC §7.4). The frontend tracks
+    // the bound pipeline independently of the single active program and forwards
+    // it here so a backend that supports separable programs can install it.
+    // Backends without separable-program support record the binding but cannot
+    // consume it for drawing (reported honestly via the ProgramPipelines
+    // capability).
+    virtual void bindProgramPipeline(uint32_t pipeline) = 0;
+
     virtual void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB,
                                    uint32_t srcAlpha, uint32_t dstAlpha) = 0;
     virtual void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) = 0;

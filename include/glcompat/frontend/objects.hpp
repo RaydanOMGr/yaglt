@@ -259,15 +259,33 @@ public:
 };
 
 // Frontend program object (SPEC §8). Owns the attached shader list and the
-// linked backend program resource.
+// linked backend program resource. `separable` marks a program linked for use
+// with a program pipeline (glCreateShaderProgramv / PROGRAM_SEPARABLE).
 class ProgramObject {
 public:
     explicit ProgramObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
     std::vector<GLObjectName> attachedShaders;
     bool linked = false;
+    bool separable = false;
     std::string infoLog;
     std::unique_ptr<BackendProgram> backend;
+};
+
+// Frontend program-pipeline object (SPEC §7.4). Maps each shader stage to the
+// program that supplies it, plus the "active program" used by
+// glUseProgramStages(pipeline, stages, 0). State is frontend-owned; the
+// pipeline is bound to the backend via GLStateSink::bindProgramPipeline.
+class ProgramPipelineObject {
+public:
+    explicit ProgramPipelineObject(GLObjectName n) : name(n) {}
+    GLObjectName name = 0;
+    // Stage bit (GL_VERTEX_SHADER_BIT, ...) -> program name. A zero value means
+    // the stage is not supplied by this pipeline.
+    std::unordered_map<uint32_t, GLObjectName> stagePrograms;
+    GLObjectName activeProgram = 0; // set by glActiveShaderProgram
+    bool validated = false;
+    std::string infoLog;
 };
 
 } // namespace glcompat

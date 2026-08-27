@@ -31,6 +31,13 @@ bool GLStateTracker::useProgram(GLObjectName prog) {
     return true;
 }
 
+bool GLStateTracker::bindProgramPipeline(GLObjectName pipeline) {
+    if (boundProgramPipeline_ == pipeline) return false;
+    boundProgramPipeline_ = pipeline;
+    programPipelineDirty_ = true;
+    return true;
+}
+
 bool GLStateTracker::setBlendFunc(GLenum sfactor, GLenum dfactor) {
     if (blend_.srcRGB == sfactor && blend_.dstRGB == dfactor &&
         blend_.srcAlpha == sfactor && blend_.dstAlpha == dfactor)
@@ -384,6 +391,13 @@ int GLStateTracker::apply(GLStateSink& sink) {
         sink.useProgram(activeProgram_);
         activeProgramApplied_ = activeProgram_;
         programDirty_ = false;
+        ++applied;
+    }
+
+    if (programPipelineDirty_) {
+        sink.bindProgramPipeline(boundProgramPipeline_);
+        boundProgramPipelineApplied_ = boundProgramPipeline_;
+        programPipelineDirty_ = false;
         ++applied;
     }
 
@@ -755,6 +769,9 @@ void GLStateTracker::reset() {
     activeProgram_ = 0;
     activeProgramApplied_ = 0;
     programDirty_ = false;
+    boundProgramPipeline_ = 0;
+    boundProgramPipelineApplied_ = 0;
+    programPipelineDirty_ = false;
     blend_ = BlendState{};
     blendApplied_ = BlendState{};
     blendColor_ = BlendColorState{};

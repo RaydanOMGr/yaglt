@@ -348,6 +348,21 @@ void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
 // Constant blend color used by the GL_CONSTANT_* blend factors (SPEC §17.3).
 void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 void glUseProgram(GLuint prog);
+
+// --- Program pipelines (SPEC §7.4) ---
+// Build a single-stage separable program (glCreateShaderProgramv). Returns the
+// new program name (query LINK_STATUS / INFO_LOG for success).
+GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar* const* strings);
+void glGenProgramPipelines(GLsizei n, GLuint* pipelines);
+void glDeleteProgramPipelines(GLsizei n, const GLuint* pipelines);
+GLboolean glIsProgramPipeline(GLuint pipeline);
+void glBindProgramPipeline(GLuint pipeline);
+void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program);
+void glActiveShaderProgram(GLuint pipeline, GLuint program);
+void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint* params);
+void glValidateProgramPipeline(GLuint pipeline);
+void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize, GLsizei* length,
+                                 GLchar* infoLog);
 void glDepthFunc(GLenum func);
 void glDepthMask(bool flag);
 void glDepthRange(GLdouble nearVal, GLdouble farVal);

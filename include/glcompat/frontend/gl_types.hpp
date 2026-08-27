@@ -190,6 +190,22 @@ constexpr GLenum GL_COMPILE_STATUS = 0x8B81;
 constexpr GLenum GL_LINK_STATUS = 0x8B82;
 constexpr GLenum GL_VALIDATE_STATUS = 0x8B83;
 constexpr GLenum GL_INFO_LOG_LENGTH = 0x8B84;
+
+// Program pipeline stage bits (glUseProgramStages, SPEC §7.4) and the
+// convenience "all stages" mask.
+constexpr GLbitfield GL_VERTEX_SHADER_BIT = 0x00000001;
+constexpr GLbitfield GL_FRAGMENT_SHADER_BIT = 0x00000002;
+constexpr GLbitfield GL_GEOMETRY_SHADER_BIT = 0x00000004;
+constexpr GLbitfield GL_TESS_CONTROL_SHADER_BIT = 0x00000008;
+constexpr GLbitfield GL_TESS_EVALUATION_SHADER_BIT = 0x00000010;
+constexpr GLbitfield GL_COMPUTE_SHADER_BIT = 0x00000020;
+constexpr GLbitfield GL_ALL_SHADER_BITS = 0xFFFFFFFFu;
+
+// Program pipeline parameters (glGetProgramPipelineiv, SPEC §7.4).
+constexpr GLenum GL_ACTIVE_PROGRAM = 0x8259;
+constexpr GLenum GL_PROGRAM_SEPARABLE = 0x8258;
+// GL_VALID_STATUS shares the 0x8B83 value with GL_VALIDATE_STATUS (programs).
+constexpr GLenum GL_VALID_STATUS = 0x8B83;
 constexpr GLenum GL_ATTACHED_SHADERS = 0x8B85;
 constexpr GLenum GL_ACTIVE_UNIFORMS = 0x8B86;
 constexpr GLenum GL_ACTIVE_UNIFORM_MAX_LENGTH = 0x8B87;

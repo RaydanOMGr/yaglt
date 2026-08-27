@@ -33,6 +33,13 @@ public:
     bool useProgram(GLObjectName prog);
     GLObjectName activeProgram() const { return activeProgram_; }
 
+    // --- Program pipeline (glBindProgramPipeline, SPEC §7.4); 0 = none bound ---
+    // Tracked independently of the single active program: when both are bound the
+    // single program takes precedence, but the pipeline object is still state and
+    // is forwarded to the backend via the GLStateSink.
+    bool bindProgramPipeline(GLObjectName pipeline);
+    GLObjectName boundProgramPipeline() const { return boundProgramPipeline_; }
+
     // --- Blend (SPEC §10 / §17.3) ---
     // glBlendFunc sets both RGB and alpha factors to the same pair;
     // glBlendFuncSeparate sets them independently.
@@ -326,6 +333,10 @@ private:
     GLObjectName activeProgram_ = 0;
     GLObjectName activeProgramApplied_ = 0;
     bool programDirty_ = false;
+
+    GLObjectName boundProgramPipeline_ = 0;
+    GLObjectName boundProgramPipelineApplied_ = 0;
+    bool programPipelineDirty_ = false;
 
     BlendState blend_, blendApplied_;
     BlendColorState blendColor_, blendColorApplied_;

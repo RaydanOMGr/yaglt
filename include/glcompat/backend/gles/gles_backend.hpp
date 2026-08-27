@@ -44,6 +44,13 @@ public:
     void enable(uint32_t cap) override;
     void disable(uint32_t cap) override;
     void useProgram(uint32_t prog) override;
+    // Program pipeline (SPEC §7.4). GLES uses a single linked program per draw,
+    // so a separable pipeline cannot be consumed for rendering; we record the
+    // binding only (the frontend still models the object and its queries). The
+    // ProgramPipelines capability reports Emulated only where separable programs
+    // are genuinely available (ES 3.1-class drivers / EXT_separate_shader_
+    // objects); where that is missing it reports Unsupported honestly.
+    void bindProgramPipeline(uint32_t pipeline) override;
     void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB, uint32_t srcAlpha,
                            uint32_t dstAlpha) override;
     void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) override;

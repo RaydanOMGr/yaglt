@@ -204,6 +204,16 @@ void GLESBackend::disable(GLenum cap) {
     if (lib_->glDisable) lib_->glDisable(cap);
 }
 
+void GLESBackend::bindProgramPipeline(uint32_t pipeline) {
+    // GLES has no separable program pipeline object to install (a single linked
+    // program drives each draw), so there is no native call to forward. The
+    // frontend still tracks the bound pipeline and answers glGetProgramPipelineiv;
+    // where separable programs are genuinely available the ProgramPipelines
+    // capability reports Emulated and the frontend models the stages (consumed
+    // for draws only by backends that supply the per-stage wiring).
+    (void)pipeline;
+}
+
 void GLESBackend::useProgram(uint32_t prog) {
     // Translate the frontend program name to the native driver id when known.
     auto it = nativeMap_.find(prog);

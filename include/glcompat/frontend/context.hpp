@@ -521,6 +521,32 @@ public:
     ProgramObject* getProgram(GLObjectName name);
     const ProgramObject* getProgram(GLObjectName name) const;
 
+    // --- Program pipelines (SPEC §7.4) ---
+    // Capability-gated by ProgramPipelines. Gen/delete/is manage names
+    // unconditionally (like other object families); the stateful operations
+    // report GL_INVALID_OPERATION when the feature is unsupported. The frontend
+    // owns the stage->program mapping and answers glGetProgramPipelineiv; the
+    // bound pipeline is forwarded to the backend via GLStateSink so backends with
+    // separable-program support can install it (GLES cannot consume it for
+    // drawing, so its ProgramPipelines support is Emulated only where separable
+    // programs exist, else Unsupported).
+    GLObjectName createShaderProgramv(uint32_t type, int32_t count,
+                                      const char* const* strings);
+    void genProgramPipelines(uint32_t n, GLObjectName* names);
+    void deleteProgramPipelines(uint32_t n, const GLObjectName* names);
+    bool isProgramPipeline(GLObjectName name) const;
+    void bindProgramPipeline(GLObjectName pipeline);
+    void useProgramStages(GLObjectName pipeline, uint32_t stages,
+                          GLObjectName program);
+    void activeShaderProgram(GLObjectName pipeline, GLObjectName program);
+    void getProgramPipelineiv(GLObjectName pipeline, uint32_t pname,
+                              int32_t* params);
+    void validateProgramPipeline(GLObjectName pipeline);
+    void getProgramPipelineInfoLog(GLObjectName pipeline, uint32_t bufSize,
+                                   int32_t* length, char* infoLog);
+    ProgramPipelineObject* getProgramPipeline(GLObjectName name);
+    const ProgramPipelineObject* getProgramPipeline(GLObjectName name) const;
+
     // --- Vertex attributes (SPEC §2.1) ---
     // Operate on the currently bound VAO (glBindVertexArray); with no VAO bound
     // they report GL_INVALID_OPERATION. State is recorded on the VAO and pushed
@@ -610,6 +636,8 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<SamplerObject>> samplers_;
     std::unordered_map<GLObjectName, std::unique_ptr<ShaderObject>> shaders_;
     std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;
+    std::unordered_map<GLObjectName, std::unique_ptr<ProgramPipelineObject>>
+        pipelines_;
     std::unordered_map<GLObjectName, std::unique_ptr<TransformFeedbackObject>>
         transformFeedbacks_;
     std::unordered_map<GLObjectName, std::unique_ptr<QueryObject>> queries_;
@@ -627,6 +655,7 @@ private:
     GLObjectName boundFramebuffer_ = 0;
     GLObjectName boundVertexArray_ = 0;
     GLObjectName boundTransformFeedback_ = 0;
+    GLObjectName boundProgramPipeline_ = 0;
 };
 
 } // namespace glcompat

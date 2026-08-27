@@ -99,6 +99,9 @@ public:
     int useProgramCalls = 0;
     GLObjectName lastProgram = 0;
 
+    int bindProgramPipelineCalls = 0;
+    GLObjectName lastProgramPipeline = 0;
+
     int blendFuncCalls = 0;
     int blendEquationCalls = 0;
     int blendColorCalls = 0;
@@ -166,6 +169,10 @@ public:
     void useProgram(GLObjectName prog) override {
         ++useProgramCalls;
         lastProgram = prog;
+    }
+    void bindProgramPipeline(uint32_t pipeline) override {
+        ++bindProgramPipelineCalls;
+        lastProgramPipeline = pipeline;
     }
     void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB, uint32_t srcAlpha,
                            uint32_t dstAlpha) override {

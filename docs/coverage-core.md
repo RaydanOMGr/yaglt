@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 184 | **37.6%** |
-| Core profile only (spec − 55 removed commands) | 435 | 184 | **42.3%** |
+| Full spec (compat + core) | 490 | 194 | **39.6%** |
+| Core profile only (spec − 55 removed commands) | 435 | 194 | **44.6%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -44,7 +44,7 @@ signal.
 > mask, sample coverage, primitive restart) are already implemented but not yet
 > folded into the per-area table below. Regenerate for an exact tally.
 
-All 184 covered commands are real `gl_api` entry points with frontend semantics
+All 194 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -63,9 +63,9 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 |---------------------|--------|-------|
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled` |
 | §6 Buffer objects | 🟡 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`. Missing: `BufferSubData`, `BufferStorage` (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, `InvalidateBuffer*`, `GetBufferSubData`, buffer queries |
-| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate. Missing: `BindAttribLocation`, program **pipelines** (§7.4), **subroutines**, **compute** shaders, shader binaries |
+| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist). Missing: `BindAttribLocation`, **subroutines** (§7.9), **compute** shaders, shader binaries |
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: cube/array/rect TexImage targets, full param coverage, `GetTexImage` multisample, **multisample textures**, texture views |
-| §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
+| §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path). Missing: indirect draw, other `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
@@ -161,7 +161,8 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
 7. **Compute / geometry / tessellation** — currently honestly Unsupported;
    requires the emulation roadmap in `docs/feature-matrix.md`. (§7/§13)
 8. **Program pipelines & subroutines** — `glBindProgramPipeline`,
-   `glActiveShaderProgram`, `glGetProgramResource*`. (§7.4)
+   `glActiveShaderProgram` implemented (SPEC §7.4). Remaining: `glGetProgramResource*`
+   program-interface reflection, and **subroutines** (§7.9). (§7.4)
 9. **Rasterization controls** — `PolygonMode`, polygon offset, `PointSize`,
    `LineWidth`, multisample raster state. (§11)
 10. **Specific `glGet*` coverage** — buffer/texture/internalformat/named-object

@@ -1036,6 +1036,64 @@ void glUseProgram(GLuint prog) {
     g_current->state().useProgram(prog);
 }
 
+// --- Program pipelines (SPEC §7.4) ---
+
+GLuint glCreateShaderProgramv(GLenum type, GLsizei count,
+                              const GLchar* const* strings) {
+    if (g_current == nullptr) return 0;
+    return g_current->createShaderProgramv(static_cast<uint32_t>(type), count,
+                                           strings);
+}
+
+void glGenProgramPipelines(GLsizei n, GLuint* pipelines) {
+    if (g_current == nullptr) return;
+    g_current->genProgramPipelines(static_cast<uint32_t>(n), pipelines);
+}
+
+void glDeleteProgramPipelines(GLsizei n, const GLuint* pipelines) {
+    if (g_current == nullptr) return;
+    g_current->deleteProgramPipelines(static_cast<uint32_t>(n), pipelines);
+}
+
+GLboolean glIsProgramPipeline(GLuint pipeline) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isProgramPipeline(pipeline) ? GL_TRUE : GL_FALSE;
+}
+
+void glBindProgramPipeline(GLuint pipeline) {
+    if (g_current == nullptr) return;
+    g_current->bindProgramPipeline(pipeline);
+}
+
+void glUseProgramStages(GLuint pipeline, GLbitfield stages, GLuint program) {
+    if (g_current == nullptr) return;
+    g_current->useProgramStages(pipeline, static_cast<uint32_t>(stages), program);
+}
+
+void glActiveShaderProgram(GLuint pipeline, GLuint program) {
+    if (g_current == nullptr) return;
+    g_current->activeShaderProgram(pipeline, program);
+}
+
+void glGetProgramPipelineiv(GLuint pipeline, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getProgramPipelineiv(pipeline, static_cast<uint32_t>(pname),
+                                    params);
+}
+
+void glValidateProgramPipeline(GLuint pipeline) {
+    if (g_current == nullptr) return;
+    g_current->validateProgramPipeline(pipeline);
+}
+
+void glGetProgramPipelineInfoLog(GLuint pipeline, GLsizei bufSize,
+                                 GLsizei* length, GLchar* infoLog) {
+    if (g_current == nullptr) return;
+    g_current->getProgramPipelineInfoLog(pipeline,
+                                         static_cast<uint32_t>(bufSize), length,
+                                         infoLog);
+}
+
 void glDepthFunc(GLenum func) {
     if (g_current == nullptr) return;
     g_current->state().setDepthFunc(func);
