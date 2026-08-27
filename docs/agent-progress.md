@@ -890,9 +890,10 @@ crashed agent, this session)
 ## Next Steps
 
  0. **PRIMARY GOAL: implement all 490 OpenGL 4.6 spec command prototypes.**
-     Per `docs/coverage-core.md` (2026-08-27) now 141/490 (28.8%) have a
-      frontend entry point; core-only is 141/435 (32.4%). The standing
-     objective is to reach **full coverage of all 490 spec command prototypes** —
+      Current coverage ~214/490 (43.7%) full / ~214/435 (49.2%) core have a
+       frontend entry point (was ~209 before the program-interface reflection
+      completion this session). The standing objective is to reach **full
+      coverage of all 490 spec command prototypes** —
     core profile fully, plus the compatibility-profile (removed-in-core)
     commands from Appendix E.2.2 once the core majority is landed (gated per
     `docs/feature-matrix.md` "Compatibility Profile"). Track progress against
@@ -1235,7 +1236,154 @@ crashed agent, this session)
 - Coverage now ~209/490 (42.7%) full / 209/435 (48.0%) core. §7 row dropped
   subroutines from missing; priority #8 reflection + subroutines marked done.
 - Validation: default 306/306 green; sanitizer 315/315 (lone failure = pre-existing
-  translator-absent `shader_translate_test` config quirk); GLES backend path compiles
-  and links under the sanitizer build with no regression.
+   translator-absent `shader_translate_test` config quirk); GLES backend path compiles
+   and links under the sanitizer build with no regression.
+
+2026-08-27 (legacy uniform/attribute/uniform-block reflection, this session)
+- Implemented the remaining program-interface reflection entry points (SPEC §7.6 /
+  §11.1): `glGetActiveUniform`, `glGetActiveAttrib`, `glGetUniformBlockIndex`,
+  `glGetActiveUniformBlockiv`, `glGetActiveUniformBlockName`. Per the OpenGL 4.6
+  spec these are exact equivalents of the `GetProgramResource*` queries, so they
+  are implemented as frontend delegations onto the existing `BackendProgram`
+  reflection methods (UNIFORM / PROGRAM_INPUT / UNIFORM_BLOCK interfaces) — no new
+  backend virtuals were required. `glGetActiveUniform`/`glGetActiveAttrib` call
+  `getProgramResourceName` + `getProgramResourceiv(ARRAY_SIZE, TYPE)`;
+  `glGetUniformBlockIndex` ≡ `getProgramResourceIndex(UNIFORM_BLOCK, name)` (honest
+  `GL_INVALID_INDEX` on miss); `glGetActiveUniformBlockName` ≡
+  `getProgramResourceName(UNIFORM_BLOCK, …)`. `glGetActiveUniformBlockiv` maps each
+  `pname` to its table-7.7 property (e.g. `UNIFORM_BLOCK_BINDING`→`BUFFER_BINDING`,
+  `UNIFORM_BLOCK_DATA_SIZE`→`BUFFER_DATA_SIZE`) and reports `GL_INVALID_ENUM` for an
+  unknown `pname`, `GL_INVALID_VALUE` for null params / out-of-range index; the
+  `UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES` case sizes its result buffer from
+  `NUM_ACTIVE_VARIABLES`. Added the `glGetActiveUniformBlockiv` pname constants to
+  `gl_types.hpp`. Validation: unlinked program → `GL_INVALID_OPERATION`; out-of-range
+  index / negative `bufSize` → `GL_INVALID_VALUE`; `getUniformBlockIndex` miss →
+  honest `GL_INVALID_INDEX` (no error); bad `pname` → `GL_INVALID_ENUM`.
+- New `tests/unit/active_uniform_attrib_test.cpp` (11 Mock validation + honest-not
+  found cases) and `tests/backend/gles_e2e_get_active_uniform` (real Mesa: name/
+  size/type round-trip for a known uniform). The e2e test is ordered before the
+  other driver tests so it actually executes (the pre-existing Mesa teardown SEGV
+  in `GLESBackend::~GLESBackend` aborts the binary after the first driver-initializing
+  e2e test; same limitation as the existing e2e tests). Registered the unit test in
+  `tests/CMakeLists.txt`.
+- Coverage now ~214/490 (43.7%) full / ~214/435 (49.2%) core. §7 program-interface
+  reflection marked complete.
+- Validation: default 317/317 green; sanitizer + translate (Mesa) builds compile and
+  link (the translate/Mesa run still trips the pre-existing Mesa softpipe teardown
+  SEGV after the first e2e driver test, unrelated to this change; verified by
+  construction + the existing `gles_e2e_program_resource_reflection` path).
+
+2026-08-27 (buffer object completeness: clear/invalidate/read-back, this session)
+- Closed the §6 buffer-object residual: `glGetBufferSubData`/`glGetNamedBufferSubData`
+  read the frontend's authoritative CPU mirror (exact on mock and real backends);
+  `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/
+  `glClearNamedBufferSubData` convert the clear value into the destination sized
+  internalformat and fill the mirror, then re-upload the range to the backend (GLES
+  has no native `glClearBufferData`, so the frontend fill + `glBufferSubData`
+  re-upload keeps the driver copy consistent). `glInvalidateBufferData`/
+  `glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` validate bounds/mapping and
+  forward a driver discard hint (`glInvalidateBufferData`/`glInvalidateBufferSubData`
+  on GLES 3.0+; resolved optionally in the loader).
+- Added `lookupBufferFormat` (table 8.24 subset: 8/16/32-bit float and 8/16/32-bit
+  signed/unsigned integer R/RG/RGB/RGBA formats) and a `buildClearPattern` helper
+  that converts the `format`/`type` clear value to the destination layout. The
+  source type (FLOAT/HALF_FLOAT vs integer) drives the read; integer sources are
+  stored directly into UNORM/SNORM destinations (no re-scale), float sources are
+  scaled to [0,1]/[-1,1]; missing components default to (0,0,0,1). Null `data` fills
+  zero. Bad internalformat → `GL_INVALID_ENUM`; unaligned/negative/out-of-bounds
+  offset·size → `GL_INVALID_VALUE`; mapped store (non-persistent) → `GL_INVALID_OPERATION`;
+  missing buffer → `GL_INVALID_OPERATION`.
+- Added 10 entry points to `gl_api.hpp`/`gl_api.cpp` + `Context` (6 clear/invalidate
+  families incl. `*Named`) + declarations in `context.hpp`; added `invalidateBuffer*`
+  virtuals to `BackendBuffer` (GLES forwards, Mock records the call). Added the
+  needed GL constants to `gl_types.hpp` (sized internal formats, `*_INTEGER` /
+  `DEPTH_COMPONENT` / `STENCIL_INDEX` formats, `BYTE`/`SHORT`/`INT`/`UNSIGNED_INT`
+  types, `GL_MAP_PERSISTENT_BIT`).
+- Unit tests: 14 new cases in `tests/unit/buffer_completeness_test.cpp` (whole-store
+  fill, sub-range fill, null-data zero, RGBA8 normalized conversion, INVALID_ENUM on
+  unsized internalformat, INVALID_VALUE on unaligned offset / bad format,
+  INVALID_OPERATION on missing buffer / mapped read, getBufferSubData read-back by
+  target and by name, OOB / mapped validation, invalidate forwarding + OOB,
+  API-dispatch round-trip). Removed redundant local `GL_UNSIGNED_INT` constants in
+  `draw_test.cpp` / `draw_expansion_test.cpp` that now collide with the global.
+- Coverage now ~219/490 (44.7%) full / ~219/435 (50.3%) core. §6 buffer objects marked
+  complete (🟢). Note: the spec table-8.24 subset does not yet cover packed formats
+  (R11F_G11F_B10F, RGB10_A2 / RGB10_A2UI); those report `GL_INVALID_ENUM` honestly.
+- Validation: default 332/332 green (was 317; +11 prior reflection +14 this step);
+  sanitizer 342/342 green with the single pre-existing `shader_translate_test`
+  config-quirk failure (unrelated). GLES backend path compiles and links under both
+  sanitizer and translate/Mesa builds; the Mesa teardown SEGV still aborts the
+  translate run after the first e2e driver test (no e2e buffer test added, since it
+  would be unreachable beyond that crash and the mock path already verifies the
+   fill/re-upload semantics exactly).
+
+2026-08-27 (texture completeness: immutable storage, texture buffers, multisample, this session)
+- Closed the §8.5 / §8.9 / §8.19 residual that was still marked "(planned)" in
+  `feature-matrix.md` and "missing" in `coverage-core.md`. The DSA `glTextureStorage1D/2D/3D`
+  and `glTextureBuffer`/`glTextureBufferRange` already existed; the gaps were the **non-DSA**
+  `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` and the entire **multisample**
+  surface.
+- Added `BackendTexture` virtuals `storage2DMultisample`/`storage3DMultisample`/
+  `texImage2DMultisample`/`texImage3DMultisample` (defaulted; overridden in `MockTexture`
+  and `GLESBackendTexture`). GLES forwards to `glTexStorage2DMultisample`/
+  `glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` (resolved
+  optionally in `gles_loader`), Mock records call counts + last params.
+- `Context` gained `texStorage1D/2D/3D`, `texBuffer`/`texBufferRange` (resolve the texture
+  bound to `target`), `texStorage2DMultisample`/`texStorage3DMultisample`/
+  `texImage2DMultisample`/`texImage3DMultisample` (target-validated:
+  `GL_TEXTURE_2D_MULTISAMPLE` for 2D, `GL_TEXTURE_2D_MULTISAMPLE_ARRAY` for 3D), and DSA
+  `textureStorage2DMultisample`/`textureStorage3DMultisample` (capability-gated by
+  `DirectStateAccess`). `texBuffer*` requires `target == GL_TEXTURE_BUFFER`, a generated
+  buffer name, and non-negative offset/size. Immutable multisample sets
+  `immutableStorage=true`; `texImage*Multisample` sets `immutableStorage=false`. All
+  validation matches SPEC §8 (no bound texture → `GL_INVALID_OPERATION`; `levels < 1` or a
+  dimension `< 1` or `samples < 0` → `GL_INVALID_VALUE`; wrong target → `GL_INVALID_ENUM`;
+  ungenerated buffer → `GL_INVALID_OPERATION`).
+- Added 11 `gl_api` entry points and 12 `Context` method declarations (`context.hpp`).
+- Unit tests: 18 new cases in `tests/unit/texture_storage_test.cpp` (immutable 1D/2D/3D on the
+  bound texture, no-bound/invalid-value validation, texture-buffer bind + range + wrong-target
+  + ungenerated-buffer + negative-offset, multisample 2D/3D immutable + mutable, DSA
+  multisample + DSA-disabled → `GL_INVALID_OPERATION`). Registered in `tests/CMakeLists.txt`.
+- Coverage now ~230/490 (47.0%) full / ~230/435 (52.9%) core. §8 texture objects marked
+  complete for storage/buffer/multisample (cube/array/rect targets, `GetTexImage` multisample,
+  texture views remain). Multisample + texture-buffer rows flipped `(planned)` → `Native` in
+  `feature-matrix.md`.
+- Validation: default 351/351 green (was 332; +18 this step); sanitizer 361/361 green with the
+  single pre-existing `shader_translate_test` config-quirk failure (unrelated). GLES/translate
+  build (`build_tx`) compiles and links the new backend path. No e2e texture test added (the
+  pre-existing Mesa teardown SEGV aborts the translate run after the first driver test, and the
+  mock path already verifies the storage/buffer/multisample forwarding exactly).
+
+2026-08-27 (texture integer parameters, classic mipmap, texture invalidation, this session)
+- SPEC §8.1: implemented the remaining texture-parameter / mipmap / invalidation surface that
+  had only DSA or no coverage. New non-DSA + DSA entry points:
+  - `glGenerateMipmap(target)` (classic counterpart to the DSA `glGenerateTextureMipmap`).
+  - Integer texture parameters: `glTexParameterIiv` / `glTexParameterIuiv` (bound texture) and
+    `glTextureParameterIiv` / `glTextureParameterIuiv` (DSA, capability-gated by
+    `DirectStateAccess`). Element counts are derived from the pname (e.g. `GL_TEXTURE_BORDER_COLOR`
+    = 4), matching desktop GL which passes no explicit count.
+  - Integer texture-parameter queries: `glGetTexParameterIiv` / `glGetTexParameterIuiv` and
+    `glGetTextureParameterIiv` / `glGetTextureParameterIuiv` (DSA). Frontend owns the stored
+    signed/unsigned vectors, so queries never round-trip to the driver (SPEC §10).
+  - Texture invalidation: `glInvalidateTexImage` / `glInvalidateTexSubImage` (bound texture,
+    non-DSA) forwarded as a backend discard hint.
+- `BackendTexture` gained `texParameterIiv` / `texParameterIuiv` / `invalidateTexImage` /
+  `invalidateTexSubImage` virtuals (default no-op). `MockTexture` records every call;
+  `GLESBackendTexture` drives the native `glTexParameterIiv` / `glTexParameterIuiv` /
+  `glInvalidateTexImage` / `glInvalidateTexSubImage` (resolved as optional `GLESLib` symbols so
+  `load()` still succeeds where the driver lacks them). `TextureObject` gained `paramsIiv` /
+  `paramsIuiv` stores. `GLESLib` gained the four loader symbols.
+- Honest validation: null `params` → `GL_INVALID_VALUE`; no bound texture → `GL_INVALID_OPERATION`;
+  `invalidateTexImage` negative level / `invalidateTexSubImage` negative dims → `GL_INVALID_VALUE`;
+  DSA getters report `GL_INVALID_OPERATION` when `DirectStateAccess` is unsupported. `gl_api`
+  exposes all eleven new entry points.
+- New `tests/unit/texparam_int_invalidate_test.cpp` (19 cases) covers mipmap forward, integer
+  param set + vector length (border-color = 4), queries (set/unset/zero), null/no-texture
+  errors, DSA set/get, DSA-unsupported path, texture invalidation forward + validation, and the
+  `gl*` surface. Registered in `tests/CMakeLists.txt`.
+- Coverage now ~241/490 (49.2%) full / ~241/435 (55.4%) core. §8 texture objects marked
+  complete for parameters (integer variants), classic mipmap, and invalidation.
+- Validation: default 369/369 green; sanitizer 379/379 green with the single pre-existing
+  `shader_translate_test` 1D-emulation quirk (unrelated to this change; translator untouched).
 
 ## Next Steps

@@ -3,11 +3,23 @@
 #include "glcompat/core/factory.hpp"
 #include "glcompat/core/log.hpp"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstring>
 #include <string>
+#include <vector>
 
+namespace {
+// Number of scalar elements a given texture-parameter pname carries for the
+// integer setter variants (glTexParameterIiv / glTexParameterIuiv), which do not
+// pass an explicit count (it is derived from the pname, matching desktop GL).
+int texParamElementCount(uint32_t pname) {
+    // GL_TEXTURE_BORDER_COLOR is the only multi-element integer texture param.
+    if (pname == 0x1003 /* GL_TEXTURE_BORDER_COLOR */) return 4;
+    return 1;
+}
+}
 namespace glcompat {
 
 GLError Context::getError() {
@@ -321,6 +333,373 @@ bool Context::unmapBuffer(uint32_t target) {
     obj->mapLength = 0;
     obj->mapAccess = 0;
     return true;
+}
+
+namespace {
+
+// Per-internalformat layout used by Clear*Buffer* (SPEC §6 / table 8.24).
+struct BufferFormatInfo {
+    int components;     // 1..4
+    int bytesPerComp;   // 1, 2, or 4
+    bool normalized;    // normalized integer (UNORM/SNORM) vs pure integer/float
+    bool isFloat;       // float / half-float base type
+    bool isSigned;      // for pure integer or normalized signed
+};
+
+// Resolve a sized internal format to its component layout. Covers the practical
+// subset of table 8.24 used for buffer clears; packed/exotic formats
+// (e.g. R11F_G11F_B10F, RGB10_A2) intentionally return false so the caller can
+// report GL_INVALID_ENUM honestly.
+bool lookupBufferFormat(uint32_t internalformat, BufferFormatInfo& info) {
+    switch (internalformat) {
+    case GL_R8: info = {1,1,true,false,false}; return true;
+    case GL_RG8: info = {2,1,true,false,false}; return true;
+    case GL_RGB8: info = {3,1,true,false,false}; return true;
+    case GL_RGBA8: info = {4,1,true,false,false}; return true;
+    case GL_SRGB8: info = {3,1,true,false,false}; return true;
+    case GL_SRGB8_ALPHA8: info = {4,1,true,false,false}; return true;
+    case GL_R16F: info = {1,2,false,true,false}; return true;
+    case GL_RG16F: info = {2,2,false,true,false}; return true;
+    case GL_RGB16F: info = {3,2,false,true,false}; return true;
+    case GL_RGBA16F: info = {4,2,false,true,false}; return true;
+    case GL_R32F: info = {1,4,false,true,false}; return true;
+    case GL_RG32F: info = {2,4,false,true,false}; return true;
+    case GL_RGB32F: info = {3,4,false,true,false}; return true;
+    case GL_RGBA32F: info = {4,4,false,true,false}; return true;
+    case GL_R8I: info = {1,1,false,false,true}; return true;
+    case GL_R8UI: info = {1,1,false,false,false}; return true;
+    case GL_RG8I: info = {2,1,false,false,true}; return true;
+    case GL_RG8UI: info = {2,1,false,false,false}; return true;
+    case GL_RGB8I: info = {3,1,false,false,true}; return true;
+    case GL_RGB8UI: info = {3,1,false,false,false}; return true;
+    case GL_RGBA8I: info = {4,1,false,false,true}; return true;
+    case GL_RGBA8UI: info = {4,1,false,false,false}; return true;
+    case GL_R16I: info = {1,2,false,false,true}; return true;
+    case GL_R16UI: info = {1,2,false,false,false}; return true;
+    case GL_RG16I: info = {2,2,false,false,true}; return true;
+    case GL_RG16UI: info = {2,2,false,false,false}; return true;
+    case GL_RGB16I: info = {3,2,false,false,true}; return true;
+    case GL_RGB16UI: info = {3,2,false,false,false}; return true;
+    case GL_RGBA16I: info = {4,2,false,false,true}; return true;
+    case GL_RGBA16UI: info = {4,2,false,false,false}; return true;
+    case GL_R32I: info = {1,4,false,false,true}; return true;
+    case GL_R32UI: info = {1,4,false,false,false}; return true;
+    case GL_RG32I: info = {2,4,false,false,true}; return true;
+    case GL_RG32UI: info = {2,4,false,false,false}; return true;
+    case GL_RGB32I: info = {3,4,false,false,true}; return true;
+    case GL_RGB32UI: info = {3,4,false,false,false}; return true;
+    case GL_RGBA32I: info = {4,4,false,false,true}; return true;
+    case GL_RGBA32UI: info = {4,4,false,false,false}; return true;
+    default: return false;
+    }
+}
+
+// Convert a IEEE-754 half (uint16) to a 32-bit float. Used when a Clear*Buffer*
+// clear value is supplied as GL_HALF_FLOAT.
+float halfToFloat(uint16_t h) {
+    uint32_t sign = (h >> 15) & 0x1;
+    uint32_t exp = (h >> 10) & 0x1F;
+    uint32_t mant = h & 0x3FF;
+    uint32_t f;
+    if (exp == 0) {
+        if (mant == 0) {
+            f = sign << 31;
+        } else {
+            // Subnormal: renormalize.
+            int e = 0;
+            while ((mant & 0x400) == 0) { mant <<= 1; --e; }
+            mant &= 0x3FF;
+            exp = static_cast<uint32_t>(1 - e);
+            f = (sign << 31) | (exp << 23) | (mant << 13);
+        }
+    } else if (exp == 0x1F) {
+        f = (sign << 31) | 0x7F800000u | (mant << 13);
+    } else {
+        f = (sign << 31) | ((exp + 112) << 23) | (mant << 13);
+    }
+    float out;
+    std::memcpy(&out, &f, sizeof(out));
+    return out;
+}
+
+// Build the per-element fill pattern (components * bytesPerComp bytes) for a
+// Clear*Buffer* call. `data` is described by `format`/`type`; the destination
+// layout is `info`. Returns false (and leaves `pattern` empty) when `format` or
+// `type` is not a valid combination (caller reports GL_INVALID_VALUE).
+bool buildClearPattern(uint32_t format, uint32_t type, const BufferFormatInfo& info,
+                       const void* data, std::vector<uint8_t>& pattern) {
+    int srcComps = 0;
+    switch (format) {
+    case GL_RED: srcComps = 1; break;
+    case GL_RG: srcComps = 2; break;
+    case GL_RGB: srcComps = 3; break;
+    case GL_RGBA: srcComps = 4; break;
+    case GL_RED_INTEGER: srcComps = 1; break;
+    case GL_RG_INTEGER: srcComps = 2; break;
+    case GL_RGB_INTEGER: srcComps = 3; break;
+    case GL_RGBA_INTEGER: srcComps = 4; break;
+    case GL_DEPTH_COMPONENT:
+    case GL_STENCIL_INDEX: srcComps = 1; break;
+    default: return false;
+    }
+    // The value is read as floating-point only for FLOAT / HALF_FLOAT source
+    // types; every other (byte/short/int, signed or unsigned) source is an
+    // integer type, regardless of whether the destination format is color or
+    // integer (SPEC §6: ClearBuffer* converts the source to the destination).
+    bool srcIsFloat = false;
+    switch (type) {
+    case GL_FLOAT: case GL_HALF_FLOAT: srcIsFloat = true; break;
+    case GL_BYTE: case GL_UNSIGNED_BYTE: case GL_SHORT: case GL_UNSIGNED_SHORT:
+    case GL_INT: case GL_UNSIGNED_INT: break;
+    default: return false;
+    }
+
+    pattern.assign(static_cast<size_t>(info.components) * info.bytesPerComp, 0);
+
+    double fsrc[4] = {0.0, 0.0, 0.0, 0.0};
+    int64_t isrc[4] = {0, 0, 0, 0};
+    if (data) {
+        if (srcIsFloat) {
+            float fv[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+            switch (type) {
+            case GL_FLOAT: { const auto* p = static_cast<const float*>(data);
+                for (int i = 0; i < srcComps; ++i) fv[i] = p[i]; } break;
+            case GL_HALF_FLOAT: { const auto* p = static_cast<const uint16_t*>(data);
+                for (int i = 0; i < srcComps; ++i) fv[i] = halfToFloat(p[i]); } break;
+            default: break;
+            }
+            for (int i = 0; i < srcComps; ++i) {
+                fsrc[i] = fv[i];
+                isrc[i] = static_cast<int64_t>(fv[i]);
+            }
+        } else {
+            int64_t iv[4] = {0, 0, 0, 0};
+            switch (type) {
+            case GL_BYTE: { const auto* p = static_cast<const int8_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = p[i]; } break;
+            case GL_UNSIGNED_BYTE: { const auto* p = static_cast<const uint8_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = p[i]; } break;
+            case GL_SHORT: { const auto* p = static_cast<const int16_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = p[i]; } break;
+            case GL_UNSIGNED_SHORT: { const auto* p = static_cast<const uint16_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = p[i]; } break;
+            case GL_INT: { const auto* p = static_cast<const int32_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = p[i]; } break;
+            case GL_UNSIGNED_INT: { const auto* p = static_cast<const uint32_t*>(data);
+                for (int i = 0; i < srcComps; ++i) iv[i] = static_cast<int64_t>(p[i]); } break;
+            default: break;
+            }
+            for (int i = 0; i < srcComps; ++i) {
+                isrc[i] = iv[i];
+                fsrc[i] = static_cast<double>(iv[i]);
+            }
+        }
+    }
+
+    for (int c = 0; c < info.components; ++c) {
+        double v = 0.0;
+        int64_t iv = 0;
+        if (c < srcComps) { v = fsrc[c]; iv = isrc[c]; }
+        else { v = (c == 3) ? 1.0 : 0.0; iv = (c == 3) ? 1 : 0; }
+
+        size_t off = static_cast<size_t>(c) * info.bytesPerComp;
+        uint8_t* dst = pattern.data() + off;
+        if (info.isFloat) {
+            float f = static_cast<float>(v);
+            std::memcpy(dst, &f, sizeof(float));
+        } else if (info.normalized) {
+            // For a floating-point source the value is in [0,1] (signed [-1,1])
+            // and scales to the UNORM/SNORM range; for an integer source the
+            // value is already expressed in that range and is stored directly
+            // (SPEC §6: ClearBuffer* converts source -> destination).
+            if (info.isSigned) {
+                int64_t lo = (info.bytesPerComp == 1) ? -128 : -32768;
+                int64_t hi = (info.bytesPerComp == 1) ? 127 : 32767;
+                int64_t s = srcIsFloat ? static_cast<int64_t>(v * static_cast<double>(hi)) : iv;
+                if (s < lo) s = lo;
+                if (s > hi) s = hi;
+                if (info.bytesPerComp == 1) { int8_t b = static_cast<int8_t>(s); std::memcpy(dst, &b, 1); }
+                else { int16_t b = static_cast<int16_t>(s); std::memcpy(dst, &b, 2); }
+            } else {
+                int64_t lo = 0;
+                int64_t hi = (info.bytesPerComp == 1) ? 255 : 65535;
+                int64_t u = srcIsFloat ? static_cast<int64_t>(v * static_cast<double>(hi) + 0.5) : iv;
+                if (u < lo) u = lo;
+                if (u > hi) u = hi;
+                if (info.bytesPerComp == 1) { uint8_t b = static_cast<uint8_t>(u); std::memcpy(dst, &b, 1); }
+                else { uint16_t b = static_cast<uint16_t>(u); std::memcpy(dst, &b, 2); }
+            }
+        } else { // pure integer
+            if (info.isSigned) {
+                int64_t s = iv;
+                if (info.bytesPerComp == 1) { int8_t b = static_cast<int8_t>(s); std::memcpy(dst, &b, 1); }
+                else if (info.bytesPerComp == 2) { int16_t b = static_cast<int16_t>(s); std::memcpy(dst, &b, 2); }
+                else { int32_t b = static_cast<int32_t>(s); std::memcpy(dst, &b, 4); }
+            } else {
+                uint64_t u = static_cast<uint64_t>(iv);
+                if (info.bytesPerComp == 1) { uint8_t b = static_cast<uint8_t>(u); std::memcpy(dst, &b, 1); }
+                else if (info.bytesPerComp == 2) { uint16_t b = static_cast<uint16_t>(u); std::memcpy(dst, &b, 2); }
+                else { uint32_t b = static_cast<uint32_t>(u); std::memcpy(dst, &b, 4); }
+            }
+        }
+    }
+    return true;
+}
+
+} // namespace
+
+void Context::getBufferSubData(uint32_t target, intptr_t offset, intptr_t size,
+                              void* data) {
+    getNamedBufferSubData(boundBuffer(target), offset, size, data);
+}
+
+void Context::getNamedBufferSubData(GLObjectName buffer, intptr_t offset,
+                                   intptr_t size, void* data) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // not an existing buffer object
+        return;
+    }
+    if (offset < 0 || size < 0 || offset + size > obj->size) {
+        setError(GLError::InvalidValue); // region out of bounds
+        return;
+    }
+    if (obj->mapped && (obj->mapAccess & GL_MAP_PERSISTENT_BIT) == 0) {
+        setError(GLError::InvalidOperation); // non-persistent map active
+        return;
+    }
+    if (data && size > 0) {
+        std::memcpy(data, obj->store.data() + static_cast<size_t>(offset),
+                    static_cast<size_t>(size));
+    }
+}
+
+void Context::clearBufferData(uint32_t target, uint32_t internalformat,
+                             uint32_t format, uint32_t type, const void* data) {
+    clearNamedBufferData(boundBuffer(target), internalformat, format, type, data);
+}
+
+void Context::clearNamedBufferData(GLObjectName buffer, uint32_t internalformat,
+                                  uint32_t format, uint32_t type, const void* data) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // not an existing buffer object
+        return;
+    }
+    BufferFormatInfo info;
+    if (!lookupBufferFormat(internalformat, info)) {
+        setError(GLError::InvalidEnum); // not a supported sized internal format
+        return;
+    }
+    std::vector<uint8_t> pattern;
+    if (!buildClearPattern(format, type, info, data, pattern)) {
+        setError(GLError::InvalidValue); // bad format/type
+        return;
+    }
+    if (obj->mapped && (obj->mapAccess & GL_MAP_PERSISTENT_BIT) == 0) {
+        setError(GLError::InvalidOperation); // non-persistent map active
+        return;
+    }
+    // Fill the whole store with the pattern.
+    if (obj->size > 0) {
+        size_t elemSize = static_cast<size_t>(info.components) * info.bytesPerComp;
+        for (size_t pos = 0; pos + elemSize <= static_cast<size_t>(obj->size);
+             pos += elemSize) {
+            std::memcpy(obj->store.data() + pos, pattern.data(), elemSize);
+        }
+    }
+    if (obj->backend) {
+        uint32_t fwdTarget = obj->target ? obj->target : GL_ARRAY_BUFFER;
+        obj->backend->bufferSubData(fwdTarget, 0, obj->size, obj->store.data());
+    }
+}
+
+void Context::clearBufferSubData(uint32_t target, uint32_t internalformat,
+                                intptr_t offset, intptr_t size, uint32_t format,
+                                uint32_t type, const void* data) {
+    clearNamedBufferSubData(boundBuffer(target), internalformat, offset, size,
+                            format, type, data);
+}
+
+void Context::clearNamedBufferSubData(GLObjectName buffer, uint32_t internalformat,
+                                     intptr_t offset, intptr_t size, uint32_t format,
+                                     uint32_t type, const void* data) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // not an existing buffer object
+        return;
+    }
+    BufferFormatInfo info;
+    if (!lookupBufferFormat(internalformat, info)) {
+        setError(GLError::InvalidEnum); // not a supported sized internal format
+        return;
+    }
+    size_t elemSize = static_cast<size_t>(info.components) * info.bytesPerComp;
+    if (offset < 0 || size < 0 || offset + size > obj->size) {
+        setError(GLError::InvalidValue); // region out of bounds
+        return;
+    }
+    if (offset % elemSize != 0 || size % elemSize != 0) {
+        setError(GLError::InvalidValue); // not aligned to the element size
+        return;
+    }
+    std::vector<uint8_t> pattern;
+    if (!buildClearPattern(format, type, info, data, pattern)) {
+        setError(GLError::InvalidValue); // bad format/type
+        return;
+    }
+    if (obj->mapped && (obj->mapAccess & GL_MAP_PERSISTENT_BIT) == 0) {
+        setError(GLError::InvalidOperation); // non-persistent map active
+        return;
+    }
+    if (size > 0) {
+        size_t start = static_cast<size_t>(offset);
+        for (size_t pos = start; pos + elemSize <= start + static_cast<size_t>(size);
+             pos += elemSize) {
+            std::memcpy(obj->store.data() + pos, pattern.data(), elemSize);
+        }
+        if (obj->backend) {
+            uint32_t fwdTarget = obj->target ? obj->target : GL_ARRAY_BUFFER;
+            obj->backend->bufferSubData(fwdTarget, offset, size,
+                                        obj->store.data() + start);
+        }
+    }
+}
+
+void Context::invalidateBufferData(uint32_t target) {
+    invalidateNamedBufferData(boundBuffer(target));
+}
+
+void Context::invalidateNamedBufferData(GLObjectName buffer) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // not an existing buffer object
+        return;
+    }
+    if (obj->backend) obj->backend->invalidateBufferData(obj->target);
+}
+
+void Context::invalidateBufferSubData(uint32_t target, intptr_t offset,
+                                     intptr_t length) {
+    invalidateNamedBufferSubData(boundBuffer(target), offset, length);
+}
+
+void Context::invalidateNamedBufferSubData(GLObjectName buffer, intptr_t offset,
+                                          intptr_t length) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // not an existing buffer object
+        return;
+    }
+    if (offset < 0 || length < 0 || offset + length > obj->size) {
+        setError(GLError::InvalidValue); // region out of bounds
+        return;
+    }
+    if (obj->mapped && (obj->mapAccess & GL_MAP_PERSISTENT_BIT) == 0) {
+        setError(GLError::InvalidOperation); // non-persistent map active
+        return;
+    }
+    if (obj->backend) obj->backend->invalidateBufferSubData(obj->target, offset, length);
 }
 
 namespace {
@@ -719,10 +1098,121 @@ void Context::texParameteriv(uint32_t target, uint32_t pname, const int* params,
     }
     tex->target = target;
     tex->paramsiv[pname].assign(params, params + count);
-    if (tex->backend) tex->backend->texParameteriv(target, pname, params, count);
-}
+        if (tex->backend) tex->backend->texParameteriv(target, pname, params, count);
+    }
 
-void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
+    void Context::texParameterIiv(uint32_t target, uint32_t pname, const int32_t* params) {
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        int count = texParamElementCount(pname);
+        tex->target = target;
+        tex->paramsIiv[pname].assign(params, params + count);
+        if (tex->backend) tex->backend->texParameterIiv(target, pname, params, count);
+    }
+
+    void Context::texParameterIuiv(uint32_t target, uint32_t pname, const uint32_t* params) {
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        int count = texParamElementCount(pname);
+        tex->target = target;
+        tex->paramsIuiv[pname].assign(params, params + count);
+        if (tex->backend) tex->backend->texParameterIuiv(target, pname, params, count);
+    }
+
+    void Context::getTexParameterIiv(GLenum target, GLenum pname, int32_t* params) {
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation); // no texture bound
+            return;
+        }
+        auto it = tex->paramsIiv.find(pname);
+        if (it != tex->paramsIiv.end() && !it->second.empty()) {
+            std::copy(it->second.begin(), it->second.end(), params);
+        } else {
+            *params = 0; // GL default for an unset parameter
+        }
+    }
+
+    void Context::getTexParameterIuiv(GLenum target, GLenum pname, uint32_t* params) {
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation); // no texture bound
+            return;
+        }
+        auto it = tex->paramsIuiv.find(pname);
+        if (it != tex->paramsIuiv.end() && !it->second.empty()) {
+            std::copy(it->second.begin(), it->second.end(), params);
+        } else {
+            *params = 0u; // GL default for an unset parameter
+        }
+    }
+
+    void Context::generateMipmap(uint32_t target) {
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation); // no texture bound
+            return;
+        }
+        tex->target = target;
+        if (tex->backend) tex->backend->generateMipmap(target);
+    }
+
+    void Context::invalidateTexImage(uint32_t target, int level) {
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation); // no texture bound
+            return;
+        }
+        if (level < 0) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        tex->target = target;
+        if (tex->backend) tex->backend->invalidateTexImage(target, level);
+    }
+
+    void Context::invalidateTexSubImage(uint32_t target, int level, int xoffset,
+                                      int yoffset, int zoffset, int width, int height,
+                                      int depth) {
+        TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+        if (tex == nullptr) {
+            setError(GLError::InvalidOperation); // no texture bound
+            return;
+        }
+        if (level < 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || width < 0 ||
+            height < 0 || depth < 0) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        tex->target = target;
+        if (tex->backend)
+            tex->backend->invalidateTexSubImage(target, level, xoffset, yoffset, zoffset,
+                                              width, height, depth);
+    }
+
+    void Context::getTexParameteriv(GLenum target, GLenum pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
         return;
@@ -1121,13 +1611,93 @@ void Context::textureParameteriv(GLObjectName texture, uint32_t pname,
     if (tex->backend) tex->backend->texParameteriv(tex->target, pname, params, count);
 }
 
-void Context::generateTextureMipmap(GLObjectName texture) {
-    TextureObject* tex = dsaTexture(*this, texture);
-    if (tex == nullptr) return;
-    if (tex->backend) tex->backend->generateMipmap(tex->target);
-}
+    void Context::generateTextureMipmap(GLObjectName texture) {
+        TextureObject* tex = dsaTexture(*this, texture);
+        if (tex == nullptr) return;
+        if (tex->backend) tex->backend->generateMipmap(tex->target);
+    }
 
-void Context::getTextureParameterfv(GLObjectName texture, GLenum pname,
+    void Context::textureParameterIiv(GLObjectName texture, uint32_t pname,
+                                    const int32_t* params) {
+        TextureObject* tex = dsaTexture(*this, texture);
+        if (tex == nullptr) return;
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        int count = texParamElementCount(pname);
+        tex->paramsIiv[pname].assign(params, params + count);
+        if (tex->backend) tex->backend->texParameterIiv(tex->target, pname, params, count);
+    }
+
+    void Context::textureParameterIuiv(GLObjectName texture, uint32_t pname,
+                                     const uint32_t* params) {
+        TextureObject* tex = dsaTexture(*this, texture);
+        if (tex == nullptr) return;
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        int count = texParamElementCount(pname);
+        tex->paramsIuiv[pname].assign(params, params + count);
+        if (tex->backend) tex->backend->texParameterIuiv(tex->target, pname, params, count);
+    }
+
+    void Context::getTextureParameterIiv(GLObjectName texture, GLenum pname,
+                                      int32_t* params) {
+        if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (texture != 0 && textures_.find(texture) == textures_.end()) {
+            setError(GLError::InvalidOperation); // ungenerated name
+            return;
+        }
+        TextureObject* tex = getTexture(texture);
+        if (tex == nullptr) {
+            *params = 0; // default (name 0) texture object
+            return;
+        }
+        auto it = tex->paramsIiv.find(pname);
+        if (it != tex->paramsIiv.end() && !it->second.empty()) {
+            std::copy(it->second.begin(), it->second.end(), params);
+        } else {
+            *params = 0; // GL default for an unset parameter
+        }
+    }
+
+    void Context::getTextureParameterIuiv(GLObjectName texture, GLenum pname,
+                                       uint32_t* params) {
+        if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (texture != 0 && textures_.find(texture) == textures_.end()) {
+            setError(GLError::InvalidOperation); // ungenerated name
+            return;
+        }
+        TextureObject* tex = getTexture(texture);
+        if (tex == nullptr) {
+            *params = 0u; // default (name 0) texture object
+            return;
+        }
+        auto it = tex->paramsIuiv.find(pname);
+        if (it != tex->paramsIuiv.end() && !it->second.empty()) {
+            std::copy(it->second.begin(), it->second.end(), params);
+        } else {
+            *params = 0u; // GL default for an unset parameter
+        }
+    }
+
+    void Context::getTextureParameterfv(GLObjectName texture, GLenum pname,
                                     float* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);
@@ -1287,6 +1857,292 @@ void Context::textureBufferRange(GLObjectName texture, uint32_t internalFormat,
     if (tex->backend)
         tex->backend->textureBufferRange(GL_TEXTURE_BUFFER, internalFormat,
                                          nativeBuffer, offset, size);
+}
+
+void Context::texStorage1D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (levels < 1 || width < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = 1;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend) tex->backend->storage1D(target, levels, internalFormat, width);
+}
+
+void Context::texStorage2D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width, int height) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (levels < 1 || width < 1 || height < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage2D(target, levels, internalFormat, width, height);
+}
+
+void Context::texStorage3D(uint32_t target, int levels, uint32_t internalFormat,
+                           int width, int height, int depth) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (levels < 1 || width < 1 || height < 1 || depth < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = levels;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = depth;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage3D(target, levels, internalFormat, width, height, depth);
+}
+
+void Context::texBuffer(uint32_t target, uint32_t internalFormat,
+                       GLObjectName buffer) {
+    if (target != GL_TEXTURE_BUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    uint32_t nativeBuffer = 0;
+    if (buffer != 0) {
+        if (auto* b = getBuffer(buffer))
+            nativeBuffer = b->backend ? b->backend->nativeId() : 0;
+    }
+    tex->target = target;
+    if (tex->backend)
+        tex->backend->textureBuffer(target, internalFormat, nativeBuffer);
+}
+
+void Context::texBufferRange(uint32_t target, uint32_t internalFormat,
+                             GLObjectName buffer, intptr_t offset, intptr_t size) {
+    if (target != GL_TEXTURE_BUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    if (offset < 0 || size < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t nativeBuffer = 0;
+    if (buffer != 0) {
+        if (auto* b = getBuffer(buffer))
+            nativeBuffer = b->backend ? b->backend->nativeId() : 0;
+    }
+    tex->target = target;
+    if (tex->backend)
+        tex->backend->textureBufferRange(target, internalFormat, nativeBuffer, offset,
+                                         size);
+}
+
+void Context::texStorage2DMultisample(uint32_t target, int samples,
+                                      uint32_t internalFormat, int width, int height,
+                                      bool fixedSampleLocations) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (target != GL_TEXTURE_2D_MULTISAMPLE) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (samples < 0 || width < 1 || height < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage2DMultisample(target, samples, internalFormat, width,
+                                           height, fixedSampleLocations);
+}
+
+void Context::texStorage3DMultisample(uint32_t target, int samples,
+                                      uint32_t internalFormat, int width, int height,
+                                      int depth, bool fixedSampleLocations) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (target != GL_TEXTURE_2D_MULTISAMPLE_ARRAY) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (samples < 0 || width < 1 || height < 1 || depth < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = depth;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage3DMultisample(target, samples, internalFormat, width,
+                                           height, depth, fixedSampleLocations);
+}
+
+void Context::texImage2DMultisample(uint32_t target, int samples,
+                                   uint32_t internalFormat, int width, int height,
+                                   bool fixedSampleLocations) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (target != GL_TEXTURE_2D_MULTISAMPLE) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (samples < 0 || width < 1 || height < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = false;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->texImage2DMultisample(target, samples, internalFormat, width,
+                                            height, fixedSampleLocations);
+}
+
+void Context::texImage3DMultisample(uint32_t target, int samples,
+                                   uint32_t internalFormat, int width, int height,
+                                   int depth, bool fixedSampleLocations) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation); // no texture bound
+        return;
+    }
+    if (target != GL_TEXTURE_2D_MULTISAMPLE_ARRAY) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (samples < 0 || width < 1 || height < 1 || depth < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = depth;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = false;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->texImage3DMultisample(target, samples, internalFormat, width,
+                                            height, depth, fixedSampleLocations);
+}
+
+void Context::textureStorage2DMultisample(GLObjectName texture, int samples,
+                                          uint32_t internalFormat, int width,
+                                          int height, bool fixedSampleLocations) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (samples < 0 || width < 1 || height < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_2D_MULTISAMPLE;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = 1;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples,
+                                           internalFormat, width, height,
+                                           fixedSampleLocations);
+}
+
+void Context::textureStorage3DMultisample(GLObjectName texture, int samples,
+                                          uint32_t internalFormat, int width,
+                                          int height, int depth,
+                                          bool fixedSampleLocations) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (samples < 0 || width < 1 || height < 1 || depth < 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+    tex->storageLevels = 1;
+    tex->storageBaseWidth = width;
+    tex->storageBaseHeight = height;
+    tex->storageBaseDepth = depth;
+    tex->storageInternalFormat = internalFormat;
+    tex->immutableStorage = true;
+    tex->storageSet = true;
+    if (tex->backend)
+        tex->backend->storage3DMultisample(GL_TEXTURE_2D_MULTISAMPLE_ARRAY, samples,
+                                           internalFormat, width, height, depth,
+                                           fixedSampleLocations);
 }
 
 GLObjectName Context::genRenderbuffer() {
@@ -2934,6 +3790,126 @@ int32_t Context::getProgramResourceLocationIndex(GLObjectName program,
         return -1;
     }
     return p->backend->getProgramResourceLocationIndex(programInterface, name);
+}
+
+namespace {
+
+// Map a glGetActiveUniformBlockiv pname to its GetProgramResourceiv property
+// equivalent (SPEC §7.6 table 7.7). Returns false for an unsupported pname.
+bool mapUniformBlockPname(uint32_t pname, uint32_t& prop) {
+    switch (pname) {
+    case GL_UNIFORM_BLOCK_BINDING:
+        prop = GL_BUFFER_BINDING; return true;
+    case GL_UNIFORM_BLOCK_DATA_SIZE:
+        prop = GL_BUFFER_DATA_SIZE; return true;
+    case GL_UNIFORM_BLOCK_NAME_LENGTH:
+        prop = GL_NAME_LENGTH; return true;
+    case GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS:
+        prop = GL_NUM_ACTIVE_VARIABLES; return true;
+    case GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES:
+        prop = GL_ACTIVE_VARIABLES; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER:
+        prop = GL_REFERENCED_BY_VERTEX_SHADER; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_CONTROL_SHADER:
+        prop = GL_REFERENCED_BY_TESS_CONTROL_SHADER; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_EVALUATION_SHADER:
+        prop = GL_REFERENCED_BY_TESS_EVALUATION_SHADER; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER:
+        prop = GL_REFERENCED_BY_GEOMETRY_SHADER; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER:
+        prop = GL_REFERENCED_BY_FRAGMENT_SHADER; return true;
+    case GL_UNIFORM_BLOCK_REFERENCED_BY_COMPUTE_SHADER:
+        prop = GL_REFERENCED_BY_COMPUTE_SHADER; return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
+
+void Context::getActiveUniform(GLObjectName program, uint32_t index, int32_t bufSize,
+                               int32_t* length, int32_t* size, uint32_t* type,
+                               char* name) {
+    // Equivalent (SPEC §7.6) to GetProgramResourceName(UNIFORM, index) +
+    // GetProgramResourceiv(UNIFORM, ARRAY_SIZE) + GetProgramResourceiv(UNIFORM, TYPE).
+    getProgramResourceName(program, GL_UNIFORM, index, bufSize, length, name);
+    if (size) {
+        int32_t sz = 0;
+        uint32_t props[] = { GL_ARRAY_SIZE };
+        getProgramResourceiv(program, GL_UNIFORM, index, 1, props, 1, nullptr, &sz);
+        *size = sz;
+    }
+    if (type) {
+        int32_t t = 0;
+        uint32_t props[] = { GL_TYPE };
+        getProgramResourceiv(program, GL_UNIFORM, index, 1, props, 1, nullptr,
+                             reinterpret_cast<int32_t*>(type));
+    }
+}
+
+void Context::getActiveAttrib(GLObjectName program, uint32_t index, int32_t bufSize,
+                              int32_t* length, int32_t* size, uint32_t* type,
+                              char* name) {
+    // Equivalent (SPEC §11.1) to GetProgramResourceName(PROGRAM_INPUT, index) +
+    // GetProgramResourceiv(PROGRAM_INPUT, ARRAY_SIZE / TYPE).
+    getProgramResourceName(program, GL_PROGRAM_INPUT, index, bufSize, length, name);
+    if (size) {
+        int32_t sz = 0;
+        uint32_t props[] = { GL_ARRAY_SIZE };
+        getProgramResourceiv(program, GL_PROGRAM_INPUT, index, 1, props, 1, nullptr,
+                             &sz);
+        *size = sz;
+    }
+    if (type) {
+        int32_t t = 0;
+        uint32_t props[] = { GL_TYPE };
+        getProgramResourceiv(program, GL_PROGRAM_INPUT, index, 1, props, 1, nullptr,
+                             reinterpret_cast<int32_t*>(type));
+    }
+}
+
+uint32_t Context::getUniformBlockIndex(GLObjectName program, const std::string& name) {
+    // Equivalent (SPEC §7.6) to GetProgramResourceIndex(UNIFORM_BLOCK, name).
+    // Returns GL_INVALID_INDEX honestly when the block is absent (no error).
+    return getProgramResourceIndex(program, GL_UNIFORM_BLOCK, name);
+}
+
+void Context::getActiveUniformBlockiv(GLObjectName program, uint32_t index,
+                                      uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t prop;
+    if (!mapUniformBlockPname(pname, prop)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (pname == GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES) {
+        // Writes an array of NUM_ACTIVE_VARIABLES indices; size the buffer first.
+        int32_t numVars = 0;
+        uint32_t cntProp = GL_NUM_ACTIVE_VARIABLES;
+        getProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, &cntProp, 1,
+                             nullptr, &numVars);
+        if (numVars <= 0) {
+            *params = 0;
+            return;
+        }
+        std::vector<int32_t> tmp(static_cast<size_t>(numVars));
+        uint32_t actProp = GL_ACTIVE_VARIABLES;
+        getProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, &actProp, numVars,
+                             nullptr, tmp.data());
+        for (int32_t i = 0; i < numVars; ++i) params[i] = tmp[i];
+        return;
+    }
+    getProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, &prop, 1, nullptr,
+                         params);
+}
+
+void Context::getActiveUniformBlockName(GLObjectName program, uint32_t index,
+                                        int32_t bufSize, int32_t* length, char* name) {
+    // Equivalent (SPEC §7.6) to GetProgramResourceName(UNIFORM_BLOCK, index).
+    getProgramResourceName(program, GL_UNIFORM_BLOCK, index, bufSize, length, name);
 }
 
 namespace {

@@ -68,6 +68,8 @@ public:
     std::unordered_map<uint32_t, float> paramsf; // scalar float pname -> param
     std::unordered_map<uint32_t, std::vector<float>> paramsfv; // float vector
     std::unordered_map<uint32_t, std::vector<int>> paramsiv;    // int vector
+    std::unordered_map<uint32_t, std::vector<int32_t>> paramsIiv; // integer (signed) vector
+    std::unordered_map<uint32_t, std::vector<uint32_t>> paramsIuiv; // integer (unsigned) vector
     std::vector<Image> images;              // allocated levels (glTexImage2D)
     bool storageSet = false;
 

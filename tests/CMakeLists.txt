@@ -20,7 +20,9 @@ add_executable(yaglt_tests
     unit/dsa_named_framebuffer_test.cpp
     unit/dsa_vertex_array_test.cpp
     unit/texparam_query_test.cpp
+    unit/texparam_int_invalidate_test.cpp
     unit/texsubimage_test.cpp
+    unit/texture_storage_test.cpp
     unit/framebuffer_buf_test.cpp
     unit/uniform_test.cpp
     unit/android_capabilities_test.cpp
@@ -46,6 +48,7 @@ add_executable(yaglt_tests
     unit/rasterization_control_test.cpp
     unit/program_resource_test.cpp
     unit/subroutine_test.cpp
+    unit/active_uniform_attrib_test.cpp
     unit/primitive_restart_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp

@@ -78,6 +78,42 @@ public:
     // Unmap a previously mapped buffer (SPEC §6 glUnmapBuffer). Returns false and
     // reports GL_INVALID_OPERATION when no buffer is mapped.
     bool unmapBuffer(uint32_t target);
+    // Read back a region of a buffer's data store (SPEC §6 glGetBufferSubData /
+    // glGetNamedBufferSubData). Requires a bound/existing buffer; the region must
+    // be in bounds (else GL_INVALID_VALUE) and the store must not be mapped
+    // (unless mapped with MAP_PERSISTENT_BIT, else GL_INVALID_OPERATION). The
+    // frontend's CPU mirror is the authoritative store, so the read is exact on
+    // both the mock and real backends.
+    void getBufferSubData(uint32_t target, intptr_t offset, intptr_t size, void* data);
+    void getNamedBufferSubData(GLObjectName buffer, intptr_t offset, intptr_t size,
+                              void* data);
+    // Fill a buffer's data store (SPEC §6 glClearBufferData / glClearBufferSubData
+    // and the *Named variants). The frontend converts the clear value into the
+    // `internalformat`'s component layout, writes it into its CPU mirror, and
+    // re-uploads the range to the backend (which has no native glClearBufferData).
+    // `internalformat` must be a sized format from table 8.24 (GL_INVALID_ENUM),
+    // `offset`/`size` must be non-negative, multiples of the element size, and in
+    // bounds (GL_INVALID_VALUE), and the store must not be mapped (GL_INVALID_OPERATION).
+    // A null `data` fills the range with zeros.
+    void clearBufferData(uint32_t target, uint32_t internalformat, uint32_t format,
+                        uint32_t type, const void* data);
+    void clearNamedBufferData(GLObjectName buffer, uint32_t internalformat,
+                             uint32_t format, uint32_t type, const void* data);
+    void clearBufferSubData(uint32_t target, uint32_t internalformat, intptr_t offset,
+                           intptr_t size, uint32_t format, uint32_t type,
+                           const void* data);
+    void clearNamedBufferSubData(GLObjectName buffer, uint32_t internalformat,
+                               intptr_t offset, intptr_t size, uint32_t format,
+                               uint32_t type, const void* data);
+    // Discard a buffer's data store or sub-range (SPEC §6 glInvalidateBufferData /
+    // glInvalidateBufferSubData and *Named variants). The frontend validates
+    // bounds and mapping (GL_INVALID_VALUE / GL_INVALID_OPERATION) and forwards
+    // the hint to the backend, which drops any cached copy.
+    void invalidateBufferData(uint32_t target);
+    void invalidateBufferSubData(uint32_t target, intptr_t offset, intptr_t length);
+    void invalidateNamedBufferData(GLObjectName buffer);
+    void invalidateNamedBufferSubData(GLObjectName buffer, intptr_t offset,
+                                      intptr_t length);
     BufferObject* getBuffer(GLObjectName name);
 
     // --- Indexed buffer bindings (SPEC §8) ---
@@ -135,6 +171,25 @@ public:
                         int count);
     void texParameteriv(uint32_t target, uint32_t pname, const int* params,
                         int count);
+    // Integer (signed / unsigned) texture parameter setters + queries (SPEC §8.1).
+    // glTexParameterIiv / glTexParameterIuiv record the vector on the bound texture
+    // and forward to the backend; glGetTexParameterIiv / glGetTexParameterIuiv read
+    // the stored vector. A null `params` reports GL_INVALID_VALUE; a missing texture
+    // reports GL_INVALID_OPERATION; unknown pnames return 0.
+    void texParameterIiv(uint32_t target, uint32_t pname, const int32_t* params);
+    void texParameterIuiv(uint32_t target, uint32_t pname, const uint32_t* params);
+    void getTexParameterIiv(GLenum target, GLenum pname, int32_t* params);
+    void getTexParameterIuiv(GLenum target, GLenum pname, uint32_t* params);
+    // Regenerate the full mipmap chain for the bound texture (SPEC §8.1
+    // glGenerateMipmap). Requires a bound texture (else GL_INVALID_OPERATION).
+    void generateMipmap(uint32_t target);
+    // Invalidate a texture's contents (SPEC §8.1 glInvalidateTexImage /
+    // glInvalidateTexSubImage). invalidateTexImage discards the whole level;
+    // invalidateTexSubImage discards a sub-region. Require a bound texture (else
+    // GL_INVALID_OPERATION); level < 0 reports GL_INVALID_VALUE.
+    void invalidateTexImage(uint32_t target, int level);
+    void invalidateTexSubImage(uint32_t target, int level, int xoffset, int yoffset,
+                              int zoffset, int width, int height, int depth);
     // Texture sub-image uploads (SPEC §8.6 TexSubImage*D). Require a bound texture
     // (else GL_INVALID_OPERATION) and a previously allocated `level` (else
     // GL_INVALID_OPERATION). Non-negative level/dimensions/offset are required
@@ -193,6 +248,10 @@ public:
                             int count);
     void textureParameteriv(GLObjectName texture, uint32_t pname, const int* params,
                             int count);
+    void textureParameterIiv(GLObjectName texture, uint32_t pname, const int32_t* params);
+    void textureParameterIuiv(GLObjectName texture, uint32_t pname, const uint32_t* params);
+    void getTextureParameterIiv(GLObjectName texture, GLenum pname, int32_t* params);
+    void getTextureParameterIuiv(GLObjectName texture, GLenum pname, uint32_t* params);
     void generateTextureMipmap(GLObjectName texture);
     void getTextureParameterfv(GLObjectName texture, GLenum pname, float* params);
     void getTextureLevelParameteriv(GLObjectName texture, int level, GLenum pname,
@@ -206,7 +265,36 @@ public:
     void textureBuffer(GLObjectName texture, uint32_t internalFormat,
                        GLObjectName buffer);
     void textureBufferRange(GLObjectName texture, uint32_t internalFormat,
-                            GLObjectName buffer, intptr_t offset, intptr_t size);
+                             GLObjectName buffer, intptr_t offset, intptr_t size);
+
+    // --- Non-DSA texture storage (SPEC §8.5) ---
+    // Operate on the texture currently bound to `target` (resolved via the
+    // tracked binding). glTexBuffer* bind a buffer object as a texel store.
+    void texStorage1D(uint32_t target, int levels, uint32_t internalFormat, int width);
+    void texStorage2D(uint32_t target, int levels, uint32_t internalFormat, int width,
+                     int height);
+    void texStorage3D(uint32_t target, int levels, uint32_t internalFormat, int width,
+                     int height, int depth);
+    void texBuffer(uint32_t target, uint32_t internalFormat, GLObjectName buffer);
+    void texBufferRange(uint32_t target, uint32_t internalFormat, GLObjectName buffer,
+                        intptr_t offset, intptr_t size);
+    // --- Multisample texture storage (SPEC §8.19) ---
+    void texStorage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                                 int width, int height, bool fixedSampleLocations);
+    void texStorage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                                 int width, int height, int depth,
+                                 bool fixedSampleLocations);
+    void texImage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, bool fixedSampleLocations);
+    void texImage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, int depth,
+                              bool fixedSampleLocations);
+    void textureStorage2DMultisample(GLObjectName texture, int samples,
+                                     uint32_t internalFormat, int width, int height,
+                                     bool fixedSampleLocations);
+    void textureStorage3DMultisample(GLObjectName texture, int samples,
+                                     uint32_t internalFormat, int width, int height,
+                                     int depth, bool fixedSampleLocations);
 
     // --- Renderbuffers ---
     GLObjectName genRenderbuffer();
@@ -528,6 +616,23 @@ public:
     int32_t getProgramResourceLocationIndex(GLObjectName program,
                                              uint32_t programInterface,
                                              const std::string& name);
+
+    // Legacy uniform/attribute/uniform-block reflection (SPEC §7.6, §7.3.11).
+    // These are defined by the spec as exact equivalents of the program-resource
+    // queries above, so the frontend maps them onto the existing reflection
+    // backend methods (UNIFORM / PROGRAM_INPUT / UNIFORM_BLOCK interfaces) without
+    // needing new backend virtuals. `program` must be a linked program object
+    // (else GL_INVALID_OPERATION); an out-of-range `index` reports
+    // GL_INVALID_VALUE; a negative `bufSize` reports GL_INVALID_VALUE.
+    void getActiveUniform(GLObjectName program, uint32_t index, int32_t bufSize,
+                          int32_t* length, int32_t* size, uint32_t* type, char* name);
+    void getActiveAttrib(GLObjectName program, uint32_t index, int32_t bufSize,
+                         int32_t* length, int32_t* size, uint32_t* type, char* name);
+    uint32_t getUniformBlockIndex(GLObjectName program, const std::string& name);
+    void getActiveUniformBlockiv(GLObjectName program, uint32_t index, uint32_t pname,
+                                 int32_t* params);
+    void getActiveUniformBlockName(GLObjectName program, uint32_t index,
+                                   int32_t bufSize, int32_t* length, char* name);
 
     // Subroutine reflection + selection (SPEC §7.9). All require the `Subroutines`
     // capability; `program` (for the reflection getters) must be a linked program;

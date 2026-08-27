@@ -70,7 +70,7 @@ public:
     uint32_t lastMapAccess = 0;
     int unmapBufferCalls = 0;
     void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
-                         uint32_t access) override {
+                          uint32_t access) override {
         ++mapBufferRangeCalls;
         lastTarget = target;
         lastMapOffset = offset;
@@ -81,6 +81,22 @@ public:
     void unmapBuffer(uint32_t target) override {
         ++unmapBufferCalls;
         lastTarget = target;
+    }
+    int invalidateBufferDataCalls = 0;
+    int invalidateBufferSubDataCalls = 0;
+    uint32_t lastInvalidateTarget = 0;
+    intptr_t lastInvalidateOffset = 0;
+    intptr_t lastInvalidateLength = 0;
+    void invalidateBufferData(uint32_t target) override {
+        ++invalidateBufferDataCalls;
+        lastInvalidateTarget = target;
+    }
+    void invalidateBufferSubData(uint32_t target, intptr_t offset,
+                                 intptr_t length) override {
+        ++invalidateBufferSubDataCalls;
+        lastInvalidateTarget = target;
+        lastInvalidateOffset = offset;
+        lastInvalidateLength = length;
     }
 };
 class MockTexture : public BackendTexture {
@@ -184,6 +200,42 @@ public:
         lastParamPname = pname;
         lastParamiv.assign(params, params + count);
     }
+    int texParameterIivCalls = 0;
+    int texParameterIuivCalls = 0;
+    std::vector<int32_t> lastParamIiv;
+    std::vector<uint32_t> lastParamIuiv;
+    void texParameterIiv(uint32_t target, uint32_t pname, const int32_t* params,
+                        int count) override {
+        ++texParameterIivCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamIiv.assign(params, params + count);
+    }
+    void texParameterIuiv(uint32_t target, uint32_t pname, const uint32_t* params,
+                         int count) override {
+        ++texParameterIuivCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamIuiv.assign(params, params + count);
+    }
+    int invalidateTexImageCalls = 0;
+    int invalidateTexSubImageCalls = 0;
+    int lastInvLevel = 0;
+    int lastInvX = 0, lastInvY = 0, lastInvZ = 0, lastInvW = 0, lastInvH = 0,
+        lastInvD = 0;
+    void invalidateTexImage(uint32_t target, int level) override {
+        ++invalidateTexImageCalls;
+        lastTarget = target;
+        lastInvLevel = level;
+    }
+    void invalidateTexSubImage(uint32_t target, int level, int xoffset, int yoffset,
+                             int zoffset, int width, int height, int depth) override {
+        ++invalidateTexSubImageCalls;
+        lastTarget = target;
+        lastInvLevel = level;
+        lastInvX = xoffset; lastInvY = yoffset; lastInvZ = zoffset;
+        lastInvW = width; lastInvH = height; lastInvD = depth;
+    }
     int texSubImage1DCalls = 0;
     int texSubImage2DCalls = 0;
     int texSubImage3DCalls = 0;
@@ -248,6 +300,11 @@ public:
     int lastStorageLevels = 0, lastStorageW = 0, lastStorageH = 0, lastStorageD = 0;
     int lastLevelParamLevel = 0;
     uint32_t lastLevelParamPname = 0;
+    int storage2DMultisampleCalls = 0, storage3DMultisampleCalls = 0;
+    int texImage2DMultisampleCalls = 0, texImage3DMultisampleCalls = 0;
+    int lastMSamples = 0, lastMWidth = 0, lastMHeight = 0, lastMDepth = 0;
+    bool lastMFixed = false;
+    uint32_t lastMTarget = 0, lastMInternalFormat = 0;
     void storage1D(uint32_t target, int levels, uint32_t internalFormat,
                    int width) override {
         ++storage1DCalls; lastStorageTarget = target; lastStorageLevels = levels;
@@ -275,11 +332,37 @@ public:
         lastBufferOffset = 0;
     }
     void textureBufferRange(uint32_t target, uint32_t internalFormat,
-                            uint32_t bufferNativeId, intptr_t offset,
-                            intptr_t size) override {
+                             uint32_t bufferNativeId, intptr_t offset,
+                             intptr_t size) override {
         ++textureBufferRangeCalls; lastStorageTarget = target;
         lastBufferInternalFormat = internalFormat; lastBufferNativeId = bufferNativeId;
         lastBufferOffset = offset; lastBufferSize = size;
+    }
+    void storage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, bool fixedSampleLocations) override {
+        ++storage2DMultisampleCalls; lastMTarget = target; lastMSamples = samples;
+        lastMInternalFormat = internalFormat; lastMWidth = width; lastMHeight = height;
+        lastMFixed = fixedSampleLocations;
+    }
+    void storage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, int depth,
+                              bool fixedSampleLocations) override {
+        ++storage3DMultisampleCalls; lastMTarget = target; lastMSamples = samples;
+        lastMInternalFormat = internalFormat; lastMWidth = width;
+        lastMHeight = height; lastMDepth = depth; lastMFixed = fixedSampleLocations;
+    }
+    void texImage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                               int width, int height, bool fixedSampleLocations) override {
+        ++texImage2DMultisampleCalls; lastMTarget = target; lastMSamples = samples;
+        lastMInternalFormat = internalFormat; lastMWidth = width; lastMHeight = height;
+        lastMFixed = fixedSampleLocations;
+    }
+    void texImage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                               int width, int height, int depth,
+                               bool fixedSampleLocations) override {
+        ++texImage3DMultisampleCalls; lastMTarget = target; lastMSamples = samples;
+        lastMInternalFormat = internalFormat; lastMWidth = width;
+        lastMHeight = height; lastMDepth = depth; lastMFixed = fixedSampleLocations;
     }
     void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
                              int32_t* params) override {

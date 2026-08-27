@@ -214,6 +214,62 @@ TEST_CASE("gles_e2e_framebuffer_complete_and_full_draw") {
 // real GLES driver. Verifies the BackendProgram reflection hooks forward to the
 // ES 3.0+ glGetProgramResource* entry points against a linked program with a
 // uniform. Skips cleanly when no driver is available.
+TEST_CASE("gles_e2e_get_active_uniform") {
+    glcompat::GLESBackend backend;
+    if (!backend.initialize()) return; // no driver: nothing to exercise
+
+    glcompat::Context ctx(backend);
+    glcompat::setCurrentContext(&ctx);
+
+    const std::string vs =
+        "#version 330 core\n"
+        "layout(location = 0) in vec2 a_pos;\n"
+        "void main() { gl_Position = vec4(a_pos, 0.0, 1.0); }\n";
+    const std::string fs =
+        "#version 330 core\n"
+        "uniform float u_alpha;\n"
+        "out vec4 o_color;\n"
+        "void main() { o_color = vec4(u_alpha); }\n";
+
+    glcompat::GLuint vsh = glcompat::glCreateShader(GL_VERTEX_SHADER);
+    glcompat::glShaderSource(vsh, vs);
+    glcompat::glCompileShader(vsh);
+    EXPECT_EQ(glcompat::glGetShaderiv(vsh, GL_COMPILE_STATUS), GL_TRUE);
+
+    glcompat::GLuint fsh = glcompat::glCreateShader(GL_FRAGMENT_SHADER);
+    glcompat::glShaderSource(fsh, fs);
+    glcompat::glCompileShader(fsh);
+    EXPECT_EQ(glcompat::glGetShaderiv(fsh, GL_COMPILE_STATUS), GL_TRUE);
+
+    glcompat::GLuint prog = glcompat::glCreateProgram();
+    glcompat::glAttachShader(prog, vsh);
+    glcompat::glAttachShader(prog, fsh);
+    glcompat::glLinkProgram(prog);
+    EXPECT_EQ(glcompat::glGetProgramiv(prog, GL_LINK_STATUS), GL_TRUE);
+
+    glcompat::GLuint alphaIdx =
+        glcompat::glGetProgramResourceIndex(prog, GL_UNIFORM, "u_alpha");
+    EXPECT_TRUE(alphaIdx != GL_INVALID_INDEX);
+
+    char nameBuf[64] = {0};
+    glcompat::GLsizei nameLen = 0;
+    glcompat::GLint size = 0;
+    glcompat::GLenum type = 0;
+    glcompat::glGetActiveUniform(prog, alphaIdx, sizeof(nameBuf), &nameLen,
+                                 &size, &type, nameBuf);
+    EXPECT_EQ(glcompat::glGetError(), 0);
+    EXPECT_TRUE(nameLen > 0);
+    EXPECT_TRUE(std::strcmp(nameBuf, "u_alpha") == 0);
+    EXPECT_EQ(size, 1);
+    EXPECT_EQ(type, GL_FLOAT);
+
+    glcompat::setCurrentContext(nullptr);
+}
+
+// End-to-end: exercise program-interface reflection (SPEC §7.3.11) through the
+// real GLES driver. Verifies the BackendProgram reflection hooks forward to the
+// ES 3.0+ glGetProgramResource* entry points against a linked program with a
+// uniform. Skips cleanly when no driver is available.
 TEST_CASE("gles_e2e_program_resource_reflection") {
     glcompat::GLESBackend backend;
     if (!backend.initialize()) return; // no driver: nothing to exercise
@@ -281,8 +337,8 @@ TEST_CASE("gles_e2e_program_resource_reflection") {
 
     // Unknown uniform name is honestly not found (no error).
     EXPECT_TRUE(glcompat::glGetProgramResourceIndex(prog, GL_UNIFORM,
-                                                   "does_not_exist") ==
-                GL_INVALID_INDEX);
+                                                    "does_not_exist") ==
+                 GL_INVALID_INDEX);
     EXPECT_EQ(glcompat::glGetError(), 0);
 
     glcompat::setCurrentContext(nullptr);

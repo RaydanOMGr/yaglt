@@ -48,8 +48,33 @@ void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);
 // nullptr on error. glUnmapBuffer returns GL_TRUE on success.
 GLvoid* glMapBuffer(GLenum target, GLenum access);
 GLvoid* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length,
-                         GLbitfield access);
+                        GLbitfield access);
 GLboolean glUnmapBuffer(GLenum target);
+
+// Buffer data read-back / clear / discard (SPEC §6). The frontend keeps an
+// authoritative CPU mirror of each buffer's data store, so getBufferSubData
+// reads exact bytes and clear*BufferData fills the mirror in-memory (then
+// re-uploads the affected range to the backend, which has no native
+// glClearBufferData). invalidate*BufferData relays a driver discard hint.
+void glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
+                       GLvoid* data);
+void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size,
+                            GLvoid* data);
+void glClearBufferData(GLenum target, GLenum internalformat, GLenum format,
+                      GLenum type, const GLvoid* data);
+void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format,
+                           GLenum type, const GLvoid* data);
+void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
+                         GLsizeiptr size, GLenum format, GLenum type,
+                         const GLvoid* data);
+void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
+                             GLintptr offset, GLsizeiptr size, GLenum format,
+                             GLenum type, const GLvoid* data);
+void glInvalidateBufferData(GLenum target);
+void glInvalidateBufferSubData(GLenum target, GLintptr offset, GLsizeiptr length);
+void glInvalidateNamedBufferData(GLuint buffer);
+void glInvalidateNamedBufferSubData(GLuint buffer, GLintptr offset,
+                                   GLsizeiptr length);
 
 // Indexed buffer bindings (SPEC §8). Capability-guarded in the frontend:
 // binding an unsupported target (e.g. SSBO on ES 3.0) yields GL_INVALID_OPERATION.
@@ -89,6 +114,18 @@ void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params,
                       GLsizei count);
 void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
                       GLsizei count);
+// Integer (signed / unsigned) texture parameter setters + queries (SPEC §8.1).
+void glTexParameterIiv(GLenum target, GLenum pname, const GLint* params);
+void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint* params);
+void glGetTexParameterIiv(GLenum target, GLenum pname, GLint* params);
+void glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint* params);
+// Regenerate the mipmap chain for the bound texture (SPEC §8.1 glGenerateMipmap).
+void glGenerateMipmap(GLenum target);
+// Invalidate texture contents (SPEC §8.1). glInvalidateTexImage discards the
+// whole level; glInvalidateTexSubImage discards a sub-region.
+void glInvalidateTexImage(GLenum target, GLint level);
+void glInvalidateTexSubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                             GLint zoffset, GLsizei width, GLsizei height, GLsizei depth);
 // Texture parameter queries (SPEC §8.1). glGetTexParameterfv reads a float
 // scalar or the first component of a float vector parameter.
 void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params);
@@ -137,7 +174,11 @@ void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param);
 void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* params,
                           GLsizei count);
 void glTextureParameteriv(GLuint texture, GLenum pname, const GLint* params,
-                          GLsizei count);
+                           GLsizei count);
+void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint* params);
+void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint* params);
+void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint* params);
+void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint* params);
 void glGenerateTextureMipmap(GLuint texture);
 void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params);
 void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname,
@@ -148,7 +189,38 @@ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                        GLvoid* pixels);
 void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);
 void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
-                          GLintptr offset, GLsizeiptr size);
+                           GLintptr offset, GLsizeiptr size);
+
+// Non-DSA texture storage (SPEC §8.5). Operate on the texture bound to `target`.
+void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat,
+                     GLsizei width);
+void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalFormat,
+                     GLsizei width, GLsizei height);
+void glTexStorage3D(GLenum target, GLsizei levels, GLenum internalFormat,
+                     GLsizei width, GLsizei height, GLsizei depth);
+void glTexBuffer(GLenum target, GLenum internalFormat, GLuint buffer);
+void glTexBufferRange(GLenum target, GLenum internalFormat, GLuint buffer,
+                       GLintptr offset, GLsizeiptr size);
+// Multisample texture storage (SPEC §8.19).
+void glTexStorage2DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                               GLsizei width, GLsizei height,
+                               GLboolean fixedsamplelocations);
+void glTexStorage3DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                               GLsizei width, GLsizei height, GLsizei depth,
+                               GLboolean fixedsamplelocations);
+void glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                             GLsizei width, GLsizei height,
+                             GLboolean fixedsamplelocations);
+void glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                             GLsizei width, GLsizei height, GLsizei depth,
+                             GLboolean fixedsamplelocations);
+void glTextureStorage2DMultisample(GLuint texture, GLsizei samples,
+                                   GLenum internalFormat, GLsizei width,
+                                   GLsizei height, GLboolean fixedsamplelocations);
+void glTextureStorage3DMultisample(GLuint texture, GLsizei samples,
+                                   GLenum internalFormat, GLsizei width,
+                                   GLsizei height, GLsizei depth,
+                                   GLboolean fixedsamplelocations);
 
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);
@@ -315,6 +387,18 @@ GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
                                    const GLchar* name);
 GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
                                          const GLchar* name);
+
+void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize,
+                        GLsizei* length, GLint* size, GLenum* type, GLchar* name);
+void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize,
+                       GLsizei* length, GLint* size, GLenum* type, GLchar* name);
+GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName);
+void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
+                              GLenum pname, GLint* params);
+void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
+                                 GLsizei bufSize, GLsizei* length,
+                                 GLchar* uniformBlockName);
+
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar* name);
 GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype,
                                      const GLchar* name);

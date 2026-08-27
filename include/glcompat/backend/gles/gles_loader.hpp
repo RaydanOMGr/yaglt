@@ -54,6 +54,11 @@ struct GLESLib {
     void (*glCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr) = nullptr;
     void* (*glMapBufferRange)(GLenum, GLintptr, GLsizeiptr, GLbitfield) = nullptr;
     GLboolean (*glUnmapBuffer)(GLenum) = nullptr;
+    // Buffer discard hints (SPEC §6, GLES 3.0+). Resolved optionally so load()
+    // still succeeds on a driver that lacks them (the frontend still tracks its
+    // CPU mirror regardless).
+    void (*glInvalidateBufferData)(GLuint) = nullptr;
+    void (*glInvalidateBufferSubData)(GLuint, GLintptr, GLsizeiptr) = nullptr;
 
     void (*glGenTextures)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteTextures)(GLsizei, const GLuint*) = nullptr;
@@ -197,12 +202,28 @@ struct GLESLib {
     void (*glTexStorage1D)(GLenum, GLsizei, GLenum, GLsizei) = nullptr;
     void (*glTexStorage2D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei) = nullptr;
     void (*glTexStorage3D)(GLenum, GLsizei, GLenum, GLsizei, GLsizei, GLsizei) = nullptr;
+    void (*glTexStorage2DMultisample)(GLenum, GLsizei, GLenum, GLsizei, GLsizei,
+                                      GLboolean) = nullptr;
+    void (*glTexStorage3DMultisample)(GLenum, GLsizei, GLenum, GLsizei, GLsizei,
+                                      GLsizei, GLboolean) = nullptr;
+    void (*glTexImage2DMultisample)(GLenum, GLsizei, GLenum, GLsizei, GLsizei,
+                                    GLboolean) = nullptr;
+    void (*glTexImage3DMultisample)(GLenum, GLsizei, GLenum, GLsizei, GLsizei,
+                                    GLsizei, GLboolean) = nullptr;
     void (*glGenerateMipmap)(GLenum) = nullptr;
     void (*glGetTexImage)(GLenum, GLint, GLenum, GLenum, void*) = nullptr;
     void (*glGetTexLevelParameteriv)(GLenum, GLint, GLenum, GLint*) = nullptr;
     void (*glGetTexLevelParameterfv)(GLenum, GLint, GLenum, GLfloat*) = nullptr;
     void (*glTexBuffer)(GLenum, GLenum, GLuint) = nullptr;
     void (*glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr) = nullptr;
+
+    // Integer texture parameters + texture invalidation (SPEC §8.1). ES 3.0+;
+    // resolved optionally so load() still succeeds on drivers that lack them.
+    void (*glTexParameterIiv)(GLenum, GLenum, const GLint*, GLsizei) = nullptr;
+    void (*glTexParameterIuiv)(GLenum, GLenum, const GLuint*, GLsizei) = nullptr;
+    void (*glInvalidateTexImage)(GLenum, GLint) = nullptr;
+    void (*glInvalidateTexSubImage)(GLenum, GLint, GLint, GLint, GLint, GLsizei,
+                                   GLsizei, GLsizei) = nullptr;
 
     void (*glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint) = nullptr;
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;

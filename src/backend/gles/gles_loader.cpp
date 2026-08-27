@@ -64,6 +64,8 @@ bool GLESLib::load() {
     resolve(gles, glCopyBufferSubData, "glCopyBufferSubData");
     resolve(gles, glMapBufferRange, "glMapBufferRange");
     resolve(gles, glUnmapBuffer, "glUnmapBuffer");
+    resolve(gles, glInvalidateBufferData, "glInvalidateBufferData");
+    resolve(gles, glInvalidateBufferSubData, "glInvalidateBufferSubData");
     ok &= resolve(gles, glGenTextures, "glGenTextures");
     ok &= resolve(gles, glDeleteTextures, "glDeleteTextures");
     ok &= resolve(gles, glBindTexture, "glBindTexture");
@@ -169,12 +171,21 @@ bool GLESLib::load() {
     resolve(gles, glTexStorage1D, "glTexStorage1D");
     resolve(gles, glTexStorage2D, "glTexStorage2D");
     resolve(gles, glTexStorage3D, "glTexStorage3D");
+    resolve(gles, glTexStorage2DMultisample, "glTexStorage2DMultisample");
+    resolve(gles, glTexStorage3DMultisample, "glTexStorage3DMultisample");
+    resolve(gles, glTexImage2DMultisample, "glTexImage2DMultisample");
+    resolve(gles, glTexImage3DMultisample, "glTexImage3DMultisample");
     resolve(gles, glGenerateMipmap, "glGenerateMipmap");
     resolve(gles, glGetTexImage, "glGetTexImage");
     resolve(gles, glGetTexLevelParameteriv, "glGetTexLevelParameteriv");
     resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
     resolve(gles, glTexBuffer, "glTexBuffer");
     resolve(gles, glTexBufferRange, "glTexBufferRange");
+    // Integer texture parameters + texture invalidation (SPEC §8.1, ES 3.0+).
+    resolve(gles, glTexParameterIiv, "glTexParameterIiv");
+    resolve(gles, glTexParameterIuiv, "glTexParameterIuiv");
+    resolve(gles, glInvalidateTexImage, "glInvalidateTexImage");
+    resolve(gles, glInvalidateTexSubImage, "glInvalidateTexSubImage");
     ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     resolve(gles, glFramebufferTextureLayer, "glFramebufferTextureLayer");

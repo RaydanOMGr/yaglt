@@ -37,6 +37,16 @@ public:
     }
     // Unmap a previously mapped region (SPEC §6 glUnmapBuffer). Default no-op.
     virtual void unmapBuffer(uint32_t target) { (void)target; }
+    // Discard the buffer's cached data store (SPEC §6 glInvalidateBufferData /
+    // glInvalidateBufferSubData), a driver hint. Default no-op; GLES 3.0+ forwards
+    // to the driver, which may free or repurpose the backing store.
+    virtual void invalidateBufferData(uint32_t target) {
+        (void)target;
+    }
+    virtual void invalidateBufferSubData(uint32_t target, intptr_t offset,
+                                         intptr_t length) {
+        (void)target; (void)offset; (void)length;
+    }
     // Native driver buffer name (0 when the backend has no native handle). The
     // frontend registers this so the backend's name->native map resolves buffer
     // binds at draw/flush time (SPEC §3/§11).
@@ -68,6 +78,13 @@ public:
                                 const float* params, int count) {}
     virtual void texParameteriv(uint32_t target, uint32_t pname,
                                 const int* params, int count) {}
+    // Set integer (signed / unsigned) texture parameters (SPEC §8.1
+    // glTexParameterIiv / glTexParameterIuiv). The frontend keeps the authoritative
+    // vector and forwards the native call; backends opt in.
+    virtual void texParameterIiv(uint32_t target, uint32_t pname, const int32_t* params,
+                                int count) {}
+    virtual void texParameterIuiv(uint32_t target, uint32_t pname, const uint32_t* params,
+                                  int count) {}
     // Upload a sub-region of an existing texture level (SPEC §8.6 TexSubImage*D).
     // The frontend validates bounds and that the level was allocated by a prior
     // TexImage; backends with native storage forward the call to the driver.
@@ -102,8 +119,24 @@ public:
     virtual void textureBuffer(uint32_t target, uint32_t internalFormat,
                                uint32_t bufferNativeId) {}
     virtual void textureBufferRange(uint32_t target, uint32_t internalFormat,
-                                    uint32_t bufferNativeId, intptr_t offset,
-                                    intptr_t size) {}
+                                     uint32_t bufferNativeId, intptr_t offset,
+                                     intptr_t size) {}
+    // Immutable multisample storage (SPEC §8.19 glTexStorage2DMultisample /
+    // glTexStorage3DMultisample). `fixedSampleLocations` mirrors the GL boolean.
+    virtual void storage2DMultisample(uint32_t target, int samples,
+                                      uint32_t internalFormat, int width, int height,
+                                      bool fixedSampleLocations) {}
+    virtual void storage3DMultisample(uint32_t target, int samples,
+                                      uint32_t internalFormat, int width, int height,
+                                      int depth, bool fixedSampleLocations) {}
+    // Mutable multisample allocation (SPEC §8.19 glTexImage2DMultisample /
+    // glTexImage3DMultisample).
+    virtual void texImage2DMultisample(uint32_t target, int samples,
+                                       uint32_t internalFormat, int width, int height,
+                                       bool fixedSampleLocations) {}
+    virtual void texImage3DMultisample(uint32_t target, int samples,
+                                       uint32_t internalFormat, int width, int height,
+                                       int depth, bool fixedSampleLocations) {}
     // Level queries (SPEC §8.1 glGetTextureLevelParameter*). The frontend owns
     // width/height/depth/internalFormat for allocated storage; backends with
     // native introspection override these for completeness.
@@ -116,6 +149,12 @@ public:
     // are no-ops (the mock records the call).
     virtual void getTexImage(uint32_t target, int level, uint32_t format,
                              uint32_t type, void* pixels) {}
+    // Invalidate all or part of a texture's contents (SPEC §8.1 glInvalidateTexImage
+    // / glInvalidateTexSubImage). A driver discard hint; backends opt in.
+    virtual void invalidateTexImage(uint32_t target, int level) {}
+    virtual void invalidateTexSubImage(uint32_t target, int level, int xoffset,
+                                      int yoffset, int zoffset, int width, int height,
+                                      int depth) {}
     // Native backend texture id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };

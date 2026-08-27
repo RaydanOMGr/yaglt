@@ -223,3 +223,245 @@ TEST_CASE("buffer_surface_entry_points_dispatch") {
     EXPECT_TRUE(glUnmapBuffer(GL_ARRAY_BUFFER));
     setCurrentContext(nullptr);
 }
+
+TEST_CASE("clear_buffer_data_fills_whole_store") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 16, GL_STATIC_DRAW, nullptr); // 4 x R32F
+
+    float v = 3.0f;
+    ctx.clearBufferData(GL_ARRAY_BUFFER, GL_R32F, GL_RED, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    auto* obj = ctx.getBuffer(buf);
+    EXPECT_EQ(*reinterpret_cast<float*>(obj->store.data() + 0), 3.0f);
+    EXPECT_EQ(*reinterpret_cast<float*>(obj->store.data() + 4), 3.0f);
+    EXPECT_EQ(*reinterpret_cast<float*>(obj->store.data() + 8), 3.0f);
+    EXPECT_EQ(*reinterpret_cast<float*>(obj->store.data() + 12), 3.0f);
+
+    // The re-upload to keep the backend in sync is forwarded.
+    auto* mb = static_cast<MockBuffer*>(obj->backend.get());
+    EXPECT_EQ(mb->bufferSubDataCalls, 1);
+    EXPECT_EQ(mb->lastSubOffset, 0);
+    EXPECT_EQ(mb->lastSubSize, 16);
+}
+
+TEST_CASE("clear_buffer_sub_data_fills_only_sub_range") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr); // 8 x R8
+
+    uint8_t v = 0xAB;
+    ctx.clearBufferSubData(GL_ARRAY_BUFFER, GL_R8, 2, 4, GL_RED,
+                          GL_UNSIGNED_BYTE, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    auto* obj = ctx.getBuffer(buf);
+    EXPECT_EQ(obj->store[0], 0);
+    EXPECT_EQ(obj->store[1], 0);
+    EXPECT_EQ(obj->store[2], 0xAB);
+    EXPECT_EQ(obj->store[3], 0xAB);
+    EXPECT_EQ(obj->store[4], 0xAB);
+    EXPECT_EQ(obj->store[5], 0xAB);
+    EXPECT_EQ(obj->store[6], 0);
+    EXPECT_EQ(obj->store[7], 0);
+}
+
+TEST_CASE("clear_buffer_data_null_data_fills_zero") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 4, GL_STATIC_DRAW, nullptr);
+    uint8_t pre = 0xFF;
+    ctx.bufferSubData(GL_ARRAY_BUFFER, 0, 1, &pre);
+    ctx.clearBufferData(GL_ARRAY_BUFFER, GL_R8, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* obj = ctx.getBuffer(buf);
+    EXPECT_EQ(obj->store[0], 0);
+}
+
+TEST_CASE("clear_buffer_data_normalized_rgba8_converts_components") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 4, GL_STATIC_DRAW, nullptr); // 1 x RGBA8
+
+    float v[4] = {0.5f, 0.0f, 1.0f, 1.0f};
+    ctx.clearBufferSubData(GL_ARRAY_BUFFER, GL_RGBA8, 0, 4, GL_RGBA, GL_FLOAT, v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* obj = ctx.getBuffer(buf);
+    EXPECT_EQ(obj->store[0], 128); // 0.5 * 255
+    EXPECT_EQ(obj->store[1], 0);
+    EXPECT_EQ(obj->store[2], 255);
+    EXPECT_EQ(obj->store[3], 255);
+}
+
+TEST_CASE("clear_buffer_data_bad_internalformat_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 4, GL_STATIC_DRAW, nullptr);
+    float v = 1.0f;
+    // GL_RGBA (unsized) is not a valid Clear*Buffer internalformat.
+    ctx.clearBufferData(GL_ARRAY_BUFFER, GL_RGBA, GL_RED, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("clear_buffer_sub_data_unaligned_offset_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    float v = 1.0f;
+    ctx.clearBufferSubData(GL_ARRAY_BUFFER, GL_R32F, 1, 4, GL_RED, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("clear_buffer_data_bad_format_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 4, GL_STATIC_DRAW, nullptr);
+    float v = 1.0f;
+    ctx.clearBufferData(GL_ARRAY_BUFFER, GL_R32F, 0xDEAD, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("clear_named_buffer_data_missing_buffer_is_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    float v = 1.0f;
+    ctx.clearNamedBufferData(999u, GL_R32F, GL_RED, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("get_buffer_sub_data_reads_cpu_mirror") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    int w[2] = {0x11223344, 0x55667788};
+    ctx.bufferSubData(GL_ARRAY_BUFFER, 0, 8, w);
+
+    int out[2] = {0, 0};
+    ctx.getBufferSubData(GL_ARRAY_BUFFER, 0, 8, out);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(out[0], 0x11223344);
+    EXPECT_EQ(out[1], 0x55667788);
+}
+
+TEST_CASE("get_named_buffer_sub_data_reads_by_name") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    int w[2] = {7, 9};
+    ctx.bufferSubData(GL_ARRAY_BUFFER, 0, 8, w);
+
+    int out[2] = {0, 0};
+    ctx.getNamedBufferSubData(buf, 0, 8, out);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(out[0], 7);
+    EXPECT_EQ(out[1], 9);
+}
+
+TEST_CASE("get_buffer_sub_data_out_of_bounds_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    int out[2] = {0, 0};
+    ctx.getBufferSubData(GL_ARRAY_BUFFER, 0, 16, out);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("get_buffer_sub_data_while_mapped_is_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    EXPECT_NE(ctx.mapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE), nullptr);
+    int out[2] = {0, 0};
+    ctx.getBufferSubData(GL_ARRAY_BUFFER, 0, 8, out);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    ctx.unmapBuffer(GL_ARRAY_BUFFER);
+}
+
+TEST_CASE("invalidate_buffer_forwards_hint_to_backend") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+
+    ctx.invalidateBufferData(GL_ARRAY_BUFFER);
+    ctx.invalidateBufferSubData(GL_ARRAY_BUFFER, 0, 4);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    auto* obj = ctx.getBuffer(buf);
+    auto* mb = static_cast<MockBuffer*>(obj->backend.get());
+    EXPECT_EQ(mb->invalidateBufferDataCalls, 1);
+    EXPECT_EQ(mb->invalidateBufferSubDataCalls, 1);
+    EXPECT_EQ(mb->lastInvalidateOffset, 0);
+    EXPECT_EQ(mb->lastInvalidateLength, 4);
+}
+
+TEST_CASE("invalidate_named_buffer_sub_data_out_of_bounds_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
+    ctx.invalidateNamedBufferSubData(buf, 4, 8); // 4+8 > 8
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("buffer_clear_invalidate_dispatch_through_api") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 4, GL_STATIC_DRAW, nullptr);
+
+    float v = 2.0f;
+    glClearBufferData(GL_ARRAY_BUFFER, GL_R32F, GL_RED, GL_FLOAT, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(*reinterpret_cast<float*>(ctx.getBuffer(buf)->store.data()), 2.0f);
+
+    int out = 0;
+    glGetBufferSubData(GL_ARRAY_BUFFER, 0, 4, &out);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(out, *reinterpret_cast<int*>(reinterpret_cast<float*>(&v)));
+
+    glInvalidateBufferData(GL_ARRAY_BUFFER);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    setCurrentContext(nullptr);
+}

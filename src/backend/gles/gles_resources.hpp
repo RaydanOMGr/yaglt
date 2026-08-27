@@ -92,6 +92,19 @@ struct GLESBackendBuffer : BackendBuffer {
             lib->glUnmapBuffer(target);
         }
     }
+    void invalidateBufferData(uint32_t target) override {
+        (void)target;
+        if (lib && lib->driverLive() && lib->glInvalidateBufferData) {
+            lib->glInvalidateBufferData(handle);
+        }
+    }
+    void invalidateBufferSubData(uint32_t target, intptr_t offset,
+                                intptr_t length) override {
+        (void)target;
+        if (lib && lib->driverLive() && lib->glInvalidateBufferSubData) {
+            lib->glInvalidateBufferSubData(handle, offset, length);
+        }
+    }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
@@ -156,6 +169,30 @@ struct GLESBackendTexture : BackendTexture {
         if (!lib || !lib->driverLive() || !lib->glTexParameteriv || !params) return;
         if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
         lib->glTexParameteriv(glesActualTarget(target), pname, params, count);
+    }
+    void texParameterIiv(uint32_t target, uint32_t pname, const int32_t* params,
+                        int count) override {
+        if (!lib || !lib->driverLive() || !lib->glTexParameterIiv || !params) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameterIiv(glesActualTarget(target), pname, params, count);
+    }
+    void texParameterIuiv(uint32_t target, uint32_t pname, const uint32_t* params,
+                         int count) override {
+        if (!lib || !lib->driverLive() || !lib->glTexParameterIuiv || !params) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glTexParameterIuiv(glesActualTarget(target), pname, params, count);
+    }
+    void invalidateTexImage(uint32_t target, int level) override {
+        if (!lib || !lib->driverLive() || !lib->glInvalidateTexImage) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glInvalidateTexImage(glesActualTarget(target), level);
+    }
+    void invalidateTexSubImage(uint32_t target, int level, int xoffset, int yoffset,
+                            int zoffset, int width, int height, int depth) override {
+        if (!lib || !lib->driverLive() || !lib->glInvalidateTexSubImage) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        lib->glInvalidateTexSubImage(glesActualTarget(target), level, xoffset, yoffset,
+                                   zoffset, width, height, depth);
     }
     void texSubImage1D(uint32_t target, int level, int xoffset, int width,
                        uint32_t format, uint32_t type, const void* data) override {
@@ -235,12 +272,56 @@ struct GLESBackendTexture : BackendTexture {
                         bufferNativeId);
     }
     void textureBufferRange(uint32_t target, uint32_t internalFormat,
-                            uint32_t bufferNativeId, intptr_t offset,
-                            intptr_t size) override {
+                             uint32_t bufferNativeId, intptr_t offset,
+                             intptr_t size) override {
         if (!lib || !lib->driverLive() || !lib->glTexBufferRange) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexBufferRange(target, glesSizedInternalFormat(internalFormat),
                               bufferNativeId, offset, size);
+    }
+    void storage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, bool fixedSampleLocations) override {
+        if (!lib || !lib->driverLive() || !lib->glTexStorage2DMultisample) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexStorage2DMultisample(target, static_cast<GLsizei>(samples),
+                                       glesSizedInternalFormat(internalFormat),
+                                       static_cast<GLsizei>(width),
+                                       static_cast<GLsizei>(height),
+                                       fixedSampleLocations ? GL_TRUE : GL_FALSE);
+    }
+    void storage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                              int width, int height, int depth,
+                              bool fixedSampleLocations) override {
+        if (!lib || !lib->driverLive() || !lib->glTexStorage3DMultisample) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexStorage3DMultisample(target, static_cast<GLsizei>(samples),
+                                       glesSizedInternalFormat(internalFormat),
+                                       static_cast<GLsizei>(width),
+                                       static_cast<GLsizei>(height),
+                                       static_cast<GLsizei>(depth),
+                                       fixedSampleLocations ? GL_TRUE : GL_FALSE);
+    }
+    void texImage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                               int width, int height, bool fixedSampleLocations) override {
+        if (!lib || !lib->driverLive() || !lib->glTexImage2DMultisample) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexImage2DMultisample(target, static_cast<GLsizei>(samples),
+                                     glesSizedInternalFormat(internalFormat),
+                                     static_cast<GLsizei>(width),
+                                     static_cast<GLsizei>(height),
+                                     fixedSampleLocations ? GL_TRUE : GL_FALSE);
+    }
+    void texImage3DMultisample(uint32_t target, int samples, uint32_t internalFormat,
+                               int width, int height, int depth,
+                               bool fixedSampleLocations) override {
+        if (!lib || !lib->driverLive() || !lib->glTexImage3DMultisample) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glTexImage3DMultisample(target, static_cast<GLsizei>(samples),
+                                     glesSizedInternalFormat(internalFormat),
+                                     static_cast<GLsizei>(width),
+                                     static_cast<GLsizei>(height),
+                                     static_cast<GLsizei>(depth),
+                                     fixedSampleLocations ? GL_TRUE : GL_FALSE);
     }
     void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
                              int32_t* params) override {

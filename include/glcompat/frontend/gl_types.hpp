@@ -81,6 +81,7 @@ constexpr GLenum GL_MAP_INVALIDATE_RANGE_BIT = 0x0004;
 constexpr GLenum GL_MAP_INVALIDATE_BUFFER_BIT = 0x0008;
 constexpr GLenum GL_MAP_FLUSH_EXPLICIT_BIT = 0x0010;
 constexpr GLenum GL_MAP_UNSIGNED_BYTE_BIT = 0x0020;
+constexpr GLenum GL_MAP_PERSISTENT_BIT = 0x0040;
 
 constexpr GLenum GL_TEXTURE_2D = 0x0DE1;
 constexpr GLenum GL_RENDERBUFFER = 0x8D41;
@@ -161,6 +162,65 @@ constexpr GLenum GL_UNSIGNED_BYTE = 0x1401;
 constexpr GLenum GL_UNSIGNED_SHORT = 0x1403;
 constexpr GLenum GL_HALF_FLOAT = 0x140B;
 constexpr GLenum GL_TEXTURE0 = 0x84C0;
+
+// Pixel/texel read-back and buffer-clear source format tokens (SPEC §6 / §8.7 /
+// table 8.8). These describe the `format` argument of Clear*Buffer*Data.
+constexpr GLenum GL_RED_INTEGER = 0x8D94;
+constexpr GLenum GL_RG_INTEGER = 0x8228;
+constexpr GLenum GL_RGB_INTEGER = 0x8D98;
+constexpr GLenum GL_RGBA_INTEGER = 0x8D99;
+constexpr GLenum GL_DEPTH_COMPONENT = 0x1902;
+constexpr GLenum GL_STENCIL_INDEX = 0x1901;
+
+// Buffer/texel source type tokens (SPEC §8.7 / table 8.7). These describe the
+// `type` argument of Clear*Buffer*Data.
+constexpr GLenum GL_BYTE = 0x1400;
+constexpr GLenum GL_SHORT = 0x1402;
+constexpr GLenum GL_INT = 0x1404;
+constexpr GLenum GL_UNSIGNED_INT = 0x1405;
+
+// Sized internal formats accepted by Clear*Buffer*Data (SPEC §6 / table 8.24).
+// The frontend keeps an authoritative CPU mirror of every buffer's data store,
+// so these drive the in-memory fill pattern; the GLES backend (which has no
+// native glClearBufferData) is then kept in sync by re-uploading the range via
+// glBufferSubData.
+constexpr GLenum GL_R8 = 0x8229;
+constexpr GLenum GL_RG8 = 0x822B;
+constexpr GLenum GL_RGB8 = 0x8051;
+constexpr GLenum GL_SRGB8 = 0x8C41;
+constexpr GLenum GL_SRGB8_ALPHA8 = 0x8C43;
+constexpr GLenum GL_R16F = 0x822D;
+constexpr GLenum GL_RG16F = 0x822F;
+constexpr GLenum GL_RGB16F = 0x881B;
+constexpr GLenum GL_RGBA16F = 0x881A;
+constexpr GLenum GL_R32F = 0x822E;
+constexpr GLenum GL_RG32F = 0x8230;
+constexpr GLenum GL_RGB32F = 0x8815;
+constexpr GLenum GL_RGBA32F = 0x8814;
+constexpr GLenum GL_R8I = 0x8231;
+constexpr GLenum GL_R8UI = 0x8232;
+constexpr GLenum GL_R16I = 0x8233;
+constexpr GLenum GL_R16UI = 0x8234;
+constexpr GLenum GL_R32I = 0x8235;
+constexpr GLenum GL_R32UI = 0x8236;
+constexpr GLenum GL_RG8I = 0x8237;
+constexpr GLenum GL_RG8UI = 0x8238;
+constexpr GLenum GL_RG16I = 0x8239;
+constexpr GLenum GL_RG16UI = 0x823A;
+constexpr GLenum GL_RG32I = 0x823B;
+constexpr GLenum GL_RG32UI = 0x823C;
+constexpr GLenum GL_RGB8I = 0x8D8F;
+constexpr GLenum GL_RGB8UI = 0x8D90;
+constexpr GLenum GL_RGB16I = 0x8D89;
+constexpr GLenum GL_RGB16UI = 0x8D8A;
+constexpr GLenum GL_RGB32I = 0x8D83;
+constexpr GLenum GL_RGB32UI = 0x8D84;
+constexpr GLenum GL_RGBA8I = 0x8D8E;
+constexpr GLenum GL_RGBA8UI = 0x8D7E;
+constexpr GLenum GL_RGBA16I = 0x8D88;
+constexpr GLenum GL_RGBA16UI = 0x8D76;
+constexpr GLenum GL_RGBA32I = 0x8D82;
+constexpr GLenum GL_RGBA32UI = 0x8D70;
 
 // Texture-unit state queries (SPEC §2.1 / §10).
 constexpr GLenum GL_ACTIVE_TEXTURE = 0x84E0;
@@ -267,6 +327,21 @@ constexpr GLenum GL_REFERENCED_BY_COMPUTE_SHADER = 0x930B;
 constexpr GLenum GL_TOP_LEVEL_ARRAY_SIZE = 0x930C;
 constexpr GLenum GL_TOP_LEVEL_ARRAY_STRIDE = 0x930D;
 constexpr GLenum GL_LOCATION = 0x930E;
+
+// glGetActiveUniformBlockiv pnames (SPEC §7.6 / table 7.7). These differ from the
+// program-resource property enums above; the frontend maps each to its property
+// equivalent before delegating to GetProgramResourceiv.
+constexpr GLenum GL_UNIFORM_BLOCK_BINDING = 0x8A3F;
+constexpr GLenum GL_UNIFORM_BLOCK_DATA_SIZE = 0x8A40;
+constexpr GLenum GL_UNIFORM_BLOCK_NAME_LENGTH = 0x8A41;
+constexpr GLenum GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = 0x8A42;
+constexpr GLenum GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = 0x8A43;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER = 0x8A44;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER = 0x8A45;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER = 0x8A46;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_CONTROL_SHADER = 0x84F0;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_EVALUATION_SHADER = 0x84F1;
+constexpr GLenum GL_UNIFORM_BLOCK_REFERENCED_BY_COMPUTE_SHADER = 0x90EC;
 constexpr GLenum GL_LOCATION_COMPONENT = 0x934A;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_INDEX = 0x934B;
 

@@ -93,6 +93,67 @@ GLboolean glUnmapBuffer(GLenum target) {
     return g_current->unmapBuffer(target) ? GL_TRUE : GL_FALSE;
 }
 
+void glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
+                       GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->getBufferSubData(target, offset, size, data);
+}
+
+void glGetNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size,
+                            GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->getNamedBufferSubData(buffer, offset, size, data);
+}
+
+void glClearBufferData(GLenum target, GLenum internalformat, GLenum format,
+                      GLenum type, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferData(target, internalformat, format, type, data);
+}
+
+void glClearNamedBufferData(GLuint buffer, GLenum internalformat, GLenum format,
+                           GLenum type, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedBufferData(buffer, internalformat, format, type, data);
+}
+
+void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
+                         GLsizeiptr size, GLenum format, GLenum type,
+                         const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferSubData(target, internalformat, offset, size, format,
+                                 type, data);
+}
+
+void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
+                             GLintptr offset, GLsizeiptr size, GLenum format,
+                             GLenum type, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedBufferSubData(buffer, internalformat, offset, size,
+                                     format, type, data);
+}
+
+void glInvalidateBufferData(GLenum target) {
+    if (g_current == nullptr) return;
+    g_current->invalidateBufferData(target);
+}
+
+void glInvalidateBufferSubData(GLenum target, GLintptr offset, GLsizeiptr length) {
+    if (g_current == nullptr) return;
+    g_current->invalidateBufferSubData(target, offset, length);
+}
+
+void glInvalidateNamedBufferData(GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->invalidateNamedBufferData(buffer);
+}
+
+void glInvalidateNamedBufferSubData(GLuint buffer, GLintptr offset,
+                                   GLsizeiptr length) {
+    if (g_current == nullptr) return;
+    g_current->invalidateNamedBufferSubData(buffer, offset, length);
+}
+
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
     if (g_current == nullptr) return;
     g_current->bindBufferBase(target, index, buffer);
@@ -186,6 +247,16 @@ void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
     g_current->texParameteriv(target, pname, params, static_cast<int>(count));
 }
 
+void glTexParameterIiv(GLenum target, GLenum pname, const GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->texParameterIiv(target, pname, params);
+}
+
+void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->texParameterIuiv(target, pname, params);
+}
+
 void glGetTexParameterfv(GLenum target, GLenum pname, GLfloat* params) {
     if (g_current == nullptr) return;
     g_current->getTexParameterfv(target, pname, params);
@@ -240,6 +311,34 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getTexParameteriv(target, pname, params);
+}
+
+void glGetTexParameterIiv(GLenum target, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexParameterIiv(target, pname, params);
+}
+
+void glGetTexParameterIuiv(GLenum target, GLenum pname, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexParameterIuiv(target, pname, params);
+}
+
+void glGenerateMipmap(GLenum target) {
+    if (g_current == nullptr) return;
+    g_current->generateMipmap(target);
+}
+
+void glInvalidateTexImage(GLenum target, GLint level) {
+    if (g_current == nullptr) return;
+    g_current->invalidateTexImage(target, level);
+}
+
+void glInvalidateTexSubImage(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                            GLint zoffset, GLsizei width, GLsizei height, GLsizei depth) {
+    if (g_current == nullptr) return;
+    g_current->invalidateTexSubImage(target, level, xoffset, yoffset, zoffset,
+                                   static_cast<int>(width), static_cast<int>(height),
+                                   static_cast<int>(depth));
 }
 
 void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params) {
@@ -333,6 +432,26 @@ void glGenerateTextureMipmap(GLuint texture) {
     g_current->generateTextureMipmap(texture);
 }
 
+void glTextureParameterIiv(GLuint texture, GLenum pname, const GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->textureParameterIiv(texture, pname, params);
+}
+
+void glTextureParameterIuiv(GLuint texture, GLenum pname, const GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->textureParameterIuiv(texture, pname, params);
+}
+
+void glGetTextureParameterIiv(GLuint texture, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureParameterIiv(texture, pname, params);
+}
+
+void glGetTextureParameterIuiv(GLuint texture, GLenum pname, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTextureParameterIuiv(texture, pname, params);
+}
+
 void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params) {
     if (g_current == nullptr) return;
     g_current->getTextureParameterfv(texture, pname, params);
@@ -371,10 +490,117 @@ void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer) {
 }
 
 void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
-                          GLintptr offset, GLsizeiptr size) {
+                           GLintptr offset, GLsizeiptr size) {
     if (g_current == nullptr) return;
     g_current->textureBufferRange(texture, static_cast<uint32_t>(internalFormat),
-                                 buffer, offset, size);
+                                  buffer, offset, size);
+}
+
+void glTexStorage1D(GLenum target, GLsizei levels, GLenum internalFormat,
+                    GLsizei width) {
+    if (g_current == nullptr) return;
+    g_current->texStorage1D(target, static_cast<int>(levels),
+                            static_cast<uint32_t>(internalFormat),
+                            static_cast<int>(width));
+}
+
+void glTexStorage2D(GLenum target, GLsizei levels, GLenum internalFormat,
+                    GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->texStorage2D(target, static_cast<int>(levels),
+                            static_cast<uint32_t>(internalFormat),
+                            static_cast<int>(width), static_cast<int>(height));
+}
+
+void glTexStorage3D(GLenum target, GLsizei levels, GLenum internalFormat,
+                    GLsizei width, GLsizei height, GLsizei depth) {
+    if (g_current == nullptr) return;
+    g_current->texStorage3D(target, static_cast<int>(levels),
+                            static_cast<uint32_t>(internalFormat),
+                            static_cast<int>(width), static_cast<int>(height),
+                            static_cast<int>(depth));
+}
+
+void glTexBuffer(GLenum target, GLenum internalFormat, GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->texBuffer(target, static_cast<uint32_t>(internalFormat), buffer);
+}
+
+void glTexBufferRange(GLenum target, GLenum internalFormat, GLuint buffer,
+                      GLintptr offset, GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->texBufferRange(target, static_cast<uint32_t>(internalFormat), buffer,
+                              offset, size);
+}
+
+void glTexStorage2DMultisample(GLenum target, GLsizei samples,
+                               GLenum internalFormat, GLsizei width, GLsizei height,
+                               GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->texStorage2DMultisample(target, static_cast<int>(samples),
+                                       static_cast<uint32_t>(internalFormat),
+                                       static_cast<int>(width),
+                                       static_cast<int>(height),
+                                       fixedsamplelocations != 0);
+}
+
+void glTexStorage3DMultisample(GLenum target, GLsizei samples,
+                               GLenum internalFormat, GLsizei width, GLsizei height,
+                               GLsizei depth, GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->texStorage3DMultisample(target, static_cast<int>(samples),
+                                       static_cast<uint32_t>(internalFormat),
+                                       static_cast<int>(width),
+                                       static_cast<int>(height),
+                                       static_cast<int>(depth),
+                                       fixedsamplelocations != 0);
+}
+
+void glTexImage2DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                             GLsizei width, GLsizei height,
+                             GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->texImage2DMultisample(target, static_cast<int>(samples),
+                                     static_cast<uint32_t>(internalFormat),
+                                     static_cast<int>(width),
+                                     static_cast<int>(height),
+                                     fixedsamplelocations != 0);
+}
+
+void glTexImage3DMultisample(GLenum target, GLsizei samples, GLenum internalFormat,
+                             GLsizei width, GLsizei height, GLsizei depth,
+                             GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->texImage3DMultisample(target, static_cast<int>(samples),
+                                     static_cast<uint32_t>(internalFormat),
+                                     static_cast<int>(width),
+                                     static_cast<int>(height),
+                                     static_cast<int>(depth),
+                                     fixedsamplelocations != 0);
+}
+
+void glTextureStorage2DMultisample(GLuint texture, GLsizei samples,
+                                   GLenum internalFormat, GLsizei width,
+                                   GLsizei height, GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->textureStorage2DMultisample(texture, static_cast<int>(samples),
+                                           static_cast<uint32_t>(internalFormat),
+                                           static_cast<int>(width),
+                                           static_cast<int>(height),
+                                           fixedsamplelocations != 0);
+}
+
+void glTextureStorage3DMultisample(GLuint texture, GLsizei samples,
+                                   GLenum internalFormat, GLsizei width,
+                                   GLsizei height, GLsizei depth,
+                                   GLboolean fixedsamplelocations) {
+    if (g_current == nullptr) return;
+    g_current->textureStorage3DMultisample(texture, static_cast<int>(samples),
+                                           static_cast<uint32_t>(internalFormat),
+                                           static_cast<int>(width),
+                                           static_cast<int>(height),
+                                           static_cast<int>(depth),
+                                           fixedsamplelocations != 0);
 }
 
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers) {
@@ -940,10 +1166,44 @@ GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
 }
 
 GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
-                                        const GLchar* name) {
+                                         const GLchar* name) {
     if (g_current == nullptr) return -1;
     return g_current->getProgramResourceLocationIndex(program, programInterface,
                                                      name ? name : "");
+}
+
+void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize,
+                        GLsizei* length, GLint* size, GLenum* type, GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getActiveUniform(program, index, bufSize, length, size,
+                                reinterpret_cast<uint32_t*>(type), name);
+}
+
+void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize,
+                       GLsizei* length, GLint* size, GLenum* type, GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getActiveAttrib(program, index, bufSize, length, size,
+                               reinterpret_cast<uint32_t*>(type), name);
+}
+
+GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) {
+    if (g_current == nullptr) return GL_INVALID_INDEX;
+    return g_current->getUniformBlockIndex(program,
+                                           uniformBlockName ? uniformBlockName : "");
+}
+
+void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
+                               GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
+}
+
+void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
+                                 GLsizei bufSize, GLsizei* length,
+                                 GLchar* uniformBlockName) {
+    if (g_current == nullptr) return;
+    g_current->getActiveUniformBlockName(program, uniformBlockIndex, bufSize, length,
+                                         uniformBlockName);
 }
 
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype,

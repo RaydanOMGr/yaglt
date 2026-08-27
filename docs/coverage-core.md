@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 209 | **42.7%** |
-| Core profile only (spec − 55 removed commands) | 435 | 209 | **48.0%** |
+| Full spec (compat + core) | 490 | 241 | **49.2%** |
+| Core profile only (spec − 55 removed commands) | 435 | 241 | **55.4%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -44,7 +44,7 @@ signal.
 > mask, sample coverage, primitive restart) are already implemented but not yet
 > folded into the per-area table below. Regenerate for an exact tally.
 
-All 209 covered commands are real `gl_api` entry points with frontend semantics
+All 230 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -62,9 +62,9 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | Spec area (chapter) | Status | Notes |
 |---------------------|--------|-------|
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled` |
-| §6 Buffer objects | 🟡 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`. Missing: `BufferSubData`, `BufferStorage` (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, `InvalidateBuffer*`, `GetBufferSubData`, buffer queries |
+| §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). Bounds/format/mapping validation matches SPEC §6. |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist). Missing: `BindAttribLocation`, **compute** shaders, shader binaries |
-| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: cube/array/rect TexImage targets, full param coverage, `GetTexImage` multisample, **multisample textures**, texture views |
+| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`, integer texture params (`glTexParameterIiv`/`Iuiv` + `glTextureParameterIiv`/`Iuiv`), integer param queries (`glGetTexParameterIiv`/`Iuiv` + `glGetTextureParameterIiv`/`Iuiv`), classic `glGenerateMipmap`, and texture invalidation (`glInvalidateTexImage`/`glInvalidateTexSubImage`). Missing: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views. Non-DSA `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) and the multisample surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` + DSA `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` (§8.19) — are now implemented with target/sample/dimension validation. |
 | §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path). Missing: indirect draw, other `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words) and `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query). Remaining: provoking vertex |
@@ -104,15 +104,23 @@ GenFramebuffers, GenRenderbuffers, GenSamplers, GenTextures,
 GenTransformFeedbacks, GenVertexArrays, GetBooleanv, GetBufferParameteriv,
 GetDoublev, GetFloatv, GetIntegerv, GetProgramInfoLog, GetProgramiv,
 GetShaderInfoLog, GetShaderiv, LinkProgram, MapBuffer, MapBufferRange,
+GetBufferSubData, GetNamedBufferSubData, ClearBufferData, ClearNamedBufferData,
+ClearBufferSubData, ClearNamedBufferSubData, InvalidateBufferData,
+InvalidateBufferSubData, InvalidateNamedBufferData, InvalidateNamedBufferSubData,
 PauseTransformFeedback, ReadPixels, RenderbufferStorage,
 ResumeTransformFeedback, Scissor, ShaderSource, StencilFunc, StencilMask,
 StencilOp, TexImage1D, TexImage2D, TexImage3D, TexSubImage1D, TexSubImage2D, TexSubImage3D, TexParameterf, TexParameterfv,
 TexParameteriv, TextureParameteri, TextureParameterf, TextureParameterfv, TextureParameteriv,
+TexParameterIiv, TexParameterIuiv, TextureParameterIiv, TextureParameterIuiv, GenerateMipmap,
+InvalidateTexImage, InvalidateTexSubImage,
 CreateTextures, TextureStorage1D, TextureStorage2D, TextureStorage3D,
 TextureSubImage1D, TextureSubImage2D, TextureSubImage3D, GenerateTextureMipmap,
 GetTextureParameterfv, GetTextureLevelParameteriv, GetTextureLevelParameterfv,
 GetTextureImage, GetTexImage,
 TextureBuffer, TextureBufferRange,
+TexStorage1D, TexStorage2D, TexStorage3D, TexBuffer, TexBufferRange,
+TexStorage2DMultisample, TexStorage3DMultisample, TexImage2DMultisample,
+TexImage3DMultisample, TextureStorage2DMultisample, TextureStorage3DMultisample,
 CreateRenderbuffers, NamedRenderbufferStorage,
 NamedRenderbufferStorageMultisample, GetNamedRenderbufferParameteriv,
 CreateFramebuffers, NamedFramebufferRenderbuffer, NamedFramebufferTexture,
@@ -136,14 +144,22 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
 ## Major unimplemented core areas (priority order for next steps)
 
 1. **Buffer object completeness** — `BufferSubData`, `BufferStorage`
-    (immutable), `MapBuffer*`/`MapBufferRange`/`UnmapBuffer`, `CopyBufferSubData`,
-    and `glGetBufferParameteriv` are implemented (frontend owns an authoritative
-    CPU data store mirrored to the backend). Remaining: `ClearBuffer*`,
-    `InvalidateBuffer*`, `GetBufferSubData`. (§6)
+   (immutable), `MapBuffer*`/`MapBufferRange`/`UnmapBuffer`, `CopyBufferSubData`,
+   `glGetBufferParameteriv`, and the clear/invalidate/read-back surface
+   (`glGetBufferSubData`/`glClearBufferData`/`glClearBufferSubData`/
+   `glInvalidateBufferData`/`glInvalidateBufferSubData` and `*Named` variants)
+   are implemented (frontend owns an authoritative CPU data store mirrored to the
+   backend). **Done.** (§6)
  2. **Texture completeness** — 1D emulated as 2D (height=1) on GLES; `TexParameterf`/vector
-    pnames + full param coverage, `GetTexImage`, multisample & buffer textures.
-    `TexSubImage1D/2D/3D` and `CopyTexImage1D/2D` are now implemented (frontend
-    validation + backend virtualization, mock path tested). (§8)
+     pnames + full param coverage, `GetTexImage`. `TexSubImage1D/2D/3D` and
+     `CopyTexImage1D/2D` are implemented (frontend validation + backend
+     virtualization, mock path tested). Non-DSA `glTexStorage1D/2D/3D` and
+     `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) plus the full multisample
+     surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/
+     `glTexImage2DMultisample`/`glTexImage3DMultisample` and DSA
+     `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` (§8.19) —
+     are now implemented with target/sample/dimension validation. Remaining:
+     cube/array/rect TexImage targets, `GetTexImage` multisample, texture views. (§8)
   3. **Full DSA surface** — texture `gl*Named*` done; renderbuffer/framebuffer
      `gl*Named*` (storage, attachments, status, params, blit/invalidate/clear)
      implemented (SPEC §9.2); **vertex-array DSA** (`glCreateVertexArrays`,
