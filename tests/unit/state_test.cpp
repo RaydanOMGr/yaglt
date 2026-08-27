@@ -45,6 +45,9 @@ struct RecordingSink : GLStateSink {
     void pointSize(float) override {}
     void lineWidth(float) override {}
     void polygonOffset(float, float) override {}
+    void polygonMode(uint32_t, uint32_t) override {}
+    void sampleMaski(uint32_t, uint32_t) override {}
+    void minSampleShading(float) override {}
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
     void setViewport(int32_t, int32_t, int32_t, int32_t) override {}
     void setScissor(int32_t, int32_t, int32_t, int32_t) override {}

@@ -340,6 +340,17 @@ public:
     // (SPEC §10). Activation is via glEnable(GL_PRIMITIVE_RESTART), a normal cap.
     void primitiveRestartIndex(uint32_t index);
 
+    // --- Rasterization controls (SPEC §11) ---
+    // glPolygonMode sets the per-side render mode (GL_POINT/GL_LINE/GL_FILL); an
+    // unsupported `face` or `mode` reports GL_INVALID_ENUM. glSampleMaski sets one
+    // sample-mask word (maskNumber must be < MAX_SAMPLE_MASK_WORDS, else
+    // GL_INVALID_VALUE). glMinSampleShading selects the minimum sample-shading
+    // fraction in [0,1] (else GL_INVALID_VALUE). All are recorded in the tracker
+    // and pushed to the backend on the next state flush (SPEC §10).
+    void polygonMode(GLenum face, GLenum mode);
+    void sampleMaski(uint32_t maskNumber, uint32_t mask);
+    void minSampleShading(float value);
+
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
     // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)

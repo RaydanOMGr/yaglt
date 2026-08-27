@@ -377,6 +377,18 @@ void glPointSize(GLfloat size);
 void glLineWidth(GLfloat width);
 void glPolygonOffset(GLfloat factor, GLfloat units);
 
+// Rasterization polygon mode (SPEC §11.1, glPolygonMode). Per-side render mode;
+// unsupported `face`/`mode` report GL_INVALID_ENUM honestly (the tracker rejects
+// them).
+void glPolygonMode(GLenum face, GLenum mode);
+
+// Multisample raster state (SPEC §11.5). glSampleMaski sets one mask word
+// (maskNumber must be < MAX_SAMPLE_MASK_WORDS, else GL_INVALID_VALUE).
+// glMinSampleShading sets the minimum sample-shading fraction in [0,1] (else
+// GL_INVALID_VALUE).
+void glSampleMaski(GLuint maskNumber, GLuint mask);
+void glMinSampleShading(GLfloat value);
+
 // Stencil test state (SPEC §17.3.3). These set the front and back stencil state
 // to identical values. Pushed to the backend via glFlushState() at draw/flush
 // time (SPEC §10).

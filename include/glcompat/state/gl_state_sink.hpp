@@ -57,6 +57,17 @@ public:
     virtual void lineWidth(float width) = 0;
     virtual void polygonOffset(float factor, float units) = 0;
 
+    // Polygon render mode (glPolygonMode, SPEC §11.1). `front`/`back` are the
+    // GL_POINT/GL_LINE/GL_FILL modes pushed for the respective sides. Backends
+    // without polygon-mode support (e.g. GLES) record but do not apply it.
+    virtual void polygonMode(uint32_t front, uint32_t back) = 0;
+
+    // Multisample raster state (SPEC §11.5). `sampleMaski` pushes one mask word
+    // (index `maskNumber`); `minSampleShading` pushes the [0,1] fraction. GLES
+    // has no equivalent and records these without applying them.
+    virtual void sampleMaski(uint32_t maskNumber, uint32_t mask) = 0;
+    virtual void minSampleShading(float value) = 0;
+
     // Texture units (SPEC §2.1). `activeTexture` selects the unit (unit =
     // GL_TEXTURE0 + i); `bindTexture` binds `texture` (frontend object name) to
     // `target` on the currently selected unit. The backend converts the frontend

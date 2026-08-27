@@ -133,6 +133,14 @@ public:
     float lastLineWidth = 1.0f;
     float lastPolygonOffsetFactor = 0.0f;
     float lastPolygonOffsetUnits = 0.0f;
+    int polygonModeCalls = 0;
+    uint32_t lastPolygonModeFront = 0x1B02; // GL_FILL
+    uint32_t lastPolygonModeBack = 0x1B02;  // GL_FILL
+    int sampleMaskiCalls = 0;
+    uint32_t lastSampleMaskNumber = 0;
+    uint32_t lastSampleMask = 0;
+    int minSampleShadingCalls = 0;
+    float lastMinSampleShading = 0.0f;
     int pixelStoreiCalls = 0;
 
     int viewportCalls = 0;
@@ -234,6 +242,20 @@ public:
         ++polygonOffsetCalls;
         lastPolygonOffsetFactor = factor;
         lastPolygonOffsetUnits = units;
+    }
+    void polygonMode(uint32_t front, uint32_t back) override {
+        ++polygonModeCalls;
+        lastPolygonModeFront = front;
+        lastPolygonModeBack = back;
+    }
+    void sampleMaski(uint32_t maskNumber, uint32_t mask) override {
+        ++sampleMaskiCalls;
+        lastSampleMaskNumber = maskNumber;
+        lastSampleMask = mask;
+    }
+    void minSampleShading(float value) override {
+        ++minSampleShadingCalls;
+        lastMinSampleShading = value;
     }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {

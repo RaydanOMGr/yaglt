@@ -1155,10 +1155,37 @@ crashed agent, this session)
   `tests/unit/dsa_program_pipeline_test.cpp` (11 cases). `GLStateSink` gained the
   `bindProgramPipeline` pure virtual; all sink implementers (MockBackend,
   GLESBackend, and the test `RecordingSink`s) were updated.
-- Coverage now ~194/490 (39.6%) full / 194/435 (44.6%) core.
-- Validation: default 280/280 green; sanitizer 288/288 (lone failure = pre-existing
-  translator-absent `shader_translate_test` config quirk); translate/Mesa built
-  and the GLES e2e passes under softpipe (288/288, 1 pre-existing quirk; the only
-  crash is the pre-existing Mesa teardown SEGV). GLES backend path verified.
+ - Coverage now ~194/490 (39.6%) full / 194/435 (44.6%) core.
+ - Validation: default 280/280 green; sanitizer 288/288 (lone failure = pre-existing
+   translator-absent `shader_translate_test` config quirk); translate/Mesa built
+   and the GLES e2e passes under softpipe (288/288, 1 pre-existing quirk; the only
+   crash is the pre-existing Mesa teardown SEGV). GLES backend path verified.
+
+2026-08-27 (Rasterization controls, SPEC §11.1 / §11.5, this session)
+- Implemented the remaining rasterization-control surface (SPEC §11): `glPolygonMode`,
+  `glSampleMaski`, `glMinSampleShading`. Capability-gated `MultisampleRasterState`
+  (sampleMask: array<uint32_t, kMaxSampleMaskWords=2> + minSampleShading) and
+  `PolygonModeState` (front/back, default GL_FILL) added to `GLStateTracker`;
+  pushed via three new `GLStateSink` pure virtuals `polygonMode(front,back)`,
+  `sampleMaski(maskNumber,mask)`, `minSampleShading(value)`. `sampleMaski` pushes
+  only changed words.
+- New `Context` methods + `gl_api` entry points forward to the tracker with honest
+  validation: `glPolygonMode` bad face/mode → `GL_INVALID_ENUM`; `glSampleMaski`
+  out-of-range `maskNumber` (≥ kMaxSampleMaskWords) → `GL_INVALID_VALUE`;
+  `glMinSampleShading` value outside [0,1] → `GL_INVALID_VALUE`. `gl_types.hpp`
+  gained `GL_FRONT_AND_BACK`/`GL_POINT`/`GL_LINE`/`GL_FILL`/`GL_POLYGON_MODE`/
+  `GL_SAMPLE_MASK`/`GL_MIN_SAMPLE_SHADING`. `glGetIntegerv` returns `GL_POLYGON_MODE`
+  and `GL_SAMPLE_MASK`; `glGetFloatv` returns `GL_MIN_SAMPLE_SHADING`.
+- Mock backend records all three; GLES backend honestly no-ops them (GLES has no
+  polygon mode / sample mask / min-sample-shading). All `GLStateSink` implementers
+  (MockBackend, GLESBackend, and the test `RecordingSink`s in state/texture/dsa
+  tests) were updated. New `tests/unit/rasterization_control_test.cpp` (5 cases).
+- Coverage now ~197/490 (40.2%) full / 197/435 (45.3%) core. §11 marked ✅ in
+  coverage-core.md; §14 `glMinSampleShading` dropped from missing.
+- Validation: default 285/285 green; sanitizer 293/293 (lone failure = pre-existing
+  translator-absent `shader_translate_test` config quirk); translate/Mesa built and
+  GLES e2e passes under softpipe (the only crash is the pre-existing Mesa teardown
+  SEGV in `GLESBackend::~GLESBackend` → `GLESLib` destruction, unrelated to this
+  change). GLES backend path verified.
 
 ## Next Steps

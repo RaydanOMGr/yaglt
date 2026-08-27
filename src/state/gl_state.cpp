@@ -187,6 +187,40 @@ bool GLStateTracker::setPolygonOffset(float factor, float units) {
     return true;
 }
 
+bool GLStateTracker::setPolygonMode(GLenum face, GLenum mode) {
+    const bool front = (face == 0x0404 /* GL_FRONT */) ||
+                       (face == 0x0408 /* GL_FRONT_AND_BACK */);
+    const bool back = (face == 0x0405 /* GL_BACK */) ||
+                      (face == 0x0408 /* GL_FRONT_AND_BACK */);
+    const bool validMode = (mode == 0x1B00 /* GL_POINT */ ||
+                            mode == 0x1B01 /* GL_LINE */ ||
+                            mode == 0x1B02 /* GL_FILL */);
+    if ((!front && !back) || !validMode) return false; // caller raised error
+    bool changed = false;
+    if (front && polygonMode_.front != mode) {
+        polygonMode_.front = mode;
+        changed = true;
+    }
+    if (back && polygonMode_.back != mode) {
+        polygonMode_.back = mode;
+        changed = true;
+    }
+    return changed;
+}
+
+bool GLStateTracker::setSampleMaski(GLuint maskNumber, GLuint mask) {
+    if (maskNumber >= kMaxSampleMaskWords) return false; // caller raised error
+    if (multisampleRaster_.sampleMask[maskNumber] == mask) return false;
+    multisampleRaster_.sampleMask[maskNumber] = mask;
+    return true;
+}
+
+bool GLStateTracker::setMinSampleShading(float value) {
+    if (multisampleRaster_.minSampleShading == value) return false;
+    multisampleRaster_.minSampleShading = value;
+    return true;
+}
+
 bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
     if (pname == 0x0CF5 /* GL_UNPACK_ALIGNMENT */ &&
         pixel_.unpackAlignment == param)
@@ -520,6 +554,27 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!polygonMode_.equal(polygonModeApplied_)) {
+        sink.polygonMode(polygonMode_.front, polygonMode_.back);
+        polygonModeApplied_ = polygonMode_;
+        ++applied;
+    }
+
+    if (!multisampleRaster_.equal(multisampleRasterApplied_)) {
+        // Push only the mask words that actually changed (SPEC §10): the backend
+        // applies each word independently, so a no-op word must not be re-sent.
+        for (uint32_t i = 0; i < kMaxSampleMaskWords; ++i) {
+            if (multisampleRaster_.sampleMask[i] !=
+                multisampleRasterApplied_.sampleMask[i])
+                sink.sampleMaski(i, multisampleRaster_.sampleMask[i]);
+        }
+        if (multisampleRaster_.minSampleShading !=
+            multisampleRasterApplied_.minSampleShading)
+            sink.minSampleShading(multisampleRaster_.minSampleShading);
+        multisampleRasterApplied_ = multisampleRaster_;
+        ++applied;
+    }
+
     if (!primitiveRestart_.equal(primitiveRestartApplied_)) {
         sink.primitiveRestart(primitiveRestart_.index);
         primitiveRestartApplied_ = primitiveRestart_;
@@ -648,6 +703,14 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
         out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
         return 4;
+    case 0x0B40: // GL_POLYGON_MODE (front, back)
+        out[0] = static_cast<GLint>(polygonMode_.front);
+        out[1] = static_cast<GLint>(polygonMode_.back);
+        return 2;
+    case 0x8E51: // GL_SAMPLE_MASK (one value per mask word)
+        for (uint32_t i = 0; i < kMaxSampleMaskWords; ++i)
+            out[i] = static_cast<GLint>(multisampleRaster_.sampleMask[i]);
+        return static_cast<int>(kMaxSampleMaskWords);
     }
     return 0;
 }
@@ -714,6 +777,8 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         return 4;
     case GL_SAMPLE_COVERAGE_VALUE: // 0x80B9
         out[0] = sampleCoverage_.value; return 1;
+    case 0x8C36: // GL_MIN_SAMPLE_SHADING
+        out[0] = multisampleRaster_.minSampleShading; return 1;
     }
     return 0;
 }
@@ -804,6 +869,10 @@ void GLStateTracker::reset() {
     colorMaskApplied_ = ColorMaskState{};
     sampleCoverage_ = SampleCoverageState{};
     sampleCoverageApplied_ = SampleCoverageState{};
+    polygonMode_ = PolygonModeState{};
+    polygonModeApplied_ = PolygonModeState{};
+    multisampleRaster_ = MultisampleRasterState{};
+    multisampleRasterApplied_ = MultisampleRasterState{};
     primitiveRestart_ = PrimitiveRestartState{};
     primitiveRestartApplied_ = PrimitiveRestartState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});

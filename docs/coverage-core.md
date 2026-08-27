@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 194 | **39.6%** |
-| Core profile only (spec − 55 removed commands) | 435 | 194 | **44.6%** |
+| Full spec (compat + core) | 490 | 197 | **40.2%** |
+| Core profile only (spec − 55 removed commands) | 435 | 197 | **45.3%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -44,7 +44,7 @@ signal.
 > mask, sample coverage, primitive restart) are already implemented but not yet
 > folded into the per-area table below. Regenerate for an exact tally.
 
-All 194 covered commands are real `gl_api` entry points with frontend semantics
+All 197 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -67,10 +67,10 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: cube/array/rect TexImage targets, full param coverage, `GetTexImage` multisample, **multisample textures**, texture views |
 | §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path). Missing: indirect draw, other `VertexAttrib*` (except pointer), client array legacy |
-| §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
+| §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words) and `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query). Remaining: provoking vertex |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
-| §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test. Missing: **`glSampleCoverage`**, **`glMinSampleShading`**, `glPolygonOffset` |
+| §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test, `glSampleCoverage`, `glMinSampleShading`, `glPolygonOffset` (all tracked, push-only-on-change) |
 | §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush), `glBlitFramebuffer`+`glBlitNamedFramebuffer` (mask validated → `GL_INVALID_VALUE`, forwards after state flush/bind), `glInvalidateFramebuffer`/`glInvalidateSubFramebuffer`+`glInvalidateNamedFramebuffer*` (null-attachments / negative-dim `GL_INVALID_VALUE`, sub-rectangle form routed to backend), `glClearNamedFramebufferiv/uiv/fv/fi` (explicit clear values, DSA: no binding side effect). Missing: **sRGB/alpha-to-coverage**, **`glClampColor`** |
 | §17 (fragment op details — alpha test, dither, logical op) | 🟡 | `glLogicOp` implemented (SPEC §17.3.4, capability-gated, push-only-on-change); `glColorMask` implemented (SPEC §17.3.6, tracked, push-only-on-change, `GL_COLOR_WRITEMASK` query); `glSampleCoverage` implemented (SPEC §17.3.6 multisample, tracked value+invert, push-only-on-change, `GL_SAMPLE_COVERAGE_VALUE`/`GL_SAMPLE_COVERAGE_INVERT` queries). Alpha test removed-in-core; dither not implemented |
 | §18 (pixels: ReadPixels done; Copy/DrawPixels removed-compat) | 🟡 | `glReadPixels` implemented; `glPixelStorei` implemented |
@@ -163,8 +163,7 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
 8. **Program pipelines & subroutines** — `glBindProgramPipeline`,
    `glActiveShaderProgram` implemented (SPEC §7.4). Remaining: `glGetProgramResource*`
    program-interface reflection, and **subroutines** (§7.9). (§7.4)
-9. **Rasterization controls** — `PolygonMode`, polygon offset, `PointSize`,
-   `LineWidth`, multisample raster state. (§11)
+ 9. ~~**Rasterization controls**~~ ✅ done — `PolygonMode`, `SampleMaski`, `MinSampleShading`, polygon offset, `PointSize`, `LineWidth`, multisample raster state all implemented (§11).
 10. **Specific `glGet*` coverage** — buffer/texture/internalformat/named-object
     parameter queries, program-interface reflection (`glGetActiveUniform`,
     `glGetActiveAttrib`, `glGetUniformBlockIndex`, …). (§22)

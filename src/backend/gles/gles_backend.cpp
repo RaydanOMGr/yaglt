@@ -376,6 +376,13 @@ void GLESBackend::polygonOffset(float factor, float units) {
     if (lib_->glPolygonOffset) lib_->glPolygonOffset(factor, units);
 }
 
+// GLES has no polygon mode (glPolygonMode), sample mask (glSampleMaski), or
+// minimum sample shading (glMinSampleShading). These are recorded as applied but
+// not forwarded to the driver, matching the honest "Unsupported" capability.
+void GLESBackend::polygonMode(uint32_t, uint32_t) {}
+void GLESBackend::sampleMaski(uint32_t, uint32_t) {}
+void GLESBackend::minSampleShading(float) {}
+
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
 }

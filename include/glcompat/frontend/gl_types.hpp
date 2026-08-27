@@ -228,6 +228,12 @@ constexpr GLenum GL_FLOAT_VEC4 = 0x8B52;
 constexpr GLenum GL_NONE = 0;
 constexpr GLenum GL_FRONT = 0x0404;
 constexpr GLenum GL_BACK = 0x0405;
+constexpr GLenum GL_FRONT_AND_BACK = 0x0408;
+// Polygon rasterization mode (glPolygonMode, SPEC §11.1).
+constexpr GLenum GL_POINT = 0x1B00;
+constexpr GLenum GL_LINE = 0x1B01;
+constexpr GLenum GL_FILL = 0x1B02;
+constexpr GLenum GL_POLYGON_MODE = 0x0B40;
 constexpr GLenum GL_LEFT = 0x0406;
 constexpr GLenum GL_RIGHT = 0x0407;
 constexpr GLenum GL_FRONT_LEFT = 0x0400;
@@ -355,6 +361,9 @@ constexpr GLenum GL_DEPTH_WRITEMASK = 0x0B72;
 constexpr GLenum GL_COLOR_WRITEMASK = 0x0C23;
 constexpr GLenum GL_SAMPLE_COVERAGE_VALUE = 0x80B9;
 constexpr GLenum GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
+// Multisample raster mask / minimum sample shading (SPEC §11.5).
+constexpr GLenum GL_SAMPLE_MASK = 0x8E51;
+constexpr GLenum GL_MIN_SAMPLE_SHADING = 0x8C36;
 constexpr GLenum GL_DEPTH_RANGE = 0x0B70;
 constexpr GLenum GL_DEPTH_FUNC = 0x0B74;
 

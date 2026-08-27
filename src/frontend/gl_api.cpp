@@ -1142,6 +1142,21 @@ void glPolygonOffset(GLfloat factor, GLfloat units) {
                                         static_cast<float>(units));
 }
 
+void glPolygonMode(GLenum face, GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->polygonMode(face, mode);
+}
+
+void glSampleMaski(GLuint maskNumber, GLuint mask) {
+    if (g_current == nullptr) return;
+    g_current->sampleMaski(maskNumber, mask);
+}
+
+void glMinSampleShading(GLfloat value) {
+    if (g_current == nullptr) return;
+    g_current->minSampleShading(static_cast<float>(value));
+}
+
 void glStencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (g_current == nullptr) return;
     g_current->state().setStencilFunc(func, ref, mask);

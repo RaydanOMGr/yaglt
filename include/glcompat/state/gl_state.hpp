@@ -4,6 +4,7 @@
 #include "glcompat/frontend/objects.hpp"
 #include "glcompat/state/gl_state_sink.hpp"
 
+#include <array>
 #include <cstdint>
 #include <unordered_map>
 
@@ -22,6 +23,9 @@ public:
     // guarantees at least this many; GLES guarantees far fewer but YAGLT tracks
     // a fixed, generous table so unit indices stay stable (SPEC §2.1).
     static constexpr uint32_t kMaxTextureUnits = 32;
+    // GL 4.6 core defines MAX_SAMPLE_MASK_WORDS = 2 (64 sample bits). The
+    // frontend tracks this many mask words for glSampleMaski (SPEC §11.5).
+    static constexpr uint32_t kMaxSampleMaskWords = 2;
 
     GLStateTracker();
 
@@ -85,6 +89,20 @@ public:
     bool setPointSize(float size);
     bool setLineWidth(float width);
     bool setPolygonOffset(float factor, float units);
+
+    // --- Rasterization polygon mode (SPEC §11.1, glPolygonMode) ---
+    // `face` selects which side(s) the mode applies to (GL_FRONT, GL_BACK,
+    // GL_FRONT_AND_BACK); `mode` is GL_POINT / GL_LINE / GL_FILL. Returns true
+    // when any tracked mode changed. Invalid face/mode are rejected by the
+    // caller (GL_INVALID_ENUM) and leave state untouched.
+    bool setPolygonMode(GLenum face, GLenum mode);
+
+    // --- Multisample raster state (SPEC §11.5) ---
+    // glSampleMaski sets one mask word; `maskNumber` must be < kMaxSampleMaskWords
+    // (the caller reports GL_INVALID_VALUE otherwise). glMinSampleShading selects
+    // the minimum sample-shading fraction in [0,1].
+    bool setSampleMaski(GLuint maskNumber, GLuint mask);
+    bool setMinSampleShading(float value);
 
     // --- Pixel store ---
     bool setPixelStorei(GLenum pname, GLint param);
@@ -238,6 +256,14 @@ private:
                    polygonOffsetUnits == o.polygonOffsetUnits;
         }
     };
+    // glPolygonMode (SPEC §11.1). Per-side render mode (GL_POINT/GL_LINE/GL_FILL).
+    struct PolygonModeState {
+        GLenum front = 0x1B02; // GL_FILL
+        GLenum back = 0x1B02;  // GL_FILL
+        bool equal(const PolygonModeState& o) const {
+            return front == o.front && back == o.back;
+        }
+    };
     struct PixelStoreState {
         GLint unpackAlignment = 4;
         bool equal(const PixelStoreState& o) const {
@@ -309,6 +335,16 @@ private:
             return index == o.index;
         }
     };
+    // Multisample raster state (SPEC §11.5). Sample mask words (glSampleMaski)
+    // and the minimum sample-shading fraction (glMinSampleShading).
+    struct MultisampleRasterState {
+        std::array<uint32_t, kMaxSampleMaskWords> sampleMask = {};
+        float minSampleShading = 0.0f;
+        bool equal(const MultisampleRasterState& o) const {
+            return sampleMask == o.sampleMask &&
+                   minSampleShading == o.minSampleShading;
+        }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -355,6 +391,8 @@ private:
     ColorMaskState colorMask_, colorMaskApplied_;
     SampleCoverageState sampleCoverage_, sampleCoverageApplied_;
     PrimitiveRestartState primitiveRestart_, primitiveRestartApplied_;
+    PolygonModeState polygonMode_, polygonModeApplied_;
+    MultisampleRasterState multisampleRaster_, multisampleRasterApplied_;
 };
 
 } // namespace glcompat

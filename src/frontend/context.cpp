@@ -3602,6 +3602,34 @@ void Context::primitiveRestartIndex(uint32_t index) {
     state_.setPrimitiveRestartIndex(index);
 }
 
+void Context::polygonMode(GLenum face, GLenum mode) {
+    const bool validFace = (face == GL_FRONT || face == GL_BACK ||
+                            face == GL_FRONT_AND_BACK);
+    const bool validMode =
+        (mode == GL_POINT || mode == GL_LINE || mode == GL_FILL);
+    if (!validFace || !validMode) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setPolygonMode(face, mode);
+}
+
+void Context::sampleMaski(uint32_t maskNumber, uint32_t mask) {
+    if (maskNumber >= GLStateTracker::kMaxSampleMaskWords) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setSampleMaski(maskNumber, mask);
+}
+
+void Context::minSampleShading(float value) {
+    if (value < 0.0f || value > 1.0f) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setMinSampleShading(value);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,
