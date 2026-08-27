@@ -948,6 +948,19 @@ crashed agent, this session)
   unbind blocks the draw). Default + sanitizer suites green.
 - Coverage now 216/490 (44.1%) full / 216/435 (49.7%) core (+2 prototypes).
 
+2026-08-28 (vertex-array query, `glIsVertexArray`, this session)
+- Completed the VAO object-lifecycle surface (SPEC §10.3.2). `Context::isVertexArray`
+  returns whether a name is a generated VAO (`vertexArrays_` map membership; name 0
+  is the default VAO and is never a queried object, so it returns false). Exposed as
+  `glIsVertexArray` in `gl_api` (returns `GLboolean`). `glGenVertexArrays`,
+  `glBindVertexArray`, `glDeleteVertexArrays`, and the DSA `glCreateVertexArrays` /
+  `glVertexArray*` surface already existed; only the `is*` query was missing.
+- New `tests/unit/vertex_array_test.cpp` (4 cases: false for ungenerated and for 0,
+  true for generated, false after delete, `glIsVertexArray` entry point). Default
+  386/386 + sanitizer 396/396 pass (pre-existing unrelated `shader_translate_test`
+  failure unchanged).
+- Coverage now 217/490 (44.3%) full / 217/435 (49.9%) core (+1 prototype).
+
 2026-08-28 (color clamping, `glClampColor`, this session)
 - Implemented `glClampColor` (SPEC §15.2.3), closing the `§15/§16: glClampColor`
   gap noted in Next Steps (carried). `target` must be `GL_CLAMP_READ_COLOR`

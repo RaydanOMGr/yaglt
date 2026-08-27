@@ -488,6 +488,7 @@ public:
     void deleteVertexArray(GLObjectName name);
     void deleteVertexArrays(uint32_t n, const GLObjectName* names);
     VertexArrayObject* getVertexArray(GLObjectName name);
+    bool isVertexArray(GLObjectName name) const;
 
     // Direct State Access vertex-array surface (SPEC §10.3.1). Capability-gated
     // by DirectStateAccess: each function operates on the named VAO's backend

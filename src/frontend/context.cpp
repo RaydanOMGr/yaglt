@@ -2815,6 +2815,11 @@ VertexArrayObject* Context::getVertexArray(GLObjectName name) {
     return it == vertexArrays_.end() ? nullptr : it->second.get();
 }
 
+bool Context::isVertexArray(GLObjectName name) const {
+    if (name == 0) return false; // 0 is the default VAO, never a queried object
+    return vertexArrays_.find(name) != vertexArrays_.end();
+}
+
 void Context::genVertexArrays(uint32_t n, GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) names[i] = genVertexArray();
 }

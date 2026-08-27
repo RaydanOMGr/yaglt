@@ -791,6 +791,11 @@ void glDeleteVertexArrays(GLsizei n, const GLuint* arrays) {
     g_current->deleteVertexArrays(static_cast<uint32_t>(n), arrays);
 }
 
+GLboolean glIsVertexArray(GLuint array) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isVertexArray(array) ? GL_TRUE : GL_FALSE;
+}
+
 // Direct State Access vertex-array surface (SPEC §10.3.1).
 void glCreateVertexArrays(GLsizei n, GLuint* arrays) {
     if (g_current == nullptr) return;

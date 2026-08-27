@@ -289,6 +289,7 @@ void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuff
 void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
 void glDeleteVertexArrays(GLsizei n, const GLuint* arrays);
+GLboolean glIsVertexArray(GLuint array);
 
 // Direct State Access vertex-array surface (SPEC §10.3.1).
 void glCreateVertexArrays(GLsizei n, GLuint* arrays);

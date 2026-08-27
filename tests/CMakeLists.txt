@@ -23,6 +23,7 @@ add_executable(yaglt_tests
     unit/dsa_named_texture_test.cpp
     unit/dsa_named_framebuffer_test.cpp
     unit/dsa_vertex_array_test.cpp
+    unit/vertex_array_test.cpp
     unit/texparam_query_test.cpp
     unit/texparam_int_invalidate_test.cpp
     unit/texsubimage_test.cpp
