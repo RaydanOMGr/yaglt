@@ -1496,6 +1496,438 @@ void Context::deleteFramebuffers(uint32_t n, const GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) deleteFramebuffer(names[i]);
 }
 
+namespace {
+// Resolve a DSA renderbuffer op (SPEC §9.2). Returns the object or nullptr with
+// an error already set when the op must be refused (DSA unsupported / ungenerated
+// name). Mirrors dsaTexture() for renderbuffers.
+RenderbufferObject* dsaRenderbuffer(Context& ctx, GLObjectName name) {
+    if (!ctx.backend().capabilities().isSupported(Feature::DirectStateAccess)) {
+        ctx.setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (name == 0 || ctx.getRenderbuffer(name) == nullptr) {
+        ctx.setError(GLError::InvalidOperation); // ungenerated / default name
+        return nullptr;
+    }
+    return ctx.getRenderbuffer(name);
+}
+// Resolve a DSA framebuffer op (SPEC §9.2). Same contract as dsaRenderbuffer.
+FramebufferObject* dsaFramebuffer(Context& ctx, GLObjectName name) {
+    if (!ctx.backend().capabilities().isSupported(Feature::DirectStateAccess)) {
+        ctx.setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    if (name == 0 || ctx.getFramebuffer(name) == nullptr) {
+        ctx.setError(GLError::InvalidOperation); // ungenerated / default name
+        return nullptr;
+    }
+    return ctx.getFramebuffer(name);
+}
+// Backend-native id for a named framebuffer, or 0 for the default framebuffer.
+uint32_t namedFramebufferNativeId(Context& ctx, GLObjectName fb) {
+    if (fb == 0) return 0;
+    if (FramebufferObject* f = ctx.getFramebuffer(fb))
+        return f->backend ? f->backend->nativeId() : fb;
+    return fb;
+}
+// Record / replace the attachment for `attachment` on `fbo` (SPEC §2.1). A new
+// attachment is appended; an existing one at the same point is replaced in place.
+void attachToFramebuffer(FramebufferObject& fbo,
+                        const FramebufferObject::Attachment& att) {
+    for (auto& a : fbo.attachments) {
+        if (a.attachment == att.attachment) { a = att; return; }
+    }
+    fbo.attachments.push_back(att);
+}
+} // namespace
+
+void Context::createRenderbuffers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genRenderbuffer();
+}
+
+void Context::namedRenderbufferStorage(GLObjectName renderbuffer,
+                                       uint32_t internalFormat, int width,
+                                       int height) {
+    RenderbufferObject* rbo = dsaRenderbuffer(*this, renderbuffer);
+    if (rbo == nullptr) return;
+    if (width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    rbo->internalFormat = internalFormat;
+    rbo->width = width;
+    rbo->height = height;
+    rbo->storageSet = true;
+    if (rbo->backend)
+        rbo->backend->renderbufferStorage(GL_RENDERBUFFER, internalFormat, width,
+                                          height);
+}
+
+void Context::namedRenderbufferStorageMultisample(GLObjectName renderbuffer,
+                                                 int samples,
+                                                 uint32_t internalFormat, int width,
+                                                 int height) {
+    RenderbufferObject* rbo = dsaRenderbuffer(*this, renderbuffer);
+    if (rbo == nullptr) return;
+    if (samples < 0 || width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    rbo->internalFormat = internalFormat;
+    rbo->width = width;
+    rbo->height = height;
+    rbo->samples = samples;
+    rbo->storageSet = true;
+    if (rbo->backend)
+        rbo->backend->renderbufferStorageMultisample(GL_RENDERBUFFER, samples,
+                                                    internalFormat, width, height);
+}
+
+void Context::getNamedRenderbufferParameteriv(GLObjectName renderbuffer,
+                                             uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    RenderbufferObject* rbo = dsaRenderbuffer(*this, renderbuffer);
+    if (rbo == nullptr) return;
+    switch (pname) {
+        case GL_RENDERBUFFER_WIDTH:        *params = rbo->width; break;
+        case GL_RENDERBUFFER_HEIGHT:       *params = rbo->height; break;
+        case GL_RENDERBUFFER_INTERNAL_FORMAT:
+            *params = static_cast<int32_t>(rbo->internalFormat); break;
+        case GL_RENDERBUFFER_SAMPLES:      *params = rbo->samples; break;
+        default: *params = 0; break;
+    }
+}
+
+void Context::createFramebuffers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genFramebuffer();
+}
+
+void Context::namedFramebufferRenderbuffer(GLObjectName framebuffer,
+                                          uint32_t attachment,
+                                          uint32_t renderbufferTarget,
+                                          GLObjectName renderbuffer) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (renderbuffer != 0 &&
+        renderbuffers_.find(renderbuffer) == renderbuffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 1; // renderbuffer
+    att.name = renderbuffer;
+    att.texTarget = renderbufferTarget;
+    att.level = 0;
+    attachToFramebuffer(*fbo, att);
+    if (fbo->backend) {
+        uint32_t nativeRb = 0;
+        if (renderbuffer != 0) {
+            if (auto* r = getRenderbuffer(renderbuffer))
+                nativeRb = r->backend ? r->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferRenderbuffer(GL_FRAMEBUFFER, attachment,
+                                              renderbufferTarget, nativeRb);
+    }
+}
+
+void Context::namedFramebufferTexture(GLObjectName framebuffer, uint32_t attachment,
+                                     GLObjectName texture, int level) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 0; // texture
+    att.name = texture;
+    att.texTarget = texture ? (getTexture(texture) ? getTexture(texture)->target
+                                                   : GL_TEXTURE_2D)
+                            : GL_TEXTURE_2D;
+    att.level = level;
+    att.layer = 0;
+    attachToFramebuffer(*fbo, att);
+    if (fbo->backend) {
+        uint32_t nativeTex = 0;
+        if (texture != 0) {
+            if (auto* t = getTexture(texture))
+                nativeTex = t->backend ? t->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferTexture2D(GL_FRAMEBUFFER, attachment,
+                                          att.texTarget, nativeTex, level);
+    }
+}
+
+void Context::namedFramebufferTextureLayer(GLObjectName framebuffer,
+                                          uint32_t attachment, GLObjectName texture,
+                                          int level, int layer) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 0; // texture
+    att.name = texture;
+    att.texTarget = texture ? (getTexture(texture) ? getTexture(texture)->target
+                                                   : GL_TEXTURE_2D)
+                            : GL_TEXTURE_2D;
+    att.level = level;
+    att.layer = layer;
+    attachToFramebuffer(*fbo, att);
+    if (fbo->backend) {
+        uint32_t nativeTex = 0;
+        if (texture != 0) {
+            if (auto* t = getTexture(texture))
+                nativeTex = t->backend ? t->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferTextureLayer(GL_FRAMEBUFFER, attachment, nativeTex,
+                                              level, layer);
+    }
+}
+
+uint32_t Context::checkNamedFramebufferStatus(GLObjectName framebuffer,
+                                             uint32_t target) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return GL_FRAMEBUFFER_COMPLETE; // error already set
+    if (fbo->attachments.empty())
+        return GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT;
+    for (const auto& a : fbo->attachments) {
+        if (a.name == 0) return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        if (a.type == 0) { // texture attachment
+            TextureObject* tex = getTexture(a.name);
+            if (tex == nullptr || !tex->storageSet)
+                return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        } else { // renderbuffer attachment
+            RenderbufferObject* rbo = getRenderbuffer(a.name);
+            if (rbo == nullptr || !rbo->storageSet)
+                return GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT;
+        }
+    }
+    if (fbo->backend) return fbo->backend->checkStatus(target);
+    return GL_FRAMEBUFFER_COMPLETE;
+}
+
+void Context::namedFramebufferParameteri(GLObjectName framebuffer, uint32_t pname,
+                                        int param) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (fbo->backend) fbo->backend->framebufferParameteri(GL_FRAMEBUFFER, pname,
+                                                         param);
+}
+
+void Context::getNamedFramebufferParameteriv(GLObjectName framebuffer,
+                                            uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    // FRAMEBUFFER_DEFAULT_* describe the default framebuffer; a user FBO has no
+    // default dimensions, so the GL default is 0 (frontend-owned, SPEC §10).
+    *params = 0;
+}
+
+void Context::getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
+                                                     uint32_t attachment,
+                                                     uint32_t pname,
+                                                     int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    const FramebufferObject::Attachment* found = nullptr;
+    for (const auto& a : fbo->attachments) {
+        if (a.attachment == attachment) { found = &a; break; }
+    }
+    switch (pname) {
+        case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+            *params = found ? (found->type == 0 ? GL_TEXTURE : GL_RENDERBUFFER)
+                            : GL_NONE;
+            break;
+        case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+            *params = found ? static_cast<int32_t>(found->name) : 0;
+            break;
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+            *params = found ? found->level : 0;
+            break;
+        case GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER:
+            *params = found ? (found->type == 0 ? found->layer : 0) : 0;
+            break;
+        default:
+            *params = 0;
+            break;
+    }
+}
+
+void Context::blitNamedFramebuffer(GLObjectName readFb, GLObjectName drawFb,
+                                  int32_t srcX0, int32_t srcY0, int32_t srcX1,
+                                  int32_t srcY1, int32_t dstX0, int32_t dstY0,
+                                  int32_t dstX1, int32_t dstY1, uint32_t mask,
+                                  uint32_t filter) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    constexpr uint32_t kValidMask =
+        GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    if (mask & ~kValidMask) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    backend_.bindFramebuffer(GL_READ_FRAMEBUFFER,
+                            namedFramebufferNativeId(*this, readFb));
+    backend_.bindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                            namedFramebufferNativeId(*this, drawFb));
+    backend_.blitFramebuffer(srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1,
+                            dstY1, mask, filter);
+    bindFramebuffer(boundFramebuffer_); // restore tracked binding (DSA: no side effect)
+}
+
+void Context::invalidateNamedFramebufferData(GLObjectName framebuffer,
+                                            int32_t numAttachments,
+                                            const uint32_t* attachments) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (numAttachments < 0 || (numAttachments > 0 && attachments == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    backend_.bindFramebuffer(GL_FRAMEBUFFER,
+                            namedFramebufferNativeId(*this, framebuffer));
+    backend_.invalidateFramebuffer(GL_FRAMEBUFFER, numAttachments, attachments, 0,
+                                  0, 0, 0);
+    bindFramebuffer(boundFramebuffer_);
+}
+
+void Context::invalidateNamedFramebufferSubData(GLObjectName framebuffer,
+                                               int32_t numAttachments,
+                                               const uint32_t* attachments,
+                                               int32_t x, int32_t y, int32_t width,
+                                               int32_t height) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (numAttachments < 0 || (numAttachments > 0 && attachments == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    backend_.bindFramebuffer(GL_FRAMEBUFFER,
+                            namedFramebufferNativeId(*this, framebuffer));
+    backend_.invalidateFramebuffer(GL_FRAMEBUFFER, numAttachments, attachments, x,
+                                  y, width, height);
+    bindFramebuffer(boundFramebuffer_);
+}
+
+namespace {
+// Bind the named framebuffer for clearing, drive the backend clear, then restore
+// the tracked binding (DSA must not leave a side effect on the bound FBO). The
+// clear value itself is pushed by the caller before invoking this (SPEC §9.2
+// glClearNamedFramebuffer* does not read the context clear-color state).
+void clearNamedFramebufferImpl(Context& ctx, GLObjectName framebuffer,
+                               uint32_t mask) {
+    ctx.backend().bindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                                 namedFramebufferNativeId(ctx, framebuffer));
+    ctx.backend().clear(mask);
+    ctx.bindFramebuffer(ctx.boundFramebuffer()); // DSA: no binding side effect
+}
+} // namespace
+
+void Context::clearNamedFramebufferiv(GLObjectName framebuffer, uint32_t buffer,
+                                     int /*drawbuffer*/, const int32_t* value) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (value == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t mask = 0;
+    if (buffer == GL_COLOR) {
+        mask = GL_COLOR_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearColor(static_cast<float>(value[0]),
+                             static_cast<float>(value[1]),
+                             static_cast<float>(value[2]),
+                             static_cast<float>(value[3]));
+    } else if (buffer == GL_DEPTH) {
+        mask = GL_DEPTH_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearDepth(static_cast<double>(value[0]));
+    } else if (buffer == GL_STENCIL) {
+        mask = GL_STENCIL_BUFFER_BIT; // stencil clear value: driver default 0
+    }
+    clearNamedFramebufferImpl(*this, framebuffer, mask);
+}
+
+void Context::clearNamedFramebufferuiv(GLObjectName framebuffer, uint32_t buffer,
+                                      int /*drawbuffer*/, const uint32_t* value) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (value == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (buffer != GL_COLOR) return;
+    if (GLStateSink* sink = backend_.stateSink())
+        sink->clearColor(static_cast<float>(value[0]),
+                         static_cast<float>(value[1]),
+                         static_cast<float>(value[2]),
+                         static_cast<float>(value[3]));
+    clearNamedFramebufferImpl(*this, framebuffer, GL_COLOR_BUFFER_BIT);
+}
+
+void Context::clearNamedFramebufferfv(GLObjectName framebuffer, uint32_t buffer,
+                                     int /*drawbuffer*/, const float* value) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (value == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t mask = 0;
+    if (buffer == GL_COLOR) {
+        mask = GL_COLOR_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearColor(value[0], value[1], value[2], value[3]);
+    } else if (buffer == GL_DEPTH) {
+        mask = GL_DEPTH_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearDepth(static_cast<double>(value[0]));
+    }
+    clearNamedFramebufferImpl(*this, framebuffer, mask);
+}
+
+void Context::clearNamedFramebufferfi(GLObjectName framebuffer, uint32_t buffer,
+                                     int /*drawbuffer*/, float depth, int stencil) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    (void)stencil; // stencil clear value: backend sink has no stencil clear; driver default 0
+    if (GLStateSink* sink = backend_.stateSink())
+        sink->clearDepth(static_cast<double>(depth));
+    clearNamedFramebufferImpl(*this, framebuffer, GL_DEPTH_BUFFER_BIT);
+}
+
 GLObjectName Context::genVertexArray() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<VertexArrayObject>(name);

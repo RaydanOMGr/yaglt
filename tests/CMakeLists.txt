@@ -17,6 +17,7 @@ add_executable(yaglt_tests
     unit/texture_unit_test.cpp
     unit/dsa_texture_test.cpp
     unit/dsa_named_texture_test.cpp
+    unit/dsa_named_framebuffer_test.cpp
     unit/texparam_query_test.cpp
     unit/texsubimage_test.cpp
     unit/framebuffer_buf_test.cpp

@@ -125,6 +125,12 @@ public:
     // Allocate storage for the renderbuffer (SPEC §2.1 glRenderbufferStorage).
     virtual void renderbufferStorage(uint32_t target, uint32_t internalFormat,
                                      int width, int height) {}
+    // Allocate multisample storage (SPEC §9.2.4 glRenderbufferStorageMultisample /
+    // glNamedRenderbufferStorageMultisample). `samples` is the requested sample
+    // count (0 means single-sample). Backends opt in; default no-op.
+    virtual void renderbufferStorageMultisample(uint32_t target, int samples,
+                                               uint32_t internalFormat, int width,
+                                               int height) {}
     // Native backend renderbuffer id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };
@@ -142,6 +148,17 @@ public:
     virtual void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
                                          uint32_t rbTarget,
                                          uint32_t nativeRenderbuffer) {}
+    // Attach a single layer of a texture (SPEC §9.2 glFramebufferTextureLayer /
+    // glNamedFramebufferTextureLayer). `nativeTexture` is the backend-native id;
+    // `layer` selects the layer of a 1D/2D array or 3D texture.
+    virtual void framebufferTextureLayer(uint32_t target, uint32_t attachment,
+                                         uint32_t nativeTexture, int level,
+                                         int layer) {}
+    // Set a framebuffer parameter (SPEC §9.2 glFramebufferParameteri /
+    // glNamedFramebufferParameteri), e.g. GL_FRAMEBUFFER_DEFAULT_WIDTH/HEIGHT/
+    // SAMPLES. Backends opt in; default no-op.
+    virtual void framebufferParameteri(uint32_t target, uint32_t pname,
+                                       int param) {}
     // Returns a GL_FRAMEBUFFER_* status code. Defaults to Complete; real backends
     // query driver completeness.
     virtual uint32_t checkStatus(uint32_t /*target*/) const { return 0x8CD5; }

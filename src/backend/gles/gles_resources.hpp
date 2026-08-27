@@ -274,13 +274,24 @@ struct GLESBackendRenderbuffer : BackendRenderbuffer {
             lib->glDeleteRenderbuffers(1, &handle);
     }
     void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
-                            int height) override {
+                             int height) override {
         if (!lib || !lib->driverLive() || !lib->glRenderbufferStorage) return;
         // The renderbuffer must be bound to the target before storage is set.
         if (lib->glBindRenderbuffer) lib->glBindRenderbuffer(target, handle);
         lib->glRenderbufferStorage(target, static_cast<GLenum>(internalFormat),
                                   static_cast<GLsizei>(width),
                                   static_cast<GLsizei>(height));
+    }
+    void renderbufferStorageMultisample(uint32_t target, int samples,
+                                       uint32_t internalFormat, int width,
+                                       int height) override {
+        if (!lib || !lib->driverLive() || !lib->glRenderbufferStorageMultisample)
+            return;
+        if (lib->glBindRenderbuffer) lib->glBindRenderbuffer(target, handle);
+        lib->glRenderbufferStorageMultisample(
+            target, static_cast<GLsizei>(samples),
+            static_cast<GLenum>(internalFormat), static_cast<GLsizei>(width),
+            static_cast<GLsizei>(height));
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
@@ -306,6 +317,18 @@ struct GLESBackendFramebuffer : BackendFramebuffer {
         if (lib && lib->driverLive() && lib->glFramebufferRenderbuffer)
             lib->glFramebufferRenderbuffer(target, attachment, rbTarget,
                                           nativeRenderbuffer);
+    }
+    void framebufferTextureLayer(uint32_t target, uint32_t attachment,
+                                uint32_t nativeTexture, int level,
+                                int layer) override {
+        if (lib && lib->driverLive() && lib->glFramebufferTextureLayer)
+            lib->glFramebufferTextureLayer(target, attachment, nativeTexture, level,
+                                          layer);
+    }
+    void framebufferParameteri(uint32_t target, uint32_t pname,
+                              int param) override {
+        if (lib && lib->driverLive() && lib->glFramebufferParameteri)
+            lib->glFramebufferParameteri(target, pname, param);
     }
     uint32_t checkStatus(uint32_t target) const override {
         if (lib && lib->driverLive() && lib->glCheckFramebufferStatus)

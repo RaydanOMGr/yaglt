@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 141 | **28.8%** |
-| Core profile only (spec − 55 removed commands) | 435 | 141 | **32.4%** |
+| Full spec (compat + core) | 490 | 173 | **35.3%** |
+| Core profile only (spec − 55 removed commands) | 435 | 173 | **39.8%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -64,14 +64,14 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled` |
 | §6 Buffer objects | 🟡 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`. Missing: `BufferSubData`, `BufferStorage` (immutable), `MapBuffer*`, `CopyBufferSubData`, `ClearBuffer*`, `InvalidateBuffer*`, `GetBufferSubData`, buffer queries |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate. Missing: `BindAttribLocation`, program **pipelines** (§7.4), **subroutines**, **compute** shaders, shader binaries |
-| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage2D` (2D only), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: 1D/3D/cube/array/rect targets (TexImage), full param coverage, `GetTexImage` multisample, **multisample textures**, texture views, full **Named* (DSA object) surface** for FBO/RBO/VA |
+| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`. Missing: cube/array/rect TexImage targets, full param coverage, `GetTexImage` multisample, **multisample textures**, texture views |
 | §9 (program/pipeline — folded into §7.4) | ❌ | program pipeline objects not implemented |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). Missing: indirect draw, other `VertexAttrib*` (except pointer), client array legacy |
 | §11 (rasterization — points/lines/polygons) | 🟡 | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). Missing: `glPolygonMode` (GLES supports FILL only — honest-Unsupported candidate), provoking vertex, **multisample** raster state |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
 | §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test. Missing: **`glSampleCoverage`**, **`glMinSampleShading`**, `glPolygonOffset` |
-| §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush), `glBlitFramebuffer` (mask validated → `GL_INVALID_VALUE`, forwards after state flush), `glInvalidateFramebuffer`/`glInvalidateSubFramebuffer` (null-attachments / negative-dim `GL_INVALID_VALUE`, sub-rectangle form routed to backend). Missing: `BlitNamedFramebuffer`, **sRGB/alpha-to-coverage**, **`glClampColor`** |
+| §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush), `glBlitFramebuffer`+`glBlitNamedFramebuffer` (mask validated → `GL_INVALID_VALUE`, forwards after state flush/bind), `glInvalidateFramebuffer`/`glInvalidateSubFramebuffer`+`glInvalidateNamedFramebuffer*` (null-attachments / negative-dim `GL_INVALID_VALUE`, sub-rectangle form routed to backend), `glClearNamedFramebufferiv/uiv/fv/fi` (explicit clear values, DSA: no binding side effect). Missing: **sRGB/alpha-to-coverage**, **`glClampColor`** |
 | §17 (fragment op details — alpha test, dither, logical op) | 🟡 | `glLogicOp` implemented (SPEC §17.3.4, capability-gated, push-only-on-change); `glColorMask` implemented (SPEC §17.3.6, tracked, push-only-on-change, `GL_COLOR_WRITEMASK` query); `glSampleCoverage` implemented (SPEC §17.3.6 multisample, tracked value+invert, push-only-on-change, `GL_SAMPLE_COVERAGE_VALUE`/`GL_SAMPLE_COVERAGE_INVERT` queries). Alpha test removed-in-core; dither not implemented |
 | §18 (pixels: ReadPixels done; Copy/DrawPixels removed-compat) | 🟡 | `glReadPixels` implemented; `glPixelStorei` implemented |
 | §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
@@ -113,6 +113,15 @@ TextureSubImage1D, TextureSubImage2D, TextureSubImage3D, GenerateTextureMipmap,
 GetTextureParameterfv, GetTextureLevelParameteriv, GetTextureLevelParameterfv,
 GetTextureImage, GetTexImage,
 TextureBuffer, TextureBufferRange,
+CreateRenderbuffers, NamedRenderbufferStorage,
+NamedRenderbufferStorageMultisample, GetNamedRenderbufferParameteriv,
+CreateFramebuffers, NamedFramebufferRenderbuffer, NamedFramebufferTexture,
+NamedFramebufferTextureLayer, CheckNamedFramebufferStatus,
+NamedFramebufferParameteri, GetNamedFramebufferParameteriv,
+GetNamedFramebufferAttachmentParameteriv, BlitNamedFramebuffer,
+InvalidateNamedFramebufferData, InvalidateNamedFramebufferSubData,
+ClearNamedFramebufferiv, ClearNamedFramebufferuiv, ClearNamedFramebufferfv,
+ClearNamedFramebufferfi,
 Uniform1f, Uniform1i, Uniform2f, Uniform2i, Uniform3f,
 Uniform3i, Uniform4f, Uniform4i, UnmapBuffer, UseProgram, VertexAttribPointer, Viewport.
 DeleteQueries, DeleteQuery, EndQuery, EndQueryIndexed, FenceSync, ClientWaitSync,
@@ -135,8 +144,10 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
     pnames + full param coverage, `GetTexImage`, multisample & buffer textures.
     `TexSubImage1D/2D/3D` and `CopyTexImage1D/2D` are now implemented (frontend
     validation + backend virtualization, mock path tested). (§8)
-3. **Full DSA surface** — `gl*Texture*`, `gl*Named*` (storage, subimage,
-   parameterc, framebuffer/rendererbuffer DSA, vertex-array DSA). (§2.1/§8/§9)
+  3. **Full DSA surface** — texture `gl*Named*` done; renderbuffer/framebuffer
+    `gl*Named*` (storage, attachments, status, params, blit/invalidate/clear)
+    implemented (SPEC §9.2). Remaining: vertex-array DSA (`glCreateVertexArrays`,
+    `glNamed*VertexArray*` — §10). (§2.1/§8/§9)
 4. **Queries & sync** — occlusion/timer/pipeline queries, sync fences. (§4/§19/§20)
  5. **Whole-framebuffer ops** — `DrawBuffers`, `ReadBuffer`, `BlitFramebuffer`,
     `InvalidateFramebuffer`, `glLogicOp` now implemented (SPEC §15/§16/§17.3.4). Remaining: `BlitNamedFramebuffer`, sRGB/alpha-to-coverage, `glClampColor`. (§15/§16/§17)

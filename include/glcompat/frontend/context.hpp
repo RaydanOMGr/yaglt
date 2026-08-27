@@ -222,7 +222,21 @@ public:
     // are GL_INVALID_VALUE; no bound renderbuffer is GL_INVALID_OPERATION; the
     // target must be GL_RENDERBUFFER. Capability-gated (RenderbufferObjects).
     void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
-                            int height);
+                             int height);
+
+    // --- Direct State Access renderbuffer surface (SPEC §8.2 / §9.2) ---
+    // Operate on an explicit, named renderbuffer instead of the bound one.
+    // Capability-gated by DirectStateAccess (Emulated: YAGLT emulates DSA via the
+    // object's backend resource). createRenderbuffers generates names; the storage
+    // entry points validate the name and forward to the backend resource.
+    void createRenderbuffers(uint32_t n, GLObjectName* names);
+    void namedRenderbufferStorage(GLObjectName renderbuffer, uint32_t internalFormat,
+                                 int width, int height);
+    void namedRenderbufferStorageMultisample(GLObjectName renderbuffer, int samples,
+                                            uint32_t internalFormat, int width,
+                                            int height);
+    void getNamedRenderbufferParameteriv(GLObjectName renderbuffer, uint32_t pname,
+                                        int32_t* params);
 
     // --- Framebuffers ---
     GLObjectName genFramebuffer();
@@ -244,6 +258,50 @@ public:
     // Returns a GL_FRAMEBUFFER_* status code. Combines the structural check with
     // the backend resource's driver-level checkStatus().
     uint32_t checkFramebufferStatus(uint32_t target);
+
+    // --- Direct State Access framebuffer surface (SPEC §9.2) ---
+    // Operate on an explicit, named framebuffer instead of the bound one.
+    // Capability-gated by DirectStateAccess (Emulated: YAGLT emulates DSA via the
+    // object's backend resource). createFramebuffers generates names; the attach /
+    // parameter / status / query entry points validate the name and forward to the
+    // backend resource. Named blit/invalidate/clear bind the named framebuffer(s)
+    // to the driver and reuse the whole-framebuffer backend ops.
+    void createFramebuffers(uint32_t n, GLObjectName* names);
+    void namedFramebufferRenderbuffer(GLObjectName framebuffer, uint32_t attachment,
+                                      uint32_t renderbufferTarget,
+                                      GLObjectName renderbuffer);
+    void namedFramebufferTexture(GLObjectName framebuffer, uint32_t attachment,
+                                GLObjectName texture, int level);
+    void namedFramebufferTextureLayer(GLObjectName framebuffer, uint32_t attachment,
+                                     GLObjectName texture, int level, int layer);
+    uint32_t checkNamedFramebufferStatus(GLObjectName framebuffer, uint32_t target);
+    void namedFramebufferParameteri(GLObjectName framebuffer, uint32_t pname,
+                                    int param);
+    void getNamedFramebufferParameteriv(GLObjectName framebuffer, uint32_t pname,
+                                       int32_t* params);
+    void getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
+                                                 uint32_t attachment,
+                                                 uint32_t pname, int32_t* params);
+    void blitNamedFramebuffer(GLObjectName readFb, GLObjectName drawFb,
+                             int32_t srcX0, int32_t srcY0, int32_t srcX1,
+                             int32_t srcY1, int32_t dstX0, int32_t dstY0,
+                             int32_t dstX1, int32_t dstY1, uint32_t mask,
+                             uint32_t filter);
+    void invalidateNamedFramebufferData(GLObjectName framebuffer,
+                                       int32_t numAttachments,
+                                       const uint32_t* attachments);
+    void invalidateNamedFramebufferSubData(GLObjectName framebuffer,
+                                          int32_t numAttachments,
+                                          const uint32_t* attachments, int32_t x,
+                                          int32_t y, int32_t width, int32_t height);
+    void clearNamedFramebufferiv(GLObjectName framebuffer, uint32_t buffer,
+                                int drawbuffer, const int32_t* value);
+    void clearNamedFramebufferuiv(GLObjectName framebuffer, uint32_t buffer,
+                                 int drawbuffer, const uint32_t* value);
+    void clearNamedFramebufferfv(GLObjectName framebuffer, uint32_t buffer,
+                                int drawbuffer, const float* value);
+    void clearNamedFramebufferfi(GLObjectName framebuffer, uint32_t buffer,
+                                int drawbuffer, float depth, int stencil);
 
     // --- Viewport / scissor (SPEC §10) ---
     // Record viewport (glViewport) and scissor box (glScissor) state in the

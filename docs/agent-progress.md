@@ -1060,4 +1060,39 @@ crashed agent, this session)
   rewritten to `texture2D` with `vec2(..., 0.5)`.
 - Validation: default suite green; shader translator test passes.
 
+2026-08-27 (DSA renderbuffer + framebuffer surface, this session)
+- Implemented the Direct State Access renderbuffer + framebuffer surface
+  (SPEC §9.2), continuing the Full DSA surface priority. Capability-gated by
+  `DirectStateAccess` (Emulated: YAGLT drives each named object's backend
+  resource directly, so DSA works on every backend without driver `GL_EXT_direct_
+  state_access`). New `Context::createRenderbuffers`/`namedRenderbufferStorage`/
+  `namedRenderbufferStorageMultisample`/`getNamedRenderbufferParameteriv`, and
+  `createFramebuffers`/`namedFramebufferRenderbuffer`/`namedFramebufferTexture`/
+  `namedFramebufferTextureLayer`/`checkNamedFramebufferStatus`/
+  `namedFramebufferParameteri`/`getNamedFramebufferParameteriv`/
+  `getNamedFramebufferAttachmentParameteriv`/`blitNamedFramebuffer`/
+  `invalidateNamedFramebufferData`/`invalidateNamedFramebufferSubData`/
+  `clearNamedFramebufferiv`/`clearNamedFramebufferuiv`/`clearNamedFramebufferfv`/
+  `clearNamedFramebufferfi`, plus matching `gl*` entry points in `gl_api`.
+- Backend: `BackendRenderbuffer` gained `renderbufferStorageMultisample`;
+  `BackendFramebuffer` gained `framebufferTextureLayer` + `framebufferParameteri`.
+  `GLESBackend` implements all three via new (optional) `GLESLib` symbols
+  (`glRenderbufferStorageMultisample`/`glFramebufferTextureLayer`/
+  `glFramebufferParameteri`) so `load()` still succeeds where they are absent;
+  `MockRenderbuffer`/`MockFramebuffer` record every call. Named blit/invalidate/
+  clear bind the named framebuffer(s) to the driver then restore the tracked
+  binding (DSA must not leave a side effect on the bound FBO, SPEC §9.2).
+- Honest validation: negative dims/samples → `GL_INVALID_VALUE`; ungenerated
+  name → `GL_INVALID_OPERATION`; null query pointer → `GL_INVALID_VALUE`; blit
+  mask outside color/depth/stencil → `GL_INVALID_VALUE`. `checkNamedFramebuffer-
+  Status` reports `INCOMPLETE_MISSING_ATTACHMENT` (empty) / `INCOMPLETE_ATTACHMENT`
+  (no-storage attachment) / `COMPLETE` (per structural + backend checkStatus),
+  mirroring `checkFramebufferStatus`. New `tests/unit/dsa_named_framebuffer_test.cpp`
+  (20 cases) covers storage, attachment recording, completeness, parameter
+  queries, blit/invalidate/clear forward + validation. Coverage now ~173/490
+  (35.3%) full / 173/435 (39.8%) core.
+- Validation: default + sanitizer suites green for the new surface (the lone
+  `build_san` failure is the pre-existing translator-absent `shader_translate_test`
+  config quirk, unrelated to this change).
 
+## Next Steps

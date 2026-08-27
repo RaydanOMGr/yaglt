@@ -102,6 +102,7 @@ public:
     uint32_t internalFormat = 0;
     int width = 0;
     int height = 0;
+    int samples = 0;
     bool storageSet = false;
     std::unique_ptr<BackendRenderbuffer> backend;
 };
@@ -117,6 +118,7 @@ public:
         GLObjectName name = 0;  // frontend object name
         uint32_t texTarget = 0; // relevant for texture attachments
         int level = 0;
+        int layer = 0;         // layer for glNamedFramebufferTextureLayer
     };
 
     GLObjectName name = 0;

@@ -64,6 +64,8 @@ struct GLESLib {
     void (*glDeleteRenderbuffers)(GLsizei, const GLuint*) = nullptr;
     void (*glBindRenderbuffer)(GLenum, GLuint) = nullptr;
     void (*glRenderbufferStorage)(GLenum, GLenum, GLsizei, GLsizei) = nullptr;
+    void (*glRenderbufferStorageMultisample)(GLenum, GLsizei, GLenum, GLsizei,
+                                            GLsizei) = nullptr;
 
     void (*glGenFramebuffers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteFramebuffers)(GLsizei, const GLuint*) = nullptr;
@@ -189,6 +191,9 @@ struct GLESLib {
 
     void (*glFramebufferTexture2D)(GLenum, GLenum, GLenum, GLuint, GLint) = nullptr;
     void (*glFramebufferRenderbuffer)(GLenum, GLenum, GLenum, GLuint) = nullptr;
+    void (*glFramebufferTextureLayer)(GLenum, GLenum, GLuint, GLint,
+                                     GLint) = nullptr;
+    void (*glFramebufferParameteri)(GLenum, GLenum, GLint) = nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;
 
     // Color logic op + framebuffer copy/invalidate (SPEC §15 / §16 / §17.3.4).

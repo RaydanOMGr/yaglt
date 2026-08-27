@@ -72,6 +72,8 @@ bool GLESLib::load() {
     ok &= resolve(gles, glDeleteRenderbuffers, "glDeleteRenderbuffers");
     ok &= resolve(gles, glBindRenderbuffer, "glBindRenderbuffer");
     ok &= resolve(gles, glRenderbufferStorage, "glRenderbufferStorage");
+    ok &= resolve(gles, glRenderbufferStorageMultisample,
+                  "glRenderbufferStorageMultisample");
     ok &= resolve(gles, glGenFramebuffers, "glGenFramebuffers");
     ok &= resolve(gles, glDeleteFramebuffers, "glDeleteFramebuffers");
     ok &= resolve(gles, glBindFramebuffer, "glBindFramebuffer");
@@ -158,6 +160,8 @@ bool GLESLib::load() {
     resolve(gles, glTexBufferRange, "glTexBufferRange");
     ok &= resolve(gles, glFramebufferTexture2D, "glFramebufferTexture2D");
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
+    resolve(gles, glFramebufferTextureLayer, "glFramebufferTextureLayer");
+    resolve(gles, glFramebufferParameteri, "glFramebufferParameteri");
     ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");
     // Whole-framebuffer buffer selection (core in GLES but resolved defensively).
     resolve(gles, glDrawBuffers, "glDrawBuffers");

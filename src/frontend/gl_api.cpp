@@ -400,6 +400,34 @@ void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                                   static_cast<int>(height));
 }
 
+// Direct State Access renderbuffer surface (SPEC §8.2 / §9.2).
+void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers) {
+    if (g_current == nullptr) return;
+    g_current->createRenderbuffers(static_cast<uint32_t>(n), renderbuffers);
+}
+void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalFormat,
+                               GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->namedRenderbufferStorage(renderbuffer,
+                                       static_cast<uint32_t>(internalFormat),
+                                       static_cast<int>(width),
+                                       static_cast<int>(height));
+}
+void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples,
+                                          GLenum internalFormat, GLsizei width,
+                                          GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->namedRenderbufferStorageMultisample(
+        renderbuffer, static_cast<int>(samples),
+        static_cast<uint32_t>(internalFormat), static_cast<int>(width),
+        static_cast<int>(height));
+}
+void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname,
+                                      GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedRenderbufferParameteriv(renderbuffer, pname, params);
+}
+
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers) {
     if (g_current == nullptr) return;
     g_current->genFramebuffers(static_cast<uint32_t>(n), framebuffers);
@@ -430,6 +458,96 @@ void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget
 GLenum glCheckFramebufferStatus(GLenum target) {
     if (g_current == nullptr) return GL_FRAMEBUFFER_COMPLETE;
     return g_current->checkFramebufferStatus(target);
+}
+
+// Direct State Access framebuffer surface (SPEC §9.2).
+void glCreateFramebuffers(GLsizei n, GLuint* framebuffers) {
+    if (g_current == nullptr) return;
+    g_current->createFramebuffers(static_cast<uint32_t>(n), framebuffers);
+}
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment,
+                                   GLenum renderbufferTarget, GLuint renderbuffer) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferRenderbuffer(framebuffer, attachment,
+                                           renderbufferTarget, renderbuffer);
+}
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment,
+                              GLuint texture, GLint level) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferTexture(framebuffer, attachment, texture, level);
+}
+void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment,
+                                   GLuint texture, GLint level, GLint layer) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferTextureLayer(framebuffer, attachment, texture, level,
+                                           layer);
+}
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target) {
+    if (g_current == nullptr) return GL_FRAMEBUFFER_COMPLETE;
+    return g_current->checkNamedFramebufferStatus(framebuffer, target);
+}
+void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferParameteri(framebuffer, pname, static_cast<int>(param));
+}
+void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname,
+                                     GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedFramebufferParameteriv(framebuffer, pname, params);
+}
+void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
+                                               GLenum attachment, GLenum pname,
+                                               GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedFramebufferAttachmentParameteriv(framebuffer, attachment,
+                                                       pname, params);
+}
+void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
+                           GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
+                           GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                           GLbitfield mask, GLenum filter) {
+    if (g_current == nullptr) return;
+    g_current->blitNamedFramebuffer(readFramebuffer, drawFramebuffer, srcX0, srcY0,
+                                   srcX1, srcY1, dstX0, dstY0, dstX1, dstY1,
+                                   static_cast<uint32_t>(mask),
+                                   static_cast<uint32_t>(filter));
+}
+void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments,
+                                     const GLenum* attachments) {
+    if (g_current == nullptr) return;
+    g_current->invalidateNamedFramebufferData(framebuffer,
+                                             static_cast<int32_t>(numAttachments),
+                                             reinterpret_cast<const uint32_t*>(attachments));
+}
+void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments,
+                                        const GLenum* attachments, GLint x, GLint y,
+                                        GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->invalidateNamedFramebufferSubData(
+        framebuffer, static_cast<int32_t>(numAttachments),
+        reinterpret_cast<const uint32_t*>(attachments), x, y,
+        static_cast<int32_t>(width), static_cast<int32_t>(height));
+}
+void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedFramebufferiv(framebuffer, buffer, drawbuffer, value);
+}
+void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                               const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedFramebufferuiv(framebuffer, buffer, drawbuffer, value);
+}
+void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
+}
+void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              GLfloat depth, GLint stencil) {
+    if (g_current == nullptr) return;
+    g_current->clearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth,
+                                      stencil);
 }
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays) {

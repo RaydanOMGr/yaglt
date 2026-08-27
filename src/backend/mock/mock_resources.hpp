@@ -307,10 +307,22 @@ public:
     uint32_t lastInternalFormat = 0;
     int lastWidth = 0;
     int lastHeight = 0;
+    int renderbufferStorageMultisampleCalls = 0;
+    int lastSamples = 0;
     void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
                             int height) override {
         ++renderbufferStorageCalls;
         lastTarget = target;
+        lastInternalFormat = internalFormat;
+        lastWidth = width;
+        lastHeight = height;
+    }
+    void renderbufferStorageMultisample(uint32_t target, int samples,
+                                       uint32_t internalFormat, int width,
+                                       int height) override {
+        ++renderbufferStorageMultisampleCalls;
+        lastTarget = target;
+        lastSamples = samples;
         lastInternalFormat = internalFormat;
         lastWidth = width;
         lastHeight = height;
@@ -350,6 +362,30 @@ public:
         lastNativeRenderbuffer = nativeRenderbuffer;
     }
     uint32_t checkStatus(uint32_t) const override { return checkStatusResult; }
+    int framebufferTextureLayerCalls = 0;
+    uint32_t lastLayerNativeTexture = 0;
+    int lastLayerLevel = 0;
+    int lastLayer = 0;
+    void framebufferTextureLayer(uint32_t target, uint32_t attachment,
+                                uint32_t nativeTexture, int level,
+                                int layer) override {
+        ++framebufferTextureLayerCalls;
+        lastTarget = target;
+        lastAttachment = attachment;
+        lastLayerNativeTexture = nativeTexture;
+        lastLayerLevel = level;
+        lastLayer = layer;
+    }
+    int framebufferParameteriCalls = 0;
+    uint32_t lastParamPname = 0;
+    int lastParamValue = 0;
+    void framebufferParameteri(uint32_t target, uint32_t pname,
+                              int param) override {
+        ++framebufferParameteriCalls;
+        lastTarget = target;
+        lastParamPname = pname;
+        lastParamValue = param;
+    }
 };
 class MockVertexArray : public BackendVertexArray {
 public:

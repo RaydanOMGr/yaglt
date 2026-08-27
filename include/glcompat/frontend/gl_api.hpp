@@ -156,6 +156,16 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
 void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                          GLsizei height);
 
+// Direct State Access renderbuffer surface (SPEC §8.2 / §9.2).
+void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers);
+void glNamedRenderbufferStorage(GLuint renderbuffer, GLenum internalFormat,
+                                GLsizei width, GLsizei height);
+void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples,
+                                          GLenum internalFormat, GLsizei width,
+                                          GLsizei height);
+void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname,
+                                      GLint* params);
+
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers);
 void glBindFramebuffer(GLenum target, GLuint framebuffer);
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers);
@@ -166,6 +176,43 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
 void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
                                GLuint renderbuffer);
 GLenum glCheckFramebufferStatus(GLenum target);
+
+// Direct State Access framebuffer surface (SPEC §9.2). glCreateFramebuffers
+// generates names; the named attach / parameter / query / status entry points
+// operate on an explicit framebuffer without touching the bound one. Named
+// blit/invalidate/clear bind the named framebuffer(s) to the driver and reuse
+// the whole-framebuffer backend ops.
+void glCreateFramebuffers(GLsizei n, GLuint* framebuffers);
+void glNamedFramebufferRenderbuffer(GLuint framebuffer, GLenum attachment,
+                                   GLenum renderbufferTarget, GLuint renderbuffer);
+void glNamedFramebufferTexture(GLuint framebuffer, GLenum attachment,
+                              GLuint texture, GLint level);
+void glNamedFramebufferTextureLayer(GLuint framebuffer, GLenum attachment,
+                                   GLuint texture, GLint level, GLint layer);
+GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
+void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param);
+void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname,
+                                     GLint* params);
+void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
+                                               GLenum attachment, GLenum pname,
+                                               GLint* params);
+void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
+                           GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
+                           GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,
+                           GLbitfield mask, GLenum filter);
+void glInvalidateNamedFramebufferData(GLuint framebuffer, GLsizei numAttachments,
+                                     const GLenum* attachments);
+void glInvalidateNamedFramebufferSubData(GLuint framebuffer, GLsizei numAttachments,
+                                        const GLenum* attachments, GLint x,
+                                        GLint y, GLsizei width, GLsizei height);
+void glClearNamedFramebufferiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              const GLint* value);
+void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                               const GLuint* value);
+void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              const GLfloat* value);
+void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
+                              GLfloat depth, GLint stencil);
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);
