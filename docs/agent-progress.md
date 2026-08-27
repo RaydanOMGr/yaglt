@@ -1509,6 +1509,13 @@ crashed agent, this session)
   `tests/unit/hint_test.cpp` (2 cases). Default 399/399, sanitizer 409/409 (+1 pre-existing
   unrelated `shader_translate_test.cpp:53` empty-source quirk, unchanged this session).
   Coverage §21 row updated (glHint done).
+- GL_DITHER capability (SPEC §17.3.7), commit `b2a34de`: `isTrackedCap` now
+  includes `GL_DITHER`; default-enabled in `GLStateTracker` ctor (and `reset()`);
+  `getInteger` caps switch returns it; backend already forwards any cap to native
+  `glEnable/glDisable`. `tests/unit/dither_test.cpp` (2 cases: default-enabled +
+  push-only-on-change). Updated `getstate_test.cpp` (DITHER now valid, returns
+  true). Default 401/401, sanitizer 411/411 (+1 pre-existing unrelated
+  `shader_translate_test.cpp:53` quirk). Coverage §17 row updated (dither done).
 
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.
