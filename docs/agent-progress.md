@@ -1215,4 +1215,27 @@ crashed agent, this session)
   translator-absent `shader_translate_test` config quirk); the new e2e reflection
   test passes under Mesa in the sanitizer build. GLES backend path verified.
 
+2026-08-27 (Subroutines, SPEC §7.9, this session)
+- Implemented the subroutine surface (SPEC §7.9): `glGetSubroutineIndex`,
+  `glGetSubroutineUniformLocation`, `glGetActiveSubroutineUniformiv`/`Name`,
+  `glGetActiveSubroutineName`, `glUniformSubroutinesuiv`, `glGetUniformSubroutineuiv`.
+  Capability-gated by a new `Feature::Subroutines` (Mock = Emulated so the full
+  frontend path is testable; GLES = Native on ES 3.1+, else Unsupported). `Context`
+  validates `shadertype` against the six subroutine stages (else `GL_INVALID_OPERATION`),
+  requires a linked program for the reflection getters and an active program for the
+  selection getters/reads; name-not-found → `GL_INVALID_INDEX`/`-1` honestly (no error).
+- New `BackendProgram` subroutine interface (defaults honest: no introspection /
+  no-op selection); the GLES backend wires the ES 3.1+ `glGetSubroutine*` /
+  `glUniformSubroutinesuiv` driver entry points via added `GLESLib` loader symbols
+  (resolved optionally). `gl_types.hpp` gained the subroutine query pnames;
+  `mock_capabilities.hpp` / `gles_capabilities.cpp` set `Subroutines`.
+- New `tests/unit/subroutine_test.cpp` (9 Mock validation + honest-not-found cases).
+  No e2e test: subroutine desktop-GLSL syntax may not survive the glslang→SPIRV-Cross
+  translator, so the GLES path is exercised structurally via the build/sanitize path.
+- Coverage now ~209/490 (42.7%) full / 209/435 (48.0%) core. §7 row dropped
+  subroutines from missing; priority #8 reflection + subroutines marked done.
+- Validation: default 306/306 green; sanitizer 315/315 (lone failure = pre-existing
+  translator-absent `shader_translate_test` config quirk); GLES backend path compiles
+  and links under the sanitizer build with no regression.
+
 ## Next Steps

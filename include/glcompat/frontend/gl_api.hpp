@@ -314,7 +314,20 @@ void glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint inde
 GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
                                    const GLchar* name);
 GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
-                                        const GLchar* name);
+                                         const GLchar* name);
+GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar* name);
+GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype,
+                                     const GLchar* name);
+void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index,
+                                    GLenum pname, GLint* values);
+void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype,
+                                      GLuint index, GLsizei bufSize, GLsizei* length,
+                                      GLchar* name);
+void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index,
+                               GLsizei bufSize, GLsizei* length, GLchar* name);
+void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
+                            const GLuint* indices);
+void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params);
 void glDeleteProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 

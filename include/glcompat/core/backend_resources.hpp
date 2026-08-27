@@ -302,6 +302,59 @@ public:
         return -1;
     }
 
+    // Subroutine reflection + selection (SPEC §7.9). Defaults are honest for
+    // backends without introspection: names are not found, locations are -1,
+    // property reads report 0, and selection is a no-op.
+    virtual uint32_t getSubroutineIndex(uint32_t shadertype,
+                                        const std::string& name) const {
+        (void)shadertype;
+        (void)name;
+        return 0xFFFFFFFFu;  // GL_INVALID_INDEX
+    }
+    virtual int32_t getSubroutineUniformLocation(uint32_t shadertype,
+                                                 const std::string& name) const {
+        (void)shadertype;
+        (void)name;
+        return -1;
+    }
+    virtual void getActiveSubroutineUniformiv(uint32_t shadertype, uint32_t index,
+                                             uint32_t pname, int32_t* values) const {
+        (void)shadertype;
+        (void)index;
+        (void)pname;
+        (void)values;
+    }
+    virtual void getActiveSubroutineUniformName(uint32_t shadertype, uint32_t index,
+                                                int32_t bufSize, int32_t* length,
+                                                char* name) const {
+        (void)shadertype;
+        (void)index;
+        (void)bufSize;
+        (void)length;
+        (void)name;
+    }
+    virtual void getActiveSubroutineName(uint32_t shadertype, uint32_t index,
+                                        int32_t bufSize, int32_t* length,
+                                        char* name) const {
+        (void)shadertype;
+        (void)index;
+        (void)bufSize;
+        (void)length;
+        (void)name;
+    }
+    virtual void uniformSubroutinesuiv(uint32_t shadertype, int32_t count,
+                                      const uint32_t* indices) {
+        (void)shadertype;
+        (void)count;
+        (void)indices;
+    }
+    virtual void getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
+                                        uint32_t* params) const {
+        (void)shadertype;
+        (void)location;
+        (void)params;
+    }
+
     virtual void uniformMatrix4fv(int loc, const float* m, int count,
                                  bool transpose) {}
 };

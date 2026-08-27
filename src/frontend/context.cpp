@@ -2936,6 +2936,184 @@ int32_t Context::getProgramResourceLocationIndex(GLObjectName program,
     return p->backend->getProgramResourceLocationIndex(programInterface, name);
 }
 
+namespace {
+
+bool isValidSubroutineStage(uint32_t stage) {
+    switch (stage) {
+    case GL_VERTEX_SHADER:
+    case GL_TESS_CONTROL_SHADER:
+    case GL_TESS_EVALUATION_SHADER:
+    case GL_GEOMETRY_SHADER:
+    case GL_FRAGMENT_SHADER:
+    case GL_COMPUTE_SHADER:
+        return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
+
+uint32_t Context::getSubroutineIndex(GLObjectName program, uint32_t shadertype,
+                                     const std::string& name) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return GL_INVALID_INDEX;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return GL_INVALID_INDEX;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return GL_INVALID_INDEX;
+    }
+    return p->backend->getSubroutineIndex(shadertype, name);
+}
+
+int32_t Context::getSubroutineUniformLocation(GLObjectName program,
+                                              uint32_t shadertype,
+                                              const std::string& name) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    return p->backend->getSubroutineUniformLocation(shadertype, name);
+}
+
+void Context::getActiveSubroutineUniformiv(GLObjectName program, uint32_t shadertype,
+                                           uint32_t index, uint32_t pname,
+                                           int32_t* values) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (values == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    p->backend->getActiveSubroutineUniformiv(shadertype, index, pname, values);
+}
+
+void Context::getActiveSubroutineUniformName(GLObjectName program,
+                                             uint32_t shadertype, uint32_t index,
+                                             int32_t bufSize, int32_t* length,
+                                             char* name) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (name == nullptr || bufSize == 0) {
+        if (length) *length = 0;
+        return;
+    }
+    p->backend->getActiveSubroutineUniformName(shadertype, index, bufSize, length,
+                                              name);
+}
+
+void Context::getActiveSubroutineName(GLObjectName program, uint32_t shadertype,
+                                     uint32_t index, int32_t bufSize,
+                                     int32_t* length, char* name) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (name == nullptr || bufSize == 0) {
+        if (length) *length = 0;
+        return;
+    }
+    p->backend->getActiveSubroutineName(shadertype, index, bufSize, length, name);
+}
+
+void Context::uniformSubroutinesuiv(uint32_t shadertype, int32_t count,
+                                    const uint32_t* indices) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (count < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bp->uniformSubroutinesuiv(shadertype, count, indices);
+}
+
+void Context::getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
+                                      uint32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bp->getUniformSubroutineuiv(shadertype, location, params);
+}
+
 void Context::getIntegerv(uint32_t pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);

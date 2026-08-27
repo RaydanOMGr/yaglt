@@ -526,8 +526,30 @@ public:
     int32_t getProgramResourceLocation(GLObjectName program, uint32_t programInterface,
                                        const std::string& name);
     int32_t getProgramResourceLocationIndex(GLObjectName program,
-                                            uint32_t programInterface,
-                                            const std::string& name);
+                                             uint32_t programInterface,
+                                             const std::string& name);
+
+    // Subroutine reflection + selection (SPEC §7.9). All require the `Subroutines`
+    // capability; `program` (for the reflection getters) must be a linked program;
+    // `shadertype` must be a valid subroutine stage. Name/Index lookups that find
+    // nothing return GL_INVALID_INDEX / -1 honestly (no error).
+    uint32_t getSubroutineIndex(GLObjectName program, uint32_t shadertype,
+                                const std::string& name);
+    int32_t getSubroutineUniformLocation(GLObjectName program, uint32_t shadertype,
+                                         const std::string& name);
+    void getActiveSubroutineUniformiv(GLObjectName program, uint32_t shadertype,
+                                      uint32_t index, uint32_t pname,
+                                      int32_t* values);
+    void getActiveSubroutineUniformName(GLObjectName program, uint32_t shadertype,
+                                       uint32_t index, int32_t bufSize,
+                                       int32_t* length, char* name);
+    void getActiveSubroutineName(GLObjectName program, uint32_t shadertype,
+                                 uint32_t index, int32_t bufSize, int32_t* length,
+                                 char* name);
+    void uniformSubroutinesuiv(uint32_t shadertype, int32_t count,
+                              const uint32_t* indices);
+    void getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
+                                 uint32_t* params);
 
     // Retrieve the info/debug log (SPEC §7.3 / §7.14). Copies up to bufSize-1
     // characters into `infoLog` (nul-terminated); `*length` receives the number

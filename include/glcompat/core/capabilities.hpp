@@ -46,6 +46,8 @@ enum class Feature {
     ProgramPipelines,
     DirectStateAccess,
     SamplerObjects,
+    // Shaders: subroutines (SPEC §7.9, GLES 3.1+)
+    Subroutines,
     // Queries / sync (SPEC §4 / §19 / §20)
     Queries,
     SyncObjects,

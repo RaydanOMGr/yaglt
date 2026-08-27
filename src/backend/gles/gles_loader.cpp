@@ -100,6 +100,15 @@ bool GLESLib::load() {
     resolve(gles, glGetProgramResourceiv, "glGetProgramResourceiv");
     resolve(gles, glGetProgramResourceLocation, "glGetProgramResourceLocation");
     resolve(gles, glGetProgramResourceLocationIndex, "glGetProgramResourceLocationIndex");
+    // Subroutines (ES 3.1+); resolved optionally so load() still succeeds on
+    // stricter/driver-limited EGL stacks.
+    resolve(gles, glGetSubroutineIndex, "glGetSubroutineIndex");
+    resolve(gles, glGetSubroutineUniformLocation, "glGetSubroutineUniformLocation");
+    resolve(gles, glGetActiveSubroutineUniformiv, "glGetActiveSubroutineUniformiv");
+    resolve(gles, glGetActiveSubroutineUniformName, "glGetActiveSubroutineUniformName");
+    resolve(gles, glGetActiveSubroutineName, "glGetActiveSubroutineName");
+    resolve(gles, glUniformSubroutinesuiv, "glUniformSubroutinesuiv");
+    resolve(gles, glGetUniformSubroutineuiv, "glGetUniformSubroutineuiv");
     ok &= resolve(gles, glEnable, "glEnable");
     ok &= resolve(gles, glDisable, "glDisable");
     ok &= resolve(gles, glUseProgram, "glUseProgram");

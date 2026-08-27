@@ -586,6 +586,67 @@ struct GLESBackendProgram : BackendProgram {
         return lib->glGetProgramResourceLocationIndex(
             handle, static_cast<GLenum>(programInterface), name.c_str());
     }
+    // Subroutine reflection + selection (SPEC §7.9). ES 3.1+ driver entry points,
+    // resolved optionally; otherwise the honest BackendProgram defaults apply.
+    uint32_t getSubroutineIndex(uint32_t shadertype,
+                                const std::string& name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 || !lib->glGetSubroutineIndex)
+            return 0xFFFFFFFFu;  // GL_INVALID_INDEX
+        return lib->glGetSubroutineIndex(handle, static_cast<GLenum>(shadertype),
+                                         name.c_str());
+    }
+    int32_t getSubroutineUniformLocation(uint32_t shadertype,
+                                         const std::string& name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetSubroutineUniformLocation)
+            return -1;
+        return lib->glGetSubroutineUniformLocation(
+            handle, static_cast<GLenum>(shadertype), name.c_str());
+    }
+    void getActiveSubroutineUniformiv(uint32_t shadertype, uint32_t index,
+                                     uint32_t pname, int32_t* values) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetActiveSubroutineUniformiv || values == nullptr)
+            return;
+        lib->glGetActiveSubroutineUniformiv(handle,
+                                            static_cast<GLenum>(shadertype), index,
+                                            static_cast<GLenum>(pname), values);
+    }
+    void getActiveSubroutineUniformName(uint32_t shadertype, uint32_t index,
+                                       int32_t bufSize, int32_t* length,
+                                       char* name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetActiveSubroutineUniformName || bufSize <= 0 || name == nullptr)
+            return;
+        lib->glGetActiveSubroutineUniformName(handle,
+                                              static_cast<GLenum>(shadertype),
+                                              index, bufSize, length, name);
+    }
+    void getActiveSubroutineName(uint32_t shadertype, uint32_t index,
+                                int32_t bufSize, int32_t* length,
+                                char* name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetActiveSubroutineName || bufSize <= 0 || name == nullptr)
+            return;
+        lib->glGetActiveSubroutineName(handle, static_cast<GLenum>(shadertype),
+                                      index, bufSize, length, name);
+    }
+    void uniformSubroutinesuiv(uint32_t shadertype, int32_t count,
+                              const uint32_t* indices) override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glUniformSubroutinesuiv || count <= 0 || indices == nullptr)
+            return;
+        lib->glUniformSubroutinesuiv(static_cast<GLenum>(shadertype), count,
+                                    indices);
+    }
+    void getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
+                                uint32_t* params) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetUniformSubroutineuiv || params == nullptr)
+            return;
+        lib->glGetUniformSubroutineuiv(static_cast<GLenum>(shadertype), location,
+                                      params);
+    }
     void uniform1f(int loc, float v0) override {
         if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
         bind();

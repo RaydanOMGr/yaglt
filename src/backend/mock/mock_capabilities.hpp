@@ -39,6 +39,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::ProgramPipelines, S::Emulated);
     table.set(F::DirectStateAccess, S::Emulated);
     table.set(F::SamplerObjects, S::Native);
+    table.set(F::Subroutines, S::Emulated);
     table.set(F::Queries, S::Native);
     table.set(F::SyncObjects, S::Native);
     table.set(F::LogicOp, S::Native);

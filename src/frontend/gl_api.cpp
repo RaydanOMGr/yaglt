@@ -946,6 +946,52 @@ GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
                                                      name ? name : "");
 }
 
+GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype,
+                            const GLchar* name) {
+    if (g_current == nullptr) return GL_INVALID_INDEX;
+    return g_current->getSubroutineIndex(program, shadertype, name ? name : "");
+}
+
+GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype,
+                                     const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getSubroutineUniformLocation(program, shadertype,
+                                                  name ? name : "");
+}
+
+void glGetActiveSubroutineUniformiv(GLuint program, GLenum shadertype, GLuint index,
+                                    GLenum pname, GLint* values) {
+    if (g_current == nullptr) return;
+    g_current->getActiveSubroutineUniformiv(program, shadertype, index, pname,
+                                           values);
+}
+
+void glGetActiveSubroutineUniformName(GLuint program, GLenum shadertype,
+                                      GLuint index, GLsizei bufSize,
+                                      GLsizei* length, GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getActiveSubroutineUniformName(program, shadertype, index, bufSize,
+                                             length, name);
+}
+
+void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index,
+                               GLsizei bufSize, GLsizei* length, GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getActiveSubroutineName(program, shadertype, index, bufSize, length,
+                                      name);
+}
+
+void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
+                            const GLuint* indices) {
+    if (g_current == nullptr) return;
+    g_current->uniformSubroutinesuiv(shadertype, count, indices);
+}
+
+void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getUniformSubroutineuiv(shadertype, location, params);
+}
+
 void glDeleteProgram(GLuint program) {
     if (g_current == nullptr) return;
     g_current->deleteProgram(program);

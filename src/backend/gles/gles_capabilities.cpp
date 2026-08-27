@@ -58,7 +58,8 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     // by operating on the named object's backend resource (the backend resource
     // binds itself before each driver call), so the DSA entry points are
     // available regardless of any driver-provided DSA extension.
-    table.set(F::DirectStateAccess, S::Emulated);
+    // Subroutines (SPEC §7.9) are core in GLES 3.1.
+    table.set(F::Subroutines, es31 ? S::Native : S::Unsupported);
     // Sampler objects are core in GLES 3.0 (glBindSampler / glSamplerParameteri).
     table.set(F::SamplerObjects, es3 ? S::Native : S::Unsupported);
 

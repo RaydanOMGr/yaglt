@@ -95,6 +95,14 @@ struct GLESLib {
     void (*glGetProgramResourceiv)(GLuint, GLenum, GLuint, GLsizei, const GLenum*, GLsizei, GLsizei*, GLint*) = nullptr;
     GLint (*glGetProgramResourceLocation)(GLuint, GLenum, const GLchar*) = nullptr;
     GLint (*glGetProgramResourceLocationIndex)(GLuint, GLenum, const GLchar*) = nullptr;
+    // Subroutines (SPEC §7.9, ES 3.1+). Resolved optionally.
+    GLuint (*glGetSubroutineIndex)(GLuint, GLenum, const GLchar*) = nullptr;
+    GLint (*glGetSubroutineUniformLocation)(GLuint, GLenum, const GLchar*) = nullptr;
+    void (*glGetActiveSubroutineUniformiv)(GLuint, GLenum, GLuint, GLenum, GLint*) = nullptr;
+    void (*glGetActiveSubroutineUniformName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
+    void (*glGetActiveSubroutineName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
+    void (*glUniformSubroutinesuiv)(GLenum, GLsizei, const GLuint*) = nullptr;
+    void (*glGetUniformSubroutineuiv)(GLenum, GLint, GLuint*) = nullptr;
 
     // Pipeline state (SPEC §10): pushed by GLStateSink when the frontend
     // flushes tracked state to the driver.

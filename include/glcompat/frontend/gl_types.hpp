@@ -270,6 +270,16 @@ constexpr GLenum GL_LOCATION = 0x930E;
 constexpr GLenum GL_LOCATION_COMPONENT = 0x934A;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_INDEX = 0x934B;
 
+// Subroutine reflection (SPEC §7.9). The `*_SUBROUTINE` interface enums above
+// name the per-stage interfaces; these are the subroutine query pnames.
+constexpr GLenum GL_ACTIVE_SUBROUTINES = 0x8DE5;
+constexpr GLenum GL_ACTIVE_SUBROUTINE_UNIFORMS = 0x8DE6;
+constexpr GLenum GL_ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS = 0x8E47;
+constexpr GLenum GL_ACTIVE_SUBROUTINE_MAX_LENGTH = 0x8E48;
+constexpr GLenum GL_ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH = 0x8E49;
+constexpr GLenum GL_NUM_COMPATIBLE_SUBROUTINES = 0x8E4A;
+constexpr GLenum GL_COMPATIBLE_SUBROUTINES = 0x8E4B;
+
 // Vertex attribute types.
 constexpr GLenum GL_FLOAT = 0x1406;
 constexpr GLenum GL_FLOAT_VEC2 = 0x8B50;
