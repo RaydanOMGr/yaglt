@@ -237,6 +237,10 @@ constexpr GLenum GL_SHADER_STORAGE_BUFFER = 0x90D2;
 constexpr GLenum GL_TRUE = 1;
 constexpr GLenum GL_FALSE = 0;
 
+// Color clamping (glClampColor, SPEC §15.2.3).
+constexpr GLenum GL_CLAMP_READ_COLOR = 0x891C;
+constexpr GLenum GL_FIXED_ONLY = 0x891D;
+
 // Shader stages.
 constexpr GLenum GL_VERTEX_SHADER = 0x8B31;
 constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30;

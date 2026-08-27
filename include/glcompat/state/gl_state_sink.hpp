@@ -109,6 +109,11 @@ public:
     // (SPEC §10); the driver applies it only while GL_COLOR_LOGIC_OP is enabled.
     virtual void logicOp(uint32_t mode) = 0;
 
+    // Color clamping (SPEC §15.2.3, glClampColor). `target` is the clamp target
+    // (GL_CLAMP_READ_COLOR in core 4.6); `mode` is GL_TRUE / GL_FALSE /
+    // GL_FIXED_ONLY. GLES has no equivalent and records this without applying it.
+    virtual void clampColor(uint32_t target, uint32_t mode) = 0;
+
     // Indexed buffer bindings (UBO / SSBO / transform feedback, SPEC §8).
     // `target` is the indexed buffer target, `index` the binding point.
     virtual void bindBufferBase(uint32_t target, uint32_t index,

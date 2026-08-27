@@ -443,6 +443,12 @@ public:
     // else GL_INVALID_ENUM. Recorded in the tracker and pushed on change (SPEC §10).
     void provokingVertex(GLenum mode);
 
+    // Color clamping (SPEC §15.2.3, glClampColor). `target` must be
+    // GL_CLAMP_READ_COLOR (else GL_INVALID_ENUM); `mode` must be GL_TRUE,
+    // GL_FALSE or GL_FIXED_ONLY (else GL_INVALID_ENUM). Recorded and pushed on
+    // change (SPEC §10).
+    void clampColor(GLenum target, GLenum mode);
+
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
     // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)

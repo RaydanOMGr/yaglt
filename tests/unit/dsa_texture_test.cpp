@@ -47,6 +47,7 @@ struct UnitRecordingSink : GLStateSink {
     void sampleMaski(uint32_t, uint32_t) override {}
     void minSampleShading(float) override {}
     void provokingVertex(uint32_t) override {}
+    void clampColor(uint32_t, uint32_t) override {}
     void pixelStorei(GLenum, GLint) override {}
     void setViewport(int32_t, int32_t, int32_t, int32_t) override {}
     void setScissor(int32_t, int32_t, int32_t, int32_t) override {}

@@ -1510,6 +1510,11 @@ void glProvokingVertex(GLenum mode) {
     g_current->provokingVertex(mode);
 }
 
+void glClampColor(GLenum target, GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->clampColor(target, mode);
+}
+
 void glStencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (g_current == nullptr) return;
     g_current->state().setStencilFunc(func, ref, mask);

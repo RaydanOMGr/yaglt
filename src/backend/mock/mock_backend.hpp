@@ -143,6 +143,9 @@ public:
     float lastMinSampleShading = 0.0f;
     int provokingVertexCalls = 0;
     uint32_t lastProvokingVertexMode = 0x8E4E; // GL_LAST_VERTEX_CONVENTION
+    int clampColorCalls = 0;
+    uint32_t lastClampColorTarget = 0x891C; // GL_CLAMP_READ_COLOR
+    uint32_t lastClampColorMode = 0x891D;    // GL_FIXED_ONLY
     int pixelStoreiCalls = 0;
 
     int viewportCalls = 0;
@@ -262,6 +265,11 @@ public:
     void provokingVertex(uint32_t mode) override {
         ++provokingVertexCalls;
         lastProvokingVertexMode = mode;
+    }
+    void clampColor(uint32_t target, uint32_t mode) override {
+        ++clampColorCalls;
+        lastClampColorTarget = target;
+        lastClampColorMode = mode;
     }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {

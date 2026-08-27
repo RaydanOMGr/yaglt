@@ -539,6 +539,10 @@ void glReadBuffer(GLenum buf);
 // Color logic op (SPEC §17.3.4, glLogicOp). Capability-gated (LogicOp).
 void glLogicOp(GLenum mode);
 
+// Color clamping (SPEC §15.2.3, glClampColor). `target` must be
+// GL_CLAMP_READ_COLOR; `mode` is GL_TRUE / GL_FALSE / GL_FIXED_ONLY.
+void glClampColor(GLenum target, GLenum mode);
+
 // Whole-framebuffer copy / invalidate (SPEC §15 / §16). glBlitFramebuffer copies a
 // rectangle of the bound read framebuffer into the bound draw framebuffer; an
 // invalid mask reports GL_INVALID_VALUE. glInvalidateFramebuffer /

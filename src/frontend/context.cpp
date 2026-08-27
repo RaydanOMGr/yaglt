@@ -4991,6 +4991,18 @@ void Context::provokingVertex(GLenum mode) {
     state_.setProvokingVertex(mode);
 }
 
+void Context::clampColor(GLenum target, GLenum mode) {
+    if (target != GL_CLAMP_READ_COLOR) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (mode != GL_TRUE && mode != GL_FALSE && mode != GL_FIXED_ONLY) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setClampColor(target, mode);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,

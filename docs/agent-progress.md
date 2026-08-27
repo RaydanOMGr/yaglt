@@ -929,6 +929,23 @@ crashed agent, this session)
 
 ## Recent Work
 
+2026-08-28 (color clamping, `glClampColor`, this session)
+- Implemented `glClampColor` (SPEC §15.2.3), closing the `§15/§16: glClampColor`
+  gap noted in Next Steps (carried). `target` must be `GL_CLAMP_READ_COLOR`
+  (else `GL_INVALID_ENUM`); `mode` must be `GL_TRUE`/`GL_FALSE`/`GL_FIXED_ONLY`
+  (else `GL_INVALID_ENUM`). `GLStateTracker` gained `ClampColorState` +
+  `setClampColor`/`clampReadColor`; `GLStateSink` gained `clampColor`; the value
+  is pushed only on change (SPEC §10). `glGetIntegerv(GL_CLAMP_READ_COLOR)`
+  returns the tracked mode. `GL_CLAMP_READ_COLOR`/`GL_FIXED_ONLY` added to
+  `gl_types.hpp`; `Context`/`gl_api` expose `clampColor`; `MockBackend` records
+  the call; `GLESBackend::clampColor` is a no-op (GLES has no equivalent and
+  desktop color-clamp is effectively always-on in ES fragment outputs).
+- New `tests/unit/clamp_color_test.cpp` (3 cases: invalid target/mode →
+  `GL_INVALID_ENUM`, change-only push, tracked `glGetIntegerv` read). Default
+  suite green; the pre-existing `shader_translate_test` failure in the sanitizer
+  build is environment/translator-related and unrelated to this change (reproduces
+  on a clean stash of these edits).
+
 2026-08-27 (DSA texture object surface, this session)
 - Implemented the Direct State Access texture object surface (SPEC §2.1 / §8.1):
   `glCreateTextures`, `glTextureStorage1D/2D/3D`, `glTextureSubImage1D/2D/3D`,

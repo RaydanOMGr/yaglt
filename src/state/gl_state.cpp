@@ -227,6 +227,15 @@ bool GLStateTracker::setProvokingVertex(GLenum mode) {
     return true;
 }
 
+bool GLStateTracker::setClampColor(GLenum target, GLenum mode) {
+    if (target != 0x891C /* GL_CLAMP_READ_COLOR */) return false;
+    if (mode != GL_TRUE && mode != GL_FALSE && mode != 0x891D /* GL_FIXED_ONLY */)
+        return false;
+    if (clampColor_.readColor == mode) return false;
+    clampColor_.readColor = mode;
+    return true;
+}
+
 bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
     if (pname == 0x0CF5 /* GL_UNPACK_ALIGNMENT */ &&
         pixel_.unpackAlignment == param)
@@ -593,6 +602,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!clampColor_.equal(clampColorApplied_)) {
+        sink.clampColor(0x891C /* GL_CLAMP_READ_COLOR */, clampColor_.readColor);
+        clampColorApplied_ = clampColor_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -713,6 +728,8 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(primitiveRestart_.index); return 1;
     case GL_PROVOKING_VERTEX:
         out[0] = static_cast<GLint>(provokingVertex_.mode); return 1;
+    case 0x891C: // GL_CLAMP_READ_COLOR
+        out[0] = static_cast<GLint>(clampColor_.readColor); return 1;
     case GL_COLOR_WRITEMASK:
         out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
         out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
@@ -889,6 +906,8 @@ void GLStateTracker::reset() {
     multisampleRasterApplied_ = MultisampleRasterState{};
     provokingVertex_ = ProvokingVertexState{};
     provokingVertexApplied_ = ProvokingVertexState{};
+    clampColor_ = ClampColorState{};
+    clampColorApplied_ = ClampColorState{};
     primitiveRestart_ = PrimitiveRestartState{};
     primitiveRestartApplied_ = PrimitiveRestartState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});

@@ -136,6 +136,13 @@ public:
     bool setDrawBuffers(const std::vector<GLenum>& bufs);
     bool setReadBuffer(GLenum buf);
 
+    // --- Color clamping (SPEC §15.2.3, glClampColor) ---
+    // `target` must be GL_CLAMP_READ_COLOR (the only core target; the caller
+    // reports GL_INVALID_ENUM otherwise); `mode` is GL_TRUE / GL_FALSE /
+    // GL_FIXED_ONLY (default GL_FIXED_ONLY). Pushed only when the mode changes.
+    bool setClampColor(GLenum target, GLenum mode);
+    GLenum clampReadColor() const { return clampColor_.readColor; }
+
     // --- Texture units (SPEC §2.1) ---
     // glActiveTexture selects the unit (texture = GL_TEXTURE0 + i); returns
     // true when the active unit actually changed. glBindTexture binds `name` to
@@ -358,6 +365,12 @@ private:
         GLenum mode = 0x8E4E; // GL_LAST_VERTEX_CONVENTION (GL default)
         bool equal(const ProvokingVertexState& o) const { return mode == o.mode; }
     };
+    // Color clamping (SPEC §15.2.3, glClampColor). Only GL_CLAMP_READ_COLOR is a
+    // core target; `readColor` is GL_TRUE / GL_FALSE / GL_FIXED_ONLY.
+    struct ClampColorState {
+        GLenum readColor = 0x891D; // GL_FIXED_ONLY (GL default)
+        bool equal(const ClampColorState& o) const { return readColor == o.readColor; }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -407,6 +420,7 @@ private:
     PolygonModeState polygonMode_, polygonModeApplied_;
     MultisampleRasterState multisampleRaster_, multisampleRasterApplied_;
     ProvokingVertexState provokingVertex_, provokingVertexApplied_;
+    ClampColorState clampColor_, clampColorApplied_;
 };
 
 } // namespace glcompat
