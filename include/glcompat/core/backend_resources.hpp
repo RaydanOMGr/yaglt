@@ -255,6 +255,53 @@ public:
     virtual int activeAttributeCount() const { return 0; }
     virtual int activeUniformBlockCount() const { return 0; }
 
+    // Program-interface reflection (SPEC §7.3.11). Defaults are honest for
+    // backends without introspection: no resources are visible, names are not
+    // found, locations are -1, and property reads report 0.
+    virtual uint32_t programResourceCount(uint32_t programInterface) const {
+        (void)programInterface;
+        return 0;
+    }
+    virtual uint32_t getProgramResourceIndex(uint32_t programInterface,
+                                             const std::string& name) const {
+        (void)programInterface;
+        (void)name;
+        return 0xFFFFFFFFu; // GL_INVALID_INDEX: name not found
+    }
+    virtual void getProgramResourceName(uint32_t programInterface, uint32_t index,
+                                        int32_t bufSize, int32_t* length,
+                                        char* name) const {
+        (void)programInterface;
+        (void)index;
+        (void)bufSize;
+        (void)length;
+        (void)name;
+    }
+    virtual void getProgramResourceiv(uint32_t programInterface, uint32_t index,
+                                      int32_t propCount, const uint32_t* props,
+                                      int32_t bufSize, int32_t* length,
+                                      int32_t* params) const {
+        (void)programInterface;
+        (void)index;
+        (void)propCount;
+        (void)props;
+        (void)bufSize;
+        (void)length;
+        (void)params;
+    }
+    virtual int32_t getProgramResourceLocation(uint32_t programInterface,
+                                              const std::string& name) const {
+        (void)programInterface;
+        (void)name;
+        return -1;
+    }
+    virtual int32_t getProgramResourceLocationIndex(uint32_t programInterface,
+                                                   const std::string& name) const {
+        (void)programInterface;
+        (void)name;
+        return -1;
+    }
+
     virtual void uniformMatrix4fv(int loc, const float* m, int count,
                                  bool transpose) {}
 };

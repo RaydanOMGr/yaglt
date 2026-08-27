@@ -44,6 +44,7 @@ add_executable(yaglt_tests
     unit/samplecoverage_test.cpp
     unit/dsa_program_pipeline_test.cpp
     unit/rasterization_control_test.cpp
+    unit/program_resource_test.cpp
     unit/primitive_restart_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp

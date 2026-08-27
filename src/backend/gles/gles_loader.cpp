@@ -92,6 +92,14 @@ bool GLESLib::load() {
     ok &= resolve(gles, glGetProgramiv, "glGetProgramiv");
     ok &= resolve(gles, glGetProgramInfoLog, "glGetProgramInfoLog");
     ok &= resolve(gles, glDeleteProgram, "glDeleteProgram");
+    // Program-interface reflection (ES 3.0+); resolved optionally so load()
+    // still succeeds on stricter/driver-limited EGL stacks.
+    resolve(gles, glGetProgramInterfaceiv, "glGetProgramInterfaceiv");
+    resolve(gles, glGetProgramResourceIndex, "glGetProgramResourceIndex");
+    resolve(gles, glGetProgramResourceName, "glGetProgramResourceName");
+    resolve(gles, glGetProgramResourceiv, "glGetProgramResourceiv");
+    resolve(gles, glGetProgramResourceLocation, "glGetProgramResourceLocation");
+    resolve(gles, glGetProgramResourceLocationIndex, "glGetProgramResourceLocationIndex");
     ok &= resolve(gles, glEnable, "glEnable");
     ok &= resolve(gles, glDisable, "glDisable");
     ok &= resolve(gles, glUseProgram, "glUseProgram");

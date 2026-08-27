@@ -510,6 +510,25 @@ public:
     GLint getShaderiv(GLObjectName shader, uint32_t pname);
     GLint getProgramiv(GLObjectName program, uint32_t pname);
 
+    // Program-interface reflection (SPEC §7.3.11). `programInterface` must be a
+    // valid interface enum; `program` must be a linked program object. Name/Index
+    // lookups that find nothing return GL_INVALID_INDEX / -1 honestly (no error);
+    // out-of-range indices and bad buffers set GL_INVALID_VALUE; an unsupported
+    // interface sets GL_INVALID_ENUM.
+    uint32_t getProgramResourceIndex(GLObjectName program, uint32_t programInterface,
+                                     const std::string& name);
+    void getProgramResourceName(GLObjectName program, uint32_t programInterface,
+                                uint32_t index, int32_t bufSize, int32_t* length,
+                                char* name);
+    void getProgramResourceiv(GLObjectName program, uint32_t programInterface,
+                              uint32_t index, int32_t propCount, const uint32_t* props,
+                              int32_t bufSize, int32_t* length, int32_t* params);
+    int32_t getProgramResourceLocation(GLObjectName program, uint32_t programInterface,
+                                       const std::string& name);
+    int32_t getProgramResourceLocationIndex(GLObjectName program,
+                                            uint32_t programInterface,
+                                            const std::string& name);
+
     // Retrieve the info/debug log (SPEC §7.3 / §7.14). Copies up to bufSize-1
     // characters into `infoLog` (nul-terminated); `*length` receives the number
     // of characters written, excluding the nul. An unknown object sets

@@ -1188,4 +1188,31 @@ crashed agent, this session)
   SEGV in `GLESBackend::~GLESBackend` → `GLESLib` destruction, unrelated to this
   change). GLES backend path verified.
 
+2026-08-27 (Program-interface reflection, SPEC §7.3.11, this session)
+- Implemented `glGetProgramResourceIndex` / `glGetProgramResourceName` /
+  `glGetProgramResourceiv` / `glGetProgramResourceLocation` /
+  `glGetProgramResourceLocationIndex`. Frontend `Context` methods + `gl_api` entry
+  points with full SPEC validation: program must be a linked program object (else
+  `GL_INVALID_OPERATION`); `programInterface` must be a valid interface enum (else
+  `GL_INVALID_ENUM`); name not found → `GL_INVALID_INDEX`/`-1` honestly (no error);
+  out-of-range index / negative buffer size → `GL_INVALID_VALUE`; unknown property
+  in `glGetProgramResourceiv` → `GL_INVALID_ENUM`; `propCount > bufSize`, null
+  params/props, negative `propCount` → `GL_INVALID_VALUE`.
+- New `BackendProgram` reflection interface (`programResourceCount`,
+  `getProgramResource*`) with honest default returns (no introspection). The GLES
+  backend wires real ES 3.0+ `glGetProgramResource*` via added `GLESLib` loader
+  symbols (resolved optionally so load() still succeeds on limited EGL stacks);
+  `GLESBackendProgram` forwards interface/name/index/property queries to the
+  driver. `gl_types.hpp` gained the interface enums, property enums, and
+  `GL_INVALID_INDEX`; `gles_loader.hpp`/`.cpp` gained the six loader symbols.
+- New `tests/unit/program_resource_test.cpp` (12 Mock validation + honest-not-found
+  cases) and `tests/backend/gles_e2e_program_resource_reflection` (real Mesa
+  reflection: index/location/name/property round-trip + not-found). The e2e test
+  skips cleanly when no driver is present.
+- Coverage now ~202/490 (41.2%) full / 202/435 (46.4%) core. §7 priority #8
+  reflection marked done; only subroutines (§7.9) / compute / shader binaries remain.
+- Validation: default 297/297 green; sanitizer 306/306 (lone failure = pre-existing
+  translator-absent `shader_translate_test` config quirk); the new e2e reflection
+  test passes under Mesa in the sanitizer build. GLES backend path verified.
+
 ## Next Steps

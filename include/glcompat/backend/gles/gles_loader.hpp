@@ -88,6 +88,13 @@ struct GLESLib {
     void (*glGetProgramiv)(GLuint, GLenum, GLint*) = nullptr;
     void (*glGetProgramInfoLog)(GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
     void (*glDeleteProgram)(GLuint) = nullptr;
+    // Program-interface reflection (SPEC §7.3.11, ES 3.0+). Resolved optionally.
+    void (*glGetProgramInterfaceiv)(GLuint, GLenum, GLenum, GLint*) = nullptr;
+    GLuint (*glGetProgramResourceIndex)(GLuint, GLenum, const GLchar*) = nullptr;
+    void (*glGetProgramResourceName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
+    void (*glGetProgramResourceiv)(GLuint, GLenum, GLuint, GLsizei, const GLenum*, GLsizei, GLsizei*, GLint*) = nullptr;
+    GLint (*glGetProgramResourceLocation)(GLuint, GLenum, const GLchar*) = nullptr;
+    GLint (*glGetProgramResourceLocationIndex)(GLuint, GLenum, const GLchar*) = nullptr;
 
     // Pipeline state (SPEC §10): pushed by GLStateSink when the frontend
     // flushes tracked state to the driver.

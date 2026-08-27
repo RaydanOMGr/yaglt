@@ -218,6 +218,58 @@ constexpr GLenum GL_ACTIVE_UNIFORM_BLOCKS = 0x8A36;
 constexpr GLenum GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = 0x8A35;
 constexpr GLenum GL_ACTIVE_ATOMIC_COUNTER_BUFFERS = 0x92D9;
 
+// Program-interface reflection (glGetProgramResource*, SPEC §7.3.11).
+constexpr GLuint GL_INVALID_INDEX = 0xFFFFFFFFu;
+// Valid `programInterface` values.
+constexpr GLenum GL_UNIFORM = 0x92E1;
+constexpr GLenum GL_UNIFORM_BLOCK = 0x92E2;
+constexpr GLenum GL_PROGRAM_INPUT = 0x92E3;
+constexpr GLenum GL_PROGRAM_OUTPUT = 0x92E4;
+constexpr GLenum GL_BUFFER_VARIABLE = 0x92E5;
+constexpr GLenum GL_SHADER_STORAGE_BLOCK = 0x92E6;
+constexpr GLenum GL_VERTEX_SUBROUTINE = 0x92E8;
+constexpr GLenum GL_TESS_CONTROL_SUBROUTINE = 0x92E9;
+constexpr GLenum GL_TESS_EVALUATION_SUBROUTINE = 0x92EA;
+constexpr GLenum GL_GEOMETRY_SUBROUTINE = 0x92EB;
+constexpr GLenum GL_FRAGMENT_SUBROUTINE = 0x92EC;
+constexpr GLenum GL_COMPUTE_SUBROUTINE = 0x92ED;
+constexpr GLenum GL_VERTEX_SUBROUTINE_UNIFORM = 0x92EE;
+constexpr GLenum GL_TESS_CONTROL_SUBROUTINE_UNIFORM = 0x92EF;
+constexpr GLenum GL_TESS_EVALUATION_SUBROUTINE_UNIFORM = 0x92F0;
+constexpr GLenum GL_GEOMETRY_SUBROUTINE_UNIFORM = 0x92F1;
+constexpr GLenum GL_FRAGMENT_SUBROUTINE_UNIFORM = 0x92F2;
+constexpr GLenum GL_COMPUTE_SUBROUTINE_UNIFORM = 0x92F3;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYING = 0x92F4;
+constexpr GLenum GL_ATOMIC_COUNTER_BUFFER = 0x92C0;
+// glGetProgramInterfaceiv pnames (used by the backend to size reflection).
+constexpr GLenum GL_ACTIVE_RESOURCES = 0x92F5;
+constexpr GLenum GL_MAX_NAME_LENGTH = 0x92F6;
+// Properties accepted by glGetProgramResourceiv.
+constexpr GLenum GL_NAME_LENGTH = 0x92F9;
+constexpr GLenum GL_TYPE = 0x92FA;
+constexpr GLenum GL_ARRAY_SIZE = 0x92FB;
+constexpr GLenum GL_OFFSET = 0x92FC;
+constexpr GLenum GL_BLOCK_INDEX = 0x92FD;
+constexpr GLenum GL_ARRAY_STRIDE = 0x92FE;
+constexpr GLenum GL_MATRIX_STRIDE = 0x92FF;
+constexpr GLenum GL_IS_ROW_MAJOR = 0x9300;
+constexpr GLenum GL_ATOMIC_COUNTER_BUFFER_INDEX = 0x9301;
+constexpr GLenum GL_BUFFER_BINDING = 0x9302;
+constexpr GLenum GL_BUFFER_DATA_SIZE = 0x9303;
+constexpr GLenum GL_NUM_ACTIVE_VARIABLES = 0x9304;
+constexpr GLenum GL_ACTIVE_VARIABLES = 0x9305;
+constexpr GLenum GL_REFERENCED_BY_VERTEX_SHADER = 0x9306;
+constexpr GLenum GL_REFERENCED_BY_TESS_CONTROL_SHADER = 0x9307;
+constexpr GLenum GL_REFERENCED_BY_TESS_EVALUATION_SHADER = 0x9308;
+constexpr GLenum GL_REFERENCED_BY_GEOMETRY_SHADER = 0x9309;
+constexpr GLenum GL_REFERENCED_BY_FRAGMENT_SHADER = 0x930A;
+constexpr GLenum GL_REFERENCED_BY_COMPUTE_SHADER = 0x930B;
+constexpr GLenum GL_TOP_LEVEL_ARRAY_SIZE = 0x930C;
+constexpr GLenum GL_TOP_LEVEL_ARRAY_STRIDE = 0x930D;
+constexpr GLenum GL_LOCATION = 0x930E;
+constexpr GLenum GL_LOCATION_COMPONENT = 0x934A;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_INDEX = 0x934B;
+
 // Vertex attribute types.
 constexpr GLenum GL_FLOAT = 0x1406;
 constexpr GLenum GL_FLOAT_VEC2 = 0x8B50;

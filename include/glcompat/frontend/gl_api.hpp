@@ -304,6 +304,17 @@ void glLinkProgram(GLuint program);
 GLint glGetProgramiv(GLuint program, GLenum pname);
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
                         GLchar* infoLog);
+GLuint glGetProgramResourceIndex(GLuint program, GLenum programInterface,
+                                const GLchar* name);
+void glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index,
+                              GLsizei bufSize, GLsizei* length, GLchar* name);
+void glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index,
+                            GLsizei propCount, const GLenum* props, GLsizei bufSize,
+                            GLsizei* length, GLint* params);
+GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
+                                   const GLchar* name);
+GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
+                                        const GLchar* name);
 void glDeleteProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 

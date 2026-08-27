@@ -527,6 +527,65 @@ struct GLESBackendProgram : BackendProgram {
         if (!lib || !lib->driverLive() || handle == 0) return -1;
         return static_cast<int>(lib->glGetUniformLocation(handle, name.c_str()));
     }
+    // Program-interface reflection (SPEC §7.3.11). These call into the
+    // ES 3.0+ driver entry points where resolved; otherwise they fall back to
+    // the honest BackendProgram defaults (name not found / -1 / 0).
+    uint32_t programResourceCount(uint32_t programInterface) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramInterfaceiv)
+            return 0;
+        GLint count = 0;
+        lib->glGetProgramInterfaceiv(handle, static_cast<GLenum>(programInterface),
+                                    GL_ACTIVE_RESOURCES, &count);
+        return static_cast<uint32_t>(count);
+    }
+    uint32_t getProgramResourceIndex(uint32_t programInterface,
+                                     const std::string& name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramResourceIndex)
+            return 0xFFFFFFFFu;  // GL_INVALID_INDEX
+        return lib->glGetProgramResourceIndex(
+            handle, static_cast<GLenum>(programInterface), name.c_str());
+    }
+    void getProgramResourceName(uint32_t programInterface, uint32_t index,
+                                int32_t bufSize, int32_t* length,
+                                char* name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramResourceName || bufSize <= 0 || name == nullptr)
+            return;
+        lib->glGetProgramResourceName(handle,
+                                      static_cast<GLenum>(programInterface),
+                                      index, bufSize, length, name);
+    }
+    void getProgramResourceiv(uint32_t programInterface, uint32_t index,
+                              int32_t propCount, const uint32_t* props,
+                              int32_t bufSize, int32_t* length,
+                              int32_t* params) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramResourceiv || propCount <= 0 || props == nullptr ||
+            bufSize <= 0 || params == nullptr)
+            return;
+        lib->glGetProgramResourceiv(handle, static_cast<GLenum>(programInterface),
+                                    index, propCount,
+                                    reinterpret_cast<const GLenum*>(props),
+                                    bufSize, length, params);
+    }
+    int32_t getProgramResourceLocation(uint32_t programInterface,
+                                       const std::string& name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramResourceLocation)
+            return -1;
+        return lib->glGetProgramResourceLocation(
+            handle, static_cast<GLenum>(programInterface), name.c_str());
+    }
+    int32_t getProgramResourceLocationIndex(uint32_t programInterface,
+                                            const std::string& name) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramResourceLocationIndex)
+            return -1;
+        return lib->glGetProgramResourceLocationIndex(
+            handle, static_cast<GLenum>(programInterface), name.c_str());
+    }
     void uniform1f(int loc, float v0) override {
         if (loc < 0 || !lib || !lib->loaded || handle == 0) return;
         bind();

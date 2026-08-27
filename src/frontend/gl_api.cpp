@@ -909,6 +909,43 @@ void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
                                 infoLog);
 }
 
+GLuint glGetProgramResourceIndex(GLuint program, GLenum programInterface,
+                                 const GLchar* name) {
+    if (g_current == nullptr) return GL_INVALID_INDEX;
+    return g_current->getProgramResourceIndex(program, programInterface,
+                                             name ? name : "");
+}
+
+void glGetProgramResourceName(GLuint program, GLenum programInterface, GLuint index,
+                              GLsizei bufSize, GLsizei* length, GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getProgramResourceName(program, programInterface, index, bufSize,
+                                     length, name);
+}
+
+void glGetProgramResourceiv(GLuint program, GLenum programInterface, GLuint index,
+                            GLsizei propCount, const GLenum* props, GLsizei bufSize,
+                            GLsizei* length, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getProgramResourceiv(program, programInterface, index, propCount,
+                                    reinterpret_cast<const uint32_t*>(props),
+                                    bufSize, length, params);
+}
+
+GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
+                                   const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getProgramResourceLocation(program, programInterface,
+                                                name ? name : "");
+}
+
+GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
+                                        const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getProgramResourceLocationIndex(program, programInterface,
+                                                     name ? name : "");
+}
+
 void glDeleteProgram(GLuint program) {
     if (g_current == nullptr) return;
     g_current->deleteProgram(program);

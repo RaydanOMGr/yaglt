@@ -2753,6 +2753,189 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
     }
 }
 
+namespace {
+
+bool isValidProgramInterface(uint32_t iface) {
+    switch (iface) {
+    case GL_UNIFORM:
+    case GL_UNIFORM_BLOCK:
+    case GL_ATOMIC_COUNTER_BUFFER:
+    case GL_PROGRAM_INPUT:
+    case GL_PROGRAM_OUTPUT:
+    case GL_TRANSFORM_FEEDBACK_VARYING:
+    case GL_BUFFER_VARIABLE:
+    case GL_SHADER_STORAGE_BLOCK:
+    case GL_VERTEX_SUBROUTINE:
+    case GL_TESS_CONTROL_SUBROUTINE:
+    case GL_TESS_EVALUATION_SUBROUTINE:
+    case GL_GEOMETRY_SUBROUTINE:
+    case GL_FRAGMENT_SUBROUTINE:
+    case GL_COMPUTE_SUBROUTINE:
+    case GL_VERTEX_SUBROUTINE_UNIFORM:
+    case GL_TESS_CONTROL_SUBROUTINE_UNIFORM:
+    case GL_TESS_EVALUATION_SUBROUTINE_UNIFORM:
+    case GL_GEOMETRY_SUBROUTINE_UNIFORM:
+    case GL_FRAGMENT_SUBROUTINE_UNIFORM:
+    case GL_COMPUTE_SUBROUTINE_UNIFORM:
+        return true;
+    default:
+        return false;
+    }
+}
+
+bool isKnownProgramResourceProperty(uint32_t prop) {
+    switch (prop) {
+    case GL_NAME_LENGTH:
+    case GL_TYPE:
+    case GL_ARRAY_SIZE:
+    case GL_OFFSET:
+    case GL_BLOCK_INDEX:
+    case GL_ARRAY_STRIDE:
+    case GL_MATRIX_STRIDE:
+    case GL_IS_ROW_MAJOR:
+    case GL_ATOMIC_COUNTER_BUFFER_INDEX:
+    case GL_BUFFER_BINDING:
+    case GL_BUFFER_DATA_SIZE:
+    case GL_NUM_ACTIVE_VARIABLES:
+    case GL_ACTIVE_VARIABLES:
+    case GL_REFERENCED_BY_VERTEX_SHADER:
+    case GL_REFERENCED_BY_TESS_CONTROL_SHADER:
+    case GL_REFERENCED_BY_TESS_EVALUATION_SHADER:
+    case GL_REFERENCED_BY_GEOMETRY_SHADER:
+    case GL_REFERENCED_BY_FRAGMENT_SHADER:
+    case GL_REFERENCED_BY_COMPUTE_SHADER:
+    case GL_TOP_LEVEL_ARRAY_SIZE:
+    case GL_TOP_LEVEL_ARRAY_STRIDE:
+    case GL_LOCATION:
+    case GL_LOCATION_COMPONENT:
+    case GL_TRANSFORM_FEEDBACK_BUFFER_INDEX:
+        return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
+
+uint32_t Context::getProgramResourceIndex(GLObjectName program,
+                                          uint32_t programInterface,
+                                          const std::string& name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return GL_INVALID_INDEX;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return GL_INVALID_INDEX;
+    }
+    return p->backend->getProgramResourceIndex(programInterface, name);
+}
+
+void Context::getProgramResourceName(GLObjectName program, uint32_t programInterface,
+                                     uint32_t index, int32_t bufSize, int32_t* length,
+                                     char* name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t count = p->backend->programResourceCount(programInterface);
+    if (index >= count) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (name == nullptr || bufSize == 0) {
+        if (length) *length = 0;
+        return;
+    }
+    p->backend->getProgramResourceName(programInterface, index, bufSize, length, name);
+}
+
+void Context::getProgramResourceiv(GLObjectName program, uint32_t programInterface,
+                                   uint32_t index, int32_t propCount,
+                                   const uint32_t* props, int32_t bufSize,
+                                   int32_t* length, int32_t* params) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (propCount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (propCount > 0) {
+        if (props == nullptr || params == nullptr) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        for (int32_t i = 0; i < propCount; ++i) {
+            if (!isKnownProgramResourceProperty(props[i])) {
+                setError(GLError::InvalidEnum);
+                return;
+            }
+        }
+    }
+    if (propCount > 0 && bufSize < propCount) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t count = p->backend->programResourceCount(programInterface);
+    if (index >= count) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (propCount == 0) {
+        if (length) *length = 0;
+        return;
+    }
+    p->backend->getProgramResourceiv(programInterface, index, propCount, props,
+                                    bufSize, length, params);
+}
+
+int32_t Context::getProgramResourceLocation(GLObjectName program,
+                                            uint32_t programInterface,
+                                            const std::string& name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return -1;
+    }
+    return p->backend->getProgramResourceLocation(programInterface, name);
+}
+
+int32_t Context::getProgramResourceLocationIndex(GLObjectName program,
+                                                 uint32_t programInterface,
+                                                 const std::string& name) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return -1;
+    }
+    return p->backend->getProgramResourceLocationIndex(programInterface, name);
+}
+
 void Context::getIntegerv(uint32_t pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);

@@ -35,8 +35,8 @@ signal.
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 490 | 197 | **40.2%** |
-| Core profile only (spec − 55 removed commands) | 435 | 197 | **45.3%** |
+| Full spec (compat + core) | 490 | 202 | **41.2%** |
+| Core profile only (spec − 55 removed commands) | 435 | 202 | **46.4%** |
 
 > Note: this document is a proxy/optimistic count and lags the journal
 > (`docs/agent-progress.md`). Several post-snapshot additions (buffer-object
@@ -44,7 +44,7 @@ signal.
 > mask, sample coverage, primitive restart) are already implemented but not yet
 > folded into the per-area table below. Regenerate for an exact tally.
 
-All 197 covered commands are real `gl_api` entry points with frontend semantics
+All 202 covered commands are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). None of the 55
 compatibility-only removed commands are implemented (correct — they are
 out of scope per `docs/feature-matrix.md`).
@@ -160,9 +160,12 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
     client array legacy. (§10)
 7. **Compute / geometry / tessellation** — currently honestly Unsupported;
    requires the emulation roadmap in `docs/feature-matrix.md`. (§7/§13)
-8. **Program pipelines & subroutines** — `glBindProgramPipeline`,
-   `glActiveShaderProgram` implemented (SPEC §7.4). Remaining: `glGetProgramResource*`
-   program-interface reflection, and **subroutines** (§7.9). (§7.4)
+ 8. **Program pipelines & subroutines** — `glBindProgramPipeline`,
+    `glActiveShaderProgram` implemented (SPEC §7.4). `glGetProgramResource*`
+    program-interface reflection (§7.3.11) implemented: `glGetProgramResourceIndex`/
+    `Name`/`iv`/`Location`/`LocationIndex` with frontend validation and GLES
+    backend forwarding to the ES 3.0+ driver entry points. Remaining: **subroutines**
+    (§7.9), `BindAttribLocation`, compute shaders, shader binaries. (§7.4)
  9. ~~**Rasterization controls**~~ ✅ done — `PolygonMode`, `SampleMaski`, `MinSampleShading`, polygon offset, `PointSize`, `LineWidth`, multisample raster state all implemented (§11).
 10. **Specific `glGet*` coverage** — buffer/texture/internalformat/named-object
     parameter queries, program-interface reflection (`glGetActiveUniform`,
