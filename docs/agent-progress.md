@@ -1514,11 +1514,18 @@ crashed agent, this session)
   `getInteger` caps switch returns it; backend already forwards any cap to native
   `glEnable/glDisable`. `tests/unit/dither_test.cpp` (2 cases: default-enabled +
   push-only-on-change). Updated `getstate_test.cpp` (DITHER now valid, returns
-  true). Default 401/401, sanitizer 411/411 (+1 pre-existing unrelated
-  `shader_translate_test.cpp:53` quirk). Coverage §17 row updated (dither done).
+   true). Default 401/401, sanitizer 411/411 (+1 pre-existing unrelated
+   `shader_translate_test.cpp:53` quirk). Coverage §17 row updated (dither done).
+- GL_FRAMEBUFFER_SRGB + GL_SAMPLE_ALPHA_TO_COVERAGE (SPEC §15.1.1 / §15.3.1), commit
+  `8e3b7c4`: both added as tracked capabilities (off by default), constants in
+  gl_types.hpp, caps switch + getInteger case in gl_state.cpp; backend already
+  forwards any cap to native glEnable/glDisable. `tests/unit/srgb_alpha_coverage_test.cpp`
+  (2 cases: default-off + push-only-on-change). Default 403/403, sanitizer 413/413
+  (+1 pre-existing unrelated `shader_translate_test.cpp:53` quirk). Coverage §15/§16
+  row updated (sRGB/alpha-to-coverage done; glClampColor already done — stale note removed).
 
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.
 - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
-- §15/§16: sRGB / alpha-to-coverage, `glClampColor`.
+- §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
 - §10: indirect draw.
