@@ -206,6 +206,9 @@ bool GLESLib::load() {
     resolve(gles, glMultiDrawElements, "glMultiDrawElements");
     resolve(gles, glDrawRangeElements, "glDrawRangeElements");
     resolve(gles, glDrawElementsBaseVertex, "glDrawElementsBaseVertex");
+    // Indirect draw (SPEC §10, ES 3.1+); resolved optionally.
+    resolve(gles, glDrawArraysIndirect, "glDrawArraysIndirect");
+    resolve(gles, glDrawElementsIndirect, "glDrawElementsIndirect");
 
     // Transform feedback (ES 3.0+); resolved optionally.
     resolve(gles, glGenTransformFeedbacks, "glGenTransformFeedbacks");

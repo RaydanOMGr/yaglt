@@ -1715,12 +1715,22 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
                                 reinterpret_cast<intptr_t>(indices));
 }
 
-void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
-                             const GLvoid* indices, GLint basevertex) {
-    if (g_current == nullptr) return;
-    g_current->drawElementsBaseVertex(mode, count, type,
-                                     reinterpret_cast<intptr_t>(indices),
-                                     basevertex);
-}
+ void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                              const GLvoid* indices, GLint basevertex) {
+     if (g_current == nullptr) return;
+     g_current->drawElementsBaseVertex(mode, count, type,
+                                      reinterpret_cast<intptr_t>(indices),
+                                      basevertex);
+ }
 
-} // namespace glcompat
+ void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect) {
+     if (g_current == nullptr) return;
+     g_current->drawArraysIndirect(mode, indirect);
+ }
+
+ void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
+     if (g_current == nullptr) return;
+     g_current->drawElementsIndirect(mode, type, indirect);
+ }
+
+ } // namespace glcompat

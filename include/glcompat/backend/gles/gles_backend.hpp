@@ -146,6 +146,10 @@ public:
                           int32_t count, uint32_t type, intptr_t indices) override;
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
                                intptr_t indices, int32_t basevertex) override;
+    // Indirect draw (SPEC §10, ES 3.1+; forwarded when the driver supports it).
+    void drawArraysIndirect(uint32_t mode, const void* indirect) override;
+    void drawElementsIndirect(uint32_t mode, uint32_t type,
+                              const void* indirect) override;
 
     // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
     // clear color/depth through GLStateSink first, so this issues the native

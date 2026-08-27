@@ -16,6 +16,7 @@ add_executable(yaglt_tests
     unit/bind_attrib_location_test.cpp
     unit/provoking_vertex_test.cpp
     unit/clamp_color_test.cpp
+    unit/indirect_draw_test.cpp
     unit/texture_fbo_test.cpp
     unit/texture_unit_test.cpp
     unit/dsa_texture_test.cpp

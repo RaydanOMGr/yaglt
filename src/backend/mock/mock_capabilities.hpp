@@ -35,7 +35,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::ShaderStorageBufferObjects, S::Native);
     table.set(F::TransformFeedback, S::Native);
     table.set(F::ImageLoadStore, S::Unsupported);
-    table.set(F::IndirectDrawing, S::Unsupported);
+    table.set(F::IndirectDrawing, S::Native);
     table.set(F::ProgramPipelines, S::Emulated);
     table.set(F::DirectStateAccess, S::Emulated);
     table.set(F::SamplerObjects, S::Native);

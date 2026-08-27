@@ -34,7 +34,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | ShaderStorageBufferObjects | Native | (planned) |
 | TransformFeedback | Native | (planned) |
 | ImageLoadStore | Unsupported | — |
-| IndirectDrawing | Unsupported | — |
+| IndirectDrawing | Native | `glDrawArraysIndirect`/`glDrawElementsIndirect` (SPEC §10). Frontend validates `IndirectDrawing`, an active program, and a `GL_DRAW_INDIRECT_BUFFER` bound. Native on GLES 3.1+ (forwarded via `GLESLib`); the mock profile marks it Native and records the call. |
 | ProgramPipelines | Emulated | Frontend pipeline objects + `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog`. The bound pipeline is forwarded to the backend via `GLStateSink::bindProgramPipeline`; GLES consumes it only where separable programs exist (ES 3.1-class / `GL_EXT_separate_shader_objects`), else `Unsupported` honestly. Per-stage draw consumption requires backend separable-program wiring (not yet modeled). |
 | DirectStateAccess | Emulated | `Context::bindTextureUnit`/`bindTextures` (SPEC §2.1) |
 | SamplerObjects | Native | `MockResourceFactory::createSampler` |

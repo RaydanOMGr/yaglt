@@ -510,6 +510,24 @@ public:
         lastDrawBasevertex = basevertex;
     }
 
+    // Indirect draw (SPEC §10). Recorded so tests can assert the call is issued
+    // (the mock has no driver; the frontend validates the indirect buffer / program).
+    int drawArraysIndirectCalls = 0;
+    int drawElementsIndirectCalls = 0;
+    const void* lastIndirect = nullptr;
+    void drawArraysIndirect(uint32_t mode, const void* indirect) override {
+        ++drawArraysIndirectCalls;
+        lastDrawMode = mode;
+        lastIndirect = indirect;
+    }
+    void drawElementsIndirect(uint32_t mode, uint32_t type,
+                             const void* indirect) override {
+        ++drawElementsIndirectCalls;
+        lastDrawMode = mode;
+        lastDrawType = type;
+        lastIndirect = indirect;
+    }
+
     void clear(uint32_t mask) override {
         ++clearCalls;
         lastClearMask = mask;

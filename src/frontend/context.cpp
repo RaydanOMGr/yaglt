@@ -3472,19 +3472,54 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
     backend_.drawRangeElements(mode, start, end, count, type, indices);
 }
 
-void Context::drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
-                                     intptr_t indices, int32_t basevertex) {
-    if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
-    if (state_.activeProgram() == 0) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
-    flushState();
-    backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
-}
+ void Context::drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                      intptr_t indices, int32_t basevertex) {
+     if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     if (state_.activeProgram() == 0) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     flushState();
+     backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
+ }
+
+ void Context::drawArraysIndirect(uint32_t mode, const void* offset) {
+     if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     if (state_.activeProgram() == 0) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     flushState();
+     backend_.drawArraysIndirect(mode, offset);
+ }
+
+ void Context::drawElementsIndirect(uint32_t mode, uint32_t type,
+                                    const void* offset) {
+     if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     if (state_.activeProgram() == 0) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+         setError(GLError::InvalidOperation);
+         return;
+     }
+     flushState();
+     backend_.drawElementsIndirect(mode, type, offset);
+ }
 
 // --- Shaders / programs (SPEC §8) ---
 

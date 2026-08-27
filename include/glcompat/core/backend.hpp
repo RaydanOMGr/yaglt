@@ -70,8 +70,16 @@ public:
                                    int32_t count, uint32_t type,
                                    intptr_t indices) = 0;
     virtual void drawElementsBaseVertex(uint32_t mode, int32_t count,
-                                        uint32_t type, intptr_t indices,
-                                        int32_t basevertex) = 0;
+                                         uint32_t type, intptr_t indices,
+                                         int32_t basevertex) = 0;
+    // Indirect draw (SPEC §10). The frontend validates that an indirect buffer is
+    // bound to GL_DRAW_INDIRECT_BUFFER and that a program is active before calling
+    // these. `indirect` is the offset into that bound buffer (the frontend marshals
+    // it as a client-side pointer for backends that read CPU-side; the GLES backend
+    // forwards the offset to the driver, which reads from the bound indirect buffer).
+    virtual void drawArraysIndirect(uint32_t mode, const void* indirect) = 0;
+    virtual void drawElementsIndirect(uint32_t mode, uint32_t type,
+                                      const void* indirect) = 0;
 
     // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
     // clear color/depth values through GLStateSink before calling this, so the

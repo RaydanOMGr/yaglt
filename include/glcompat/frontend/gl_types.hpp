@@ -241,6 +241,10 @@ constexpr GLenum GL_FALSE = 0;
 constexpr GLenum GL_CLAMP_READ_COLOR = 0x891C;
 constexpr GLenum GL_FIXED_ONLY = 0x891D;
 
+// Indirect draw (glDrawArraysIndirect / glDrawElementsIndirect, SPEC §10).
+constexpr GLenum GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
+constexpr GLenum GL_DRAW_INDIRECT_BUFFER_BINDING = 0x8F43;
+
 // Shader stages.
 constexpr GLenum GL_VERTEX_SHADER = 0x8B31;
 constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30;

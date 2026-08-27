@@ -172,8 +172,10 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
     `InvalidateFramebuffer`, `glLogicOp` now implemented (SPEC §15/§16/§17.3.4). Remaining: `BlitNamedFramebuffer`, sRGB/alpha-to-coverage, `glClampColor`. (§15/§16/§17)
  6. **Draw expansion** — primitive restart (done), `MultiDraw*` (done),
     `DrawRangeElements` (done), `DrawElementsBaseVertex` (done, ES 3.2),
-    vertex attrib divisor (done). Remaining: indirect draw, other `VertexAttrib*`,
-    client array legacy. (§10)
+    vertex attrib divisor (done). Indirect draw (`glDrawArraysIndirect` /
+    `glDrawElementsIndirect`, SPEC §10) now implemented (validates
+    `IndirectDrawing`, active program, and a `GL_DRAW_INDIRECT_BUFFER` bound).
+    Remaining: other `VertexAttrib*`, client array legacy. (§10)
 7. **Compute / geometry / tessellation** — currently honestly Unsupported;
    requires the emulation roadmap in `docs/feature-matrix.md`. (§7/§13)
  8. **Program pipelines & subroutines** — `glBindProgramPipeline`,

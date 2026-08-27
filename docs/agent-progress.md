@@ -7,7 +7,7 @@ milestones, architectural decisions, and before ending a session.
 
 Current milestone: Phase 3 — Core rendering state (viewport/scissor/depth-range/clear) + draw
 Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear)
-Last updated: 2026-08-26
+Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
@@ -928,6 +928,25 @@ crashed agent, this session)
     fine.
 
 ## Recent Work
+
+2026-08-28 (indirect draw, `glDrawArraysIndirect` / `glDrawElementsIndirect`, this session)
+- Implemented indirect draw (SPEC §10), closing the `§10: indirect draw` draw-
+  expansion gap. `Context::drawArraysIndirect` / `drawElementsIndirect` validate
+  `Feature::IndirectDrawing` (else `GL_INVALID_OPERATION`), an active program
+  (else `GL_INVALID_OPERATION`, consistent with the direct draws), and a buffer
+  bound to `GL_DRAW_INDIRECT_BUFFER` (else `GL_INVALID_OPERATION`). `offset` is
+  the byte offset into that bound buffer; the frontend flushes tracked state then
+  issues the native indirect draw. `IGraphicsBackend` gained `drawArraysIndirect` /
+  `drawElementsIndirect` pure virtuals; `MockBackend` records mode/type/offset;
+  `GLESBackend` forwards to `glDrawArraysIndirect` / `glDrawElementsIndirect`
+  (resolved as optional `GLESLib` symbols, ES 3.1+). `GL_DRAW_INDIRECT_BUFFER` /
+  `GL_DRAW_INDIRECT_BUFFER_BINDING` added to `gl_types.hpp`; `Context`/`gl_api`
+  expose the entry points. `Feature::IndirectDrawing` is now `Native` in the mock
+  profile (the mock records the call without a driver, like instanced/multi-draw).
+- New `tests/unit/indirect_draw_test.cpp` (3 cases: requires program + indirect
+  buffer → `GL_INVALID_OPERATION` otherwise, mode/type/offset recording, buffer
+  unbind blocks the draw). Default + sanitizer suites green.
+- Coverage now 216/490 (44.1%) full / 216/435 (49.7%) core (+2 prototypes).
 
 2026-08-28 (color clamping, `glClampColor`, this session)
 - Implemented `glClampColor` (SPEC §15.2.3), closing the `§15/§16: glClampColor`

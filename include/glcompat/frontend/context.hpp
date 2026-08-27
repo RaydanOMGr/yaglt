@@ -754,7 +754,15 @@ public:
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                            int32_t count, uint32_t type, intptr_t indices);
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
-                                intptr_t indices, int32_t basevertex);
+                                 intptr_t indices, int32_t basevertex);
+    // Indirect draw (SPEC §10). Requires Feature::IndirectDrawing (else
+    // GL_INVALID_OPERATION), an active program (else GL_INVALID_OPERATION), and a
+    // buffer bound to GL_DRAW_INDIRECT_BUFFER (else GL_INVALID_OPERATION). `offset`
+    // is the byte offset into that bound buffer; the frontend flushes tracked state
+    // then issues the native indirect draw.
+    void drawArraysIndirect(uint32_t mode, const void* offset);
+    void drawElementsIndirect(uint32_t mode, uint32_t type, const void* offset);
+
 
     // --- Uniforms (SPEC §8) ---
     // Query a uniform location for an explicit program. Setting uniforms operates

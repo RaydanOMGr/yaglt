@@ -263,6 +263,11 @@ struct GLESLib {
                                 const void*) = nullptr;
     void (*glDrawElementsBaseVertex)(GLenum, GLsizei, GLenum, const void*,
                                      GLint) = nullptr;
+    // Indirect draw (SPEC §10, ES 3.1+). Resolved optionally so load() still
+    // succeeds on a driver that lacks them (the capability system reports
+    // IndirectDrawing unsupported instead of failing the whole backend init).
+    void (*glDrawArraysIndirect)(GLenum, const void*) = nullptr;
+    void (*glDrawElementsIndirect)(GLenum, GLenum, const void*) = nullptr;
 
     // Vertex attributes (SPEC §2.1).
     GLint (*glGetAttribLocation)(GLuint, const GLchar*) = nullptr;

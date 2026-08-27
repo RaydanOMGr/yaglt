@@ -484,14 +484,26 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                  reinterpret_cast<const void*>(indices));
 }
 
-void GLESBackend::drawElementsBaseVertex(uint32_t mode, int32_t count,
-                                         uint32_t type, intptr_t indices,
-                                         int32_t basevertex) {
-    if (lib_->glDrawElementsBaseVertex)
-        lib_->glDrawElementsBaseVertex(mode, count, type,
-                                      reinterpret_cast<const void*>(indices),
-                                      static_cast<GLint>(basevertex));
-}
+ void GLESBackend::drawElementsBaseVertex(uint32_t mode, int32_t count,
+                                          uint32_t type, intptr_t indices,
+                                          int32_t basevertex) {
+     if (lib_->glDrawElementsBaseVertex)
+         lib_->glDrawElementsBaseVertex(mode, count, type,
+                                       reinterpret_cast<const void*>(indices),
+                                       static_cast<GLint>(basevertex));
+ }
+ 
+ void GLESBackend::drawArraysIndirect(uint32_t mode, const void* indirect) {
+     if (lib_->glDrawArraysIndirect)
+         lib_->glDrawArraysIndirect(mode, indirect);
+ }
+ 
+ void GLESBackend::drawElementsIndirect(uint32_t mode, uint32_t type,
+                                        const void* indirect) {
+     if (lib_->glDrawElementsIndirect)
+         lib_->glDrawElementsIndirect(mode, type, indirect);
+ }
+
 
 void GLESBackend::clear(uint32_t mask) {
     if (lib_->glClear) lib_->glClear(mask);
