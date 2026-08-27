@@ -14,6 +14,7 @@ add_executable(yaglt_tests
     unit/draw_expansion_test.cpp
     unit/shader_program_test.cpp
     unit/bind_attrib_location_test.cpp
+    unit/provoking_vertex_test.cpp
     unit/texture_fbo_test.cpp
     unit/texture_unit_test.cpp
     unit/dsa_texture_test.cpp

@@ -382,6 +382,7 @@ void GLESBackend::polygonOffset(float factor, float units) {
 void GLESBackend::polygonMode(uint32_t, uint32_t) {}
 void GLESBackend::sampleMaski(uint32_t, uint32_t) {}
 void GLESBackend::minSampleShading(float) {}
+void GLESBackend::provokingVertex(uint32_t) {}
 
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);

@@ -438,6 +438,10 @@ public:
     void polygonMode(GLenum face, GLenum mode);
     void sampleMaski(uint32_t maskNumber, uint32_t mask);
     void minSampleShading(float value);
+    // Provoking vertex convention (SPEC §11, glProvokingVertex). `mode` must be
+    // GL_FIRST_VERTEX_CONVENTION or GL_LAST_VERTEX_CONVENTION (default LAST),
+    // else GL_INVALID_ENUM. Recorded in the tracker and pushed on change (SPEC §10).
+    void provokingVertex(GLenum mode);
 
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the

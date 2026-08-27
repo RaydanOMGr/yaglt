@@ -4983,6 +4983,14 @@ void Context::minSampleShading(float value) {
     state_.setMinSampleShading(value);
 }
 
+void Context::provokingVertex(GLenum mode) {
+    if (mode != GL_FIRST_VERTEX_CONVENTION && mode != GL_LAST_VERTEX_CONVENTION) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setProvokingVertex(mode);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,

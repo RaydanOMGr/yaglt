@@ -497,6 +497,9 @@ void glPolygonMode(GLenum face, GLenum mode);
 // GL_INVALID_VALUE).
 void glSampleMaski(GLuint maskNumber, GLuint mask);
 void glMinSampleShading(GLfloat value);
+// Provoking vertex convention (SPEC §11, glProvokingVertex). `mode` must be
+// GL_FIRST_VERTEX_CONVENTION or GL_LAST_VERTEX_CONVENTION (else GL_INVALID_ENUM).
+void glProvokingVertex(GLenum mode);
 
 // Stencil test state (SPEC §17.3.3). These set the front and back stencil state
 // to identical values. Pushed to the backend via glFlushState() at draw/flush

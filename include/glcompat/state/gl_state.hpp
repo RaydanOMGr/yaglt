@@ -104,6 +104,13 @@ public:
     bool setSampleMaski(GLuint maskNumber, GLuint mask);
     bool setMinSampleShading(float value);
 
+    // --- Provoking vertex (SPEC §11, glProvokingVertex) ---
+    // `mode` is GL_FIRST_VERTEX_CONVENTION / GL_LAST_VERTEX_CONVENTION (default
+    // LAST). Pushed to the backend only when the mode changes (SPEC §10). The
+    // caller rejects an invalid mode with GL_INVALID_ENUM.
+    bool setProvokingVertex(GLenum mode);
+    GLenum provokingVertex() const { return provokingVertex_.mode; }
+
     // --- Pixel store ---
     bool setPixelStorei(GLenum pname, GLint param);
 
@@ -345,6 +352,12 @@ private:
                    minSampleShading == o.minSampleShading;
         }
     };
+    // Provoking vertex convention (SPEC §11, glProvokingVertex). One of
+    // GL_FIRST_VERTEX_CONVENTION / GL_LAST_VERTEX_CONVENTION.
+    struct ProvokingVertexState {
+        GLenum mode = 0x8E4E; // GL_LAST_VERTEX_CONVENTION (GL default)
+        bool equal(const ProvokingVertexState& o) const { return mode == o.mode; }
+    };
 
     struct TextureUnitState {
         std::unordered_map<GLenum, GLObjectName> bound; // target -> name
@@ -393,6 +406,7 @@ private:
     PrimitiveRestartState primitiveRestart_, primitiveRestartApplied_;
     PolygonModeState polygonMode_, polygonModeApplied_;
     MultisampleRasterState multisampleRaster_, multisampleRasterApplied_;
+    ProvokingVertexState provokingVertex_, provokingVertexApplied_;
 };
 
 } // namespace glcompat

@@ -1406,8 +1406,26 @@ crashed agent, this session)
 - Validation: default 373/373 green (369 → 373, +4 cases). Coverage: §7 Programs row
   updated (BindAttribLocation removed from missing).
 
+2026-08-27 (glProvokingVertex — SPEC §11, this session)
+- Implemented `glProvokingVertex` (first/last vertex convention). `GLStateSink` gained
+  a `provokingVertex(mode)` pure virtual; `GLStateTracker` gained `setProvokingVertex`
+  (mode ∈ {GL_FIRST_VERTEX_CONVENTION, GL_LAST_VERTEX_CONVENTION}; default LAST) +
+  `ProvokingVertexState`, pushed via `apply()` only when the mode changes (SPEC §10),
+  and a `GL_PROVOKING_VERTEX` `glGetIntegerv` query. `Context::provokingVertex` rejects
+  an invalid mode with `GL_INVALID_ENUM`. `gl_api` exposes `glProvokingVertex`; constants
+  added to `gl_types.hpp`. Both backends implement the sink (Mock records; GLES no-ops,
+  like polygonMode — GLES has no native provoking-vertex entry in YAGLT's loader).
+- New `tests/unit/provoking_vertex_test.cpp` (3 cases): invalid-mode error, push-only-on-
+  change (default LAST pushes nothing, FIRST/LAST each push once), and `glGetIntegerv`
+  round-trip. Registered in `tests/CMakeLists.txt`. Also added the new sink override to the
+  `RecordingSink`/`UnitRecordingSink` stubs in `state_test.cpp`/`dsa_texture_test.cpp`/
+  `texture_unit_test.cpp`.
+- Validation: default 376/376 green (373 → 376, +3 cases); sanitizer 386/386 total with the
+  single pre-existing unrelated `shader_translate_test.cpp:53` 1D quirk. Coverage §11 row
+  updated (provoking vertex done).
+
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.
 - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
-- §11: `glProvokingVertex`. §15/§16: sRGB / alpha-to-coverage, `glClampColor`.
+- §15/§16: sRGB / alpha-to-coverage, `glClampColor`.
 - §10: indirect draw.

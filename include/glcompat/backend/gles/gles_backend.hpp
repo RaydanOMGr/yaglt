@@ -77,6 +77,7 @@ public:
     void polygonMode(uint32_t front, uint32_t back) override;
     void sampleMaski(uint32_t maskNumber, uint32_t mask) override;
     void minSampleShading(float value) override;
+    void provokingVertex(uint32_t mode) override;
     void pixelStorei(uint32_t pname, int32_t param) override;
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override;
     void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override;

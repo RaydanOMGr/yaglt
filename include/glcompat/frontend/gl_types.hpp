@@ -488,6 +488,10 @@ constexpr GLenum GL_CULL_FACE_MODE = 0x0B45;
 constexpr GLenum GL_FRONT_FACE = 0x0B46;
 constexpr GLenum GL_CW = 0x0900;
 constexpr GLenum GL_CCW = 0x0901;
+// Provoking vertex convention (SPEC §11, glProvokingVertex / glGet GL_PROVOKING_VERTEX).
+constexpr GLenum GL_FIRST_VERTEX_CONVENTION = 0x8E4D;
+constexpr GLenum GL_LAST_VERTEX_CONVENTION = 0x8E4E;
+constexpr GLenum GL_PROVOKING_VERTEX = 0x8E4F;
 constexpr GLenum GL_POINT_SIZE = 0x0B11;
 constexpr GLenum GL_LINE_WIDTH = 0x0B21;
 constexpr GLenum GL_POLYGON_OFFSET_FACTOR = 0x8038;

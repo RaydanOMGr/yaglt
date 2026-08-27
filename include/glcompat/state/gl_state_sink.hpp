@@ -68,6 +68,11 @@ public:
     virtual void sampleMaski(uint32_t maskNumber, uint32_t mask) = 0;
     virtual void minSampleShading(float value) = 0;
 
+    // Provoking vertex convention (SPEC §11, glProvokingVertex). `mode` is
+    // GL_FIRST_VERTEX_CONVENTION / GL_LAST_VERTEX_CONVENTION. GLES has no
+    // equivalent and records it without applying it.
+    virtual void provokingVertex(uint32_t mode) = 0;
+
     // Texture units (SPEC §2.1). `activeTexture` selects the unit (unit =
     // GL_TEXTURE0 + i); `bindTexture` binds `texture` (frontend object name) to
     // `target` on the currently selected unit. The backend converts the frontend

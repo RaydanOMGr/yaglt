@@ -221,6 +221,12 @@ bool GLStateTracker::setMinSampleShading(float value) {
     return true;
 }
 
+bool GLStateTracker::setProvokingVertex(GLenum mode) {
+    if (provokingVertex_.mode == mode) return false;
+    provokingVertex_.mode = mode;
+    return true;
+}
+
 bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
     if (pname == 0x0CF5 /* GL_UNPACK_ALIGNMENT */ &&
         pixel_.unpackAlignment == param)
@@ -581,6 +587,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!provokingVertex_.equal(provokingVertexApplied_)) {
+        sink.provokingVertex(provokingVertex_.mode);
+        provokingVertexApplied_ = provokingVertex_;
+        ++applied;
+    }
+
     if (textureUnitsDirty_) {
         // Ensure the driver's active unit matches the frontend's active unit.
         if (activeTextureApplied_ != activeTextureUnit_) {
@@ -699,6 +711,8 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(logicOp_.mode); return 1;
     case 0x8F9E: // GL_PRIMITIVE_RESTART_INDEX
         out[0] = static_cast<GLint>(primitiveRestart_.index); return 1;
+    case GL_PROVOKING_VERTEX:
+        out[0] = static_cast<GLint>(provokingVertex_.mode); return 1;
     case GL_COLOR_WRITEMASK:
         out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
         out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
@@ -873,6 +887,8 @@ void GLStateTracker::reset() {
     polygonModeApplied_ = PolygonModeState{};
     multisampleRaster_ = MultisampleRasterState{};
     multisampleRasterApplied_ = MultisampleRasterState{};
+    provokingVertex_ = ProvokingVertexState{};
+    provokingVertexApplied_ = ProvokingVertexState{};
     primitiveRestart_ = PrimitiveRestartState{};
     primitiveRestartApplied_ = PrimitiveRestartState{};
     texUnits_.assign(kMaxTextureUnits, TextureUnitState{});

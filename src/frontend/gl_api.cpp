@@ -1505,6 +1505,11 @@ void glMinSampleShading(GLfloat value) {
     g_current->minSampleShading(static_cast<float>(value));
 }
 
+void glProvokingVertex(GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->provokingVertex(mode);
+}
+
 void glStencilFunc(GLenum func, GLint ref, GLuint mask) {
     if (g_current == nullptr) return;
     g_current->state().setStencilFunc(func, ref, mask);

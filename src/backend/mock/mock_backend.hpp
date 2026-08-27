@@ -141,6 +141,8 @@ public:
     uint32_t lastSampleMask = 0;
     int minSampleShadingCalls = 0;
     float lastMinSampleShading = 0.0f;
+    int provokingVertexCalls = 0;
+    uint32_t lastProvokingVertexMode = 0x8E4E; // GL_LAST_VERTEX_CONVENTION
     int pixelStoreiCalls = 0;
 
     int viewportCalls = 0;
@@ -256,6 +258,10 @@ public:
     void minSampleShading(float value) override {
         ++minSampleShadingCalls;
         lastMinSampleShading = value;
+    }
+    void provokingVertex(uint32_t mode) override {
+        ++provokingVertexCalls;
+        lastProvokingVertexMode = mode;
     }
     void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {
