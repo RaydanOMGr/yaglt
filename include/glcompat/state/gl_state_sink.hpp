@@ -145,6 +145,10 @@ public:
     // when the index changes (SPEC §10). The GL_PRIMITIVE_RESTART capability that
     // activates it is pushed via enable/disable.
     virtual void primitiveRestart(uint32_t index) = 0;
+    // Quality hint (SPEC §21.1.1, glHint). Hints are non-binding; the backend may
+    // ignore them, but the frontend records the requested target/mode and pushes
+    // it on flush so a real driver receives the request.
+    virtual void hint(uint32_t target, uint32_t mode) = 0;
 };
 
 } // namespace glcompat

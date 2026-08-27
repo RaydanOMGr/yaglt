@@ -757,6 +757,12 @@ public:
     void getVertexAttribfv(uint32_t index, GLenum pname, float* params);
     void getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params);
 
+    // --- Hints (SPEC §21.1.1) ---
+    // Quality hint for a target. Invalid target or mode -> GL_INVALID_ENUM. If a
+    // different mode is requested the change is pushed to the backend at flush.
+    void hint(uint32_t target, uint32_t mode);
+    uint32_t getHint(uint32_t target);
+
     // --- Draw (SPEC §2.1) ---
     // Flush tracked pipeline state to the backend, then issue the draw. Drawing
     // with no active program is GL_INVALID_OPERATION (core profile). Instanced

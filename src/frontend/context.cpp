@@ -4770,6 +4770,40 @@ void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
     for (int i = 0; i < 4; ++i) params[i] = int32_t(a.currentValue[i]);
 }
 
+// --- Hints (SPEC §21.1.1) ---
+
+namespace {
+bool isValidHintTarget(GLenum target) {
+    switch (target) {
+        case GL_PERSPECTIVE_CORRECTION_HINT:
+        case GL_POINT_SMOOTH_HINT:
+        case GL_LINE_SMOOTH_HINT:
+        case GL_POLYGON_SMOOTH_HINT:
+        case GL_FOG_HINT:
+        case GL_TEXTURE_COMPRESSION_HINT:
+        case GL_FRAGMENT_SHADER_DERIVATIVE_HINT:
+        case GL_GENERATE_MIPMAP_HINT:
+            return true;
+        default:
+            return false;
+    }
+}
+bool isValidHintMode(GLenum mode) {
+    return mode == GL_DONT_CARE || mode == GL_FASTEST || mode == GL_NICEST;
+}
+}  // namespace
+
+void Context::hint(uint32_t target, uint32_t mode) {
+    if (!isValidHintTarget(target)) { setError(GLError::InvalidEnum); return; }
+    if (!isValidHintMode(mode)) { setError(GLError::InvalidEnum); return; }
+    state_.setHint(target, mode);
+}
+
+uint32_t Context::getHint(uint32_t target) {
+    if (!isValidHintTarget(target)) { setError(GLError::InvalidEnum); return 0; }
+    return state_.getHint(target);
+}
+
 // --- Direct State Access vertex arrays (SPEC §10.3.1) ---
 
 void Context::createVertexArrays(uint32_t n, GLObjectName* names) {

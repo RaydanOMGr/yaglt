@@ -38,6 +38,7 @@ struct UnitRecordingSink : GLStateSink {
     void colorMask(bool, bool, bool, bool) override {}
     void sampleCoverage(float, bool) override {}
     void primitiveRestart(uint32_t) override {}
+    void hint(uint32_t, uint32_t) override {}
     void cullFace(GLenum) override {}
     void frontFace(GLenum) override {}
     void pointSize(float) override {}

@@ -615,6 +615,11 @@ void glVertexAttribI4uiv(GLuint index, const GLuint* v);
 void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params);
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params);
 
+// Quality hint (SPEC §21.1.1, glHint). Non-binding; the frontend records the
+// requested target/mode and forwards it to the backend at flush. Invalid target
+// or mode -> GL_INVALID_ENUM.
+void glHint(GLenum target, GLenum mode);
+
 // Draw expansion (SPEC §10). Multi-draw, range-bounded indexed draw, and
 // base-vertex indexed draw. Each flushes tracked state first; non-instanced
 // variants require an active program; capability-gated per the feature table.

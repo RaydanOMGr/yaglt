@@ -72,6 +72,12 @@ public:
     GLenum lastDisableCap = 0;
     std::vector<std::pair<GLenum, bool>> capCalls;
 
+    // glHint recording (SPEC §21.1.1).
+    int hintCalls = 0;
+    GLenum lastHintTarget = 0;
+    GLenum lastHintMode = 0;
+    std::vector<std::pair<GLenum, GLenum>> hintCallsList;
+
     // Recording helpers for vertex-array flush assertions (DSA tests need the
     // full per-attribute sequence, not just the last call).
     struct VertexAttribPtrRecord {
@@ -232,6 +238,12 @@ public:
     void primitiveRestart(uint32_t index) override {
         ++primitiveRestartCalls;
         lastPrimitiveRestartIndex = index;
+    }
+    void hint(uint32_t target, uint32_t mode) override {
+        ++hintCalls;
+        lastHintTarget = target;
+        lastHintMode = mode;
+        hintCallsList.emplace_back(target, mode);
     }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }

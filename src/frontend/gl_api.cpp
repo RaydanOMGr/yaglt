@@ -1769,6 +1769,11 @@ void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params) {
     g_current->getVertexAttribiv(index, pname, params);
 }
 
+void glHint(GLenum target, GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->hint(target, mode);
+}
+
 void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
                        GLsizei drawcount) {
     if (g_current == nullptr) return;

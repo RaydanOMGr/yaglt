@@ -43,6 +43,7 @@ public:
     // these via GLStateTracker::apply() at draw / flush time (SPEC §10).
     void enable(uint32_t cap) override;
     void disable(uint32_t cap) override;
+    void hint(uint32_t target, uint32_t mode) override;
     void useProgram(uint32_t prog) override;
     // Program pipeline (SPEC §7.4). GLES uses a single linked program per draw,
     // so a separable pipeline cannot be consumed for rendering; we record the

@@ -39,6 +39,10 @@ public:
     bool setCapability(GLenum cap, bool enabled);
     bool isCapabilityEnabled(GLenum cap) const;
 
+    // --- Hints (glHint, SPEC §21.1.1) ---
+    bool setHint(GLenum target, GLenum mode);
+    GLenum getHint(GLenum target) const;
+
     // --- Active program (glUseProgram); 0 = none bound ---
     bool useProgram(GLObjectName prog);
     GLObjectName activeProgram() const { return activeProgram_; }
@@ -391,6 +395,11 @@ private:
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;
     bool capsDirty_ = false;
+
+    // Quality hints (SPEC §21.1.1, glHint). target -> mode. Pushed on flush.
+    std::unordered_map<GLenum, GLenum> hints_;
+    std::unordered_map<GLenum, GLenum> hintsApplied_;
+    bool hintsDirty_ = false;
 
     // Per-unit sampler-object bindings (SPEC §8.2). Parallel to texUnits_: one
     // bound sampler name per texture unit, 0 when no sampler is bound.

@@ -233,6 +233,19 @@ constexpr GLenum GL_ACTIVE_TEXTURE = 0x84E0;
 
 // Vertex attribute state queries (SPEC §10.2 / §10.3).
 constexpr GLenum GL_CURRENT_VERTEX_ATTRIB = 0x8626;
+
+// Hint targets / modes (SPEC §21.1.1, glHint).
+constexpr GLenum GL_DONT_CARE = 0x1100;
+constexpr GLenum GL_FASTEST = 0x1101;
+constexpr GLenum GL_NICEST = 0x1102;
+constexpr GLenum GL_PERSPECTIVE_CORRECTION_HINT = 0x0C50;
+constexpr GLenum GL_POINT_SMOOTH_HINT = 0x0C51;
+constexpr GLenum GL_LINE_SMOOTH_HINT = 0x0C52;
+constexpr GLenum GL_POLYGON_SMOOTH_HINT = 0x0C53;
+constexpr GLenum GL_FOG_HINT = 0x0C54;
+constexpr GLenum GL_TEXTURE_COMPRESSION_HINT = 0x84EF;
+constexpr GLenum GL_FRAGMENT_SHADER_DERIVATIVE_HINT = 0x8B8B;
+constexpr GLenum GL_GENERATE_MIPMAP_HINT = 0x8192;
 constexpr GLenum GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
 constexpr GLenum GL_MAX_TEXTURE_IMAGE_UNITS = 0x8872;
 constexpr GLenum GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;

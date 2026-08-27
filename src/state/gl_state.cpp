@@ -24,6 +24,21 @@ bool GLStateTracker::isCapabilityEnabled(GLenum cap) const {
     return it != capsCurrent_.end() && it->second;
 }
 
+bool GLStateTracker::setHint(GLenum target, GLenum mode) {
+    auto it = hints_.find(target);
+    if (it != hints_.end() && it->second == mode) {
+        return false;
+    }
+    hints_[target] = mode;
+    hintsDirty_ = true;
+    return true;
+}
+
+GLenum GLStateTracker::getHint(GLenum target) const {
+    auto it = hints_.find(target);
+    return it == hints_.end() ? GL_DONT_CARE : it->second;
+}
+
 bool GLStateTracker::useProgram(GLObjectName prog) {
     if (activeProgram_ == prog) return false;
     activeProgram_ = prog;
@@ -447,6 +462,19 @@ int GLStateTracker::apply(GLStateSink& sink) {
         }
         capsApplied_ = capsCurrent_;
         capsDirty_ = false;
+        ++applied;
+    }
+
+    if (hintsDirty_) {
+        for (const auto& kv : hints_) {
+            auto appliedIt = hintsApplied_.find(kv.first);
+            if (appliedIt == hintsApplied_.end() ||
+                appliedIt->second != kv.second) {
+                sink.hint(kv.first, kv.second);
+            }
+        }
+        hintsApplied_ = hints_;
+        hintsDirty_ = false;
         ++applied;
     }
 

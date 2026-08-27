@@ -140,6 +140,9 @@ bool GLESLib::load() {
     // still succeeds on ES 3.0+ drivers that omit it; the frontend keeps tracking
     // the state (SPEC §10) and GLESBackend::pointSize no-ops when absent.
     resolve(gles, glPointSize, "glPointSize");
+    // glHint is core in GLES but a no-op on most drivers; resolved optionally so
+    // load() still succeeds where the symbol is absent.
+    resolve(gles, glHint, "glHint");
     ok &= resolve(gles, glLineWidth, "glLineWidth");
     ok &= resolve(gles, glPolygonOffset, "glPolygonOffset");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");

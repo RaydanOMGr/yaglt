@@ -204,6 +204,10 @@ void GLESBackend::disable(GLenum cap) {
     if (lib_->glDisable) lib_->glDisable(cap);
 }
 
+void GLESBackend::hint(uint32_t target, uint32_t mode) {
+    if (lib_->glHint) lib_->glHint(target, mode);
+}
+
 void GLESBackend::bindProgramPipeline(uint32_t pipeline) {
     // GLES has no separable program pipeline object to install (a single linked
     // program drives each draw), so there is no native call to forward. The
