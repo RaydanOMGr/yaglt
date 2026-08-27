@@ -302,6 +302,22 @@ public:
         lastAttribStride = stride;
         lastAttribOffset = offset;
     }
+    int vertexAttribDivisorCalls = 0;
+    uint32_t lastAttribDivisorIndex = 0;
+    uint32_t lastAttribDivisor = 0;
+    void vertexAttribDivisor(uint32_t index, uint32_t divisor) override {
+        ++vertexAttribDivisorCalls;
+        lastAttribDivisorIndex = index;
+        lastAttribDivisor = divisor;
+    }
+    int bindBufferCalls = 0;
+    uint32_t lastBindBufferTarget = 0;
+    GLObjectName lastBindBufferName = 0;
+    void bindBuffer(uint32_t target, uint32_t buffer) override {
+        ++bindBufferCalls;
+        lastBindBufferTarget = target;
+        lastBindBufferName = buffer;
+    }
 
     // Texture units (SPEC §2.1). Recorded so tests can assert the frontend
     // pushes the active unit and per-unit bindings only when they change.
@@ -372,6 +388,53 @@ public:
         lastDrawType = type;
         lastDrawIndices = indices;
         lastDrawPrimcount = primcount;
+    }
+
+    // --- Draw expansion (SPEC §10) ---
+    int multiDrawArraysCalls = 0;
+    int multiDrawElementsCalls = 0;
+    int drawRangeElementsCalls = 0;
+    int drawElementsBaseVertexCalls = 0;
+    int32_t lastMultiDrawCount = 0;
+    uint32_t lastDrawStart = 0;
+    uint32_t lastDrawEnd = 0;
+    int32_t lastDrawBasevertex = 0;
+    void multiDrawArrays(uint32_t mode, const int32_t* firsts,
+                         const int32_t* counts, int32_t drawcount) override {
+        ++multiDrawArraysCalls;
+        lastDrawMode = mode;
+        lastMultiDrawCount = drawcount;
+        (void)firsts;
+        (void)counts;
+    }
+    void multiDrawElements(uint32_t mode, const int32_t* counts, uint32_t type,
+                           const intptr_t* indices, int32_t drawcount) override {
+        ++multiDrawElementsCalls;
+        lastDrawMode = mode;
+        lastDrawType = type;
+        lastMultiDrawCount = drawcount;
+        (void)counts;
+        (void)indices;
+    }
+    void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
+                           int32_t count, uint32_t type,
+                           intptr_t indices) override {
+        ++drawRangeElementsCalls;
+        lastDrawMode = mode;
+        lastDrawStart = start;
+        lastDrawEnd = end;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+    }
+    void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                intptr_t indices, int32_t basevertex) override {
+        ++drawElementsBaseVertexCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawBasevertex = basevertex;
     }
 
     void clear(uint32_t mask) override {

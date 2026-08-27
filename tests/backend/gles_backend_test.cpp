@@ -23,9 +23,14 @@ TEST_CASE("gles_backend_initialize_is_honest_and_safe") {
     if (ok) {
         EXPECT_EQ(backend.capabilities().getFeatureSupport(Feature::BufferObjects),
                   FeatureSupport::Native);
-        auto buf = backend.resourceFactory().createBuffer();
-        auto* gb = static_cast<GLESBackendBuffer*>(buf.get());
-        EXPECT_NE(gb->handle, 0u);
+        {
+            auto buf = backend.resourceFactory().createBuffer();
+            auto* gb = static_cast<GLESBackendBuffer*>(buf.get());
+            EXPECT_NE(gb->handle, 0u);
+        }
+        // Resources must be released while the EGL context is still alive; only
+        // then tear the backend down. Keeping a resource across shutdown would
+        // make its destructor call the driver on a terminated context.
         backend.shutdown();
     } else {
         // No driver in this environment: default capabilities, no crash.

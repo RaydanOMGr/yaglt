@@ -394,6 +394,10 @@ public:
     void disableVertexAttribArray(uint32_t index);
     void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                              bool normalized, int32_t stride, intptr_t offset);
+    // Per-attribute divisor (SPEC §10, glVertexAttribDivisor). 0 advances once
+    // per vertex (default); >0 advances once per `divisor` instances. Pushed at
+    // flush time only when non-zero (SPEC §10: no redundant native call).
+    void vertexAttribDivisor(uint32_t index, uint32_t divisor);
 
     // --- Draw (SPEC §2.1) ---
     // Flush tracked pipeline state to the backend, then issue the draw. Drawing
@@ -406,6 +410,17 @@ public:
                              int32_t primcount);
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
                                intptr_t indices, int32_t primcount);
+    // Draw expansion (SPEC §10). Each flushes tracked state first (like the
+    // single-draw calls) and, for non-instanced variants, requires an active
+    // program. `drawElementsBaseVertex` consults Feature::DrawElementsBaseVertex.
+    void multiDrawArrays(uint32_t mode, const int32_t* firsts,
+                         const int32_t* counts, int32_t drawcount);
+    void multiDrawElements(uint32_t mode, const int32_t* counts, uint32_t type,
+                          const intptr_t* indices, int32_t drawcount);
+    void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
+                           int32_t count, uint32_t type, intptr_t indices);
+    void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                intptr_t indices, int32_t basevertex);
 
     // --- Uniforms (SPEC §8) ---
     // Query a uniform location for an explicit program. Setting uniforms operates

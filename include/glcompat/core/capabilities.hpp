@@ -30,6 +30,10 @@ enum class Feature {
     // Vertex
     VertexArrayObjects,
     InstancedRendering,
+    VertexAttribDivisor,
+    MultiDraw,
+    DrawRangeElements,
+    DrawElementsBaseVertex,
     // Framebuffers
     FramebufferObjects,
     RenderbufferObjects,

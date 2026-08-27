@@ -90,9 +90,12 @@ public:
     void bindVertexArray(uint32_t vao) override;
     void enableVertexAttribArray(uint32_t index) override;
     void disableVertexAttribArray(uint32_t index) override;
+    void bindBuffer(uint32_t target, uint32_t buffer) override;
     void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                              bool normalized, int32_t stride,
                              intptr_t offset) override;
+    // Vertex attribute divisor (SPEC §10, glVertexAttribDivisor).
+    void vertexAttribDivisor(uint32_t index, uint32_t divisor) override;
 
     // Color logic op (SPEC §17.3.4, glLogicOp). Pushed only when the mode changes
     // (SPEC §10); the driver applies it only while GL_COLOR_LOGIC_OP is enabled.
@@ -119,6 +122,16 @@ public:
                              int32_t primcount) override;
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
                                 intptr_t indices, int32_t primcount) override;
+
+    // Draw expansion (SPEC §10).
+    void multiDrawArrays(uint32_t mode, const int32_t* firsts,
+                        const int32_t* counts, int32_t drawcount) override;
+    void multiDrawElements(uint32_t mode, const int32_t* counts, uint32_t type,
+                          const intptr_t* indices, int32_t drawcount) override;
+    void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
+                          int32_t count, uint32_t type, intptr_t indices) override;
+    void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                               intptr_t indices, int32_t basevertex) override;
 
     // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
     // clear color/depth through GLStateSink first, so this issues the native

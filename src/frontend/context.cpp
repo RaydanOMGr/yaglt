@@ -48,6 +48,8 @@ GLObjectName Context::genBuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<BufferObject>(name);
     obj->backend = backend_.resourceFactory().createBuffer();
+    if (obj->backend)
+        backend_.bindNativeObject(name, obj->backend->nativeId());
     buffers_.emplace(name, std::move(obj));
     return name;
 }
@@ -1612,9 +1614,17 @@ void Context::flushState() {
                             sink->enableVertexAttribArray(a.index);
                         else
                             sink->disableVertexAttribArray(a.index);
+                        // GLES captures the attribute's buffer binding from the
+                        // ARRAY_BUFFER bound at gl*VertexAttribPointer time; bind
+                        // it (frontend name -> native id) before the native call.
+                        sink->bindBuffer(GL_ARRAY_BUFFER, a.buffer);
                         sink->vertexAttribPointer(a.index, a.size, a.type,
                                                   a.normalized, a.stride,
                                                   a.offset);
+                        // Non-zero divisor is pushed; 0 is the GL default so it
+                        // needs no native call (SPEC §10: skip redundant state).
+                        if (a.divisor != 0)
+                            sink->vertexAttribDivisor(a.index, a.divisor);
                     }
                 }
             }
@@ -1668,6 +1678,75 @@ void Context::drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
     }
     flushState();
     backend_.drawElementsInstanced(mode, count, type, indices, primcount);
+}
+
+void Context::multiDrawArrays(uint32_t mode, const int32_t* firsts,
+                              const int32_t* counts, int32_t drawcount) {
+    if (!backend_.capabilities().isSupported(Feature::MultiDraw)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (drawcount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.multiDrawArrays(mode, firsts, counts, drawcount);
+}
+
+void Context::multiDrawElements(uint32_t mode, const int32_t* counts,
+                                uint32_t type, const intptr_t* indices,
+                                int32_t drawcount) {
+    if (!backend_.capabilities().isSupported(Feature::MultiDraw)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (drawcount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.multiDrawElements(mode, counts, type, indices, drawcount);
+}
+
+void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
+                                int32_t count, uint32_t type, intptr_t indices) {
+    if (!backend_.capabilities().isSupported(Feature::DrawRangeElements)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (end < start) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawRangeElements(mode, start, end, count, type, indices);
+}
+
+void Context::drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                     intptr_t indices, int32_t basevertex) {
+    if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
 }
 
 // --- Shaders / programs (SPEC §8) ---
@@ -2035,7 +2114,21 @@ void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
     a.normalized = normalized;
     a.stride = stride;
     a.offset = offset;
+    a.buffer = boundBuffer(GL_ARRAY_BUFFER);
     a.enabled = true;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexAttribDivisor(uint32_t index, uint32_t divisor) {
+    if (boundVertexArray_ == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!backend_.capabilities().isSupported(Feature::VertexAttribDivisor)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getVertexArray(boundVertexArray_)->attrib(index).divisor = divisor;
     vertexStateDirty_ = true;
 }
 

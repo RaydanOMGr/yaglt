@@ -157,6 +157,11 @@ bool GLESLib::load() {
     // unsupported instead of failing the whole backend init).
     resolve(gles, glDrawArraysInstanced, "glDrawArraysInstanced");
     resolve(gles, glDrawElementsInstanced, "glDrawElementsInstanced");
+    // Draw expansion (SPEC §10): solved optionally (ES 3.0+ / ES 3.2).
+    resolve(gles, glMultiDrawArrays, "glMultiDrawArrays");
+    resolve(gles, glMultiDrawElements, "glMultiDrawElements");
+    resolve(gles, glDrawRangeElements, "glDrawRangeElements");
+    resolve(gles, glDrawElementsBaseVertex, "glDrawElementsBaseVertex");
 
     // Transform feedback (ES 3.0+); resolved optionally.
     resolve(gles, glGenTransformFeedbacks, "glGenTransformFeedbacks");
@@ -198,6 +203,7 @@ bool GLESLib::load() {
     resolve(gles, glEnableVertexAttribArray, "glEnableVertexAttribArray");
     resolve(gles, glDisableVertexAttribArray, "glDisableVertexAttribArray");
     resolve(gles, glVertexAttribPointer, "glVertexAttribPointer");
+    resolve(gles, glVertexAttribDivisor, "glVertexAttribDivisor");
 
     // Uniforms are ES 2.0+; resolve optionally so load() still succeeds if a
     // driver somehow lacks them (capability system reports unsupported instead).

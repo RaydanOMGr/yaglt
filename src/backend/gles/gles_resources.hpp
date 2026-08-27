@@ -35,25 +35,25 @@ inline uint32_t glesSizedInternalFormat(uint32_t internalFormat) {
 struct GLESBackendBuffer : BackendBuffer {
     GLESBackendBuffer(GLESLibPtr lib, GLuint h) : lib(lib), handle(h) {}
     ~GLESBackendBuffer() override {
-        if (lib && lib->loaded && lib->glDeleteBuffers) lib->glDeleteBuffers(1, &handle);
+        if (lib && lib->driverLive() && lib->glDeleteBuffers) lib->glDeleteBuffers(1, &handle);
     }
     void bufferData(uint32_t target, intptr_t size, uint32_t usage,
                      const void* data) override {
-        if (lib && lib->loaded && lib->glBufferData) {
+        if (lib && lib->driverLive() && lib->glBufferData) {
             if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             lib->glBufferData(target, size, data, usage);
         }
     }
     void bufferSubData(uint32_t target, intptr_t offset, intptr_t size,
                        const void* data) override {
-        if (lib && lib->loaded && lib->glBufferSubData) {
+        if (lib && lib->driverLive() && lib->glBufferSubData) {
             if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             lib->glBufferSubData(target, offset, size, data);
         }
     }
     void bufferStorage(uint32_t target, intptr_t size, uint32_t flags,
                        const void* data) override {
-        if (lib && lib->loaded && lib->glBufferStorage) {
+        if (lib && lib->driverLive() && lib->glBufferStorage) {
             if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             lib->glBufferStorage(target, size, data,
                                  static_cast<GLenum>(flags));
@@ -62,7 +62,7 @@ struct GLESBackendBuffer : BackendBuffer {
     void copySubData(uint32_t readTarget, uint32_t writeTarget,
                      intptr_t readOffset, intptr_t writeOffset,
                      intptr_t size) override {
-        if (lib && lib->loaded && lib->glCopyBufferSubData) {
+        if (lib && lib->driverLive() && lib->glCopyBufferSubData) {
             if (lib->glBindBuffer) {
                 lib->glBindBuffer(readTarget, 0);
                 lib->glBindBuffer(writeTarget, 0);
@@ -73,7 +73,7 @@ struct GLESBackendBuffer : BackendBuffer {
     }
     void* mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
                          uint32_t access) override {
-        if (lib && lib->loaded && lib->glMapBufferRange) {
+        if (lib && lib->driverLive() && lib->glMapBufferRange) {
             if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             return lib->glMapBufferRange(target, offset, length,
                                          static_cast<GLbitfield>(access));
@@ -81,11 +81,12 @@ struct GLESBackendBuffer : BackendBuffer {
         return nullptr;
     }
     void unmapBuffer(uint32_t target) override {
-        if (lib && lib->loaded && lib->glUnmapBuffer) {
+        if (lib && lib->driverLive() && lib->glUnmapBuffer) {
             if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
             lib->glUnmapBuffer(target);
         }
     }
+    uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
 };
@@ -93,12 +94,12 @@ struct GLESBackendBuffer : BackendBuffer {
 struct GLESBackendTexture : BackendTexture {
     GLESBackendTexture(GLESLibPtr lib, GLuint h) : lib(lib), handle(h) {}
     ~GLESBackendTexture() override {
-        if (lib && lib->loaded && lib->glDeleteTextures) lib->glDeleteTextures(1, &handle);
+        if (lib && lib->driverLive() && lib->glDeleteTextures) lib->glDeleteTextures(1, &handle);
     }
     void texImage2D(uint32_t target, int level, uint32_t internalFormat,
                      int width, int height, uint32_t format, uint32_t type,
                      const void* data) override {
-        if (!lib || !lib->loaded || !lib->glTexImage2D) return;
+        if (!lib || !lib->driverLive() || !lib->glTexImage2D) return;
         // glTexImage2D operates on the texture bound to `target` on the active
         // unit, so bind our handle first (SPEC §2.1 correctness: the driver's
         // currently bound texture must be ours, not whatever was bound before).
@@ -110,38 +111,38 @@ struct GLESBackendTexture : BackendTexture {
                           format, type, data);
     }
     void texParameteri(uint32_t target, uint32_t pname, int param) override {
-        if (!lib || !lib->loaded || !lib->glTexParameteri) return;
+        if (!lib || !lib->driverLive() || !lib->glTexParameteri) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameteri(target, pname, param);
     }
     void texParameterf(uint32_t target, uint32_t pname, float param) override {
-        if (!lib || !lib->loaded || !lib->glTexParameterf) return;
+        if (!lib || !lib->driverLive() || !lib->glTexParameterf) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameterf(target, pname, param);
     }
     void texParameterfv(uint32_t target, uint32_t pname, const float* params,
                         int count) override {
-        if (!lib || !lib->loaded || !lib->glTexParameterfv || !params) return;
+        if (!lib || !lib->driverLive() || !lib->glTexParameterfv || !params) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameterfv(target, pname, params, count);
     }
     void texParameteriv(uint32_t target, uint32_t pname, const int* params,
                         int count) override {
-        if (!lib || !lib->loaded || !lib->glTexParameteriv || !params) return;
+        if (!lib || !lib->driverLive() || !lib->glTexParameteriv || !params) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexParameteriv(target, pname, params, count);
     }
     void texSubImage1D(uint32_t target, int level, int xoffset, int width,
                        uint32_t format, uint32_t type, const void* data) override {
         // OpenGL ES has no 1D textures; the call is a no-op on this backend.
-        if (!lib || !lib->loaded || !lib->glTexSubImage1D) return;
+        if (!lib || !lib->driverLive() || !lib->glTexSubImage1D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexSubImage1D(target, level, xoffset, width, format, type, data);
     }
     void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
                        int width, int height, uint32_t format, uint32_t type,
                        const void* data) override {
-        if (!lib || !lib->loaded || !lib->glTexSubImage2D) return;
+        if (!lib || !lib->driverLive() || !lib->glTexSubImage2D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexSubImage2D(target, level, xoffset, yoffset, width, height,
                              format, type, data);
@@ -149,21 +150,21 @@ struct GLESBackendTexture : BackendTexture {
     void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
                        int zoffset, int width, int height, int depth,
                        uint32_t format, uint32_t type, const void* data) override {
-        if (!lib || !lib->loaded || !lib->glTexSubImage3D) return;
+        if (!lib || !lib->driverLive() || !lib->glTexSubImage3D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glTexSubImage3D(target, level, xoffset, yoffset, zoffset, width,
                              height, depth, format, type, data);
     }
     void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int border) override {
-        if (!lib || !lib->loaded || !lib->glCopyTexImage1D) return;
+        if (!lib || !lib->driverLive() || !lib->glCopyTexImage1D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glCopyTexImage1D(target, level, glesSizedInternalFormat(internalFormat),
                               x, y, width, border);
     }
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int height, int border) override {
-        if (!lib || !lib->loaded || !lib->glCopyTexImage2D) return;
+        if (!lib || !lib->driverLive() || !lib->glCopyTexImage2D) return;
         if (lib->glBindTexture) lib->glBindTexture(target, handle);
         lib->glCopyTexImage2D(target, level, glesSizedInternalFormat(internalFormat),
                               x, y, width, height, border);
@@ -176,12 +177,12 @@ struct GLESBackendTexture : BackendTexture {
 struct GLESBackendRenderbuffer : BackendRenderbuffer {
     GLESBackendRenderbuffer(GLESLibPtr lib, GLuint h) : lib(lib), handle(h) {}
     ~GLESBackendRenderbuffer() override {
-        if (lib && lib->loaded && lib->glDeleteRenderbuffers)
+        if (lib && lib->driverLive() && lib->glDeleteRenderbuffers)
             lib->glDeleteRenderbuffers(1, &handle);
     }
     void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
                             int height) override {
-        if (!lib || !lib->loaded || !lib->glRenderbufferStorage) return;
+        if (!lib || !lib->driverLive() || !lib->glRenderbufferStorage) return;
         // The renderbuffer must be bound to the target before storage is set.
         if (lib->glBindRenderbuffer) lib->glBindRenderbuffer(target, handle);
         lib->glRenderbufferStorage(target, static_cast<GLenum>(internalFormat),
@@ -196,25 +197,25 @@ struct GLESBackendRenderbuffer : BackendRenderbuffer {
 struct GLESBackendFramebuffer : BackendFramebuffer {
     GLESBackendFramebuffer(GLESLibPtr lib, GLuint h) : lib(lib), handle(h) {}
     ~GLESBackendFramebuffer() override {
-        if (lib && lib->loaded && lib->glDeleteFramebuffers)
+        if (lib && lib->driverLive() && lib->glDeleteFramebuffers)
             lib->glDeleteFramebuffers(1, &handle);
     }
     void framebufferTexture2D(uint32_t target, uint32_t attachment,
                               uint32_t texTarget, uint32_t nativeTexture,
                               int level) override {
-        if (lib && lib->loaded && lib->glFramebufferTexture2D)
+        if (lib && lib->driverLive() && lib->glFramebufferTexture2D)
             lib->glFramebufferTexture2D(target, attachment, texTarget, nativeTexture,
                                       level);
     }
     void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
                                  uint32_t rbTarget,
                                  uint32_t nativeRenderbuffer) override {
-        if (lib && lib->loaded && lib->glFramebufferRenderbuffer)
+        if (lib && lib->driverLive() && lib->glFramebufferRenderbuffer)
             lib->glFramebufferRenderbuffer(target, attachment, rbTarget,
                                           nativeRenderbuffer);
     }
     uint32_t checkStatus(uint32_t target) const override {
-        if (lib && lib->loaded && lib->glCheckFramebufferStatus)
+        if (lib && lib->driverLive() && lib->glCheckFramebufferStatus)
             return lib->glCheckFramebufferStatus(target);
         return 0x8CD5; // GL_FRAMEBUFFER_COMPLETE
     }
@@ -226,7 +227,7 @@ struct GLESBackendFramebuffer : BackendFramebuffer {
 struct GLESBackendVertexArray : BackendVertexArray {
     GLESBackendVertexArray(GLESLibPtr lib, GLuint h) : lib(lib), handle(h) {}
     ~GLESBackendVertexArray() override {
-        if (lib && lib->loaded && lib->glDeleteVertexArrays)
+        if (lib && lib->driverLive() && lib->glDeleteVertexArrays)
             lib->glDeleteVertexArrays(1, &handle);
     }
     uint32_t nativeId() const override { return handle; }
@@ -238,15 +239,15 @@ struct GLESBackendVertexArray : BackendVertexArray {
 // scalar parameters are driven through the loader.
 struct GLESBackendSampler : BackendSampler {
     GLESBackendSampler(GLESLibPtr lib) : lib(lib) {
-        if (lib && lib->loaded && lib->glGenSamplers)
+        if (lib && lib->driverLive() && lib->glGenSamplers)
             lib->glGenSamplers(1, &handle);
     }
     ~GLESBackendSampler() override {
-        if (lib && lib->loaded && lib->glDeleteSamplers && handle)
+        if (lib && lib->driverLive() && lib->glDeleteSamplers && handle)
             lib->glDeleteSamplers(1, &handle);
     }
     void samplerParameteri(uint32_t pname, int param) override {
-        if (lib && lib->loaded && lib->glSamplerParameteri && handle)
+        if (lib && lib->driverLive() && lib->glSamplerParameteri && handle)
             lib->glSamplerParameteri(handle, pname, param);
     }
     uint32_t nativeId() const override { return handle; }
@@ -258,27 +259,27 @@ struct GLESBackendSampler : BackendSampler {
 // created lazily at construction; capture state is driven through the loader.
 struct GLESBackendTransformFeedback : BackendTransformFeedback {
     GLESBackendTransformFeedback(GLESLibPtr lib) : lib(lib) {
-        if (lib && lib->loaded && lib->glGenTransformFeedbacks)
+        if (lib && lib->driverLive() && lib->glGenTransformFeedbacks)
             lib->glGenTransformFeedbacks(1, &handle);
     }
     ~GLESBackendTransformFeedback() override {
-        if (lib && lib->loaded && lib->glDeleteTransformFeedbacks && handle)
+        if (lib && lib->driverLive() && lib->glDeleteTransformFeedbacks && handle)
             lib->glDeleteTransformFeedbacks(1, &handle);
     }
     void begin(uint32_t mode) override {
-        if (lib && lib->loaded && lib->glBeginTransformFeedback)
+        if (lib && lib->driverLive() && lib->glBeginTransformFeedback)
             lib->glBeginTransformFeedback(mode);
     }
     void end() override {
-        if (lib && lib->loaded && lib->glEndTransformFeedback)
+        if (lib && lib->driverLive() && lib->glEndTransformFeedback)
             lib->glEndTransformFeedback();
     }
     void pause() override {
-        if (lib && lib->loaded && lib->glPauseTransformFeedback)
+        if (lib && lib->driverLive() && lib->glPauseTransformFeedback)
             lib->glPauseTransformFeedback();
     }
     void resume() override {
-        if (lib && lib->loaded && lib->glResumeTransformFeedback)
+        if (lib && lib->driverLive() && lib->glResumeTransformFeedback)
             lib->glResumeTransformFeedback();
     }
     GLESLibPtr lib;
@@ -290,26 +291,26 @@ struct GLESBackendTransformFeedback : BackendTransformFeedback {
 // (via ui64v when available, falling back to uiv).
 struct GLESBackendQuery : BackendQuery {
     GLESBackendQuery(GLESLibPtr lib) : lib(lib) {
-        if (lib && lib->loaded && lib->glGenQueries)
+        if (lib && lib->driverLive() && lib->glGenQueries)
             lib->glGenQueries(1, &handle);
     }
     ~GLESBackendQuery() override {
-        if (lib && lib->loaded && lib->glDeleteQueries && handle)
+        if (lib && lib->driverLive() && lib->glDeleteQueries && handle)
             lib->glDeleteQueries(1, &handle);
     }
     void begin(uint32_t target) override {
         activeTarget = target;
-        if (lib && lib->loaded && lib->glBeginQuery && handle)
+        if (lib && lib->driverLive() && lib->glBeginQuery && handle)
             lib->glBeginQuery(target, handle);
     }
     void end() override {
-        if (lib && lib->loaded && lib->glEndQuery)
+        if (lib && lib->driverLive() && lib->glEndQuery)
             lib->glEndQuery(activeTarget); // target must match begin
     }
     void queryResult(int64_t* value, bool* available) override {
         *value = 0;
         *available = false;
-        if (!lib || !lib->loaded || handle == 0) return;
+        if (!lib || !lib->driverLive() || handle == 0) return;
         if (lib->glGetQueryObjectui64v) {
             GLuint64 v = 0;
             lib->glGetQueryObjectui64v(handle, GL_QUERY_RESULT_AVAILABLE, &v);
@@ -333,15 +334,15 @@ struct GLESBackendQuery : BackendQuery {
 // frontend releases the owning shader object.
 struct GLESBackendShader : BackendShader {
     GLESBackendShader(GLESLibPtr lib, GLenum stage) : lib(lib) {
-        if (lib && lib->loaded && lib->glCreateShader)
+        if (lib && lib->driverLive() && lib->glCreateShader)
             handle = lib->glCreateShader(stage);
     }
     ~GLESBackendShader() override {
-        if (lib && lib->loaded && lib->glDeleteShader && handle)
+        if (lib && lib->driverLive() && lib->glDeleteShader && handle)
             lib->glDeleteShader(handle);
     }
     bool compile(const std::string& source, std::string& log) override {
-        if (!lib || !lib->loaded || handle == 0) {
+        if (!lib || !lib->driverLive() || handle == 0) {
             log = "GLES shader not created";
             return false;
         }
@@ -370,11 +371,11 @@ struct GLESBackendShader : BackendShader {
 // locations through the driver.
 struct GLESBackendProgram : BackendProgram {
     GLESBackendProgram(GLESLibPtr lib) : lib(lib) {
-        if (lib && lib->loaded && lib->glCreateProgram)
+        if (lib && lib->driverLive() && lib->glCreateProgram)
             handle = lib->glCreateProgram();
     }
     ~GLESBackendProgram() override {
-        if (lib && lib->loaded && lib->glDeleteProgram && handle)
+        if (lib && lib->driverLive() && lib->glDeleteProgram && handle)
             lib->glDeleteProgram(handle);
     }
     void attach(BackendShader& shader) override {
@@ -382,7 +383,7 @@ struct GLESBackendProgram : BackendProgram {
             lib->glAttachShader(handle, gs->handle);
     }
     bool link(std::string& log) override {
-        if (!lib || !lib->loaded || handle == 0) {
+        if (!lib || !lib->driverLive() || handle == 0) {
             log = "GLES program not created";
             return false;
         }
@@ -401,13 +402,13 @@ struct GLESBackendProgram : BackendProgram {
         return true;
     }
     int getAttribLocation(const std::string& name) const override {
-        if (!lib || !lib->loaded || handle == 0) return -1;
+        if (!lib || !lib->driverLive() || handle == 0) return -1;
         return static_cast<int>(lib->glGetAttribLocation(handle, name.c_str()));
     }
     uint32_t nativeId() const override { return handle; }
 
     int getUniformLocation(const std::string& name) const override {
-        if (!lib || !lib->loaded || handle == 0) return -1;
+        if (!lib || !lib->driverLive() || handle == 0) return -1;
         return static_cast<int>(lib->glGetUniformLocation(handle, name.c_str()));
     }
     void uniform1f(int loc, float v0) override {

@@ -11,6 +11,7 @@ add_executable(yaglt_tests
     unit/state_flush_test.cpp
     unit/ubo_ssbo_test.cpp
     unit/draw_test.cpp
+    unit/draw_expansion_test.cpp
     unit/shader_program_test.cpp
     unit/texture_fbo_test.cpp
     unit/texture_unit_test.cpp

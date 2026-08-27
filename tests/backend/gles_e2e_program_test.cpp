@@ -56,8 +56,14 @@ TEST_CASE("gles_e2e_program_link_and_draw") {
     glcompat::GLuint vao = 0;
     glcompat::glGenVertexArrays(1, &vao);
     glcompat::glBindVertexArray(vao);
+    // GLES has no client-side vertex arrays: supply real vertex data in a VBO.
+    static const float verts[6] = {-1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 1.0f};
+    glcompat::GLuint vbo = 0;
+    glcompat::glGenBuffers(1, &vbo);
+    glcompat::glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glcompat::glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
     glcompat::glEnableVertexAttribArray(0);
-    glcompat::glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, nullptr);
+    glcompat::glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0);
 
     // Drawing with a linked program flushes state then issues the native draw.
     // With a real driver the native draw executes; assert no GL error results.
@@ -189,8 +195,13 @@ TEST_CASE("gles_e2e_framebuffer_complete_and_full_draw") {
     glcompat::GLuint vao = 0;
     glcompat::glGenVertexArrays(1, &vao);
     glcompat::glBindVertexArray(vao);
+    static const float verts[6] = {-1.0f, -1.0f, 1.0f, -1.0f, 0.0f, 1.0f};
+    glcompat::GLuint vbo = 0;
+    glcompat::glGenBuffers(1, &vbo);
+    glcompat::glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glcompat::glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
     glcompat::glEnableVertexAttribArray(0);
-    glcompat::glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, nullptr);
+    glcompat::glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0);
 
     glcompat::glDrawArrays(GL_TRIANGLES, 0, 3);
     EXPECT_EQ(glcompat::glGetError(), 0);

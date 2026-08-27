@@ -337,4 +337,20 @@ void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei prim
 void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
                              const GLvoid* indices, GLsizei primcount);
 
+// Vertex attribute divisor (SPEC §10, glVertexAttribDivisor). Sets the per-
+// attribute instance step rate on the bound VAO; 0 = per-vertex, >0 = per-instance.
+void glVertexAttribDivisor(GLuint index, GLuint divisor);
+
+// Draw expansion (SPEC §10). Multi-draw, range-bounded indexed draw, and
+// base-vertex indexed draw. Each flushes tracked state first; non-instanced
+// variants require an active program; capability-gated per the feature table.
+void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
+                       GLsizei drawcount);
+void glMultiDrawElements(GLenum mode, const GLint* counts, GLenum type,
+                         const GLvoid* const* indices, GLsizei drawcount);
+void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
+                         GLenum type, const GLvoid* indices);
+void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                              const GLvoid* indices, GLint basevertex);
+
 } // namespace glcompat

@@ -98,9 +98,19 @@ public:
     virtual void bindVertexArray(uint32_t vao) = 0;
     virtual void enableVertexAttribArray(uint32_t index) = 0;
     virtual void disableVertexAttribArray(uint32_t index) = 0;
+    // Bind `buffer` (frontend name, resolved to the native id by the backend)
+    // to `target` before an attribute pointer is issued. On GLES the attribute's
+    // buffer binding is captured from the bound ARRAY_BUFFER at gl*VertexAttrib
+    // Pointer time, so the flush must bind the attribute's ARRAY_BUFFER first
+    // (SPEC §2.1).
+    virtual void bindBuffer(uint32_t target, uint32_t buffer) = 0;
     virtual void vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                                      bool normalized, int32_t stride,
                                      intptr_t offset) = 0;
+    // Vertex attribute divisor (SPEC §10, glVertexAttribDivisor). Pushed only when
+    // the divisor is non-zero (the GL default is 0); instanced draws use it to
+    // step the attribute once per `divisor` instances.
+    virtual void vertexAttribDivisor(uint32_t index, uint32_t divisor) = 0;
 
     // Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex). Pushed only
     // when the index changes (SPEC §10). The GL_PRIMITIVE_RESTART capability that

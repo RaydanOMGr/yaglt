@@ -25,6 +25,10 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::ComputeShaders, S::Unsupported);
     table.set(F::VertexArrayObjects, S::Native);
     table.set(F::InstancedRendering, S::Native);
+    table.set(F::VertexAttribDivisor, S::Native);
+    table.set(F::MultiDraw, S::Native);
+    table.set(F::DrawRangeElements, S::Native);
+    table.set(F::DrawElementsBaseVertex, S::Native);
     table.set(F::FramebufferObjects, S::Native);
     table.set(F::RenderbufferObjects, S::Native);
     table.set(F::UniformBufferObjects, S::Native);

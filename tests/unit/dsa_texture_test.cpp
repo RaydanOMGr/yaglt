@@ -53,6 +53,7 @@ struct UnitRecordingSink : GLStateSink {
     void enableVertexAttribArray(uint32_t) override {}
     void disableVertexAttribArray(uint32_t) override {}
     void vertexAttribPointer(uint32_t, int32_t, uint32_t, bool, int32_t, intptr_t) override {}
+    void bindBuffer(uint32_t, uint32_t) override {}
     void activeTexture(uint32_t unit) override {
         activeTextures.push_back(unit);
         currentUnit = unit;
@@ -61,6 +62,7 @@ struct UnitRecordingSink : GLStateSink {
         binds.push_back({currentUnit, target, texture});
     }
     void bindSampler(uint32_t, uint32_t) override {}
+    void vertexAttribDivisor(uint32_t, uint32_t) override {}
     void drawBuffers(int32_t, const uint32_t*) override {}
     void readBuffer(uint32_t) override {}
     void logicOp(uint32_t) override {}

@@ -46,40 +46,20 @@ bool GLESBackend::createContext() {
         return false;
     }
 
-    // Prefer the plain eglGetDisplay(EGL_DEFAULT_DISPLAY) path. On Mesa's
-    // surfaceless/headless build this yields a usable display with no window
-    // system and avoids _eglFindDisplay entirely. The platform-display entry
-    // points below route through _eglFindDisplay, which on the local Mesa 26
-    // reads past a single-element attrib list and overflows the stack under
-    // ASan; they are kept only as a fallback for drivers that lack a default
-    // display.
+    // Use the plain eglGetDisplay(EGL_DEFAULT_DISPLAY) path. On Mesa's
+    // surfaceless/headless build (EGL_PLATFORM=surfaceless) this yields a usable
+    // display with no window system. The platform-display entry points
+    // (eglGetPlatformDisplay[eglGetPlatformDisplayEXT] with
+    // EGL_PLATFORM_SURFACELESS_MESA) route through Mesa's _eglFindDisplay, which
+    // over-reads its attrib list and corrupts the stack; we deliberately avoid
+    // them on the headless path the project targets.
     if (lib_->eglGetDisplay) {
         display_ = lib_->eglGetDisplay(EGL_DEFAULT_DISPLAY);
     }
-    // Fallback: try the EXT platform-display entry point (surfaceless).
-    if (display_ == EGL_NO_DISPLAY && lib_->eglGetPlatformDisplayEXT) {
-        display_ = lib_->eglGetPlatformDisplayEXT(EGL_PLATFORM_SURFACELESS_MESA,
-                                                  EGL_DEFAULT_DISPLAY, nullptr);
-        if (display_ == EGL_NO_DISPLAY) {
-            log(LogCategory::GLES, LogLevel::Debug)
-                << "createContext: eglGetPlatformDisplayEXT(surfaceless) failed ("
-                << lib_->eglGetError() << ")";
-        }
-    }
-    // Fallback for drivers that expose only the core eglGetPlatformDisplay.
-    if (display_ == EGL_NO_DISPLAY && lib_->eglGetPlatformDisplay) {
-        EGLint attrs[] = {EGL_NONE};
-        display_ = lib_->eglGetPlatformDisplay(EGL_PLATFORM_SURFACELESS_MESA,
-                                               EGL_DEFAULT_DISPLAY, attrs);
-        if (display_ == EGL_NO_DISPLAY) {
-            log(LogCategory::GLES, LogLevel::Debug)
-                << "createContext: eglGetPlatformDisplay(surfaceless) failed ("
-                << lib_->eglGetError() << ")";
-        }
-    }
     if (display_ == EGL_NO_DISPLAY) {
         log(LogCategory::GLES, LogLevel::Error)
-            << "createContext: no EGL display available";
+            << "createContext: eglGetDisplay(EGL_DEFAULT_DISPLAY) failed ("
+            << (lib_->eglGetError ? lib_->eglGetError() : 0) << ")";
         return false;
     }
 
@@ -123,6 +103,7 @@ bool GLESBackend::createContext() {
             << "createContext: eglMakeCurrent failed (" << lib_->eglGetError() << ")";
         return false;
     }
+    lib_->contextAlive = true;
     return true;
 }
 
@@ -186,7 +167,19 @@ bool GLESBackend::initialize() {
 }
 
 void GLESBackend::shutdown() {
+    // Mark the context dead first so any backend resource that outlives this
+    // call (e.g. a buffer the caller still holds) skips its driver teardown in
+    // its destructor instead of calling glDelete* on a terminated context,
+    // which is undefined and can corrupt driver heap state.
+    if (lib_) lib_->contextAlive = false;
     if (display_ != EGL_NO_DISPLAY) {
+        // EGL requires releasing the current context before destroying it or
+        // terminating the display; destroying a context that is still current
+        // leaves Mesa's internal context state dangling and lets the driver
+        // scribble freed memory (corrupting the process heap). Unbind first.
+        if (context_ != EGL_NO_CONTEXT && lib_->eglMakeCurrent)
+            lib_->eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                                 EGL_NO_CONTEXT);
         if (context_ != EGL_NO_CONTEXT && lib_->eglDestroyContext)
             lib_->eglDestroyContext(display_, context_);
         if (lib_->eglTerminate) lib_->eglTerminate(display_);
@@ -255,6 +248,13 @@ void GLESBackend::disableVertexAttribArray(uint32_t index) {
         lib_->glDisableVertexAttribArray(static_cast<GLuint>(index));
 }
 
+void GLESBackend::bindBuffer(uint32_t target, uint32_t buffer) {
+    // Resolve the frontend buffer name to the native driver id when known.
+    auto it = nativeMap_.find(buffer);
+    GLuint native = it != nativeMap_.end() ? it->second : buffer;
+    if (lib_->glBindBuffer) lib_->glBindBuffer(target, native);
+}
+
 void GLESBackend::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                                       bool normalized, int32_t stride,
                                       intptr_t offset) {
@@ -264,6 +264,12 @@ void GLESBackend::vertexAttribPointer(uint32_t index, int32_t size, uint32_t typ
                                     normalized ? GL_TRUE : GL_FALSE,
                                     static_cast<GLsizei>(stride),
                                     reinterpret_cast<const void*>(offset));
+}
+
+void GLESBackend::vertexAttribDivisor(uint32_t index, uint32_t divisor) {
+    if (lib_->glVertexAttribDivisor)
+        lib_->glVertexAttribDivisor(static_cast<GLuint>(index),
+                                    static_cast<GLuint>(divisor));
 }
 
 void GLESBackend::bindNativeObject(uint32_t name, uint32_t nativeId) {
@@ -423,12 +429,49 @@ void GLESBackend::drawArraysInstanced(uint32_t mode, int32_t first,
 }
 
 void GLESBackend::drawElementsInstanced(uint32_t mode, int32_t count,
-                                         uint32_t type, intptr_t indices,
-                                         int32_t primcount) {
+                                        uint32_t type, intptr_t indices,
+                                        int32_t primcount) {
     if (lib_->glDrawElementsInstanced)
         lib_->glDrawElementsInstanced(mode, count, type,
+                                     reinterpret_cast<const void*>(indices),
+                                     primcount);
+}
+
+void GLESBackend::multiDrawArrays(uint32_t mode, const int32_t* firsts,
+                                  const int32_t* counts, int32_t drawcount) {
+    if (lib_->glMultiDrawArrays)
+        lib_->glMultiDrawArrays(
+            mode, firsts, counts,
+            static_cast<GLsizei>(drawcount));
+}
+
+void GLESBackend::multiDrawElements(uint32_t mode, const int32_t* counts,
+                                    uint32_t type, const intptr_t* indices,
+                                    int32_t drawcount) {
+    if (lib_->glMultiDrawElements) {
+        // Reinterpret the frontend intptr_t* as the native const void* const*.
+        lib_->glMultiDrawElements(
+            mode, counts, type,
+            reinterpret_cast<const void* const*>(indices),
+            static_cast<GLsizei>(drawcount));
+    }
+}
+
+void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
+                                    int32_t count, uint32_t type,
+                                    intptr_t indices) {
+    if (lib_->glDrawRangeElements)
+        lib_->glDrawRangeElements(mode, start, end, count, type,
+                                 reinterpret_cast<const void*>(indices));
+}
+
+void GLESBackend::drawElementsBaseVertex(uint32_t mode, int32_t count,
+                                         uint32_t type, intptr_t indices,
+                                         int32_t basevertex) {
+    if (lib_->glDrawElementsBaseVertex)
+        lib_->glDrawElementsBaseVertex(mode, count, type,
                                       reinterpret_cast<const void*>(indices),
-                                      primcount);
+                                      static_cast<GLint>(basevertex));
 }
 
 void GLESBackend::clear(uint32_t mask) {

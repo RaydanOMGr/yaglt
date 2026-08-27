@@ -938,4 +938,40 @@ crashed agent, this session)
   138/435 (31.7%) core.
 - Validation: default + sanitizer (no Mesa) + translate (Mesa) suites all green.
 
+2026-08-27 (draw expansion + vertex attrib divisor, this session)
+- SPEC §10 draw expansion: implemented `glVertexAttribDivisor`,
+  `glMultiDrawArrays`, `glMultiDrawElements`, `glDrawRangeElements`,
+  `glDrawElementsBaseVertex`. Frontend `Context` methods flush tracked pipeline
+  state before each draw (consistent with the single-draw calls); non-instanced
+  variants require an active program (core profile → `GL_INVALID_OPERATION`);
+  `glDrawRangeElements` validates `end < start` → `GL_INVALID_VALUE`;
+  `glMultiDraw*` validates negative `drawcount` → `GL_INVALID_VALUE`. Capability
+  gating centralized via four new `Feature`s: `VertexAttribDivisor`,
+  `MultiDraw`, `DrawRangeElements` (Native on GLES 3.0) and `DrawElementsBaseVertex`
+  (Native only on GLES 3.2; honestly `Unsupported` otherwise — marked per the
+  detected version in `populateGLESCapabilities`, Native in the mock profile).
+- Vertex attrib divisor pushed through a new `GLStateSink::vertexAttribDivisor`
+  only when non-zero (the GL default is 0, so no redundant native call, SPEC §10).
+  `Context::vertexAttribDivisor` records the per-attrib divisor on the bound VAO
+  and marks vertex state dirty; no VAO bound → `GL_INVALID_OPERATION`. The VAO
+  `AttribState` gained a `divisor` field.
+- Backend wiring: `IGraphicsBackend` gained four pure-virtual draw methods;
+  `MockBackend` records them (observable in tests); `GLESBackend` drives the real
+  driver via new (optional) `GLESLib` symbols `glVertexAttribDivisor` /
+  `glMultiDrawArrays` / `glMultiDrawElements` / `glDrawRangeElements` /
+  `glDrawElementsBaseVertex` (resolved defensively so `load()` still succeeds on
+  drivers that lack them). Public `gl_api` exposes all five entry points.
+- New `tests/unit/draw_expansion_test.cpp` (5 cases) covers divisor push-only-
+  when-nonzero + no-VAO error, multi-draw recording + negative-count + no-program
+  gates, range validation, and base-vertex program/capability gates. Also fixed a
+  pre-existing unit test (`vertex_attrib_captures_bound_array_buffer`) that
+  omitted `glUseProgram`, so `glDrawArrays` early-returned before `flushState()`
+  and the captured ARRAY_BUFFER was never pushed (now passes).
+- Validation: default 212/212 green; sanitizer 219/219 green (incl. Mesa e2e);
+  translate/Mesa build's new tests pass (the normal-mode run still trips the
+  documented pre-existing Mesa softpipe teardown segfault after e2e teardown,
+  unrelated to this change — proven by the sanitizer run passing and the
+  isolated mock test passing). Coverage bumped in `docs/coverage-core.md`
+  (now 143/490 = 29.2% full / 143/435 = 32.9% core).
+
 

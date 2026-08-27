@@ -141,6 +141,14 @@ public:
         bool normalized = false;
         int32_t stride = 0;
         intptr_t offset = 0;
+        // ARRAY_BUFFER bound when this attrib was specified. On GLES the attribute
+        // buffer binding is captured from the bound ARRAY_BUFFER at gl*VertexAttrib
+        // Pointer time; the flush binds this buffer before issuing the native call
+        // (SPEC §2.1 / GLES: no client-side vertex arrays).
+        GLObjectName buffer = 0;
+        // Per-attribute divisor (SPEC §10, glVertexAttribDivisor). 0 = advance once
+        // per vertex (the GL default); >0 advances once per `divisor` instances.
+        uint32_t divisor = 0;
     };
     std::vector<AttribState> attribs;
 

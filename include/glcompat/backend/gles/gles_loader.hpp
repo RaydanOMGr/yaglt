@@ -196,6 +196,16 @@ struct GLESLib {
     void (*glDrawArraysInstanced)(GLenum, GLint, GLsizei, GLsizei) = nullptr;
     void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void*,
                                     GLsizei) = nullptr;
+    // Draw expansion (SPEC §10). ES 3.0+ (multi-draw / range-elements) and
+    // ES 3.2 (base-vertex); resolved optionally so load() still succeeds when a
+    // driver lacks them (the capability system reports them unsupported).
+    void (*glMultiDrawArrays)(GLenum, const GLint*, const GLsizei*, GLsizei) = nullptr;
+    void (*glMultiDrawElements)(GLenum, const GLsizei*, GLenum, const void* const*,
+                                GLsizei) = nullptr;
+    void (*glDrawRangeElements)(GLenum, GLuint, GLuint, GLsizei, GLenum,
+                                const void*) = nullptr;
+    void (*glDrawElementsBaseVertex)(GLenum, GLsizei, GLenum, const void*,
+                                     GLint) = nullptr;
 
     // Vertex attributes (SPEC §2.1).
     GLint (*glGetAttribLocation)(GLuint, const GLchar*) = nullptr;
@@ -204,6 +214,7 @@ struct GLESLib {
     void (*glDisableVertexAttribArray)(GLuint) = nullptr;
     void (*glVertexAttribPointer)(GLuint, GLint, GLenum, GLboolean, GLsizei,
                                   const void*) = nullptr;
+    void (*glVertexAttribDivisor)(GLuint, GLuint) = nullptr;
 
     // Uniforms (SPEC §8). Resolved for ES 2.0+ drivers; absent on a driver that
     // lacks them they stay null and the backend reports unsupported honestly.
@@ -226,6 +237,17 @@ struct GLESLib {
 
     // True only when every required symbol resolved.
     bool loaded = false;
+
+    // True between GLES context creation and backend shutdown. Resource
+    // destructors consult this so they never issue driver calls on a context
+    // that has already been torn down (which is undefined and can corrupt
+    // driver heap state, e.g. glDelete* after eglTerminate). The frontend owns
+    // object lifetime and normally deletes resources before the backend shuts
+    // down, but a resource that outlives shutdown must not call the driver.
+    bool contextAlive = false;
+
+    // Safe to issue driver calls: symbols resolved AND a live context exists.
+    bool driverLive() const { return loaded && contextAlive; }
 
     // Opens libEGL / libGLESv2 (trying a few common sonames) and resolves all
     // of the above. Returns false (and leaves loaded=false) if unavailable.

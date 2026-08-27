@@ -30,6 +30,11 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     table.set(F::ShaderObjects, S::Native);
     table.set(F::ProgramObjects, S::Native);
     table.set(F::InstancedRendering, es3 ? S::Native : S::Emulated);
+    table.set(F::VertexAttribDivisor, es3 ? S::Native : S::Unsupported);
+    table.set(F::MultiDraw, es3 ? S::Native : S::Unsupported);
+    table.set(F::DrawRangeElements, es3 ? S::Native : S::Unsupported);
+    bool es32 = (lib.glesMajor == 3 && lib.glesMinor >= 2) || lib.glesMajor > 3;
+    table.set(F::DrawElementsBaseVertex, es32 ? S::Native : S::Unsupported);
 
     table.set(F::ImmutableTextureStorage, es3 ? S::Native : S::Emulated);
     table.set(F::ImmutableBufferStorage, es31 ? S::Native : S::Unsupported);

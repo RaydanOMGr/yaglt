@@ -37,6 +37,10 @@ public:
     }
     // Unmap a previously mapped region (SPEC §6 glUnmapBuffer). Default no-op.
     virtual void unmapBuffer(uint32_t target) { (void)target; }
+    // Native driver buffer name (0 when the backend has no native handle). The
+    // frontend registers this so the backend's name->native map resolves buffer
+    // binds at draw/flush time (SPEC §3/§11).
+    virtual uint32_t nativeId() const { return 0; }
 };
 class BackendTexture {
 public:

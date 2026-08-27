@@ -925,4 +925,38 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
                                      primcount);
 }
 
+void glVertexAttribDivisor(GLuint index, GLuint divisor) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribDivisor(index, divisor);
+}
+
+void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
+                       GLsizei drawcount) {
+    if (g_current == nullptr) return;
+    g_current->multiDrawArrays(mode, firsts, counts, drawcount);
+}
+
+void glMultiDrawElements(GLenum mode, const GLint* counts, GLenum type,
+                        const GLvoid* const* indices, GLsizei drawcount) {
+    if (g_current == nullptr) return;
+    g_current->multiDrawElements(mode, counts, type,
+                                reinterpret_cast<const intptr_t*>(indices),
+                                drawcount);
+}
+
+void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
+                        GLenum type, const GLvoid* indices) {
+    if (g_current == nullptr) return;
+    g_current->drawRangeElements(mode, start, end, count, type,
+                                reinterpret_cast<intptr_t>(indices));
+}
+
+void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                             const GLvoid* indices, GLint basevertex) {
+    if (g_current == nullptr) return;
+    g_current->drawElementsBaseVertex(mode, count, type,
+                                     reinterpret_cast<intptr_t>(indices),
+                                     basevertex);
+}
+
 } // namespace glcompat
