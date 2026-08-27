@@ -157,9 +157,11 @@ GetQueryObjectiv, GetQueryObjectuiv, GetQueryObjecti64v, GetQueryObjectui64v, Is
      `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) plus the full multisample
      surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/
      `glTexImage2DMultisample`/`glTexImage3DMultisample` and DSA
-     `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` (§8.19) —
-     are now implemented with target/sample/dimension validation. Remaining:
-     cube/array/rect TexImage targets, `GetTexImage` multisample, texture views. (§8)
+      `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` (§8.19) —
+      are now implemented with target/sample/dimension validation. Remaining:
+      `GL_TEXTURE_RECTANGLE` (no GLES equivalent — honest capability gap),
+      `GetTexImage` multisample, texture views. (Cube-map face targets now resolve
+      to the bound `GL_TEXTURE_CUBE_MAP`; array targets already functional.) (§8)
   3. **Full DSA surface** — texture `gl*Named*` done; renderbuffer/framebuffer
      `gl*Named*` (storage, attachments, status, params, blit/invalidate/clear)
      implemented (SPEC §9.2); **vertex-array DSA** (`glCreateVertexArrays`,

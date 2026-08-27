@@ -958,7 +958,7 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
         setError(GLError::InvalidValue);
         return;
     }
-    tex->target = target;
+    tex->target = normalizeTextureTarget(target);
     TextureObject::Image img;
     img.level = level;
     img.internalFormat = internalFormat;
@@ -991,7 +991,7 @@ void Context::texImage1D(uint32_t target, int level, uint32_t internalFormat,
         setError(GLError::InvalidValue);
         return;
     }
-    tex->target = target;
+    tex->target = normalizeTextureTarget(target);
     TextureObject::Image img;
     img.level = level;
     img.internalFormat = internalFormat;
@@ -1025,7 +1025,7 @@ void Context::texImage3D(uint32_t target, int level, uint32_t internalFormat,
         setError(GLError::InvalidValue);
         return;
     }
-    tex->target = target;
+    tex->target = normalizeTextureTarget(target);
     TextureObject::Image img;
     img.level = level;
     img.internalFormat = internalFormat;

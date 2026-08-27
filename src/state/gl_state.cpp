@@ -322,10 +322,24 @@ bool GLStateTracker::setTextureBinding(GLenum target, GLObjectName name) {
     return true;
 }
 
+GLenum normalizeTextureTarget(GLenum target) {
+    switch (target) {
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
+        return GL_TEXTURE_CUBE_MAP;
+    default:
+        return target;
+    }
+}
+
 GLObjectName GLStateTracker::boundTextureForTarget(GLenum target) const {
     if (activeTextureUnit_ >= texUnits_.size()) return 0;
     const auto& bound = texUnits_[activeTextureUnit_].bound;
-    auto it = bound.find(target);
+    auto it = bound.find(normalizeTextureTarget(target));
     return it == bound.end() ? 0 : it->second;
 }
 

@@ -961,6 +961,25 @@ crashed agent, this session)
   failure unchanged).
 - Coverage now 217/490 (44.3%) full / 217/435 (49.9%) core (+1 prototype).
 
+2026-08-28 (cube-map face TexImage targets, this session)
+- Fixed SPEC §8.1 cube-map face targets in the texture binding lookup. Cube faces
+  (`GL_TEXTURE_CUBE_MAP_POSITIVE_X/NEGATIVE_X/POSITIVE_Y/NEGATIVE_Y/POSITIVE_Z/
+  NEGATIVE_Z`) now resolve to the cube map bound as `GL_TEXTURE_CUBE_MAP`, so
+  `glTexImage2D`/`glTexSubImage2D`/`glCopyTexImage2D`/`glTexParameter*` on a face
+  address the bound cube map instead of failing with `GL_INVALID_OPERATION`. Added
+  the six face enums to `gl_types.hpp`; added `normalizeTextureTarget()` (maps faces
+  → `GL_TEXTURE_CUBE_MAP`) used in `GLStateTracker::boundTextureForTarget` and at the
+  `tex->target` assignment in `texImage1D/2D/3D` (so the texture keeps its canonical
+  `GL_TEXTURE_CUBE_MAP` target). Backend still receives the original face target
+  (GLES3-native). Array targets (`GL_TEXTURE_1D_ARRAY`/`GL_TEXTURE_2D_ARRAY`) already
+  worked (bound/looked-up by the same key); `GL_TEXTURE_RECTANGLE` has no GLES
+  equivalent and is an honest capability gap.
+- New `tests/unit/teximage_cube_test.cpp` (3 cases: 6 face uploads resolve to the
+  bound cube map and reach the backend, face upload with no bound cube map →
+  `GL_INVALID_OPERATION`, non-cube target regression). Default 389/389 + sanitizer
+  399/399 pass (pre-existing unrelated `shader_translate_test` failure unchanged).
+- Correctness fix (no new gl* entry point): coverage stays 217/490 (44.3%) full.
+
 2026-08-28 (color clamping, `glClampColor`, this session)
 - Implemented `glClampColor` (SPEC §15.2.3), closing the `§15/§16: glClampColor`
   gap noted in Next Steps (carried). `target` must be `GL_CLAMP_READ_COLOR`

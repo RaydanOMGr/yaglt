@@ -10,6 +10,12 @@
 
 namespace glcompat {
 
+// Maps a per-face cube-map target (GL_TEXTURE_CUBE_MAP_POSITIVE_X, ...) to its
+// canonical cube-map target (GL_TEXTURE_CUBE_MAP) so that a texture bound as a
+// cube map can be addressed by any of its six faces (SPEC §8.1, glTexImage2D on
+// a cube map). All other targets are returned unchanged.
+GLenum normalizeTextureTarget(GLenum target);
+
 // Centralized OpenGL pipeline state with change tracking.
 //
 // `set*` methods update the current state and return true only when the value
