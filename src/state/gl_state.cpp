@@ -712,6 +712,8 @@ bool isTrackedCap(GLenum cap) {
            cap == 0x0B71 /* GL_DEPTH_TEST */ ||
            cap == 0x0B90 /* GL_STENCIL_TEST */ ||
            cap == 0x0BD0 /* GL_DITHER */ ||
+           cap == 0x0BDA /* GL_FRAMEBUFFER_SRGB */ ||
+           cap == 0x809E /* GL_SAMPLE_ALPHA_TO_COVERAGE */ ||
            cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
            cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */ ||
             cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */ ||
@@ -729,7 +731,7 @@ GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
 int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     switch (p) {
     case 0x0BE2: case 0x0B44: case 0x0B71: case 0x0B90: case 0x0C11: // caps
-    case 0x0BD0: // GL_DITHER
+    case 0x0BD0: case 0x0BDA: case 0x809E: // GL_DITHER / GL_FRAMEBUFFER_SRGB / GL_SAMPLE_ALPHA_TO_COVERAGE
         if (!isTrackedCap(p)) return 0;
         out[0] = capValue(capsCurrent_, p);
         return 1;
