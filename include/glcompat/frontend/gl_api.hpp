@@ -169,9 +169,10 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 // texture for `target`; glGetTextureParameteriv is the DSA variant for an
 // explicit texture object (capability-gated by DirectStateAccess).
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params);
-void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
-                   GLvoid* pixels);
-void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
+ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                    GLvoid* pixels);
+ void glGetCompressedTexImage(GLenum target, GLint level, GLvoid* img);
+ void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
 
 // Direct State Access texture surface (SPEC §2.1 / §8.1). Operate on an explicit
 // named texture object instead of the bound one; capability-gated by
@@ -218,9 +219,10 @@ void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname,
                              GLint* params);
 void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
                              GLfloat* params);
-void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
-                       GLvoid* pixels);
-void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);
+ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                        GLvoid* pixels);
+ void glGetCompressedTextureImage(GLuint texture, GLint level, GLvoid* img);
+ void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);
 void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
                            GLintptr offset, GLsizeiptr size);
 

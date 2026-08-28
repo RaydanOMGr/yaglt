@@ -544,21 +544,31 @@ void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
                                       params);
 }
 
-void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
-                       GLvoid* pixels) {
-    if (g_current == nullptr) return;
-    g_current->getTextureImage(texture, level, static_cast<uint32_t>(format),
-                               static_cast<uint32_t>(type), pixels);
-}
+ void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                        GLvoid* pixels) {
+     if (g_current == nullptr) return;
+     g_current->getTextureImage(texture, level, static_cast<uint32_t>(format),
+                                static_cast<uint32_t>(type), pixels);
+ }
 
-void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
-                   GLvoid* pixels) {
-    if (g_current == nullptr) return;
-    g_current->getTexImage(target, level, static_cast<uint32_t>(format),
-                           static_cast<uint32_t>(type), pixels);
-}
+ void glGetCompressedTextureImage(GLuint texture, GLint level, GLvoid* img) {
+     if (g_current == nullptr) return;
+     g_current->getCompressedTextureImage(texture, level, img);
+ }
 
-void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer) {
+ void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                    GLvoid* pixels) {
+     if (g_current == nullptr) return;
+     g_current->getTexImage(target, level, static_cast<uint32_t>(format),
+                            static_cast<uint32_t>(type), pixels);
+ }
+
+ void glGetCompressedTexImage(GLenum target, GLint level, GLvoid* img) {
+     if (g_current == nullptr) return;
+     g_current->getCompressedTexImage(target, level, img);
+ }
+
+ void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer) {
     if (g_current == nullptr) return;
     g_current->textureBuffer(texture, static_cast<uint32_t>(internalFormat),
                              buffer);

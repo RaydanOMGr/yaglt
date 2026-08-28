@@ -2161,6 +2161,30 @@ void Context::getTexImage(uint32_t target, int level, uint32_t format, uint32_t 
     if (tex->backend) tex->backend->getTexImage(target, level, format, type, pixels);
 }
 
+void Context::getCompressedTextureImage(GLObjectName texture, int level,
+                                        void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getCompressedTexImage(tex->target, level, pixels);
+}
+
+void Context::getCompressedTexImage(uint32_t target, int level, void* pixels) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getCompressedTexImage(target, level, pixels);
+}
+
 void Context::textureBuffer(GLObjectName texture, uint32_t internalFormat,
                             GLObjectName buffer) {
     TextureObject* tex = dsaTexture(*this, texture);

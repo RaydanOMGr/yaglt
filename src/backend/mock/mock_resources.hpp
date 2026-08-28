@@ -395,6 +395,11 @@ public:
         lastCopyInternalFormat = format; lastCopyBorder = static_cast<int>(type);
         (void)pixels;
     }
+    int getCompressedTexImageCalls = 0;
+    void getCompressedTexImage(uint32_t target, int level, void* pixels) override {
+        ++getCompressedTexImageCalls; lastSubTarget = target; lastSubLevel = level;
+        (void)pixels;
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
 class MockRenderbuffer : public BackendRenderbuffer {

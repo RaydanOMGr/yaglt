@@ -77,6 +77,7 @@ add_executable(yaglt_tests
     unit/transform_feedback_varying_test.cpp
     unit/memory_barrier_test.cpp
     unit/program_interface_test.cpp
+    unit/compressed_tex_image_test.cpp
     backend/gles_backend_test.cpp
 )
 

@@ -11,6 +11,19 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — compressed texture readback, this session)
+- Added `glGetCompressedTexImage` / `glGetCompressedTextureImage` (SPEC §8.11).
+  New `BackendProgram`/`BackendTexture::getCompressedTexImage` virtual (default
+  no-op, honest for backends without native reads; the mock records the call +
+  target/level). `Context::getCompressedTexImage` / `getCompressedTextureImage`
+  validate level < 0 (`GL_INVALID_VALUE`), missing texture (`GL_INVALID_OPERATION`),
+  then delegate. GLES headers bundling lacks `glGetCompressedTexImage`, so the GLES
+  backend inherits the honest no-op default. `gl_api` exposes both entry points. New
+  `tests/unit/compressed_tex_image_test.cpp` covers classic + DSA paths, negative
+  level, and ungenerated-name validation. Default **499/499**, sanitizer **499/499**,
+  translate/Mesa **511/511** green. Coverage bumped in `docs/coverage-core.md`
+  (309/571 ≈ 54.1% declared; ~59.9% core).
+
 ## Recent Work (2026-08-28 — program interface summary query, this session)
 - Added `glGetProgramInterfaceiv` (SPEC §7.3.1): returns a summary property for a
   program interface (ACTIVE_RESOURCES, MAX_RESOURCE_NAME_LENGTH,

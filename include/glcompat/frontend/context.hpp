@@ -314,6 +314,8 @@ public:
                          uint32_t type, void* pixels);
     void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
                      void* pixels);
+    void getCompressedTextureImage(GLObjectName texture, int level, void* pixels);
+    void getCompressedTexImage(uint32_t target, int level, void* pixels);
     void textureBuffer(GLObjectName texture, uint32_t internalFormat,
                        GLObjectName buffer);
     void textureBufferRange(GLObjectName texture, uint32_t internalFormat,
