@@ -1148,6 +1148,23 @@ GLint glGetProgramiv(GLuint program, GLenum pname) {
     return g_current->getProgramiv(program, pname);
 }
 
+void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length) {
+    if (g_current == nullptr) return;
+    g_current->programBinary(program, binaryFormat, binary, length);
+}
+
+void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei* length,
+                        GLenum* binaryFormat, void* binary) {
+    if (g_current == nullptr) return;
+    g_current->getProgramBinary(program, bufSize, length, binaryFormat, binary);
+}
+
+void glShaderBinary(GLsizei count, const GLuint* shaders, GLenum binaryFormat,
+                    const void* binary, GLsizei length) {
+    if (g_current == nullptr) return;
+    g_current->shaderBinary(count, shaders, binaryFormat, binary, length);
+}
+
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
                         GLchar* infoLog) {
     if (g_current == nullptr) return;

@@ -524,6 +524,16 @@ public:
         log.clear();
         return true;
     }
+    // glShaderBinary recording (observable in tests).
+    int loadBinaryCalls = 0;
+    uint32_t lastBinaryFormat = 0;
+    int lastBinaryLength = 0;
+    void loadBinary(uint32_t binaryFormat, const void* binary, int32_t length) override {
+        ++loadBinaryCalls;
+        lastBinaryFormat = binaryFormat;
+        lastBinaryLength = static_cast<int>(length);
+        (void)binary;
+    }
 };
 class MockProgram : public BackendProgram {
 public:
@@ -559,6 +569,17 @@ public:
     }
     std::map<std::string, int> boundAttribLocations;
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
+
+    // glProgramBinary recording (observable in tests).
+    int loadBinaryCalls = 0;
+    uint32_t lastBinaryFormat = 0;
+    int lastBinaryLength = 0;
+    void loadBinary(uint32_t binaryFormat, const void* binary, int32_t length) override {
+        ++loadBinaryCalls;
+        lastBinaryFormat = binaryFormat;
+        lastBinaryLength = static_cast<int>(length);
+        (void)binary;
+    }
 
     // Uniform recording (observable in tests). Locations and args captured.
     int getUniformLocation(const std::string& name) const override {

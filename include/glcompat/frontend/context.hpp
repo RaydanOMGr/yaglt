@@ -696,6 +696,20 @@ public:
     // GL_INVALID_OPERATION); GL_PROGRAM_BINARY_RETRIEVABLE_HINT may be set at
     // any time. Unknown pname -> GL_INVALID_ENUM; non-program -> GL_INVALID_OPERATION.
     void programParameteri(GLObjectName program, uint32_t pname, int32_t value);
+    // Program binary (SPEC §7.3 / §19.1). glProgramBinary loads a precompiled blob
+    // and marks the program linked; glGetProgramBinary retrieves the frontend's
+    // authoritative binary mirror. An unknown program -> GL_INVALID_OPERATION;
+    // length < 0 -> GL_INVALID_VALUE; binaryFormat == 0 -> GL_INVALID_ENUM.
+    // glGetProgramBinary reports GL_INVALID_OPERATION if no binary is retrievable.
+    void programBinary(GLObjectName program, uint32_t binaryFormat, const void* binary,
+                       GLsizei length);
+    void getProgramBinary(GLObjectName program, GLsizei bufSize, GLsizei* length,
+                          uint32_t* binaryFormat, void* binary);
+    // Shader binary (SPEC §7.2). Loads a SPIR-V / vendor binary into each named
+    // shader and marks it compiled. count < 0 -> GL_INVALID_VALUE; binaryFormat ==
+    // 0 -> GL_INVALID_ENUM; an unknown shader -> GL_INVALID_OPERATION.
+    void shaderBinary(GLsizei count, const GLuint* shaders, uint32_t binaryFormat,
+                      const void* binary, GLsizei length);
     bool isProgramLinked(GLObjectName program) const;
     std::string programInfoLog(GLObjectName program) const;
     int getAttribLocation(GLObjectName program, const std::string& name) const;

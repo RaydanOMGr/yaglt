@@ -299,6 +299,12 @@ constexpr GLbitfield GL_ALL_SHADER_BITS = 0xFFFFFFFFu;
 constexpr GLenum GL_ACTIVE_PROGRAM = 0x8259;
 constexpr GLenum GL_PROGRAM_SEPARABLE = 0x8258;
 constexpr GLenum GL_PROGRAM_BINARY_RETRIEVABLE_HINT = 0x8257;
+// Program binary (SPEC §7.3 / §19.1).
+constexpr GLenum GL_PROGRAM_BINARY_LENGTH = 0x8741;
+constexpr GLenum GL_NUM_PROGRAM_BINARY_FORMATS = 0x87FE;
+constexpr GLenum GL_PROGRAM_BINARY_FORMATS = 0x87FF;
+// Shader binary (SPEC §7.2 / ARB_gl_spirv). glShaderBinary consumes SPIR-V.
+constexpr GLenum GL_SHADER_BINARY_FORMAT_SPIR_V = 0x9558;
 // GL_VALID_STATUS shares the 0x8B83 value with GL_VALIDATE_STATUS (programs).
 constexpr GLenum GL_VALID_STATUS = 0x8B83;
 constexpr GLenum GL_ATTACHED_SHADERS = 0x8B85;

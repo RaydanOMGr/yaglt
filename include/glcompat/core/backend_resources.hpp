@@ -258,6 +258,11 @@ public:
     // desktop->backend translation (via IShaderCompiler) before calling this, so
     // the backend receives backend-compatible source.
     virtual bool compile(const std::string& source, std::string& log) = 0;
+    // Load a precompiled shader binary (glShaderBinary, SPEC §7.2). Default no-op
+    // so backends opt in; a real driver consumes the blob directly.
+    virtual void loadBinary(uint32_t binaryFormat, const void* binary, int32_t length) {
+        (void)binaryFormat; (void)binary; (void)length;
+    }
 };
 class BackendProgram {
 public:
@@ -275,6 +280,14 @@ public:
     virtual void bindAttribLocation(const std::string& name, int index) {}
     // Native backend program id (e.g. driver GLuint). 0 when not linked.
     virtual uint32_t nativeId() const = 0;
+
+    // Load a precompiled program binary (glProgramBinary, SPEC §7.3 / §19.1).
+    // Default no-op so backends opt in; a real driver consumes the blob directly
+    // and the program becomes linked. The frontend keeps the authoritative binary
+    // mirror, matching the buffer-mirror pattern.
+    virtual void loadBinary(uint32_t binaryFormat, const void* binary, int32_t length) {
+        (void)binaryFormat; (void)binary; (void)length;
+    }
 
     // Uniform management (SPEC §8). Operate on this linked program. Defaults are
     // no-ops so backends opt in. `getUniformLocation` returns -1 when the uniform

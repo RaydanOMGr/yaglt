@@ -265,6 +265,10 @@ public:
     bool compiled = false;
     std::string infoLog;
     std::unique_ptr<BackendShader> backend;
+    // Loaded shader binary (glShaderBinary). A binary fully defines the shader
+    // source, so loading one marks the shader compiled (SPEC §7.2).
+    std::vector<uint8_t> binary;
+    uint32_t binaryFormat = 0;
 };
 
 // Frontend program object (SPEC §8). Owns the attached shader list and the
@@ -280,6 +284,12 @@ public:
     bool binaryRetrievableHint = false;
     std::string infoLog;
     std::unique_ptr<BackendProgram> backend;
+    // Loaded program binary (glProgramBinary) / retrieved blob (glGetProgramBinary).
+    // The frontend is the authoritative mirror of the binary, matching the buffer
+    // mirror pattern (SPEC §6). A binary fully defines the program, so loading one
+    // marks the program linked.
+    std::vector<uint8_t> binary;
+    uint32_t binaryFormat = 0;
     // Generic attribute bindings requested via glBindAttribLocation before link.
     // name -> index; applied to the backend program at the next link (SPEC §7.3.7).
     std::map<std::string, int> attribBindings;

@@ -1616,9 +1616,40 @@ crashed agent, this session)
    `shader_translate_test.cpp:53` empty-source quirk unchanged). Coverage §7 + Shader-stages rows
    updated (compute dispatch done; compute shader objects still TODO).
 
+2026-08-28 (64-bit buffer parameter queries — glGetBufferParameteri64v / glGetNamedBufferParameteri64v, SPEC §6.1.1)
+- Implemented 64-bit buffer parameter queries. `Context::getBufferParameteri64v` /
+  `getNamedBufferParameteri64v` (DSA gated by `Feature::DirectStateAccess`) read the
+  buffer's authoritative `size`/`usage`/`immutableFlags`/`mapped`/`mapOffset`/`mapLength`
+  into a `GLint64` array. Public `glGetBufferParameteri64v` / `glGetNamedBufferParameteri64v`
+  added to `gl_api`. New `tests/unit/buffer_parameter_i64_test.cpp`. Commit `f55a704`.
+- Validation: default + sanitizer green. Coverage §6 row updated.
+
+2026-08-28 (glProgramParameteri — SPEC §7.3 / §7.4.2)
+- Implemented `glProgramParameteri`. `Context::programParameteri` accepts
+  `GL_PROGRAM_SEPARABLE` (must be set before link; else `GL_INVALID_OPERATION`) and
+  `GL_PROGRAM_BINARY_RETRIEVABLE_HINT` (any time); `ProgramObject::binaryRetrievableHint`
+  recorded; `glGetProgramiv(GL_PROGRAM_SEPARABLE)` answers the flag. Public
+  `glProgramParameteri` in `gl_api`. New `tests/unit/program_parameter_test.cpp`. Commit
+  `cf5da6b`.
+- Validation: default + sanitizer green. Coverage §7 row updated.
+
+2026-08-28 (shader binaries — glShaderBinary / glProgramBinary / glGetProgramBinary, SPEC §7.2 / §19.1)
+- Implemented program/shader binary load + retrieve. `Context::programBinary` /
+  `getProgramBinary` / `shaderBinary` keep the authoritative frontend binary mirror (the
+  buffer-mirror pattern): loading a binary marks the program linked / the shader compiled.
+  `glGetProgramiv(GL_PROGRAM_BINARY_LENGTH)` reports the stored length; `glGetProgramBinary`
+  round-trips the blob + format with honest validation (bufSize-too-small → `GL_INVALID_VALUE`,
+  no binary → `GL_INVALID_OPERATION`). `BackendProgram`/`BackendShader` gained a default
+  no-op `loadBinary` virtual; `MockProgram`/`MockShader` record it. Constants
+  `GL_PROGRAM_BINARY_LENGTH` / `GL_NUM_PROGRAM_BINARY_FORMATS` / `GL_PROGRAM_BINARY_FORMATS` /
+  `GL_SHADER_BINARY_FORMAT_SPIR_V` added to `gl_types.hpp`. Public `glProgramBinary` /
+  `glGetProgramBinary` / `glShaderBinary` in `gl_api`. New `tests/unit/shader_binary_test.cpp`
+  (9 cases). Default 429/429 green.
+- Coverage now 275/571 (48.2%) declared / ~53.3% core / ~40% true (was 272/571 = 47.6% /
+  ~52.7% / ~39%). §7 row + verdict in `docs/coverage-core.md` updated.
+
 ## Next Steps (carried)
- - Remaining §7 gaps: compute **shader objects/stages** (create/compile/link a compute program),
-   shader binaries.
+ - Remaining §7 gaps: compute **shader objects/stages** (create/compile/link a compute program).
  - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
  - §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
  - §10: indirect draw.

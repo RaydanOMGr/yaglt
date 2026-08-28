@@ -3749,6 +3749,8 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
         return p->backend ? p->backend->activeUniformBlockCount() : 0;
     case GL_PROGRAM_SEPARABLE:
         return p->separable ? GL_TRUE : GL_FALSE;
+    case GL_PROGRAM_BINARY_LENGTH:
+        return static_cast<GLint>(p->binary.size());
     default:
         setError(GLError::InvalidEnum);
         return 0;
@@ -4484,6 +4486,89 @@ void Context::programParameteri(GLObjectName program, uint32_t pname, int32_t va
     default:
         setError(GLError::InvalidEnum);
         return;
+    }
+}
+
+void Context::programBinary(GLObjectName program, uint32_t binaryFormat,
+                            const void* binary, GLsizei length) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (length < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (binaryFormat == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    // A precompiled binary fully defines the program; mark it linked and store the
+    // authoritative frontend mirror (SPEC §7.3 / §19.1).
+    p->binary.assign(static_cast<const uint8_t*>(binary),
+                     static_cast<const uint8_t*>(binary) + length);
+    p->binaryFormat = binaryFormat;
+    p->linked = true;
+    if (p->backend) p->backend->loadBinary(binaryFormat, binary, length);
+}
+
+void Context::getProgramBinary(GLObjectName program, GLsizei bufSize, GLsizei* length,
+                               uint32_t* binaryFormat, void* binary) {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // The binary is only retrievable when one was loaded (the mock has no native
+    // compiler to produce a driver binary). Per SPEC §19.1: GL_INVALID_OPERATION
+    // when the program's binary is not retrievable.
+    if (p->binary.empty()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    const GLsizei len = static_cast<GLsizei>(p->binary.size());
+    // bufSize is only validated when a non-null destination is supplied.
+    if (binary != nullptr && bufSize < len) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (length != nullptr) *length = len;
+    if (binaryFormat != nullptr) *binaryFormat = p->binaryFormat;
+    if (binary != nullptr) {
+        std::memcpy(binary, p->binary.data(), static_cast<size_t>(std::min(len, bufSize)));
+    }
+}
+
+void Context::shaderBinary(GLsizei count, const GLuint* shaders, uint32_t binaryFormat,
+                           const void* binary, GLsizei length) {
+    if (count < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (binaryFormat == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (length < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (GLsizei i = 0; i < count; ++i) {
+        ShaderObject* s = getShader(shaders[i]);
+        if (s == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        s->binary.assign(static_cast<const uint8_t*>(binary),
+                         static_cast<const uint8_t*>(binary) + length);
+        s->binaryFormat = binaryFormat;
+        s->compiled = true;
+        if (s->backend) s->backend->loadBinary(binaryFormat, binary, length);
     }
 }
 

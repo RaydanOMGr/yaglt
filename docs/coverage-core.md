@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 276 `gl_api`
-entry points, and 272 matched families.
+signal. A reproducible regen script counts 571 declared families, 279 `gl_api`
+entry points, and 275 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 272 | **47.6%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 272 | **~52.7%** |
+| Full spec (compat + core) | 571 | 275 | **48.2%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 275 | **~53.3%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-All 272 matched families are real `gl_api` entry points with frontend semantics
-and tests (mock path, most also against Mesa GLES). The 276 `gl_api` entry
+All 275 matched families are real `gl_api` entry points with frontend semantics
+and tests (mock path, most also against Mesa GLES). The 279 `gl_api` entry
 points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -60,8 +60,8 @@ scope per `docs/feature-matrix.md`).
 core commands that exist as an entry point but are capability-gated to
 *Unsupported*, e.g. instanced draw / transform feedback on the mock, and
 geometry/tess/compute shader stages which are not yet created): roughly
-**one third to two-fifths of the real ~700-entry GL core command set** (276 of
-~700 ≈ 39%).
+**two-fifths of the real ~700-entry GL core command set** (279 of
+~700 ≈ 40%).
 
 ## Core coverage by spec area
 
@@ -71,7 +71,11 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 |---------------------|--------|-------|
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled`, `glEnablei/glDisablei/glIsEnabledi` (indexed caps, SPEC §10.3.1; only `GL_BLEND`/`GL_SCISSOR_TEST` indexable, invalid cap → `GL_INVALID_ENUM`, index ≥ 16 → `GL_INVALID_VALUE`, tracked per-slot, push-only-on-change) |
 | §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferParameteri64v`/`glGetNamedBufferParameteri64v` (64-bit size/usage queries, SPEC §6.1.1), `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). Bounds/format/mapping validation matches SPEC §6. |
-| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). Missing: compute **shader object/stage** translation (compute programs just aren't created yet), shader binaries |
+| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). Missing: compute **shader object/stage** translation (compute programs just
+aren't created yet). **Shader binaries** (§7.2/§19.1): `glShaderBinary` /
+`glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
+blob (the frontend keeps the authoritative mirror, matching the buffer-mirror
+pattern); loading a binary marks the program linked / the shader compiled. |
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`, integer texture params (`glTexParameterIiv`/`Iuiv` + `glTextureParameterIiv`/`Iuiv`), integer param queries (`glGetTexParameterIiv`/`Iuiv` + `glGetTextureParameterIiv`/`Iuiv`), classic `glGenerateMipmap`, and texture invalidation (`glInvalidateTexImage`/`glInvalidateTexSubImage`). Missing: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views. Non-DSA `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) and the multisample surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` + DSA `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` (§8.19) — are now implemented with target/sample/dimension validation. |
 | §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path). **Generic vertex attribute values** (`glVertexAttrib1f..4f`/`*fv`, `glVertexAttribI4i`/`I4ui`/`I4iv`/`I4uiv`, `glGetVertexAttribfv/iv` for `GL_CURRENT_VERTEX_ATTRIB`) now implemented (SPEC §10.2). Indirect draw implemented (SPEC §10). Missing: client array legacy (removed-in-core semantics) |
@@ -90,7 +94,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 
 ## The implemented frontend surface (gl_api entry points)
 
-276 `gl*` entry points; 272 map to a spec command family (see Method). Listed
+279 `gl*` entry points; 275 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -117,9 +121,9 @@ glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, 
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv,
 glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv,
-glGetNamedRenderbufferParameteriv, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
+glGetNamedRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
-glProgramParameteri,
+glProgramBinary, glProgramParameteri,
 glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog,
 glGetSynciv, glGetTexImage, glGetTexParameterIiv, glGetTexParameterIuiv, glGetTexParameterfv,
 glGetTexParameteriv, glGetTextureImage, glGetTextureLevelParameterfv, glGetTextureLevelParameteriv,
@@ -132,7 +136,7 @@ glNamedFramebufferParameteri, glNamedFramebufferRenderbuffer, glNamedFramebuffer
 glNamedFramebufferTextureLayer, glNamedRenderbufferStorage, glNamedRenderbufferStorageMultisample,
 glPauseTransformFeedback, glPixelStorei, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
 glProvokingVertex, glReadBuffer, glReadPixels, glRenderbufferStorage, glResumeTransformFeedback,
-glSampleCoverage, glSampleMaski, glSamplerParameteri, glScissor, glShaderSource, glStencilFunc,
+glSampleCoverage, glSampleMaski, glShaderBinary, glShaderSource, glStencilFunc,
 glStencilFuncSeparate, glStencilMask, glStencilMaskSeparate, glStencilOp, glStencilOpSeparate, glTexBuffer,
 glTexBufferRange, glTexImage1D, glTexImage2D, glTexImage2DMultisample, glTexImage3D, glTexImage3DMultisample,
 glTexParameterIiv, glTexParameterIuiv, glTexParameterf, glTexParameterfv, glTexParameteri, glTexParameteriv,
@@ -167,8 +171,10 @@ rasterization controls) are now implemented and omitted here.
    compute **shader objects/stages** are not yet created/translated (compute
    programs are rejected until `ComputeShaders` support lands). Geometry and
    tessellation stages are honestly Unsupported (no entry points). (§7/§13)
-2. **Shader binaries** — `glShaderBinary` / `glProgramBinary` /
-   `glGetProgramBinary` not implemented. (§7)
+2. ~~**Shader binaries**~~ — **Implemented** (SPEC §7.2/§19.1): `glShaderBinary` /
+   `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
+   blob; the frontend keeps the authoritative mirror (buffer-mirror pattern) and
+   marks the program linked / shader compiled. (Removed from the gap list.)
 3. **Texture completeness** — `GL_TEXTURE_RECTANGLE` (no GLES equivalent —
    honest capability gap), `GetTexImage` multisample, and texture views
    (`glTextureView`) remain. Cube-map face and array targets are functional. (§8)
@@ -191,14 +197,14 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-By the regenerated proxy (2026-08-28): **47.6% of the spec's declared command
-prototypes** (272/571) and **~52.7% of the core profile** have a frontend entry
+By the regenerated proxy (2026-08-28): **48.2% of the spec's declared command
+prototypes** (275/571) and **~53.3% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
-roughly **39%**. This is materially more than the 2026-08-26 snapshot (then
+roughly **40%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
 complete 4.6 core implementation**. The largest remaining gaps are the three
-unsupported shader stages (compute-object/geometry/tessellation), shader
-binaries, a few texture targets/views, and broader specific `glGet*` coverage.
+unsupported shader stages (compute-object/geometry/tessellation), a few texture
+targets/views, and broader specific `glGet*` coverage.
 
 Per project policy (`docs/feature-matrix.md`), the **compatibility profile**
 (deprecated fixed-function API) remains intentionally unimplemented and is gated
