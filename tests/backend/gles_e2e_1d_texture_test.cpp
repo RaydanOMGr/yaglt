@@ -18,12 +18,12 @@ TEST_CASE("gles_e2e_1d_texture_emulated_as_2d") {
     glcompat::setCurrentContext(&ctx);
 
     glcompat::GLuint tex = ctx.genTexture();
-    ctx.bindTexture(GL_TEXTURE_1D, tex);
-    ctx.texImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 16, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    ctx.bindTexture(glcompat::GL_TEXTURE_1D, tex);
+    ctx.texImage1D(glcompat::GL_TEXTURE_1D, 0, GL_RGBA, 16, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     EXPECT_EQ(ctx.getError(), glcompat::GLError::NoError);
 
     GLint w = 0;
-    ctx.getTexLevelParameteriv(GL_TEXTURE_1D, 0, GL_TEXTURE_WIDTH, &w);
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_WIDTH, &w);
     EXPECT_EQ(w, 16);
     EXPECT_EQ(ctx.getError(), glcompat::GLError::NoError);
 }

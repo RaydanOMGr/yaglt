@@ -77,6 +77,7 @@ if(YAGLT_SHADER_TRANSLATE)
         backend/shader_translate_test.cpp
         backend/gles_e2e_shader_test.cpp
         backend/gles_e2e_program_test.cpp
+        backend/gles_e2e_1d_texture_test.cpp
     )
 endif()
 
