@@ -1570,7 +1570,67 @@ void Context::textureStorage3D(GLObjectName texture, int levels,
     tex->storageSet = true;
     if (tex->backend)
         tex->backend->storage3D(GL_TEXTURE_3D, levels, internalFormat, width,
-                                height, depth);
+                                 height, depth);
+}
+
+void Context::textureView(GLObjectName texture, uint32_t target,
+                          GLObjectName origtexture, uint32_t internalFormat,
+                          uint32_t minLevel, uint32_t numLevels, uint32_t minLayer,
+                          uint32_t numLayers) {
+    if (!backend_.capabilities().isSupported(Feature::TextureViews)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    TextureObject* src = getTexture(origtexture);
+    TextureObject* view = getTexture(texture);
+    if (src == nullptr || view == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated / default name
+        return;
+    }
+    if (texture == origtexture) {
+        setError(GLError::InvalidOperation); // a texture may not view itself
+        return;
+    }
+    if (!src->immutableStorage) {
+        setError(GLError::InvalidOperation); // source lacks immutable storage
+        return;
+    }
+    if (!isValidTextureTarget(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (internalFormat == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (numLevels == 0 ||
+        static_cast<uint64_t>(minLevel) + numLevels >
+            static_cast<uint64_t>(src->storageLevels)) {
+        setError(GLError::InvalidValue); // empty or out-of-range level range
+        return;
+    }
+    // Level 0 of the view maps to source level minLevel; derive exposed storage.
+    int shift = static_cast<int>(minLevel);
+    view->target = target;
+    view->isView = true;
+    view->viewSource = origtexture;
+    view->viewInternalFormat = internalFormat;
+    view->viewMinLevel = minLevel;
+    view->viewNumLevels = numLevels;
+    view->viewMinLayer = minLayer;
+    view->viewNumLayers = numLayers;
+    view->immutableStorage = true;
+    view->storageSet = true;
+    view->storageLevels = static_cast<int>(numLevels);
+    view->storageInternalFormat = internalFormat;
+    int w = src->storageBaseWidth >> shift; view->storageBaseWidth = w < 1 ? 1 : w;
+    int h = src->storageBaseHeight >> shift; view->storageBaseHeight = h < 1 ? 1 : h;
+    int d = src->storageBaseDepth >> shift; view->storageBaseDepth = d < 1 ? 1 : d;
+    if (view->backend) {
+        uint32_t origNative = src->backend ? src->backend->nativeId() : 0;
+        view->backend->view(target, origNative, internalFormat, minLevel, numLevels,
+                            minLayer, numLayers);
+    }
 }
 
 void Context::textureSubImage1D(GLObjectName texture, int level, int xoffset,

@@ -305,6 +305,10 @@ public:
     int lastMSamples = 0, lastMWidth = 0, lastMHeight = 0, lastMDepth = 0;
     bool lastMFixed = false;
     uint32_t lastMTarget = 0, lastMInternalFormat = 0;
+    int viewCalls = 0;
+    uint32_t lastViewTarget = 0, lastViewOrigNativeId = 0, lastViewInternalFormat = 0;
+    uint32_t lastViewMinLevel = 0, lastViewNumLevels = 0, lastViewMinLayer = 0,
+             lastViewNumLayers = 0;
     void storage1D(uint32_t target, int levels, uint32_t internalFormat,
                    int width) override {
         ++storage1DCalls; lastStorageTarget = target; lastStorageLevels = levels;
@@ -363,6 +367,14 @@ public:
         ++texImage3DMultisampleCalls; lastMTarget = target; lastMSamples = samples;
         lastMInternalFormat = internalFormat; lastMWidth = width;
         lastMHeight = height; lastMDepth = depth; lastMFixed = fixedSampleLocations;
+    }
+    void view(uint32_t target, uint32_t origTextureNativeId, uint32_t internalFormat,
+              uint32_t minLevel, uint32_t numLevels, uint32_t minLayer,
+              uint32_t numLayers) override {
+        ++viewCalls; lastViewTarget = target; lastViewOrigNativeId = origTextureNativeId;
+        lastViewInternalFormat = internalFormat; lastViewMinLevel = minLevel;
+        lastViewNumLevels = numLevels; lastViewMinLayer = minLayer;
+        lastViewNumLayers = numLayers;
     }
     void getLevelParameteriv(uint32_t target, int level, uint32_t pname,
                              int32_t* params) override {

@@ -240,9 +240,16 @@ public:
     void textureStorage1D(GLObjectName texture, int levels, uint32_t internalFormat,
                           int width);
     void textureStorage2D(GLObjectName texture, int levels, uint32_t internalFormat,
-                          int width, int height);
+                           int width, int height);
     void textureStorage3D(GLObjectName texture, int levels, uint32_t internalFormat,
                           int width, int height, int depth);
+    // Create a texture view sharing immutable storage with `origtexture` (SPEC
+    // §8.19 glTextureView). Validates both objects exist, that they differ, that
+    // the source has immutable storage, and that the target/range are sane, then
+    // records the view and forwards to the backend (which must have TextureViews).
+    void textureView(GLObjectName texture, uint32_t target, GLObjectName origtexture,
+                     uint32_t internalFormat, uint32_t minLevel, uint32_t numLevels,
+                     uint32_t minLayer, uint32_t numLayers);
     void textureSubImage1D(GLObjectName texture, int level, int xoffset, int width,
                            uint32_t format, uint32_t type, const void* data);
     void textureSubImage2D(GLObjectName texture, int level, int xoffset, int yoffset,

@@ -21,6 +21,7 @@ enum class Feature {
     TextureObjects,
     ImmutableTextureStorage,
     TextureMultisample,
+    TextureViews,
     // Shaders
     ShaderObjects,
     ProgramObjects,

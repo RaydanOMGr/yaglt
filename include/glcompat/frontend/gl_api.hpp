@@ -163,6 +163,13 @@ void glTextureStorage2D(GLuint texture, GLsizei levels, GLenum internalFormat,
                         GLsizei width, GLsizei height);
 void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalFormat,
                         GLsizei width, GLsizei height, GLsizei depth);
+// Texture views (SPEC §8.19): create `texture` as an alias that shares the
+// immutable storage of `origtexture`, exposing a level/layer subrange under a
+// (compatible) `internalformat`. `origtexture` must already have immutable
+// storage; capability-gated by TextureViews.
+void glTextureView(GLuint texture, GLenum target, GLuint origtexture,
+                  GLenum internalformat, GLuint minlevel, GLuint numlevels,
+                  GLuint minlayer, GLuint numlayers);
 void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width,
                          GLenum format, GLenum type, const GLvoid* pixels);
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,

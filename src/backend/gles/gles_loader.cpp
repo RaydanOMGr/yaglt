@@ -191,6 +191,10 @@ bool GLESLib::load() {
     resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
     resolve(gles, glTexBuffer, "glTexBuffer");
     resolve(gles, glTexBufferRange, "glTexBufferRange");
+    // Texture views (SPEC §8.19 glTextureView) are ES 3.1+; resolved optionally so
+    // load() still succeeds on drivers that lack them (capability reports views
+    // unsupported, the frontend rejects the call with GL_INVALID_OPERATION).
+    resolve(gles, glTextureView, "glTextureView");
     // Integer texture parameters + texture invalidation (SPEC §8.1, ES 3.0+).
     resolve(gles, glTexParameterIiv, "glTexParameterIiv");
     resolve(gles, glTexParameterIuiv, "glTexParameterIuiv");

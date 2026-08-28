@@ -82,6 +82,19 @@ public:
     uint32_t storageInternalFormat = 0;
     bool immutableStorage = false;
 
+    // Texture view state (SPEC §8.19 glTextureView). A view shares immutable
+    // storage with its source texture but reinterprets a level/layer subrange and
+    // possibly a different (compatible) internal format. The source texture must
+    // already have immutable storage; the view derives its own storage metadata
+    // (levels/base dimensions) from the source for level queries.
+    bool isView = false;
+    GLObjectName viewSource = 0;
+    uint32_t viewInternalFormat = 0;
+    uint32_t viewMinLevel = 0;
+    uint32_t viewNumLevels = 0;
+    uint32_t viewMinLayer = 0;
+    uint32_t viewNumLayers = 0;
+
     // Recorded sub-image uploads (glTexSubImage*D), used for completeness queries
     // and tests. The backend resource sees the native call.
     struct SubImage {

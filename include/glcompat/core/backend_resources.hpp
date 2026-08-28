@@ -155,6 +155,14 @@ public:
     virtual void invalidateTexSubImage(uint32_t target, int level, int xoffset,
                                       int yoffset, int zoffset, int width, int height,
                                       int depth) {}
+    // Create a texture view that shares storage with another texture (SPEC
+    // §8.19 glTextureView). `origTextureNativeId` is the backend-native id of the
+    // source texture (which must already have immutable storage). The frontend
+    // owns the view's object identity and derived level/layer ranges; backends
+    // with native texture-view support (GLES 3.1+) forward the call.
+    virtual void view(uint32_t target, uint32_t origTextureNativeId,
+                      uint32_t internalFormat, uint32_t minLevel, uint32_t numLevels,
+                      uint32_t minLayer, uint32_t numLayers) {}
     // Native backend texture id (e.g. driver GLuint). 0 when not applicable.
     virtual uint32_t nativeId() const { return 0; }
 };

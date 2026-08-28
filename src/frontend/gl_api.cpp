@@ -386,6 +386,20 @@ void glTextureStorage3D(GLuint texture, GLsizei levels, GLenum internalFormat,
                                static_cast<int>(depth));
 }
 
+void glTextureView(GLuint texture, GLenum target, GLuint origtexture,
+                   GLenum internalformat, GLuint minlevel, GLuint numlevels,
+                   GLuint minlayer, GLuint numlayers) {
+    if (g_current == nullptr) return;
+    g_current->textureView(static_cast<GLObjectName>(texture),
+                           static_cast<uint32_t>(target),
+                           static_cast<GLObjectName>(origtexture),
+                           static_cast<uint32_t>(internalformat),
+                           static_cast<uint32_t>(minlevel),
+                           static_cast<uint32_t>(numlevels),
+                           static_cast<uint32_t>(minlayer),
+                           static_cast<uint32_t>(numlayers));
+}
+
 void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width,
                          GLenum format, GLenum type, const GLvoid* pixels) {
     if (g_current == nullptr) return;

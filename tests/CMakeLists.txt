@@ -53,6 +53,7 @@ add_executable(yaglt_tests
     unit/stencil_test.cpp
     unit/compute_dispatch_test.cpp
     unit/compute_shader_object_test.cpp
+    unit/texture_view_test.cpp
     unit/raster_test.cpp
     unit/readpixels_test.cpp
     unit/logicop_blit_invalidate_test.cpp

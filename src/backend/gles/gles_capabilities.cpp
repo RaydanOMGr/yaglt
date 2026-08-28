@@ -39,6 +39,8 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     table.set(F::ImmutableTextureStorage, es3 ? S::Native : S::Emulated);
     table.set(F::ImmutableBufferStorage, es31 ? S::Native : S::Unsupported);
     table.set(F::TextureMultisample, es31 ? S::Native : S::Unsupported);
+    // Texture views (glTextureView, SPEC §8.19) are core in GLES 3.1.
+    table.set(F::TextureViews, es31 ? S::Native : S::Unsupported);
 
     table.set(F::UniformBufferObjects, es3 ? S::Native : S::Unsupported);
     table.set(F::ShaderStorageBufferObjects, es31 ? S::Native : S::Unsupported);

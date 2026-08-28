@@ -224,6 +224,8 @@ struct GLESLib {
     void (*glGetTexLevelParameterfv)(GLenum, GLint, GLenum, GLfloat*) = nullptr;
     void (*glTexBuffer)(GLenum, GLenum, GLuint) = nullptr;
     void (*glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr) = nullptr;
+    void (*glTextureView)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint,
+                          GLuint) = nullptr;
 
     // Integer texture parameters + texture invalidation (SPEC §8.1). ES 3.0+;
     // resolved optionally so load() still succeeds on drivers that lack them.

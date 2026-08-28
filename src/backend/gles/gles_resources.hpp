@@ -279,6 +279,14 @@ struct GLESBackendTexture : BackendTexture {
         lib->glTexBufferRange(target, glesSizedInternalFormat(internalFormat),
                               bufferNativeId, offset, size);
     }
+    void view(uint32_t target, uint32_t origTextureNativeId, uint32_t internalFormat,
+              uint32_t minLevel, uint32_t numLevels, uint32_t minLayer,
+              uint32_t numLayers) override {
+        if (!lib || !lib->driverLive() || !lib->glTextureView) return;
+        lib->glTextureView(handle, target, origTextureNativeId,
+                           glesSizedInternalFormat(internalFormat), minLevel,
+                           numLevels, minLayer, numLayers);
+    }
     void storage2DMultisample(uint32_t target, int samples, uint32_t internalFormat,
                               int width, int height, bool fixedSampleLocations) override {
         if (!lib || !lib->driverLive() || !lib->glTexStorage2DMultisample) return;

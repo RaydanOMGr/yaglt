@@ -20,6 +20,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::TextureObjects, S::Native);
     table.set(F::ImmutableTextureStorage, S::Native);
     table.set(F::TextureMultisample, S::Native);
+    table.set(F::TextureViews, S::Native);
     table.set(F::ShaderObjects, S::Native);
     table.set(F::ProgramObjects, S::Native);
     table.set(F::GeometryShaders, S::Unsupported);

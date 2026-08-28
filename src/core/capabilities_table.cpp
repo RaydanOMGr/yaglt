@@ -10,6 +10,7 @@ std::string CapabilityTable::featureName(Feature feature) const {
     case Feature::TextureObjects: return "TextureObjects";
     case Feature::ImmutableTextureStorage: return "ImmutableTextureStorage";
     case Feature::TextureMultisample: return "TextureMultisample";
+    case Feature::TextureViews: return "TextureViews";
     case Feature::ShaderObjects: return "ShaderObjects";
     case Feature::ProgramObjects: return "ProgramObjects";
     case Feature::GeometryShaders: return "GeometryShaders";
