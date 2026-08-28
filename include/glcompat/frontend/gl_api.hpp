@@ -45,6 +45,7 @@ void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
 void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);
 void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64* params);
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params);
+void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params);
 
 // Buffer mapping (SPEC §6). Returns a pointer into the frontend data store, or
 // nullptr on error. glUnmapBuffer returns GL_TRUE on success.

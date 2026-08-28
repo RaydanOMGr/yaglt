@@ -1805,6 +1805,51 @@ crashed agent, this session)
    (`sampler1D`→`sampler2D`, `texture1D(s,x[,bias])`→`texture(s,vec2(x,0.5)[,bias])`).
    Test now asserts the type-level rewrite on the output instead of the (SPIRV-Cross
    dropped) fetch body.
- - Validation: full suite **445/445** green (`build_tx`, `YAGLT_SHADER_TRANSLATE=ON`).
- - Docs: `coverage-core.md` §8 row + gap #3 updated (texture views implemented).
- - Commits: `b0a3d0d` (shader 1D fix), `554c1b5` (texture views).
+  - Validation: full suite **445/445** green (`build_tx`, `YAGLT_SHADER_TRANSLATE=ON`).
+  - Docs: `coverage-core.md` §8 row + gap #3 updated (texture views implemented).
+  - Commits: `b0a3d0d` (shader 1D fix), `554c1b5` (texture views).
+
+## Session 2026-08-28 (query entry-point expansion: texture/framebuffer/attrib/VAO/buffer)
+ - Continued restoring/extending the crashed work: a batch of spec query entry
+   points (SPEC §22 / §6 / §8 / §9 / §10), each following the established
+   DSA-method + classic/target-method refactor, with dispatch in `gl_api.cpp`,
+   declarations in `gl_api.hpp`/`context.hpp`, and unit tests. All three suites
+   (`build/` default, `build_tx/` translate+Mesa, `build_san/` sanitizer) green
+   before each commit.
+ - `b23d8f0` **texture mutable storage metadata**: `updateMutableTextureStorage`
+   recomputes width/height/levels from `texImage*` so `getTexLevelParameter*`
+   returns correct dims.
+ - `b642c46` **classic `glGetTexLevelParameteriv`/`fv`** (SPEC §8.13, target-based):
+   shared `getTexLevelParameter*Impl`; unbound target → `InvalidOperation`.
+ - `c673eb4` **classic `glGetRenderbufferParameteriv`** (SPEC §9.2, target-based):
+   shared `getRenderbufferParameterivImpl`; no bound RBO → `InvalidOperation`.
+ - `189471a` **classic `glGetFramebufferAttachmentParameteriv`** (SPEC §9.2):
+   shared impl; rejects default FBO attachment / bad attachment enum.
+ - `d21ffb0` **classic `glGetFramebufferParameteriv`** (SPEC §9.2/§10, target-based):
+   target validation; no bound FBO → `InvalidOperation`; returns 0 for
+   `FRAMEBUFFER_DEFAULT_*`; tests in `framebuffer_buf_test.cpp`.
+ - `01c2742` **classic vertex-attribute queries** (SPEC §10.4):
+   `glGetVertexAttribdv`/`Iiv`/`Iuiv`/`Pointerv` + broadened `glGetVertexAttribiv`
+   to answer the full §10.4 pname set (ENABLED/SIZE/STRIDE/TYPE/NORMALIZED/INTEGER/
+   DIVISOR/BUFFER_BINDING/POINTER). Coverage proxy → 288 entry points / 284 matched.
+ - `212ea35` **DSA vertex-array queries** (SPEC §10.3.1):
+   `glGetVertexArrayiv` (ELEMENT_ARRAY_BUFFER_BINDING),
+   `glGetVertexArrayIndexediv` (per-attrib int state), `glGetVertexArrayIndexed64v`
+   (VERTEX_ATTRIB_BINDING / VERTEX_ATTRIB_RELATIVE_OFFSET); capability-gated by
+   `DirectStateAccess`; ungenerated VAO → `InvalidOperation`, oob index →
+   `InvalidValue`, null params → `InvalidValue`, unknown pname → `InvalidEnum`.
+   Coverage proxy → 291 entry points / 287 matched.
+ - (this session) **DSA `glGetNamedBufferParameteriv`** (SPEC §6.1.1): 32-bit
+   counterpart of the existing `glGetNamedBufferParameteri64v`, reusing the same
+   frontend-owned buffer state (SIZE/USAGE/ACCESS/ACCESS_FLAGS/IMMUTABLE_STORAGE/
+   MAPPED/MAP_LENGTH/MAP_OFFSET); capability-gated by `DirectStateAccess`;
+   ungenerated name → `InvalidOperation`. Added to `context.cpp`/`gl_api.cpp`/
+   `context.hpp`/`gl_api.hpp` + 5 tests in `buffer_parameter_i64_test.cpp`
+   (read via DSA, validation, capability gate, public gl_api entry point).
+ - Validation: default **465/465** green; `build_tx`/`build_san` suites green
+   (tx **476/476** incl. GLES e2e `gles_e2e_1d_texture_emulated_as_2d` /
+   `gles_e2e_program` under Mesa softpipe; san **465/465**).
+ - Docs: `coverage-core.md` updated — 292 `gl_api` entry points / 287 matched
+   families (50.3% declared / ~55.6% core / ~42% true), §6 row + entry list now
+   include `glGetNamedBufferParameteriv`.
+ - Commit (pending): `glGetNamedBufferParameteriv` feature.

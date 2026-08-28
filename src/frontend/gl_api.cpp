@@ -87,6 +87,11 @@ void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params)
     g_current->getNamedBufferParameteri64v(buffer, pname, params);
 }
 
+void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedBufferParameteriv(buffer, pname, params);
+}
+
 GLvoid* glMapBuffer(GLenum target, GLenum access) {
     if (g_current == nullptr) return nullptr;
     return g_current->mapBuffer(target, access);

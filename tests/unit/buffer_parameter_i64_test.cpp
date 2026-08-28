@@ -115,3 +115,84 @@ TEST_CASE("buffer_param_i64v_gl_api_entry_points") {
 
     setCurrentContext(nullptr);
 }
+
+// glGetNamedBufferParameteriv (SPEC §6.1.1, DSA): 32-bit counterpart of the
+// named i64v query. Reads the same frontend-owned buffer state.
+TEST_CASE("buffer_param_named_iv_via_dsa") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 2048, GL_STREAM_DRAW, nullptr);
+
+    int32_t size = -1;
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_SIZE, &size);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(size, 2048);
+
+    int32_t usage = -1;
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_USAGE, &usage);
+    EXPECT_EQ(usage, static_cast<int32_t>(GL_STREAM_DRAW));
+
+    int32_t mapped = -1;
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_MAPPED, &mapped);
+    EXPECT_EQ(mapped, GL_FALSE);
+
+    int32_t imm = -1;
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_IMMUTABLE_STORAGE, &imm);
+    EXPECT_EQ(imm, GL_FALSE);
+}
+
+// glGetNamedBufferParameteriv validation mirrors the i64v variant.
+TEST_CASE("buffer_param_named_iv_validation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 16, GL_STATIC_DRAW, nullptr);
+
+    // Ungenerated name -> INVALID_OPERATION.
+    int32_t v = 0;
+    ctx.getNamedBufferParameteriv(999, GL_BUFFER_SIZE, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+
+    // Null params -> INVALID_VALUE.
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_SIZE, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+
+    // Unknown pname -> INVALID_ENUM.
+    ctx.getNamedBufferParameteriv(buf, 0xDEAD, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("buffer_param_named_iv_gated_by_dsa_capability") {
+    auto backend = makeBackend();
+    backend->setCapability(Feature::DirectStateAccess, FeatureSupport::Unsupported);
+    Context ctx(*backend);
+    GLuint buf = 0;
+    ctx.genBuffers(1, &buf);
+    ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
+    ctx.bufferData(GL_ARRAY_BUFFER, 64, GL_STATIC_DRAW, nullptr);
+
+    int32_t v = 0;
+    ctx.getNamedBufferParameteriv(buf, GL_BUFFER_SIZE, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("buffer_param_named_iv_gl_api_entry_point") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+    GLuint buf = 0;
+    glGenBuffers(1, &buf);
+    glBindBuffer(GL_ARRAY_BUFFER, buf);
+    glBufferData(GL_ARRAY_BUFFER, 512, nullptr, GL_STATIC_DRAW);
+
+    GLint size = 0;
+    glGetNamedBufferParameteriv(buf, GL_BUFFER_SIZE, &size);
+    EXPECT_EQ(size, 512);
+
+    setCurrentContext(nullptr);
+}

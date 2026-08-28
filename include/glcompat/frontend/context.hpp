@@ -78,6 +78,10 @@ public:
     // Ungenerated name -> GL_INVALID_OPERATION.
     void getNamedBufferParameteri64v(GLObjectName buffer, uint32_t pname,
                                      int64_t* params);
+    // DSA 32-bit variant (SPEC §6.1.1), capability-gated by DirectStateAccess.
+    // Ungenerated name -> GL_INVALID_OPERATION.
+    void getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
+                                   int32_t* params);
     // Map a buffer for CPU access (SPEC §6 glMapBuffer / glMapBufferRange).
     // Returns a pointer into the frontend data store, or nullptr on error.
     // Mapping an already-mapped buffer reports GL_INVALID_OPERATION.
