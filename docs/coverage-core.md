@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 294 `gl_api`
-entry points, and 288 matched families.
+signal. A reproducible regen script counts 571 declared families, 299 `gl_api`
+entry points, and 293 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 288 | **50.4%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 288 | **~55.8%** |
+| Full spec (compat + core) | 571 | 293 | **51.3%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 293 | **~56.8%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-All 288 matched families are real `gl_api` entry points with frontend semantics
-and tests (mock path, most also against Mesa GLES). The 294 `gl_api` entry
+All 293 matched families are real `gl_api` entry points with frontend semantics
+and tests (mock path, most also against Mesa GLES). The 299 `gl_api` entry
 points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -60,8 +60,8 @@ scope per `docs/feature-matrix.md`).
 core commands that exist as an entry point but are capability-gated to
 *Unsupported*, e.g. the geometry/tessellation shader stages which have no GLES
 equivalent): roughly
-**two-fifths of the real ~700-entry GL core command set** (294 of
-~700 ≈ 42%).
+**two-fifths of the real ~700-entry GL core command set** (299 of
+~700 ≈ 43%).
 
 ## Core coverage by spec area
 
@@ -69,7 +69,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 
 | Spec area (chapter) | Status | Notes |
 |---------------------|--------|-------|
-| §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled`, `glEnablei/glDisablei/glIsEnabledi` (indexed caps, SPEC §10.3.1; only `GL_BLEND`/`GL_SCISSOR_TEST` indexable, invalid cap → `GL_INVALID_ENUM`, index ≥ 16 → `GL_INVALID_VALUE`, tracked per-slot, push-only-on-change) |
+| §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glGetStringi` (SPEC §22.2, indexed; only `GL_EXTENSIONS` indexable, 0 extensions exposed → `GL_INVALID_VALUE` for any index), `glGetGraphicsResetStatus` (always `GL_NO_ERROR`), `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glGetInteger64v` (SPEC §22.1, widens tracked integer state to `GLint64`), `glGetBooleani_v`/`glGetIntegeri_v` (SPEC §22.1, indexed caps `GL_BLEND`/`GL_SCISSOR_TEST` per slot), `glIsEnabled`, `glEnablei/glDisablei/glIsEnabledi` (indexed caps, SPEC §10.3.1; only `GL_BLEND`/`GL_SCISSOR_TEST` indexable, invalid cap → `GL_INVALID_ENUM`, index ≥ 16 → `GL_INVALID_VALUE`, tracked per-slot, push-only-on-change) |
 | §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferParameteri64v`/`glGetNamedBufferParameteri64v` (64-bit size/usage queries, SPEC §6.1.1), `glGetNamedBufferParameteriv` (32-bit DSA counterpart, SPEC §6.1.1), `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). Bounds/format/mapping validation matches SPEC §6. |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). **Compute shader objects/stages** are now created/translated when the backend reports `ComputeShaders` (native in GLES 3.1+; the mock mirrors that baseline), so a compute program can be built, linked, and dispatched (see §7.4 dispatch). **Shader binaries** (§7.2/§19.1): `glShaderBinary` /
 `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
@@ -88,12 +88,12 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
 | §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🟡 | `glHint` implemented (SPEC §21.1.1; target/mode validated, pushed on flush via `GLStateSink::hint`). Evaluators/selection/feedback/display lists remain removed-in-core (correct). |
-| §22 State queries (non-generic) | 🟡 | generic `glGet*` done; internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) now read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); many specific `glGet*` (named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
+| §22 State queries (non-generic) | 🟡 | generic `glGet*` done (incl. `glGetInteger64v`, `glGetBooleani_v`/`glGetIntegeri_v`, `glGetStringi`, `glGetGraphicsResetStatus`); internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); remaining specific `glGet*` (e.g. `glGetMultisamplefv`, `glGetPointerv`, `glGetTexImage` readback) not yet exposed |
 | Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no GLES equivalent; capability-gated, rejected at creation). **Compute** dispatch commands *and* compute shader objects/stages are implemented (native in GLES 3.1+; the mock mirrors that baseline): a compute program can be created, compiled, linked, and dispatched (see §7 row). Vertex + fragment + compute stages translate (desktop→GLSL ES via glslang + SPIRV-Cross for ES compute). |
 
 ## The implemented frontend surface (gl_api entry points)
 
-294 `gl*` entry points; 288 map to a spec command family (see Method). Listed
+299 `gl*` entry points; 293 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -117,13 +117,13 @@ glEndTransformFeedback, glFinish, glFlush, glFramebufferRenderbuffer, glFramebuf
 glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRenderbuffers, glGenSamplers,
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
-glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv,
-glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInternalformativ, glGetInternalformati64v, glGetNamedBufferSubData,
-glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv,
+glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv, glGetBooleani_v,
+glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetNamedBufferSubData,
+glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv, glGetGraphicsResetStatus,
 glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
 glProgramBinary, glProgramParameteri,
-glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog,
+glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog, glGetString, glGetStringi,
 glGetSynciv, glGetTexImage, glGetTexParameterIiv, glGetTexParameterIuiv, glGetTexParameterfv,
 glGetTexParameteriv, glGetTextureImage, glGetTextureLevelParameterfv, glGetTextureLevelParameteriv,
 glGetTexLevelParameterfv, glGetTexLevelParameteriv,

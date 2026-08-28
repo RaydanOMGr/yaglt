@@ -9,7 +9,6 @@
 using namespace glcompat;
 
 namespace {
-constexpr GLenum GL_SCISSOR_TEST = 0x0C11;
 constexpr GLenum GL_TRIANGLES = 0x0004;
 } // namespace
 

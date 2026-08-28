@@ -40,6 +40,10 @@ public:
     // Returns VENDOR/RENDERER/VERSION/EXTENSIONS/SHADING_LANGUAGE_VERSION for the
     // current GL context. An unknown name sets GL_INVALID_ENUM and returns nullptr.
     const GLubyte* getString(GLenum name);
+    // Indexed string query (SPEC §22.2). Only GL_EXTENSIONS is indexable; this
+    // frontend exposes no extensions, so any index is out of range and yields
+    // GL_INVALID_VALUE. Other names set GL_INVALID_ENUM.
+    const GLubyte* getStringi(GLenum name, uint32_t index);
 
     // --- Buffers ---
     GLObjectName genBuffer();
@@ -917,6 +921,19 @@ public:
     void getIntegerv(uint32_t pname, int32_t* params);
     void getFloatv(uint32_t pname, float* params);
     void getDoublev(uint32_t pname, double* params);
+    // 64-bit variant of getIntegerv (SPEC §22.1): returns the same frontend-owned
+    // integer state widened to GLint64. Unknown pname -> GL_INVALID_ENUM; null
+    // params -> GL_INVALID_VALUE.
+    void getInteger64v(uint32_t pname, int64_t* params);
+    // Indexed scalar queries (SPEC §22.1). Only the indexed capabilities
+    // GL_BLEND / GL_SCISSOR_TEST are supported with `index` < kMaxIndexedBuffers;
+    // other pnames set GL_INVALID_ENUM, an out-of-range `index` sets
+    // GL_INVALID_VALUE, and a null `params` sets GL_INVALID_VALUE.
+    void getIntegeri_v(uint32_t pname, uint32_t index, int32_t* params);
+    void getBooleani_v(uint32_t pname, uint32_t index, unsigned char* params);
+    // Returns the current graphics-reset status (SPEC §22.5). This frontend has no
+    // reset-detection path, so it always reports GL_NO_ERROR.
+    GLenum getGraphicsResetStatus();
     // Returns true iff `cap` is an enabled, tracked capability; an untracked cap
     // sets GL_INVALID_ENUM and returns false (mirrors desktop GL glIsEnabled).
     bool isEnabled(uint32_t cap);

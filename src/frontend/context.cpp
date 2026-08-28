@@ -56,6 +56,18 @@ const GLubyte* Context::getString(GLenum name) {
     }
 }
 
+const GLubyte* Context::getStringi(GLenum name, uint32_t index) {
+    // Only GL_EXTENSIONS is indexable (SPEC §22.2). This frontend exposes no
+    // extensions, so the valid index range is empty and every index is out of
+    // range.
+    if (name != GL_EXTENSIONS) {
+        setError(GLError::InvalidEnum);
+        return nullptr;
+    }
+    setError(GLError::InvalidValue);
+    return nullptr;
+}
+
 GLObjectName Context::genBuffer() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<BufferObject>(name);
@@ -4605,6 +4617,71 @@ void Context::getDoublev(uint32_t pname, double* params) {
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = buf[i];
+}
+
+void Context::getInteger64v(uint32_t pname, int64_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // The tracked integer state is all representable in GLint; widen it to GLint64
+    // per SPEC §22.1 (glGetInteger64v returns the same values as glGetIntegerv).
+    int32_t buf[4] = {0, 0, 0, 0};
+    int n = state_.getInteger(static_cast<GLenum>(pname), buf);
+    if (n == 0) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    for (int i = 0; i < n; ++i) params[i] = static_cast<int64_t>(buf[i]);
+}
+
+namespace {
+bool isIndexableQueryCap(GLenum cap) {
+    return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0C11 /* GL_SCISSOR_TEST */;
+}
+constexpr uint32_t kMaxIndexedQueryBuffers = 16; // matches GLStateTracker indexed cap range
+} // namespace
+
+void Context::getIntegeri_v(uint32_t pname, uint32_t index, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedQueryBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(pname), index, &enabled);
+    params[0] = enabled ? 1 : 0;
+}
+
+void Context::getBooleani_v(uint32_t pname, uint32_t index, unsigned char* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedQueryBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(pname), index, &enabled);
+    params[0] = enabled ? 0x01 : 0x00;
+}
+
+GLenum Context::getGraphicsResetStatus() {
+    // No reset-detection path exists in this frontend (SPEC §22.5); report the
+    // steady-state value.
+    return GL_NO_ERROR;
 }
 
 bool Context::isEnabled(uint32_t cap) {

@@ -32,6 +32,11 @@ const GLubyte* glGetString(GLenum name) {
     return g_current->getString(name);
 }
 
+const GLubyte* glGetStringi(GLenum name, GLuint index) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->getStringi(name, index);
+}
+
 void glGenBuffers(GLsizei n, GLuint* buffers) {
     if (g_current == nullptr) return;
     g_current->genBuffers(static_cast<uint32_t>(n), buffers);
@@ -1723,6 +1728,26 @@ void glGetFloatv(GLenum pname, GLfloat* params) {
 void glGetDoublev(GLenum pname, GLdouble* params) {
     if (g_current == nullptr) return;
     g_current->getDoublev(pname, params);
+}
+
+void glGetInteger64v(GLenum pname, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getInteger64v(pname, params);
+}
+
+void glGetIntegeri_v(GLenum pname, GLuint index, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getIntegeri_v(pname, index, params);
+}
+
+void glGetBooleani_v(GLenum pname, GLuint index, GLboolean* params) {
+    if (g_current == nullptr) return;
+    g_current->getBooleani_v(pname, index, params);
+}
+
+GLenum glGetGraphicsResetStatus(void) {
+    if (g_current == nullptr) return GL_NO_ERROR;
+    return g_current->getGraphicsResetStatus();
 }
 
 GLboolean glIsEnabled(GLenum cap) {

@@ -41,6 +41,7 @@ constexpr GLenum GL_RENDERER = 0x1F01;
 constexpr GLenum GL_VERSION = 0x1F02;
 constexpr GLenum GL_EXTENSIONS = 0x1F03;
 constexpr GLenum GL_SHADING_LANGUAGE_VERSION = 0x8B8C;
+constexpr GLenum GL_NUM_EXTENSIONS = 0x821D;
 
 constexpr GLenum GL_ARRAY_BUFFER = 0x8892;
 constexpr GLenum GL_ELEMENT_ARRAY_BUFFER = 0x8893;
@@ -616,6 +617,7 @@ constexpr GLenum GL_DEPTH_FUNC = 0x0B74;
 // Viewport / scissor box queries (SPEC §22).
 constexpr GLenum GL_VIEWPORT = 0x0BA2;
 constexpr GLenum GL_SCISSOR_BOX = 0x0C10;
+constexpr GLenum GL_SCISSOR_TEST = 0x0C11;
 
 // Clear value queries (SPEC §22).
 constexpr GLenum GL_COLOR_CLEAR_VALUE = 0x0C22;

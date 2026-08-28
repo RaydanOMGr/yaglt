@@ -26,6 +26,10 @@ GLenum glGetError();
 // vendor-specific suffix is implementation-dependent). Unknown name yields
 // GL_INVALID_ENUM and nullptr.
 const GLubyte* glGetString(GLenum name);
+// Indexed string query (SPEC §22.2). Only GL_EXTENSIONS is indexable; this
+// frontend exposes no extensions, so any index yields GL_INVALID_VALUE + nullptr;
+// other names yield GL_INVALID_ENUM + nullptr.
+const GLubyte* glGetStringi(GLenum name, GLuint index);
 
 void glGenBuffers(GLsizei n, GLuint* buffers);
 void glBindBuffer(GLenum target, GLuint buffer);
@@ -618,6 +622,18 @@ void glGetBooleanv(GLenum pname, GLboolean* params);
 void glGetIntegerv(GLenum pname, GLint* params);
 void glGetFloatv(GLenum pname, GLfloat* params);
 void glGetDoublev(GLenum pname, GLdouble* params);
+// 64-bit scalar query (SPEC §22.1): same frontend-owned state as glGetIntegerv
+// widened to GLint64. Unknown pname -> GL_INVALID_ENUM; null params ->
+// GL_INVALID_VALUE.
+void glGetInteger64v(GLenum pname, GLint64* params);
+// Indexed scalar queries (SPEC §22.1). Only GL_BLEND / GL_SCISSOR_TEST are
+// supported (index < 16); other pnames -> GL_INVALID_ENUM, out-of-range index ->
+// GL_INVALID_VALUE, null params -> GL_INVALID_VALUE.
+void glGetIntegeri_v(GLenum pname, GLuint index, GLint* params);
+void glGetBooleani_v(GLenum pname, GLuint index, GLboolean* params);
+// Current graphics-reset status (SPEC §22.5). This frontend always reports
+// GL_NO_ERROR.
+GLenum glGetGraphicsResetStatus(void);
 GLboolean glIsEnabled(GLenum cap);
 GLboolean glIsEnabledi(GLenum cap, GLuint index);
 

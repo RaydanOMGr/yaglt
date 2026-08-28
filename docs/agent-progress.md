@@ -1877,4 +1877,31 @@ crashed agent, this session)
    no driver); `build_san` green.
  - Docs: `coverage-core.md` -> 294 entry points / 288 matched families (50.4% declared
    / ~55.8% core / ~42% true), §22 row + entry list updated.
-  - Committed as `41ecd01`: internal format query feature.
+   - Committed as `41ecd01`: internal format query feature.
+
+## Session 2026-08-28 (generic §22 state queries)
+ - Added five frontend-owned `glGet*` entry points (SPEC §22) that read tracked
+   state with no backend round-trip:
+   - `glGetStringi` (§22.2): only `GL_EXTENSIONS` is indexable; this frontend
+     exposes none, so any index -> `GL_INVALID_VALUE` + nullptr; other names ->
+     `GL_INVALID_ENUM`. Added `GL_NUM_EXTENSIONS` constant.
+   - `glGetGraphicsResetStatus` (§22.5): always `GL_NO_ERROR` (no reset-detection
+     path).
+   - `glGetInteger64v` (§22.1): returns the same tracked integer state widened to
+     `GLint64`; unknown pname -> `GL_INVALID_ENUM`, null -> `GL_INVALID_VALUE`.
+   - `glGetIntegeri_v` / `glGetBooleani_v` (§22.1): indexed scalar queries for the
+     indexable caps `GL_BLEND` / `GL_SCISSOR_TEST` (index < 16); other pnames ->
+     `GL_INVALID_ENUM`, out-of-range index / null -> `GL_INVALID_VALUE`. Added the
+     missing `GL_SCISSOR_TEST` constant to `gl_types.hpp` (and removed a now-
+     redundant local definition in `viewport_scissor_test.cpp`).
+   - Public `gl_api` dispatch + `context.hpp`/`gl_api.hpp` declarations added; all
+     five are pure frontend state reads, so the GLES/Mock backends need no changes.
+ - New `tests/unit/generic_query_test.cpp` covers each entry point's happy path,
+   error validation (null params, unknown pname, out-of-range index), and the
+   indexed-cap agreement with `glEnablei`/`glDisablei`.
+ - Validation: default **476/476** green; `build_tx` green (Mesa softpipe e2e
+   suite); `build_san` green.
+ - Docs: `coverage-core.md` -> 299 entry points / 293 matched families (51.3%
+   declared / ~56.8% core / ~42% true), §2 + §22 rows and the entry list updated.
+   (Commit pending.)
+
