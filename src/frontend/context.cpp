@@ -119,6 +119,16 @@ void Context::genBuffers(uint32_t n, GLObjectName* names) {
     }
 }
 
+void Context::createBuffers(uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        names[i] = genBuffer();
+    }
+}
+
 void Context::deleteBuffers(uint32_t n, const GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) {
         deleteBuffer(names[i]);
@@ -3388,6 +3398,14 @@ void Context::genTransformFeedbacks(uint32_t n, GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) names[i] = genTransformFeedback();
 }
 
+void Context::createTransformFeedbacks(uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (uint32_t i = 0; i < n; ++i) names[i] = genTransformFeedback();
+}
+
 void Context::bindTransformFeedback(GLObjectName name) {
     if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
         setError(GLError::InvalidOperation);
@@ -3567,6 +3585,32 @@ GLObjectName Context::genQuery() {
 
 void Context::genQueries(uint32_t n, GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) names[i] = genQuery();
+}
+
+void Context::createQueries(uint32_t target, uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (target) {
+        case GL_SAMPLES_PASSED:
+        case GL_ANY_SAMPLES_PASSED:
+        case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
+        case GL_TIME_ELAPSED:
+        case GL_PRIMITIVES_GENERATED:
+        case GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN:
+            break;
+        default:
+            setError(GLError::InvalidEnum);
+            return;
+    }
+    for (uint32_t i = 0; i < n; ++i) {
+        GLObjectName name = genQuery();
+        if (name != 0 && queries_.count(name)) {
+            queries_[name]->target = target;
+        }
+        names[i] = name;
+    }
 }
 
 void Context::deleteQuery(GLObjectName name) {
@@ -3956,6 +4000,14 @@ GLObjectName Context::genSampler() {
 }
 
 void Context::genSamplers(uint32_t n, GLObjectName* names) {
+    for (uint32_t i = 0; i < n; ++i) names[i] = genSampler();
+}
+
+void Context::createSamplers(uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
     for (uint32_t i = 0; i < n; ++i) names[i] = genSampler();
 }
 
@@ -5758,6 +5810,14 @@ void Context::genProgramPipelines(uint32_t n, GLObjectName* names) {
                            std::make_unique<ProgramPipelineObject>(name));
         names[i] = name;
     }
+}
+
+void Context::createProgramPipelines(uint32_t n, GLObjectName* names) {
+    if (names == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    genProgramPipelines(n, names);
 }
 
 void Context::deleteProgramPipelines(uint32_t n, const GLObjectName* names) {

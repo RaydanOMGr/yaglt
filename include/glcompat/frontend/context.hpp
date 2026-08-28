@@ -48,6 +48,7 @@ public:
     // --- Buffers ---
     GLObjectName genBuffer();
     void genBuffers(uint32_t n, GLObjectName* names);
+    void createBuffers(uint32_t n, GLObjectName* names);
     void bindBuffer(uint32_t target, GLObjectName name);
     GLObjectName boundBuffer(uint32_t target) const;
     void deleteBuffer(GLObjectName name);
@@ -610,6 +611,7 @@ public:
     // begin while already active is GL_INVALID_OPERATION).
     GLObjectName genTransformFeedback();
     void genTransformFeedbacks(uint32_t n, GLObjectName* names);
+    void createTransformFeedbacks(uint32_t n, GLObjectName* names);
     void bindTransformFeedback(GLObjectName name);
     GLObjectName boundTransformFeedback() const;
     void deleteTransformFeedback(GLObjectName name);
@@ -637,6 +639,7 @@ public:
     // be begun twice (already active) and end requires a matching active query.
     GLObjectName genQuery();
     void genQueries(uint32_t n, GLObjectName* names);
+    void createQueries(uint32_t target, uint32_t n, GLObjectName* names);
     void deleteQuery(GLObjectName name);
     void deleteQueries(uint32_t n, const GLObjectName* names);
     bool isQuery(GLObjectName name) const;
@@ -692,6 +695,7 @@ public:
     // GL_INVALID_OPERATION honestly.
     GLObjectName genSampler();
     void genSamplers(uint32_t n, GLObjectName* names);
+    void createSamplers(uint32_t n, GLObjectName* names);
     void bindSampler(uint32_t unit, GLObjectName sampler);
     GLObjectName boundSampler(uint32_t unit) const;
     void deleteSampler(GLObjectName name);
@@ -900,6 +904,7 @@ public:
     GLObjectName createShaderProgramv(uint32_t type, int32_t count,
                                       const char* const* strings);
     void genProgramPipelines(uint32_t n, GLObjectName* names);
+    void createProgramPipelines(uint32_t n, GLObjectName* names);
     void deleteProgramPipelines(uint32_t n, const GLObjectName* names);
     bool isProgramPipeline(GLObjectName name) const;
     void bindProgramPipeline(GLObjectName pipeline);

@@ -42,6 +42,11 @@ void glGenBuffers(GLsizei n, GLuint* buffers) {
     g_current->genBuffers(static_cast<uint32_t>(n), buffers);
 }
 
+void glCreateBuffers(GLsizei n, GLuint* buffers) {
+    if (g_current == nullptr) return;
+    g_current->createBuffers(static_cast<uint32_t>(n), buffers);
+}
+
 void glBindBuffer(GLenum target, GLuint buffer) {
     if (g_current == nullptr) return;
     g_current->bindBuffer(target, buffer);
@@ -1025,6 +1030,11 @@ void glGenTransformFeedbacks(GLsizei n, GLuint* names) {
     g_current->genTransformFeedbacks(static_cast<uint32_t>(n), names);
 }
 
+void glCreateTransformFeedbacks(GLsizei n, GLuint* names) {
+    if (g_current == nullptr) return;
+    g_current->createTransformFeedbacks(static_cast<uint32_t>(n), names);
+}
+
 void glBindTransformFeedback(GLuint name) {
     if (g_current == nullptr) return;
     g_current->bindTransformFeedback(name);
@@ -1083,6 +1093,11 @@ GLuint glGenQuery() {
 void glGenQueries(GLsizei n, GLuint* names) {
     if (g_current == nullptr || n < 0) return;
     g_current->genQueries(static_cast<uint32_t>(n), names);
+}
+
+void glCreateQueries(GLenum target, GLsizei n, GLuint* ids) {
+    if (g_current == nullptr || n < 0) return;
+    g_current->createQueries(static_cast<uint32_t>(target), static_cast<uint32_t>(n), ids);
 }
 
 void glDeleteQuery(GLuint id) {
@@ -1209,6 +1224,11 @@ GLuint glGenSampler() {
 void glGenSamplers(GLsizei n, GLuint* samplers) {
     if (g_current == nullptr) return;
     g_current->genSamplers(static_cast<uint32_t>(n), samplers);
+}
+
+void glCreateSamplers(GLsizei n, GLuint* samplers) {
+    if (g_current == nullptr) return;
+    g_current->createSamplers(static_cast<uint32_t>(n), samplers);
 }
 
 void glBindSampler(GLuint unit, GLuint sampler) {
@@ -1702,6 +1722,11 @@ GLuint glCreateShaderProgramv(GLenum type, GLsizei count,
 void glGenProgramPipelines(GLsizei n, GLuint* pipelines) {
     if (g_current == nullptr) return;
     g_current->genProgramPipelines(static_cast<uint32_t>(n), pipelines);
+}
+
+void glCreateProgramPipelines(GLsizei n, GLuint* pipelines) {
+    if (g_current == nullptr) return;
+    g_current->createProgramPipelines(static_cast<uint32_t>(n), pipelines);
 }
 
 void glDeleteProgramPipelines(GLsizei n, const GLuint* pipelines) {

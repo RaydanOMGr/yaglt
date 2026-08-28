@@ -32,6 +32,7 @@ const GLubyte* glGetString(GLenum name);
 const GLubyte* glGetStringi(GLenum name, GLuint index);
 
 void glGenBuffers(GLsizei n, GLuint* buffers);
+void glCreateBuffers(GLsizei n, GLuint* buffers);
 void glBindBuffer(GLenum target, GLuint buffer);
 void glDeleteBuffers(GLsizei n, const GLuint* buffers);
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
@@ -375,6 +376,7 @@ void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex,
 // --- Transform feedback (SPEC §13.3) ---
 GLuint glGenTransformFeedback();
 void glGenTransformFeedbacks(GLsizei n, GLuint* names);
+void glCreateTransformFeedbacks(GLsizei n, GLuint* names);
 void glBindTransformFeedback(GLuint name);
 void glDeleteTransformFeedback(GLuint name);
 void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names);
@@ -389,6 +391,7 @@ void glPauseTransformFeedback();
 // --- Query objects (SPEC §4 / §19) ---
 GLuint glGenQuery();
 void glGenQueries(GLsizei n, GLuint* names);
+void glCreateQueries(GLenum target, GLsizei n, GLuint* ids);
 void glDeleteQuery(GLuint id);
 void glDeleteQueries(GLsizei n, const GLuint* names);
 GLboolean glIsQuery(GLuint id);
@@ -418,6 +421,7 @@ void glGetSynciv(GLsync sync, GLenum pname, GLsizei bufSize, GLsizei* length,
 // --- Sampler objects (SPEC §8.2) ---
 GLuint glGenSampler();
 void glGenSamplers(GLsizei n, GLuint* samplers);
+void glCreateSamplers(GLsizei n, GLuint* samplers);
 void glBindSampler(GLuint unit, GLuint sampler);
 void glDeleteSampler(GLuint sampler);
 void glDeleteSamplers(GLsizei n, const GLuint* samplers);
@@ -581,6 +585,7 @@ void glUseProgram(GLuint prog);
 // new program name (query LINK_STATUS / INFO_LOG for success).
 GLuint glCreateShaderProgramv(GLenum type, GLsizei count, const GLchar* const* strings);
 void glGenProgramPipelines(GLsizei n, GLuint* pipelines);
+void glCreateProgramPipelines(GLsizei n, GLuint* pipelines);
 void glDeleteProgramPipelines(GLsizei n, const GLuint* pipelines);
 GLboolean glIsProgramPipeline(GLuint pipeline);
 void glBindProgramPipeline(GLuint pipeline);

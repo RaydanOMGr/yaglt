@@ -3,13 +3,36 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — DSA object-creation generators, this session)
+- Added the missing DSA `glCreate*` object generators to complete the
+  object-creation surface (their `glGen*` counterparts already existed and
+  eagerly create backend resources, so the DSA variants are thin loops over the
+  gen helpers, mirroring `glCreateTextures`/`glCreateFramebuffers`/...).
+  New `Context::createBuffers` / `createSamplers` / `createTransformFeedbacks` /
+  `createProgramPipelines` (each loops the matching `gen*`; `createProgramPipelines`
+  forwards to `genProgramPipelines`) and `createQueries(target, n, names)`
+  (validates `target` ∈ {SAMPLES_PASSED, ANY_SAMPLES_PASSED,
+  ANY_SAMPLES_PASSED_CONSERVATIVE, TIME_ELAPSED, PRIMITIVES_GENERATED,
+  TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN} → `GL_INVALID_ENUM`; `nullptr` names →
+  `GL_INVALID_VALUE`; then reserves names and pre-sets each query's `target` so it
+  is immediately usable). All five exposed in `gl_api` (`glCreateBuffers`,
+  `glCreateSamplers`, `glCreateQueries`, `glCreateProgramPipelines`,
+  `glCreateTransformFeedbacks`). New `tests/unit/create_object_test.cpp` covers
+  per-type reservation + usability, the queries target/enum validation, and
+  multi-name distinctness. Default **550/550**, sanitizer **550/550** green.
+  Coverage bumped in `docs/coverage-core.md` (326 `gl_api` entry points, 322/571
+  ≈ 56.4% declared; ~62.4% core). Also corrected stale doc notes: §13 counter
+  queries were already wired (begin/end + indexed variants); §8 cube/array/rect
+  TexImage targets are supported (rectangle remains an honest capability gap).
+
 ## Current Status
 
 Current milestone: Phase 3 — Core rendering state (viewport/scissor/depth-range/clear) + draw
 Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear)
 Last updated: 2026-08-29
 Known major blockers:
-- Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
+- Geometry/tessellation still honest-Unsupported (no GLES equivalent; compute is
+  implemented).
 
 ## Recent Work (2026-08-29 — uniform block binding, this session)
 - Added `glUniformBlockBinding` (SPEC §7.6.2) to complete the UBO story. New
