@@ -47,6 +47,7 @@ add_executable(yaglt_tests
     unit/query_sync_test.cpp
     unit/buffer_completeness_test.cpp
     unit/buffer_parameter_i64_test.cpp
+    unit/internalformat_query_test.cpp
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
     unit/blend_test.cpp
@@ -78,6 +79,7 @@ if(YAGLT_SHADER_TRANSLATE)
         backend/gles_e2e_shader_test.cpp
         backend/gles_e2e_program_test.cpp
         backend/gles_e2e_1d_texture_test.cpp
+        backend/gles_e2e_internalformat_test.cpp
     )
 endif()
 

@@ -82,6 +82,14 @@ public:
     // Ungenerated name -> GL_INVALID_OPERATION.
     void getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
                                    int32_t* params);
+    // Internal format queries (SPEC §22.3, glGetInternalformativ /
+    // glGetInternalformati64v). Validates params != null (GL_INVALID_VALUE),
+    // bufSize >= 0 (GL_INVALID_VALUE), and pname as a known internalformat-query
+    // pname (GL_INVALID_ENUM), then forwards to the backend.
+    void getInternalformativ(uint32_t target, uint32_t internalformat,
+                            uint32_t pname, int32_t bufSize, int32_t* params);
+    void getInternalformati64v(uint32_t target, uint32_t internalformat,
+                              uint32_t pname, int32_t bufSize, int64_t* params);
     // Map a buffer for CPU access (SPEC §6 glMapBuffer / glMapBufferRange).
     // Returns a pointer into the frontend data store, or nullptr on error.
     // Mapping an already-mapped buffer reports GL_INVALID_OPERATION.

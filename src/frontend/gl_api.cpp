@@ -92,6 +92,18 @@ void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
     g_current->getNamedBufferParameteriv(buffer, pname, params);
 }
 
+void glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname,
+                          GLsizei bufSize, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getInternalformativ(target, internalformat, pname, bufSize, params);
+}
+
+void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname,
+                             GLsizei bufSize, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getInternalformati64v(target, internalformat, pname, bufSize, params);
+}
+
 GLvoid* glMapBuffer(GLenum target, GLenum access) {
     if (g_current == nullptr) return nullptr;
     return g_current->mapBuffer(target, access);

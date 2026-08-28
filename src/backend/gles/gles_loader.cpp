@@ -189,6 +189,7 @@ bool GLESLib::load() {
     resolve(gles, glGetTexImage, "glGetTexImage");
     resolve(gles, glGetTexLevelParameteriv, "glGetTexLevelParameteriv");
     resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
+    resolve(gles, glGetInternalformativ, "glGetInternalformativ");
     resolve(gles, glTexBuffer, "glTexBuffer");
     resolve(gles, glTexBufferRange, "glTexBufferRange");
     // Texture views (SPEC §8.19 glTextureView) are ES 3.1+; resolved optionally so

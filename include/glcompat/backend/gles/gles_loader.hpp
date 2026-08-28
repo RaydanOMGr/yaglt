@@ -222,6 +222,9 @@ struct GLESLib {
     void (*glGetTexImage)(GLenum, GLint, GLenum, GLenum, void*) = nullptr;
     void (*glGetTexLevelParameteriv)(GLenum, GLint, GLenum, GLint*) = nullptr;
     void (*glGetTexLevelParameterfv)(GLenum, GLint, GLenum, GLfloat*) = nullptr;
+    // Internal format queries (SPEC §22.3). GLES 3.0 core; resolved optionally so
+    // load() still succeeds on a driver that lacks it.
+    void (*glGetInternalformativ)(GLenum, GLenum, GLenum, GLsizei, GLint*) = nullptr;
     void (*glTexBuffer)(GLenum, GLenum, GLuint) = nullptr;
     void (*glTexBufferRange)(GLenum, GLenum, GLuint, GLintptr, GLsizeiptr) = nullptr;
     void (*glTextureView)(GLuint, GLenum, GLuint, GLenum, GLuint, GLuint, GLuint,

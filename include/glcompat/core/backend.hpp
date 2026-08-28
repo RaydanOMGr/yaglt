@@ -100,7 +100,21 @@ public:
     // Read back pixels from the bound framebuffer (SPEC §2.1). The frontend
     // flushes tracked state first so the backend reads the current framebuffer.
     virtual void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
-                             uint32_t format, uint32_t type, void* pixels) = 0;
+                            uint32_t format, uint32_t type, void* pixels) = 0;
+
+    // Internal format queries (SPEC §22.3, glGetInternalformativ /
+    // glGetInternalformati64v). The frontend validates the call (null params ->
+    // INVALID_VALUE, negative bufSize -> INVALID_VALUE, unknown pname ->
+    // INVALID_ENUM) and forwards here. `bufSize` is the capacity of `params` in
+    // elements; backends fill at most bufSize values. The answer is driver/
+    // implementation-dependent, so each backend decides what to return.
+    virtual void getInternalformativ(uint32_t target, uint32_t internalformat,
+                                     uint32_t pname, int32_t bufSize,
+                                     int32_t* params) = 0;
+    virtual void getInternalformati64v(uint32_t target, uint32_t internalformat,
+                                       uint32_t pname, int32_t bufSize,
+                                       int64_t* params) = 0;
+
 
     // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer). Copies a rectangle of
     // the bound read framebuffer into the bound draw framebuffer; `mask` selects

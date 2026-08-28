@@ -187,6 +187,16 @@ public:
                               const uint32_t* attachments, int32_t x, int32_t y,
                               int32_t width, int32_t height) override;
 
+    // Internal format queries (SPEC §22.3). Forwards to the GLES driver; GLES has
+    // no glGetInternalformati64v, so the i64v variant widens from the iv call
+    // (valid for the pnames GLES supports: NUM_SAMPLE_COUNTS, SAMPLES).
+    void getInternalformativ(uint32_t target, uint32_t internalformat,
+                            uint32_t pname, int32_t bufSize,
+                            int32_t* params) override;
+    void getInternalformati64v(uint32_t target, uint32_t internalformat,
+                              uint32_t pname, int32_t bufSize,
+                              int64_t* params) override;
+
 private:
     GLESLibPtr lib_;
     LinuxCapabilities platform_;

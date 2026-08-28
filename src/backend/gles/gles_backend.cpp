@@ -589,4 +589,30 @@ void GLESBackend::invalidateFramebuffer(uint32_t target, int32_t numAttachments,
     }
 }
 
+void GLESBackend::getInternalformativ(uint32_t target, uint32_t internalformat,
+                                     uint32_t pname, int32_t bufSize,
+                                     int32_t* params) {
+    if (!lib_->glGetInternalformativ || !params || bufSize <= 0) {
+        if (params && bufSize > 0) *params = 0;
+        return;
+    }
+    lib_->glGetInternalformativ(target, internalformat, pname, bufSize, params);
+}
+
+void GLESBackend::getInternalformati64v(uint32_t target, uint32_t internalformat,
+                                       uint32_t pname, int32_t bufSize,
+                                       int64_t* params) {
+    // GLES exposes no glGetInternalformati64v; widen from the iv query. Only the
+    // GLES-supported pnames (NUM_SAMPLE_COUNTS, SAMPLES) are meaningful here; for
+    // other pnames the driver returns 0 and we widen that to 0.
+    if (!lib_->glGetInternalformativ || !params || bufSize <= 0) {
+        if (params && bufSize > 0) *params = 0;
+        return;
+    }
+    int32_t tmp[64];
+    const int32_t n = bufSize < 64 ? bufSize : 64;
+    lib_->glGetInternalformativ(target, internalformat, pname, n, tmp);
+    for (int32_t i = 0; i < n; ++i) params[i] = static_cast<int64_t>(tmp[i]);
+}
+
 } // namespace glcompat

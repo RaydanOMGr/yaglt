@@ -1852,4 +1852,29 @@ crashed agent, this session)
  - Docs: `coverage-core.md` updated — 292 `gl_api` entry points / 287 matched
    families (50.3% declared / ~55.6% core / ~42% true), §6 row + entry list now
    include `glGetNamedBufferParameteriv`.
- - Commit (pending): `glGetNamedBufferParameteriv` feature.
+  - Committed as `2179eb4`: `glGetNamedBufferParameteriv` feature.
+
+## Session 2026-08-28 (internal format queries §22.3)
+ - Added `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3), the
+   first backend-dependent query. Required a new `IGraphicsBackend` read-back
+   interface (the one-way `GLStateSink` is only for pushed state), so both backends
+   implement `getInternalformativ` / `getInternalformati64v`:
+   - **MockBackend**: returns a documented conservative default — NUM_SAMPLE_COUNTS
+     = 0, SAMPLES writes nothing, INTERNALFORMAT_SUPPORTED = GL_TRUE for a curated
+     set of common core formats (RGBA8/RGB8/RGBA16F/RGB16F/R8/RG8/R16F/RG16F/
+     DEPTH24_STENCIL8/DEPTH_COMPONENT24/DEPTH_COMPONENT32F/R11F_G11F_B10F/
+     SRGB8_ALPHA8/RGB10_A2), 0 otherwise. Added the missing format constants to
+     `gl_types.hpp`.
+   - **GLESBackend**: forwards to the driver's `glGetInternalformativ` (GLES 3.0
+     core, resolved optionally in `GLESLib`/`gles_loader.cpp`). `glGetInternalformati64v`
+     is not in GLES, so it widens from the `iv` call (valid for the pnames GLES
+     supports: NUM_SAMPLE_COUNTS, SAMPLES).
+   - Frontend (`Context::getInternalformativ/i64v`) validates null params ->
+     INVALID_VALUE, negative bufSize -> INVALID_VALUE, and pname against the
+     ARB_internalformat_query2 pname set -> INVALID_ENUM, then forwards to the backend.
+ - Validation: default **472/472** green; `build_tx` **484/484** green incl. new
+   `gles_e2e_internalformat_query_via_driver` (runs against Mesa softpipe; skips if
+   no driver); `build_san` green.
+ - Docs: `coverage-core.md` -> 294 entry points / 288 matched families (50.4% declared
+   / ~55.8% core / ~42% true), §22 row + entry list updated.
+ - Commit (pending): internal format query feature.

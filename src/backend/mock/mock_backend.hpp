@@ -657,6 +657,67 @@ public:
         lastReadPixels = pixels;
     }
 
+    // Internal format queries (SPEC §22.3). The mock does not model real driver
+    // format support, so it returns a conservative documented default: no sample
+    // counts, supported=true for a curated set of common core formats, and 0 for
+    // every other pname. Unit tests assert this contract.
+    void getInternalformativ(uint32_t target, uint32_t internalformat,
+                            uint32_t pname, int32_t bufSize,
+                            int32_t* params) override {
+        (void)target;
+        if (params == nullptr || bufSize <= 0) return;
+        auto supported = [](uint32_t f) -> bool {
+            switch (f) {
+            case GL_RGBA8: case GL_RGB8: case GL_RGBA16F: case GL_RGB16F:
+            case GL_R8: case GL_RG8: case GL_R16F: case GL_RG16F:
+            case GL_DEPTH24_STENCIL8: case GL_DEPTH_COMPONENT24:
+            case GL_DEPTH_COMPONENT32F: case GL_R11F_G11F_B10F:
+            case GL_SRGB8_ALPHA8: case GL_RGB10_A2:
+                return true;
+            default:
+                return false;
+            }
+        };
+        switch (pname) {
+        case GL_NUM_SAMPLE_COUNTS: params[0] = 0; break;
+        case GL_SAMPLES: /* 0 sample counts -> nothing to write */ break;
+        case GL_INTERNALFORMAT_SUPPORTED:
+            params[0] = supported(internalformat)
+                            ? static_cast<int32_t>(GL_TRUE)
+                            : static_cast<int32_t>(GL_FALSE);
+            break;
+        default: params[0] = 0; break;
+        }
+    }
+    void getInternalformati64v(uint32_t target, uint32_t internalformat,
+                              uint32_t pname, int32_t bufSize,
+                              int64_t* params) override {
+        (void)target;
+        if (params == nullptr || bufSize <= 0) return;
+        auto supported = [](uint32_t f) -> bool {
+            switch (f) {
+            case GL_RGBA8: case GL_RGB8: case GL_RGBA16F: case GL_RGB16F:
+            case GL_R8: case GL_RG8: case GL_R16F: case GL_RG16F:
+            case GL_DEPTH24_STENCIL8: case GL_DEPTH_COMPONENT24:
+            case GL_DEPTH_COMPONENT32F: case GL_R11F_G11F_B10F:
+            case GL_SRGB8_ALPHA8: case GL_RGB10_A2:
+                return true;
+            default:
+                return false;
+            }
+        };
+        switch (pname) {
+        case GL_NUM_SAMPLE_COUNTS: params[0] = 0; break;
+        case GL_SAMPLES: break;
+        case GL_INTERNALFORMAT_SUPPORTED:
+            params[0] = supported(internalformat)
+                            ? static_cast<int64_t>(GL_TRUE)
+                            : static_cast<int64_t>(GL_FALSE);
+            break;
+        default: params[0] = 0; break;
+        }
+    }
+
 private:
     CapabilityTable capabilities_;
     MockPlatformCapabilities platform_;

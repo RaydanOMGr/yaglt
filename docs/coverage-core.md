@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 292 `gl_api`
-entry points, and 287 matched families.
+signal. A reproducible regen script counts 571 declared families, 294 `gl_api`
+entry points, and 288 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 287 | **50.3%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 287 | **~55.6%** |
+| Full spec (compat + core) | 571 | 288 | **50.4%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 288 | **~55.8%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-All 287 matched families are real `gl_api` entry points with frontend semantics
-and tests (mock path, most also against Mesa GLES). The 292 `gl_api` entry
+All 288 matched families are real `gl_api` entry points with frontend semantics
+and tests (mock path, most also against Mesa GLES). The 294 `gl_api` entry
 points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -60,7 +60,7 @@ scope per `docs/feature-matrix.md`).
 core commands that exist as an entry point but are capability-gated to
 *Unsupported*, e.g. the geometry/tessellation shader stages which have no GLES
 equivalent): roughly
-**two-fifths of the real ~700-entry GL core command set** (292 of
+**two-fifths of the real ~700-entry GL core command set** (294 of
 ~700 ≈ 42%).
 
 ## Core coverage by spec area
@@ -88,12 +88,12 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
 | §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🟡 | `glHint` implemented (SPEC §21.1.1; target/mode validated, pushed on flush via `GLStateSink::hint`). Evaluators/selection/feedback/display lists remain removed-in-core (correct). |
-| §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
+| §22 State queries (non-generic) | 🟡 | generic `glGet*` done; internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) now read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); many specific `glGet*` (named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
 | Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no GLES equivalent; capability-gated, rejected at creation). **Compute** dispatch commands *and* compute shader objects/stages are implemented (native in GLES 3.1+; the mock mirrors that baseline): a compute program can be created, compiled, linked, and dispatched (see §7 row). Vertex + fragment + compute stages translate (desktop→GLSL ES via glslang + SPIRV-Cross for ES compute). |
 
 ## The implemented frontend surface (gl_api entry points)
 
-292 `gl*` entry points; 287 map to a spec command family (see Method). Listed
+294 `gl*` entry points; 288 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -118,7 +118,7 @@ glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRende
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv,
-glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetNamedBufferSubData,
+glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInternalformativ, glGetInternalformati64v, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv,
 glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
@@ -199,8 +199,8 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-By the regenerated proxy (2026-08-28): **50.3% of the spec's declared command
-prototypes** (287/571) and **~55.6% of the core profile** have a frontend entry
+By the regenerated proxy (2026-08-28): **50.4% of the spec's declared command
+prototypes** (288/571) and **~55.8% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
 roughly **41%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a

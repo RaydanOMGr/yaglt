@@ -340,8 +340,101 @@ void Context::getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
     }
     }
 
+namespace {
+
+// The internalformat-query pname universe from SPEC §22.3 (ARB_internalformat_query2,
+// core in GL 4.3+). Only these pnames are accepted; any other pname reports
+// GL_INVALID_ENUM.
+bool isKnownInternalformatPname(uint32_t pname) {
+    switch (pname) {
+    case GL_NUM_SAMPLE_COUNTS:
+    case GL_SAMPLES:
+    case GL_INTERNALFORMAT_SUPPORTED:
+    case GL_INTERNALFORMAT_PREFERRED:
+    case GL_INTERNALFORMAT_RED_SIZE:
+    case GL_INTERNALFORMAT_GREEN_SIZE:
+    case GL_INTERNALFORMAT_BLUE_SIZE:
+    case GL_INTERNALFORMAT_ALPHA_SIZE:
+    case GL_INTERNALFORMAT_DEPTH_SIZE:
+    case GL_INTERNALFORMAT_STENCIL_SIZE:
+    case GL_INTERNALFORMAT_SHARED_SIZE:
+    case GL_INTERNALFORMAT_RED_TYPE:
+    case GL_INTERNALFORMAT_GREEN_TYPE:
+    case GL_INTERNALFORMAT_BLUE_TYPE:
+    case GL_INTERNALFORMAT_ALPHA_TYPE:
+    case GL_INTERNALFORMAT_DEPTH_TYPE:
+    case GL_INTERNALFORMAT_STENCIL_TYPE:
+    case GL_INTERNALFORMAT_COLOR_COMPONENTS:
+    case GL_INTERNALFORMAT_COLOR_RENDERABLE:
+    case GL_INTERNALFORMAT_DEPTH_RENDERABLE:
+    case GL_INTERNALFORMAT_STENCIL_RENDERABLE:
+    case GL_INTERNALFORMAT_FRAGMENT_LOAD_STORE:
+    case GL_INTERNALFORMAT_VERTEX_ATOMIC:
+    case GL_INTERNALFORMAT_FRAGMENT_ATOMIC:
+    case GL_INTERNALFORMAT_TEXEL_SIZE:
+    case GL_INTERNALFORMAT_TEXTURE_COMPRESSED:
+    case GL_INTERNALFORMAT_TEXTURE_COMPRESSED_BLOCK_WIDTH:
+    case GL_INTERNALFORMAT_TEXTURE_COMPRESSED_BLOCK_HEIGHT:
+    case GL_INTERNALFORMAT_TEXTURE_COMPRESSED_BLOCK_SIZE:
+    case GL_INTERNALFORMAT_FRAMEBUFFER_BLEND:
+    case GL_INTERNALFORMAT_READ_PIXELS:
+    case GL_INTERNALFORMAT_READ_PIXELS_FORMAT:
+    case GL_INTERNALFORMAT_READ_PIXELS_TYPE:
+    case GL_INTERNALFORMAT_TEXTURE_IMAGE_FORMAT:
+    case GL_INTERNALFORMAT_TEXTURE_IMAGE_TYPE:
+    case GL_INTERNALFORMAT_GET_TEXTURE_IMAGE_FORMAT:
+    case GL_INTERNALFORMAT_GET_TEXTURE_IMAGE_TYPE:
+    case GL_INTERNALFORMAT_MANUAL_GENERATE_MIPMAP:
+    case GL_INTERNALFORMAT_AUTO_GENERATE_MIPMAP:
+    case GL_INTERNALFORMAT_SRGB_READ:
+    case GL_INTERNALFORMAT_SRGB_WRITE:
+    case GL_INTERNALFORMAT_SRGB_RENDERABLE:
+        return true;
+    default:
+        return false;
+    }
+}
+
+} // namespace
+
+void Context::getInternalformativ(uint32_t target, uint32_t internalformat,
+                                 uint32_t pname, int32_t bufSize,
+                                 int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isKnownInternalformatPname(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    backend_.getInternalformativ(target, internalformat, pname, bufSize, params);
+}
+
+void Context::getInternalformati64v(uint32_t target, uint32_t internalformat,
+                                   uint32_t pname, int32_t bufSize,
+                                   int64_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isKnownInternalformatPname(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    backend_.getInternalformati64v(target, internalformat, pname, bufSize, params);
+}
 
 void Context::getNamedBufferParameteri64v(GLObjectName buffer, uint32_t pname,
+
                                            int64_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);
