@@ -134,6 +134,45 @@ TEST_CASE("get_texture_level_parameter_reads_frontend_storage") {
     EXPECT_EQ(w1, 32);
 }
 
+TEST_CASE("get_texture_level_parameter_mutable_teximage") {
+    // Mutable storage (glTexImage2D/1D/3D) must populate the storage metadata
+    // that getTextureLevelParameteriv reads, even though no glTextureStorage* call
+    // was made (SPEC §8.1). updateMutableTextureStorage drives this.
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex; ctx.createTextures(GL_TEXTURE_2D, 1, &tex);
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
+    ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 16, 8, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    EXPECT_FALSE(ctx.getTexture(tex)->immutableStorage);
+    GLint w = 0, h = 0, internal = 0;
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_WIDTH, &w);
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_HEIGHT, &h);
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_INTERNAL_FORMAT, &internal);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(w, 16);
+    EXPECT_EQ(h, 8);
+    EXPECT_EQ(internal, GL_RGBA8);
+
+    // Adding mip level 1 must extend the reported level count and halve dims.
+    ctx.texImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 8, 4, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    ctx.getTextureLevelParameteriv(tex, 1, GL_TEXTURE_WIDTH, &w);
+    EXPECT_EQ(w, 8);
+}
+
+TEST_CASE("get_texture_level_parameter_mutable_1d") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex; ctx.createTextures(GL_TEXTURE_1D, 1, &tex);
+    ctx.bindTexture(GL_TEXTURE_1D, tex);
+    ctx.texImage1D(GL_TEXTURE_1D, 0, GL_R8, 32, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    GLint w = 0, h = 0;
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_WIDTH, &w);
+    ctx.getTextureLevelParameteriv(tex, 0, GL_TEXTURE_HEIGHT, &h);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(w, 32);
+    EXPECT_EQ(h, 1); // 1D textures have height 1
+}
+
 TEST_CASE("get_texture_level_parameter_bad_level_invalid_value") {
     auto backend = makeBackend();
     Context ctx(*backend);

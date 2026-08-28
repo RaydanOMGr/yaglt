@@ -884,6 +884,11 @@ private:
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.
     BackendProgram* activeBackendProgram();
+
+    // Recompute mutable-storage metadata (base dimensions / level count) from the
+    // recorded glTexImage* levels so getTextureLevelParameter* queries return the
+    // uploaded size. Immutable storage (glTextureStorage*) owns these fields itself.
+    void updateMutableTextureStorage(TextureObject* tex);
     GLObjectName nextName_ = 1;
 
     IGraphicsBackend& backend_;

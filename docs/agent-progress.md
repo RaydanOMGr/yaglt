@@ -11,6 +11,19 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — mutable texture level parameters, this session)
+- Restored + completed the WIP `updateMutableTextureStorage` from the crashed
+  agent. `Context::texImage1D/2D/3D` now recompute `storageLevels` /
+  `storageBaseWidth/Height/Depth` / `storageInternalFormat` from the recorded
+  `images` vector so `getTextureLevelParameteriv` / `getTextureLevelParameterfv`
+  (SPEC §8.1) return the uploaded dimensions for mutable (non-immutable) storage,
+  not just for `glTextureStorage*`. Immutable storage still owns the fields
+  directly. `updateMutableTextureStorage` clears `immutableStorage`.
+- New `tests/unit/dsa_named_texture_test.cpp` cases
+  `get_texture_level_parameter_mutable_teximage` (2D + mip level 1) and
+  `get_texture_level_parameter_mutable_1d` (1D height == 1) cover the mutable
+  path. Validation: default, translate (Mesa), and sanitizer suites all green.
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):

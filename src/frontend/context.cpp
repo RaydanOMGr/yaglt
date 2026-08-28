@@ -1046,6 +1046,7 @@ void Context::texImage2D(uint32_t target, int level, uint32_t internalFormat,
     }
     if (!replaced) tex->images.push_back(img);
     tex->storageSet = true;
+    updateMutableTextureStorage(tex);
     if (tex->backend) {
         tex->backend->texImage2D(target, level, internalFormat, width, height,
                                  format, type, data);
@@ -1080,10 +1081,29 @@ void Context::texImage1D(uint32_t target, int level, uint32_t internalFormat,
     }
     if (!replaced) tex->images.push_back(img);
     tex->storageSet = true;
+    updateMutableTextureStorage(tex);
     if (tex->backend) {
         tex->backend->texImage1D(target, level, internalFormat, width, format, type,
                                  data);
     }
+}
+
+void Context::updateMutableTextureStorage(TextureObject* tex) {
+    if (tex == nullptr || tex->images.empty()) return;
+    int maxLevel = 0;
+    for (const auto& e : tex->images) maxLevel = std::max(maxLevel, e.level);
+    tex->storageLevels = maxLevel + 1;
+    for (const auto& e : tex->images) {
+        if (e.level == 0) {
+            tex->storageBaseWidth = e.width;
+            tex->storageBaseHeight = e.height;
+            tex->storageBaseDepth = e.depth;
+            tex->storageInternalFormat = e.internalFormat;
+            break;
+        }
+    }
+    tex->storageSet = true;
+    tex->immutableStorage = false;
 }
 
 void Context::texImage3D(uint32_t target, int level, uint32_t internalFormat,
@@ -1114,6 +1134,7 @@ void Context::texImage3D(uint32_t target, int level, uint32_t internalFormat,
     }
     if (!replaced) tex->images.push_back(img);
     tex->storageSet = true;
+    updateMutableTextureStorage(tex);
     if (tex->backend) {
         tex->backend->texImage3D(target, level, internalFormat, width, height, depth,
                                  format, type, data);
