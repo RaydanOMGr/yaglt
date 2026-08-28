@@ -1877,4 +1877,4 @@ crashed agent, this session)
    no driver); `build_san` green.
  - Docs: `coverage-core.md` -> 294 entry points / 288 matched families (50.4% declared
    / ~55.8% core / ~42% true), §22 row + entry list updated.
- - Commit (pending): internal format query feature.
+  - Committed as `41ecd01`: internal format query feature.
