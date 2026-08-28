@@ -429,6 +429,9 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
                     const GLint* lengths);
 void glShaderSource(GLuint shader, const std::string& source);
 void glCompileShader(GLuint shader);
+void glGetShaderiv(GLuint shader, GLenum pname, GLint* params);
+// Convenience overload (C++ only, not exported by the C shim): returns the
+// queried value directly for callers that prefer the return-value style.
 GLint glGetShaderiv(GLuint shader, GLenum pname);
 void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length,
                        GLchar* infoLog);
@@ -438,6 +441,9 @@ GLuint glCreateProgram();
 void glAttachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
 void glProgramParameteri(GLuint program, GLenum pname, GLint value);
+void glGetProgramiv(GLuint program, GLenum pname, GLint* params);
+// Convenience overload (C++ only, not exported by the C shim): returns the
+// queried value directly for callers that prefer the return-value style.
 GLint glGetProgramiv(GLuint program, GLenum pname);
 void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei* count,
                          GLuint* shaders);

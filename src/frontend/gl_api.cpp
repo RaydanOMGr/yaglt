@@ -1266,9 +1266,15 @@ void glCompileShader(GLuint shader) {
     g_current->compileShader(shader);
 }
 
+void glGetShaderiv(GLuint shader, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getShaderiv(shader, pname, params);
+}
+
 GLint glGetShaderiv(GLuint shader, GLenum pname) {
-    if (g_current == nullptr) return 0;
-    return g_current->getShaderiv(shader, pname);
+    GLint v = 0;
+    if (g_current != nullptr) g_current->getShaderiv(shader, pname, &v);
+    return v;
 }
 
 void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length,
@@ -1303,9 +1309,15 @@ void glProgramParameteri(GLuint program, GLenum pname, GLint value) {
     g_current->programParameteri(program, pname, value);
 }
 
+void glGetProgramiv(GLuint program, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getProgramiv(program, pname, params);
+}
+
 GLint glGetProgramiv(GLuint program, GLenum pname) {
-    if (g_current == nullptr) return 0;
-    return g_current->getProgramiv(program, pname);
+    GLint v = 0;
+    if (g_current != nullptr) g_current->getProgramiv(program, pname, &v);
+    return v;
 }
 
 void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei* count,

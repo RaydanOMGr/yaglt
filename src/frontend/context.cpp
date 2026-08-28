@@ -4263,50 +4263,70 @@ bool Context::isShaderCompiled(GLObjectName shader) const {
     return s != nullptr && s->compiled;
 }
 
-GLint Context::getShaderiv(GLObjectName shader, uint32_t pname) {
+void Context::getShaderiv(GLObjectName shader, uint32_t pname, GLint* params) {
     const ShaderObject* s = getShader(shader);
     if (s == nullptr) {
         setError(GLError::InvalidOperation);
-        return 0;
+        return;
     }
+    GLint result = 0;
     switch (pname) {
-    case GL_SHADER_TYPE: return static_cast<GLint>(s->stage);
-    case GL_COMPILE_STATUS: return s->compiled ? GL_TRUE : GL_FALSE;
-    case GL_DELETE_STATUS: return GL_FALSE; // frontend does not flag pending delete
-    case GL_INFO_LOG_LENGTH: return static_cast<GLint>(s->infoLog.size() + 1);
-    case GL_SHADER_SOURCE_LENGTH: return static_cast<GLint>(s->source.size() + 1);
+    case GL_SHADER_TYPE: result = static_cast<GLint>(s->stage); break;
+    case GL_COMPILE_STATUS: result = s->compiled ? GL_TRUE : GL_FALSE; break;
+    case GL_DELETE_STATUS: result = GL_FALSE; break; // frontend does not flag pending delete
+    case GL_INFO_LOG_LENGTH: result = static_cast<GLint>(s->infoLog.size() + 1); break;
+    case GL_SHADER_SOURCE_LENGTH: result = static_cast<GLint>(s->source.size() + 1); break;
     default:
         setError(GLError::InvalidEnum);
-        return 0;
+        return;
     }
+    if (params) *params = result;
 }
 
-GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
+void Context::getProgramiv(GLObjectName program, uint32_t pname, GLint* params) {
     const ProgramObject* p = getProgram(program);
     if (p == nullptr) {
         setError(GLError::InvalidOperation);
-        return 0;
+        return;
     }
+    GLint result = 0;
     switch (pname) {
-    case GL_LINK_STATUS: return p->linked ? GL_TRUE : GL_FALSE;
-    case GL_DELETE_STATUS: return GL_FALSE;
+    case GL_LINK_STATUS: result = p->linked ? GL_TRUE : GL_FALSE; break;
+    case GL_DELETE_STATUS: result = GL_FALSE; break;
     case GL_ATTACHED_SHADERS:
-        return static_cast<GLint>(p->attachedShaders.size());
-    case GL_INFO_LOG_LENGTH: return static_cast<GLint>(p->infoLog.size() + 1);
+        result = static_cast<GLint>(p->attachedShaders.size());
+        break;
+    case GL_INFO_LOG_LENGTH: result = static_cast<GLint>(p->infoLog.size() + 1); break;
     case GL_ACTIVE_UNIFORMS:
-        return p->backend ? p->backend->activeUniformCount() : 0;
+        result = p->backend ? p->backend->activeUniformCount() : 0;
+        break;
     case GL_ACTIVE_ATTRIBUTES:
-        return p->backend ? p->backend->activeAttributeCount() : 0;
+        result = p->backend ? p->backend->activeAttributeCount() : 0;
+        break;
     case GL_ACTIVE_UNIFORM_BLOCKS:
-        return p->backend ? p->backend->activeUniformBlockCount() : 0;
-    case GL_PROGRAM_SEPARABLE:
-        return p->separable ? GL_TRUE : GL_FALSE;
+        result = p->backend ? p->backend->activeUniformBlockCount() : 0;
+        break;
+    case GL_PROGRAM_SEPARABLE: result = p->separable ? GL_TRUE : GL_FALSE; break;
     case GL_PROGRAM_BINARY_LENGTH:
-        return static_cast<GLint>(p->binary.size());
+        result = static_cast<GLint>(p->binary.size());
+        break;
     default:
         setError(GLError::InvalidEnum);
-        return 0;
+        return;
     }
+    if (params) *params = result;
+}
+
+GLint Context::getShaderiv(GLObjectName shader, uint32_t pname) {
+    GLint v = 0;
+    getShaderiv(shader, pname, &v);
+    return v;
+}
+
+GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
+    GLint v = 0;
+    getProgramiv(program, pname, &v);
+    return v;
 }
 
 // Table-6.1 buffer bind targets accepted by the buffer-parameter pointer queries.

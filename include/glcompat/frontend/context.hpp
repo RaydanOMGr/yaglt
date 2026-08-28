@@ -704,6 +704,9 @@ public:
     // (type, source/info-log length, compile/link/delete status, attached shader
     // count) is returned directly; active uniform/attribute/block counts are
     // delegated to the backend resource. An unknown name sets GL_INVALID_ENUM.
+    void getShaderiv(GLObjectName shader, uint32_t pname, GLint* params);
+    void getProgramiv(GLObjectName program, uint32_t pname, GLint* params);
+    // Convenience overloads returning the queried value directly.
     GLint getShaderiv(GLObjectName shader, uint32_t pname);
     GLint getProgramiv(GLObjectName program, uint32_t pname);
     // Reflection queries (SPEC §7.3.4 / §7.3.7).
