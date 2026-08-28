@@ -92,6 +92,16 @@ void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params)
     g_current->getNamedBufferParameteri64v(buffer, pname, params);
 }
 
+void glGetBufferPointerv(GLenum target, GLenum pname, void** params) {
+    if (g_current == nullptr) return;
+    g_current->getBufferPointerv(target, pname, params);
+}
+
+void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void** params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedBufferPointerv(buffer, pname, params);
+}
+
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getNamedBufferParameteriv(buffer, pname, params);
@@ -1222,6 +1232,18 @@ void glProgramParameteri(GLuint program, GLenum pname, GLint value) {
 GLint glGetProgramiv(GLuint program, GLenum pname) {
     if (g_current == nullptr) return 0;
     return g_current->getProgramiv(program, pname);
+}
+
+void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei* count,
+                         GLuint* shaders) {
+    if (g_current == nullptr) return;
+    g_current->getAttachedShaders(program, maxCount, count, shaders);
+}
+
+void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length,
+                      GLchar* source) {
+    if (g_current == nullptr) return;
+    g_current->getShaderSource(shader, bufSize, length, source);
 }
 
 void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length) {

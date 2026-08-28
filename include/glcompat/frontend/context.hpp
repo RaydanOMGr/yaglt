@@ -86,6 +86,16 @@ public:
     // Ungenerated name -> GL_INVALID_OPERATION.
     void getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
                                    int32_t* params);
+    // Mapped-buffer pointer query (SPEC §6.1.1, glGetBufferPointerv /
+    // glGetNamedBufferPointerv). pname must be BUFFER_MAP_POINTER (GL_INVALID_ENUM
+    // otherwise); null params -> GL_INVALID_VALUE; the returned pointer is the
+    // current mapping into the frontend CPU mirror (nullptr when not mapped). The
+    // named variant is capability-gated by DirectStateAccess; an ungenerated name
+    // -> GL_INVALID_OPERATION. The target-based variant validates target against
+    // the table-6.1 buffer targets (GL_INVALID_ENUM) and that a buffer is bound
+    // (GL_INVALID_OPERATION).
+    void getBufferPointerv(uint32_t target, uint32_t pname, void** params);
+    void getNamedBufferPointerv(GLObjectName buffer, uint32_t pname, void** params);
     // Internal format queries (SPEC §22.3, glGetInternalformativ /
     // glGetInternalformati64v). Validates params != null (GL_INVALID_VALUE),
     // bufSize >= 0 (GL_INVALID_VALUE), and pname as a known internalformat-query
@@ -662,6 +672,18 @@ public:
     // delegated to the backend resource. An unknown name sets GL_INVALID_ENUM.
     GLint getShaderiv(GLObjectName shader, uint32_t pname);
     GLint getProgramiv(GLObjectName program, uint32_t pname);
+    // Reflection queries (SPEC §7.3.4 / §7.3.7).
+    // glGetAttachedShaders fills `shaders` with up to `maxCount` attached shader
+    // names and `count` with the actual number (clamped to maxCount). A negative
+    // maxCount -> GL_INVALID_VALUE; a non-program object -> GL_INVALID_OPERATION.
+    // glGetShaderSource returns the concatenated source (nul-terminated) in
+    // `source`; `length` (optional) receives the character count excluding the
+    // nul. A negative bufSize -> GL_INVALID_VALUE; a non-shader object ->
+    // GL_INVALID_OPERATION.
+    void getAttachedShaders(GLObjectName program, int32_t maxCount, int32_t* count,
+                           GLObjectName* shaders);
+    void getShaderSource(GLObjectName shader, int32_t bufSize, int32_t* length,
+                         char* source);
 
     // Program-interface reflection (SPEC §7.3.11). `programInterface` must be a
     // valid interface enum; `program` must be a linked program object. Name/Index

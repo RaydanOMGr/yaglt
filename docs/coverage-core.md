@@ -33,15 +33,15 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 299 `gl_api`
-entry points, and 293 matched families.
+signal. A reproducible regen script counts 571 declared families, 303 `gl_api`
+entry points, and 297 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 293 | **51.3%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 293 | **~56.8%** |
+| Full spec (compat + core) | 571 | 297 | **52.0%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 297 | **~57.6%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
@@ -88,12 +88,12 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
 | §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🟡 | `glHint` implemented (SPEC §21.1.1; target/mode validated, pushed on flush via `GLStateSink::hint`). Evaluators/selection/feedback/display lists remain removed-in-core (correct). |
-| §22 State queries (non-generic) | 🟡 | generic `glGet*` done (incl. `glGetInteger64v`, `glGetBooleani_v`/`glGetIntegeri_v`, `glGetStringi`, `glGetGraphicsResetStatus`); internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); `glGetMultisamplefv` (SPEC §14.3.1) returns the indexed sample position, validating pname == SAMPLE_POSITION, null params, and index against the backend's sample count, then forwarding to the GLES driver (mock returns a fixed grid); remaining specific `glGet*` (e.g. `glGetPointerv`, `glGetTexImage` readback) not yet exposed |
+| §22 State queries (non-generic) | 🟡 | generic `glGet*` done (incl. `glGetInteger64v`, `glGetBooleani_v`/`glGetIntegeri_v`, `glGetStringi`, `glGetGraphicsResetStatus`); internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); `glGetMultisamplefv` (SPEC §14.3.1) returns the indexed sample position, validating pname == SAMPLE_POSITION, null params, and index against the backend's sample count, then forwarding to the GLES driver (mock returns a fixed grid); program/shader reflection `glGetAttachedShaders` (SPEC §7.3.4) and `glGetShaderSource` (SPEC §7.3.7) return frontend-owned attachment/source data; `glGetBufferPointerv` / `glGetNamedBufferPointerv` (SPEC §6.1.1) return the mapped buffer pointer (DSA variant capability-gated by `DirectStateAccess`); remaining specific `glGet*` (e.g. `glGetPointerv`, `glGetTexImage` readback) not yet exposed |
 | Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no GLES equivalent; capability-gated, rejected at creation). **Compute** dispatch commands *and* compute shader objects/stages are implemented (native in GLES 3.1+; the mock mirrors that baseline): a compute program can be created, compiled, linked, and dispatched (see §7 row). Vertex + fragment + compute stages translate (desktop→GLSL ES via glslang + SPIRV-Cross for ES compute). |
 
 ## The implemented frontend surface (gl_api entry points)
 
-300 `gl*` entry points; 294 map to a spec command family (see Method). Listed
+ 304 `gl*` entry points; 298 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -117,13 +117,13 @@ glEndTransformFeedback, glFinish, glFlush, glFramebufferRenderbuffer, glFramebuf
 glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRenderbuffers, glGenSamplers,
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
-glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv, glGetBooleani_v,
-glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
+glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetAttachedShaders, glGetBooleanv, glGetBooleani_v,
+glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferPointerv, glGetNamedBufferPointerv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv, glGetGraphicsResetStatus,
 glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
 glProgramBinary, glProgramParameteri,
-glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog, glGetString, glGetStringi,
+glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog, glGetShaderSource, glGetString, glGetStringi,
 glGetSynciv, glGetTexImage, glGetTexParameterIiv, glGetTexParameterIuiv, glGetTexParameterfv,
 glGetTexParameteriv, glGetTextureImage, glGetTextureLevelParameterfv, glGetTextureLevelParameteriv,
 glGetTexLevelParameterfv, glGetTexLevelParameteriv,
@@ -199,10 +199,10 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-By the regenerated proxy (2026-08-28): **50.4% of the spec's declared command
-prototypes** (288/571) and **~55.8% of the core profile** have a frontend entry
+By the regenerated proxy (2026-08-28): **52.0% of the spec's declared command
+prototypes** (297/571) and **~57.6% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
-roughly **41%**. This is materially more than the 2026-08-26 snapshot (then
+roughly **42%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
 complete 4.6 core implementation**. The largest remaining gaps are the two
 unsupported shader stages (geometry/tessellation), a few texture

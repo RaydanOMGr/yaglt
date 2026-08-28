@@ -50,6 +50,10 @@ void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);
 void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64* params);
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params);
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params);
+// Mapped-buffer pointer queries (SPEC §6.1.1 glGetBufferPointerv /
+// glGetNamedBufferPointerv). pname must be GL_BUFFER_MAP_POINTER.
+void glGetBufferPointerv(GLenum target, GLenum pname, void** params);
+void glGetNamedBufferPointerv(GLuint buffer, GLenum pname, void** params);
 
 // Internal format queries (SPEC §22.3). Forwards to the backend, which answers
 // with implementation-specific format support.
@@ -411,6 +415,11 @@ void glAttachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
 void glProgramParameteri(GLuint program, GLenum pname, GLint value);
 GLint glGetProgramiv(GLuint program, GLenum pname);
+void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei* count,
+                         GLuint* shaders);
+void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length,
+                      GLchar* source);
+
 void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length);
 void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei* length,
                         GLenum* binaryFormat, void* binary);

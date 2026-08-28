@@ -528,6 +528,7 @@ void* Context::mapBufferRange(uint32_t target, intptr_t offset, intptr_t length,
     obj->mapOffset = offset;
     obj->mapLength = length;
     obj->mapAccess = access;
+    obj->mapPointer = obj->store.data() + static_cast<size_t>(offset);
     if (obj->backend) {
         // Real backends map their native copy; the frontend still serves the CPU
         // mirror so the application gets a stable pointer to its data.
@@ -563,6 +564,7 @@ bool Context::unmapBuffer(uint32_t target) {
     obj->mapOffset = 0;
     obj->mapLength = 0;
     obj->mapAccess = 0;
+    obj->mapPointer = nullptr;
     return true;
 }
 
@@ -4096,6 +4098,117 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
         setError(GLError::InvalidEnum);
         return 0;
     }
+}
+
+// Table-6.1 buffer bind targets accepted by the buffer-parameter pointer queries.
+static bool isBufferBindTarget(uint32_t target) {
+    switch (target) {
+    case GL_ARRAY_BUFFER:
+    case GL_ATOMIC_COUNTER_BUFFER:
+    case GL_COPY_READ_BUFFER:
+    case GL_COPY_WRITE_BUFFER:
+    case GL_DRAW_INDIRECT_BUFFER:
+    case GL_DISPATCH_INDIRECT_BUFFER:
+    case GL_ELEMENT_ARRAY_BUFFER:
+    case GL_PIXEL_PACK_BUFFER:
+    case GL_PIXEL_UNPACK_BUFFER:
+    case GL_QUERY_BUFFER:
+    case GL_SHADER_STORAGE_BUFFER:
+    case GL_TEXTURE_BUFFER:
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+    case GL_UNIFORM_BUFFER:
+        return true;
+    default:
+        return false;
+    }
+}
+
+void Context::getAttachedShaders(GLObjectName program, int32_t maxCount,
+                                 int32_t* count, GLObjectName* shaders) {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        // A non-program (shader or unused) name is rejected (SPEC §7.3.4).
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (maxCount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int32_t actual = static_cast<int32_t>(p->attachedShaders.size());
+    if (count != nullptr) *count = actual;
+    if (shaders != nullptr) {
+        int32_t n = std::min(maxCount, actual);
+        for (int32_t i = 0; i < n; ++i) shaders[i] = p->attachedShaders[i];
+    }
+}
+
+void Context::getShaderSource(GLObjectName shader, int32_t bufSize,
+                              int32_t* length, char* source) {
+    const ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int32_t srcLen = static_cast<int32_t>(s->source.size());
+    if (length != nullptr) *length = srcLen;
+    if (source != nullptr && bufSize > 0) {
+        int32_t copy = std::min(bufSize - 1, srcLen);
+        if (copy > 0) std::memcpy(source, s->source.data(), static_cast<size_t>(copy));
+        source[copy] = '\0';
+    }
+}
+
+void Context::getBufferPointerv(uint32_t target, uint32_t pname, void** params) {
+    if (!isBufferBindTarget(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (pname != GL_BUFFER_MAP_POINTER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    *params = obj->mapPointer;
+}
+
+void Context::getNamedBufferPointerv(GLObjectName buffer, uint32_t pname,
+                                     void** params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (pname != GL_BUFFER_MAP_POINTER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    *params = obj->mapPointer;
 }
 
 namespace {

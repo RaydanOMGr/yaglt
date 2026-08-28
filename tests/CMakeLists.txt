@@ -71,6 +71,7 @@ add_executable(yaglt_tests
     unit/log_test.cpp
     unit/getstate_test.cpp
     unit/generic_query_test.cpp
+    unit/reflection_query_test.cpp
     backend/gles_backend_test.cpp
 )
 

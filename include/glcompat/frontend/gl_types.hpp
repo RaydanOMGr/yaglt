@@ -49,6 +49,8 @@ constexpr GLenum GL_COPY_READ_BUFFER = 0x8F36;
 constexpr GLenum GL_COPY_WRITE_BUFFER = 0x8F37;
 constexpr GLenum GL_PIXEL_PACK_BUFFER = 0x88EB;
 constexpr GLenum GL_PIXEL_UNPACK_BUFFER = 0x88EC;
+constexpr GLenum GL_QUERY_BUFFER = 0x9192;
+constexpr GLenum GL_BUFFER_MAP_POINTER = 0x88BD;
 
 constexpr GLenum GL_STATIC_DRAW = 0x88E4;
 constexpr GLenum GL_DYNAMIC_DRAW = 0x88E8;

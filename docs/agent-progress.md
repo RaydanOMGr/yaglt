@@ -11,6 +11,28 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — frontend-owned reflection queries, this session)
+- Added three more frontend-owned query entry points (SPEC §6.1.1 / §7.3.4 / §7.3.7):
+  `glGetAttachedShaders` (fills up to `maxCount` attached shader names + the true
+  count; negative maxCount → `GL_INVALID_VALUE`, non-program object →
+  `GL_INVALID_OPERATION`), `glGetShaderSource` (returns the concatenated nul-
+  terminated source; negative bufSize → `GL_INVALID_VALUE`, non-shader object →
+  `GL_INVALID_OPERATION`), and `glGetBufferPointerv` / `glGetNamedBufferPointerv`
+  (return the mapped-buffer pointer for `BUFFER_MAP_POINTER`; unknown pname →
+  `GL_INVALID_ENUM`, null params → `GL_INVALID_VALUE`, the named variant capability-
+  gated by `DirectStateAccess` with ungenerated name → `GL_INVALID_OPERATION`, the
+  target variant validates the table-6.1 buffer targets with `GL_INVALID_ENUM`).
+  The frontend now tracks the stable `mapPointer` in `BufferObject` (set on
+  `mapBuffer`/`mapBufferRange`, cleared on `unmapBuffer`) so `BUFFER_MAP_POINTER`
+  answers from the CPU mirror. `GL_BUFFER_MAP_POINTER` / `GL_QUERY_BUFFER` added to
+  `gl_types.hpp`; `Context` + `gl_api` declarations/dispatch added for all four.
+- New `tests/unit/reflection_query_test.cpp` cases: `getshadersource_returns_-
+  concatenated_source`, `getattachedshaders_reports_attached_names`,
+  `getbufferpointerv_returns_mapped_pointer`, `getnamedbufferpointerv_dsa_returns_-
+  mapped_pointer`. Validation: default (481/481, 0 failed), translate (Mesa), and
+  sanitizer suites all green. Coverage bumped in `docs/coverage-core.md`
+  (now 304/571 ≈ 52.0% declared; ~57.6% core).
+
 ## Recent Work (2026-08-28 — mutable texture level parameters, this session)
 - Restored + completed the WIP `updateMutableTextureStorage` from the crashed
   agent. `Context::texImage1D/2D/3D` now recompute `storageLevels` /

@@ -43,6 +43,9 @@ public:
     intptr_t mapOffset = 0;
     intptr_t mapLength = 0;
     uint32_t mapAccess = 0;
+    // Stable pointer to the mapped region of the CPU mirror (SPEC §6.1.1
+    // BUFFER_MAP_POINTER). Cleared to nullptr on unmap.
+    void* mapPointer = nullptr;
 };
 
 class TextureObject {
