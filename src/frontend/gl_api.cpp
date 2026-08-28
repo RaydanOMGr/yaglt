@@ -1419,6 +1419,16 @@ GLint glGetAttribLocation(GLuint program, const GLchar* name) {
     return g_current->getAttribLocation(program, name ? name : "");
 }
 
+GLint glGetFragDataLocation(GLuint program, const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getFragDataLocation(program, name ? name : "");
+}
+
+GLint glGetFragDataIndex(GLuint program, const GLchar* name) {
+    if (g_current == nullptr) return -1;
+    return g_current->getFragDataIndex(program, name ? name : "");
+}
+
 void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name) {
     if (g_current == nullptr) return;
     g_current->bindAttribLocation(program, index, name ? name : "");

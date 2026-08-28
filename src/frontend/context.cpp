@@ -5111,6 +5111,26 @@ int Context::getAttribLocation(GLObjectName program, const std::string& name) co
     return p->backend->getAttribLocation(name);
 }
 
+int Context::getFragDataLocation(GLObjectName program, const std::string& name) const {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (p->backend) return p->backend->getFragDataLocation(name);
+    return -1;
+}
+
+int Context::getFragDataIndex(GLObjectName program, const std::string& name) const {
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (p->backend) return p->backend->getFragDataIndex(name);
+    return -1;
+}
+
 void Context::bindAttribLocation(GLObjectName program, uint32_t index,
                                  const std::string& name) {
     ProgramObject* p = getProgram(program);

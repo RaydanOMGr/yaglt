@@ -11,6 +11,20 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — fragment-output reflection, this session)
+- Added fragment-output reflection (SPEC §7.3.6): `glGetFragDataLocation` /
+  `glGetFragDataIndex` return the location / dual-source index bound to a
+  fragment-shader output `name`. `BackendProgram` gained `getFragDataLocation` /
+  `getFragDataIndex` virtuals (default -1 = no introspection; honest for GLES,
+  which has no direct equivalent). `MockProgram` overrides them and returns the
+  location only for outputs the test seeds (so unknown names correctly report -1).
+  `Context::getFragDataLocation`/`getFragDataIndex` validate the program object
+  (non-program name → `GL_INVALID_OPERATION`) and delegate to the backend program.
+  `gl_api` exposes both entry points. New `tests/unit/frag_data_location_test.cpp`
+  (assigned-location, -1 for unknown, non-program validation). Validation: default,
+  translate (Mesa), and sanitizer suites all green. Coverage bumped in
+  `docs/coverage-core.md` (now 309/571 ≈ 53.1% declared; ~58.7% core).
+
 ## Recent Work (2026-08-28 — object labeling, this session)
 - Added object-label entry points (SPEC §22.2): `glObjectLabel` / `glObjectPtrLabel` /
   `glGetObjectLabel` / `glGetObjectPtrLabel`. Labels are frontend-owned: a central

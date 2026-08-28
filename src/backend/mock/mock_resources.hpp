@@ -575,6 +575,18 @@ public:
         const_cast<MockProgram*>(this)->attribLocations[name] = loc;
         return loc;
     }
+    int getFragDataLocation(const std::string& name) const override {
+        auto it = fragDataLocations.find(name);
+        if (it != fragDataLocations.end()) return it->second;
+        return -1; // not an active fragment output
+    }
+    int getFragDataIndex(const std::string& name) const override {
+        auto it = fragDataIndices.find(name);
+        if (it != fragDataIndices.end()) return it->second;
+        return -1; // not an active fragment output
+    }
+    std::map<std::string, int> fragDataLocations;
+    std::map<std::string, int> fragDataIndices;
     // Records a glBindAttribLocation request (SPEC §7.3.7). Observable in tests.
     void bindAttribLocation(const std::string& name, int index) override {
         boundAttribLocations[name] = index;

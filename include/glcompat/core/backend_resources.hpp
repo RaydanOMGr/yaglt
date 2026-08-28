@@ -282,6 +282,13 @@ public:
     virtual bool link(std::string& log) = 0;
     // Attribute location for `name` after linking (-1 if absent).
     virtual int getAttribLocation(const std::string& name) const = 0;
+    // Fragment-output location / dual-source index for `name` (SPEC §7.3.6
+    // glGetFragDataLocation / glGetFragDataIndex). Returns -1 when the output is
+    // absent (matching desktop GL semantics). Backends with fragment-output
+    // introspection override; the default -1 is honest for those without it (e.g.
+    // GLES, which has no direct equivalent).
+    virtual int getFragDataLocation(const std::string& name) const { return -1; }
+    virtual int getFragDataIndex(const std::string& name) const { return -1; }
     // Bind generic vertex attribute `index` to the attribute variable `name`
     // (SPEC §7.3.7 glBindAttribLocation). Called before link(); takes effect on
     // the next link. Default no-op so backends opt in.

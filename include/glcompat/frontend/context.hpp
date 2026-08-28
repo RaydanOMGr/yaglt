@@ -799,6 +799,12 @@ public:
     bool isProgramLinked(GLObjectName program) const;
     std::string programInfoLog(GLObjectName program) const;
     int getAttribLocation(GLObjectName program, const std::string& name) const;
+    // Fragment-output reflection (SPEC §7.3.6). Returns the location / dual-source
+    // index bound to the fragment-shader output `name`. A non-program name reports
+    // GL_INVALID_OPERATION; an unknown output returns -1 (no error). Delegated to the
+    // backend program.
+    int getFragDataLocation(GLObjectName program, const std::string& name) const;
+    int getFragDataIndex(GLObjectName program, const std::string& name) const;
     // Bind a generic vertex attribute index to an attribute variable name before
     // linking (SPEC §7.3.7 glBindAttribLocation). Records the request on the
     // program; applied to the backend at the next linkProgram. An unknown program

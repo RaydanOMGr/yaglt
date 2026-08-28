@@ -478,6 +478,8 @@ void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
 void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params);
 void glDeleteProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
+GLint glGetFragDataLocation(GLuint program, const GLchar* name);
+GLint glGetFragDataIndex(GLuint program, const GLchar* name);
 void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name);
 
 // --- Uniforms (SPEC §8) ---
