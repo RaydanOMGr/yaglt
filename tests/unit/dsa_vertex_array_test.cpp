@@ -242,3 +242,131 @@ TEST_CASE("gl_api_dsa_vertex_array_surface") {
 
     glcompat::setCurrentContext(nullptr);
 }
+
+// --- DSA vertex-array queries (SPEC §10.3.1) ---
+
+TEST_CASE("get_vertex_array_iv_element_buffer_binding") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName vao = ctx.genVertexArray();
+    GLObjectName ebo = ctx.genBuffer();
+
+    ctx.vertexArrayElementBuffer(vao, ebo);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    int32_t v = -1;
+    ctx.getVertexArrayiv(vao, GL_ELEMENT_ARRAY_BUFFER_BINDING, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(v, static_cast<int32_t>(ebo));
+}
+
+TEST_CASE("get_vertex_array_indexed_iv_per_attrib_state") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName vao = ctx.genVertexArray();
+
+    ctx.vertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, false, 0);
+    ctx.enableVertexArrayAttrib(vao, 0);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    int32_t enabled = 0, size = 0, type = 0, normalized = 0, bufBinding = 0;
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &enabled);
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_SIZE, &size);
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_TYPE, &type);
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &normalized);
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &bufBinding);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(enabled, 1);
+    EXPECT_EQ(size, 3);
+    EXPECT_EQ(type, static_cast<int32_t>(GL_FLOAT));
+    EXPECT_EQ(normalized, 0);
+    EXPECT_EQ(bufBinding, 0); // no buffer bound to this attribute yet
+
+    // A disabled attribute reports 0.
+    int32_t disabled = 1;
+    ctx.getVertexArrayIndexediv(vao, 1, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &disabled);
+    EXPECT_EQ(disabled, 0);
+}
+
+TEST_CASE("get_vertex_array_indexed_64v_binding_and_relative_offset") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName vao = ctx.genVertexArray();
+
+    ctx.vertexArrayVertexBuffer(vao, 1, ctx.genBuffer(), 4, 16);
+    ctx.vertexArrayAttribFormat(vao, 0, 2, GL_FLOAT, false, 12);
+    ctx.vertexArrayAttribBinding(vao, 0, 1);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    int64_t binding = -1, relOffset = -1;
+    ctx.getVertexArrayIndexed64v(vao, 0, GL_VERTEX_ATTRIB_BINDING, &binding);
+    ctx.getVertexArrayIndexed64v(vao, 0, GL_VERTEX_ATTRIB_RELATIVE_OFFSET, &relOffset);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(binding, 1);
+    EXPECT_EQ(relOffset, 12);
+}
+
+TEST_CASE("get_vertex_array_indexed_validation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName vao = ctx.genVertexArray();
+
+    // Unknown pname -> INVALID_ENUM.
+    int32_t v = 0;
+    ctx.getVertexArrayIndexediv(vao, 0, 0xDEAD, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+    int64_t v64 = 0;
+    ctx.getVertexArrayIndexed64v(vao, 0, 0xDEAD, &v64);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+
+    // Out-of-range index -> INVALID_VALUE.
+    int32_t oob = 0;
+    ctx.getVertexArrayIndexediv(vao, 1024, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &oob);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+
+    // Null params -> INVALID_VALUE.
+    ctx.getVertexArrayIndexediv(vao, 0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("get_vertex_array_ungenerated_is_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+
+    int32_t v = 0;
+    ctx.getVertexArrayiv(999, GL_ELEMENT_ARRAY_BUFFER_BINDING, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    ctx.getVertexArrayIndexediv(999, 0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("get_vertex_array_gated_by_direct_state_access") {
+    auto backend = makeBackend();
+    backend->setCapability(Feature::DirectStateAccess, FeatureSupport::Unsupported);
+    Context ctx(*backend);
+    GLObjectName vao = ctx.genVertexArray();
+
+    int32_t v = 0;
+    ctx.getVertexArrayiv(vao, GL_ELEMENT_ARRAY_BUFFER_BINDING, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+// Exercise the public gl_api entry points (SPEC §10.3.1).
+TEST_CASE("gl_api_get_vertex_array_queries") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    glcompat::setCurrentContext(&ctx);
+
+    GLuint vao = 0, ebo = 0;
+    glCreateVertexArrays(1, &vao);
+    glGenBuffers(1, &ebo);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+
+    glVertexArrayElementBuffer(vao, ebo);
+    GLint v = -1;
+    glGetVertexArrayiv(vao, GL_ELEMENT_ARRAY_BUFFER_BINDING, &v);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(v, static_cast<GLint>(ebo));
+
+    glcompat::setCurrentContext(nullptr);
+}

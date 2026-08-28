@@ -649,6 +649,9 @@ void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params);
 void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint* params);
 void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params);
 void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params);
+void glGetVertexArrayiv(GLuint vao, GLenum pname, GLint* params);
+void glGetVertexArrayIndexediv(GLuint vao, GLuint index, GLenum pname, GLint* params);
+void glGetVertexArrayIndexed64v(GLuint vao, GLuint index, GLenum pname, GLint64* params);
 
 // Quality hint (SPEC §21.1.1, glHint). Non-binding; the frontend records the
 // requested target/mode and forwards it to the backend at flush. Invalid target

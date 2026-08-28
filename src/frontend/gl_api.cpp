@@ -1912,6 +1912,21 @@ void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params) {
     g_current->getVertexAttribPointerv(index, pname, reinterpret_cast<void**>(params));
 }
 
+void glGetVertexArrayiv(GLuint vao, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexArrayiv(vao, pname, params);
+}
+
+void glGetVertexArrayIndexediv(GLuint vao, GLuint index, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexArrayIndexediv(vao, index, pname, params);
+}
+
+void glGetVertexArrayIndexed64v(GLuint vao, GLuint index, GLenum pname, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexArrayIndexed64v(vao, index, pname, params);
+}
+
 void glHint(GLenum target, GLenum mode) {
     if (g_current == nullptr) return;
     g_current->hint(target, mode);

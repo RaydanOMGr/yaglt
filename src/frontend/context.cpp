@@ -5303,6 +5303,109 @@ void Context::getVertexAttribPointerv(uint32_t index, GLenum pname, void** param
     *params = reinterpret_cast<void*>(a.offset);
 }
 
+void Context::getVertexArrayiv(GLObjectName vao, uint32_t pname, int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vaoObj = getVertexArray(vao);
+    if (vaoObj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated VAO name
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+        case GL_ELEMENT_ARRAY_BUFFER_BINDING:
+            *params = static_cast<int32_t>(vaoObj->elementBuffer);
+            return;
+        default:
+            setError(GLError::InvalidEnum);
+            *params = 0;
+            return;
+    }
+}
+
+void Context::getVertexArrayIndexediv(GLObjectName vao, uint32_t index,
+                                      uint32_t pname, int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vaoObj = getVertexArray(vao);
+    if (vaoObj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated VAO name
+        return;
+    }
+    if (index >= kMaxVertexAttribs) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const auto& a = vaoObj->attrib(index);
+    switch (pname) {
+        case GL_VERTEX_ATTRIB_ARRAY_ENABLED:
+            *params = a.enabled ? 1 : 0; return;
+        case GL_VERTEX_ATTRIB_ARRAY_SIZE:
+            *params = a.size; return;
+        case GL_VERTEX_ATTRIB_ARRAY_STRIDE:
+            *params = a.stride; return;
+        case GL_VERTEX_ATTRIB_ARRAY_TYPE:
+            *params = static_cast<int32_t>(a.type); return;
+        case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+            *params = a.normalized ? 1 : 0; return;
+        case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+            *params = (a.currentType != GL_FLOAT) ? 1 : 0; return;
+        case GL_VERTEX_ATTRIB_ARRAY_LONG:
+            *params = 0; return;
+        case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
+            *params = static_cast<int32_t>(a.divisor); return;
+        case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
+            *params = static_cast<int32_t>(a.buffer); return;
+        default:
+            setError(GLError::InvalidEnum);
+            *params = 0;
+            return;
+    }
+}
+
+void Context::getVertexArrayIndexed64v(GLObjectName vao, uint32_t index,
+                                       uint32_t pname, int64_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    VertexArrayObject* vaoObj = getVertexArray(vao);
+    if (vaoObj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated VAO name
+        return;
+    }
+    if (index >= kMaxVertexAttribs) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const auto& a = vaoObj->attrib(index);
+    switch (pname) {
+        case GL_VERTEX_ATTRIB_BINDING:
+            *params = static_cast<int64_t>(a.binding); return;
+        case GL_VERTEX_ATTRIB_RELATIVE_OFFSET:
+            *params = static_cast<int64_t>(a.relativeoffset); return;
+        default:
+            setError(GLError::InvalidEnum);
+            *params = 0;
+            return;
+    }
+}
+
 // --- Hints (SPEC §21.1.1) ---
 
 namespace {

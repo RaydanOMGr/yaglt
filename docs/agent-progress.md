@@ -100,6 +100,27 @@ Known major blockers:
   translate (Mesa), and sanitizer suites green. Coverage bumped in
   `docs/coverage-core.md` (now 284/571 ≈ 49.7% declared; ~55.0% core).
 
+## Recent Work (2026-08-28 — DSA vertex-array queries, this session)
+- Added the DSA vertex-array query entry points (SPEC §10.3.1): `glGetVertexArrayiv`
+  (VAO-level `GL_ELEMENT_ARRAY_BUFFER_BINDING`), `glGetVertexArrayIndexediv`
+  (per-attribute `ENABLED`/`SIZE`/`STRIDE`/`TYPE`/`NORMALIZED`/`INTEGER`/`LONG`/
+  `DIVISOR`/`BUFFER_BINDING`), and `glGetVertexArrayIndexed64v` (64-bit
+  `VERTEX_ATTRIB_BINDING` / `VERTEX_ATTRIB_RELATIVE_OFFSET`). All read the explicit
+  VAO name's `VertexArrayObject` state, capability-gated by `DirectStateAccess`
+  (consistent with the other DSA vertex-array methods); ungenerated VAO name →
+  `GL_INVALID_OPERATION`, out-of-range index → `GL_INVALID_VALUE`, null params →
+  `GL_INVALID_VALUE`, unknown pname → `GL_INVALID_ENUM`. Public `gl_api` dispatch +
+  `gl_api.hpp`/`context.hpp` declarations added; the four `GL_VERTEX_ATTRIB_*` /
+  `GL_ELEMENT_ARRAY_BUFFER_BINDING` constants added to `gl_types.hpp`.
+- New `tests/unit/dsa_vertex_array_test.cpp` cases: `get_vertex_array_iv_element_-
+  buffer_binding`, `get_vertex_array_indexed_iv_per_attrib_state`,
+  `get_vertex_array_indexed_64v_binding_and_relative_offset`,
+  `get_vertex_array_indexed_validation`, `get_vertex_array_ungenerated_is_invalid_-
+  operation`, `get_vertex_array_gated_by_direct_state_access`,
+  `gl_api_get_vertex_array_queries`. Validation: default, translate (Mesa), and
+  sanitizer suites green. Coverage bumped in `docs/coverage-core.md` (now 287/571
+  ≈ 50.3% declared; ~55.6% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):

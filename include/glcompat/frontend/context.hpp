@@ -818,6 +818,21 @@ public:
     void getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params);
     void getVertexAttribPointerv(uint32_t index, GLenum pname, void** params);
 
+    // DSA vertex-array queries (SPEC §10.3.1), operate on an explicit VAO name.
+    // getVertexArrayiv reads VAO-level state (ELEMENT_ARRAY_BUFFER_BINDING).
+    // getVertexArrayIndexediv reads per-attribute int state (ENABLED/SIZE/STRIDE/
+    //   TYPE/NORMALIZED/INTEGER/LONG/DIVISOR/BUFFER_BINDING).
+    // getVertexArrayIndexed64v reads 64-bit per-attribute binding state
+    //   (VERTEX_ATTRIB_BINDING, VERTEX_ATTRIB_RELATIVE_OFFSET).
+    // Capability-gated by DirectStateAccess. Ungenerated VAO name ->
+    //   GL_INVALID_OPERATION; index >= max -> GL_INVALID_VALUE; null params ->
+    //   GL_INVALID_VALUE; unknown pname -> GL_INVALID_ENUM.
+    void getVertexArrayiv(GLObjectName vao, uint32_t pname, int32_t* params);
+    void getVertexArrayIndexediv(GLObjectName vao, uint32_t index, uint32_t pname,
+                                 int32_t* params);
+    void getVertexArrayIndexed64v(GLObjectName vao, uint32_t index, uint32_t pname,
+                                  int64_t* params);
+
     // --- Hints (SPEC §21.1.1) ---
     // Quality hint for a target. Invalid target or mode -> GL_INVALID_ENUM. If a
     // different mode is requested the change is pushed to the backend at flush.
