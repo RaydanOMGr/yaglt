@@ -215,12 +215,32 @@ private:
     EGLContext context_ = EGL_NO_CONTEXT;
     bool initialized_ = false;
 
+    // When set, the backend attaches to an externally-owned EGL context (e.g. one
+    // created by a libEGL drop-in shim on behalf of the application) instead of
+    // creating its own surfaceless context. The shim calls setAdopt() before
+    // initialize() and is responsible for making the adopted context current.
+    bool adopt_ = false;
+    EGLDisplay adoptDisplay_ = EGL_NO_DISPLAY;
+    EGLContext adoptContext_ = EGL_NO_CONTEXT;
+
     // Frontend object name -> backend-native id (only entries that the frontend
     // has registered via bindNativeObject).
     std::unordered_map<uint32_t, uint32_t> nativeMap_;
 
     bool createContext();
     void queryVersion();
+
+public:
+    // Attach to an externally-owned EGL display/context. The caller must make
+    // `ctx` current before calling initialize(); the backend will then issue
+    // native GL on that context rather than creating its own. shutdown() will
+    // not destroy an adopted context/display (the owner owns their lifetime).
+    void setAdopt(EGLDisplay dpy, EGLContext ctx) {
+        adopt_ = true;
+        adoptDisplay_ = dpy;
+        adoptContext_ = ctx;
+    }
+    bool isAdopted() const { return adopt_; }
 };
 
 } // namespace glcompat

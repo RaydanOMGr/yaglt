@@ -104,3 +104,15 @@ target_include_directories(yaglt_tests PRIVATE
 target_link_libraries(yaglt_tests PRIVATE yaglt_core)
 
 add_test(NAME yaglt_tests COMMAND yaglt_tests)
+
+# libEGL drop-in shim smoke test (see src/egl_shim). Links the shim directly so
+# its egl*/gl* symbols are resolved, then drives a real (Mesa) EGL stack.
+if(YAGLT_EGL_SHIM)
+    add_executable(egl_shim_smoke
+        integration/egl_shim_smoke.cpp
+    )
+    target_include_directories(egl_shim_smoke PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+    )
+    target_link_libraries(egl_shim_smoke PRIVATE yaglt_egl_shim)
+endif()

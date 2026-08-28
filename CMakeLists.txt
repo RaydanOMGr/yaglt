@@ -15,6 +15,7 @@ endif()
 
 option(YAGLT_BUILD_TESTS "Build the unit/integration test suite" ON)
 option(YAGLT_ENABLE_SANITIZERS "Enable ASan/UBSan in Debug builds" OFF)
+option(YAGLT_EGL_SHIM "Build the libEGL.so drop-in shim (requires YAGLT_BACKEND_GLES)" ON)
 
 if(YAGLT_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
@@ -22,6 +23,9 @@ if(YAGLT_ENABLE_SANITIZERS AND CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 
 add_subdirectory(src)
+if(YAGLT_EGL_SHIM)
+    add_subdirectory(src/egl_shim)
+endif()
 if(YAGLT_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)

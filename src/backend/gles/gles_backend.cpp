@@ -40,6 +40,16 @@ GLESBackend::~GLESBackend() {
 }
 
 bool GLESBackend::createContext() {
+    // Adopted mode: the context is owned by an external libEGL shim which has
+    // already created it and made it current. Reuse it instead of allocating a
+    // fresh surfaceless context.
+    if (adopt_) {
+        display_ = adoptDisplay_;
+        context_ = adoptContext_;
+        lib_->contextAlive = true;
+        return true;
+    }
+
     if (!lib_->eglGetPlatformDisplay && !lib_->eglGetDisplay) {
         log(LogCategory::GLES, LogLevel::Error)
             << "createContext: neither eglGetPlatformDisplay nor eglGetDisplay resolved";
@@ -173,19 +183,27 @@ void GLESBackend::shutdown() {
     // which is undefined and can corrupt driver heap state.
     if (lib_) lib_->contextAlive = false;
     if (display_ != EGL_NO_DISPLAY) {
-        // EGL requires releasing the current context before destroying it or
-        // terminating the display; destroying a context that is still current
-        // leaves Mesa's internal context state dangling and lets the driver
-        // scribble freed memory (corrupting the process heap). Unbind first.
-        if (context_ != EGL_NO_CONTEXT && lib_->eglMakeCurrent)
-            lib_->eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
-                                 EGL_NO_CONTEXT);
-        if (context_ != EGL_NO_CONTEXT && lib_->eglDestroyContext)
-            lib_->eglDestroyContext(display_, context_);
-        if (lib_->eglTerminate) lib_->eglTerminate(display_);
+        // An adopted context is owned by the external libEGL shim; do not
+        // unbind, destroy, or terminate it here.
+        if (!adopt_) {
+            // EGL requires releasing the current context before destroying it or
+            // terminating the display; destroying a context that is still
+            // current leaves Mesa's internal context state dangling and lets
+            // the driver scribble freed memory (corrupting the process heap).
+            // Unbind first.
+            if (context_ != EGL_NO_CONTEXT && lib_->eglMakeCurrent)
+                lib_->eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE,
+                                     EGL_NO_CONTEXT);
+            if (context_ != EGL_NO_CONTEXT && lib_->eglDestroyContext)
+                lib_->eglDestroyContext(display_, context_);
+            if (lib_->eglTerminate) lib_->eglTerminate(display_);
+        }
     }
     context_ = EGL_NO_CONTEXT;
     display_ = EGL_NO_DISPLAY;
+    adopt_ = false;
+    adoptDisplay_ = EGL_NO_DISPLAY;
+    adoptContext_ = EGL_NO_CONTEXT;
     initialized_ = false;
 }
 

@@ -11,6 +11,10 @@ add_library(yaglt_core STATIC
     state/gl_state.cpp
 )
 
+# Position-independent code is required so the static core can be linked into the
+# shared libEGL drop-in shim.
+set_target_properties(yaglt_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(yaglt_core PUBLIC
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}
