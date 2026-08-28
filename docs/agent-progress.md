@@ -1648,8 +1648,31 @@ crashed agent, this session)
 - Coverage now 275/571 (48.2%) declared / ~53.3% core / ~40% true (was 272/571 = 47.6% /
   ~52.7% / ~39%). §7 row + verdict in `docs/coverage-core.md` updated.
 
+ 2026-08-28 (compute shader objects/stages — SPEC §7.1 / §7.4)
+ - Compute shaders are now created/compiled/linked/dispatched. The mock baseline
+   (`mock_capabilities.hpp`) reports `ComputeShaders` as **Native** (GLES 3.1+ has
+   compute natively; the prior `Unsupported` marking was inconsistent with that and
+   with the GLES backend, which already sets it Native for ES 3.1). The frontend
+   `createShader(GL_COMPUTE_SHADER)` → `shaderSource` → `compileShader` →
+   `attachShader` → `linkProgram` → `useProgram` → `dispatchCompute` path already
+   existed and now flows end-to-end on any backend reporting `ComputeShaders`.
+ - `tests/unit/compute_shader_object_test.cpp` (2 cases): full compute-program
+   lifecycle (create/compile/link/use/dispatch, COMPILE/LINK_STATUS asserted,
+   `dispatchComputeCalls` recorded) and geometry stage still rejected (honest
+   `Unsupported`). Updated `compute_dispatch_test.cpp` + `shader_stage_test.cpp` +
+   `backend_test.cpp` to opt the capability off explicitly where they asserted the
+   old default. Registered in `tests/CMakeLists.txt`.
+ - Validation: default **431/431** green; sanitizer **431/431** green
+   (`YAGLT_SHADER_TRANSLATE=OFF`). No new `gl_api` entry points, so the coverage
+   proxy stays 275/571 (48.2% declared / ~53.3% core / ~40% true) — but compute is
+   no longer capability-gated out, raising the *usable* slice. Docs updated:
+   `coverage-core.md` (§7 + Shader-stages rows, gap #1, verdict), `feature-matrix.md`
+   (ComputeShaders Native; Honest-Unsupported section; emulation roadmap drops
+   compute — it is native in GLES 3.1+, not emulated).
+
 ## Next Steps (carried)
- - Remaining §7 gaps: compute **shader objects/stages** (create/compile/link a compute program).
+ - Remaining §7 gaps: only geometry / tessellation shader stages remain honestly
+   Unsupported (no GLES equivalent); compute shader objects are now done.
  - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
  - §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
  - §10: indirect draw.

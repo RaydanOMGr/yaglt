@@ -7,8 +7,10 @@ namespace glcompat {
 
 // Populate a capability table with a believable mock-backend profile.
 // The profile mirrors a reasonable GLES 3.1 baseline: core features native,
-// advanced desktop-only stages reported honestly as unsupported, and some
-// features marked emulated to exercise the emulation code paths in tests.
+// the geometry/tessellation stages (no GLES equivalent) reported honestly as
+// unsupported, and some features marked emulated to exercise the emulation
+// code paths in tests. Compute shaders are native in GLES 3.1+ and reported
+// Native here.
 inline void populateMockCapabilities(CapabilityTable& table) {
     using F = Feature;
     using S = FeatureSupport;
@@ -22,7 +24,11 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::ProgramObjects, S::Native);
     table.set(F::GeometryShaders, S::Unsupported);
     table.set(F::TessellationShaders, S::Unsupported);
-    table.set(F::ComputeShaders, S::Unsupported);
+    // Compute shaders are native in GLES 3.1+ (the real GLES backend reports
+    // them Native there), so the mock mirrors that baseline rather than lying
+    // that they are unavailable. Geometry/tessellation have no GLES equivalent
+    // and remain honestly Unsupported.
+    table.set(F::ComputeShaders, S::Native);
     table.set(F::VertexArrayObjects, S::Native);
     table.set(F::InstancedRendering, S::Native);
     table.set(F::VertexAttribDivisor, S::Native);

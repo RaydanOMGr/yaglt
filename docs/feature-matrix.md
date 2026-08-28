@@ -25,7 +25,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | ProgramObjects | Native | `MockResourceFactory::createProgram` |
 | GeometryShaders | Unsupported | — |
 | TessellationShaders | Unsupported | — |
-| ComputeShaders | Unsupported | — |
+| ComputeShaders | Native | `MockResourceFactory::createShader` (stage `GL_COMPUTE_SHADER`); `Context::createShader` maps the stage to `Feature::ComputeShaders`; compile/link/dispatch follow the same path as other stages. Native in GLES 3.1+; the mock mirrors that baseline. |
 | VertexArrayObjects | Native | `MockResourceFactory::createVertexArray`; DSA vertex-array surface (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, `glEnable/DisableVertexArrayAttrib`) implemented under `DirectStateAccess` (Emulated), replayed via the unified flush path |
 | InstancedRendering | Native | (planned) |
 | FramebufferObjects | Native | `MockResourceFactory::createFramebuffer` |
@@ -44,12 +44,14 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 ## Honest-Unsupported shader stages (this session)
 
 `createShader` now rejects stages the backend cannot provide, per SPEC §8/§19.
-Mapping: `GL_VERTEX_SHADER`/`GL_FRAGMENT_SHADER` → `ShaderObjects`;
+Mapping: `GL_VERTEX_SHADER`/`GL_FRAGMENT_SHADER`/`GL_COMPUTE_SHADER` → supported
+where the backend reports the matching feature (`ShaderObjects` / `ComputeShaders`;
+compute is native in GLES 3.1+, the mock mirrors that baseline);
 `GL_GEOMETRY_SHADER` → `GeometryShaders`;
-`GL_TESS_CONTROL_SHADER`/`GL_TESS_EVALUATION_SHADER` → `TessellationShaders`;
-`GL_COMPUTE_SHADER` → `ComputeShaders`. Unknown type → `GL_INVALID_ENUM`.
-Emulation path planned (see Emulation roadmap) but not yet implemented, so these
-remain honestly reported as `Unsupported` rather than faked.
+`GL_TESS_CONTROL_SHADER`/`GL_TESS_EVALUATION_SHADER` → `TessellationShaders`.
+Unknown type → `GL_INVALID_ENUM`. Geometry/tessellation have no GLES equivalent
+and remain honestly reported as `Unsupported` (rejected at creation) rather than
+faked. Compute shaders are implemented (created/compiled/linked/dispatched).
 
 
 ## OpenGL-facing support (frontend)
@@ -68,7 +70,7 @@ remain honestly reported as `Unsupported` rather than faked.
 | Buffer object completeness (SPEC §6) | Implemented | `glBufferSubData`, `glBufferStorage` (immutable, capability-gated by `ImmutableBufferStorage`), `glCopyBufferSubData`, `glGetBufferParameteriv` (size/usage/access/immutable/mapped), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`. `glGetBufferSubData`/`glGetNamedBufferSubData` read the frontend CPU mirror exactly. `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` convert the clear value into the sized-internalformat layout (`lookupBufferFormat` table covering the practical subset of table 8.24: 8/16/32-bit float and 8/16/32-bit signed/unsigned integer RGBA/RG/R formats) and fill the CPU mirror, then re-upload the range to the backend (GLES has no native `glClearBufferData`). `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` validate bounds/mapping and forward a driver discard hint (`glInvalidateBufferData`/`glInvalidateBufferSubData` on GLES 3.0+). All validation matches SPEC §6 (bad internalformat → `GL_INVALID_ENUM`, unaligned/negative/out-of-bounds offset·size → `GL_INVALID_VALUE`, mapped store → `GL_INVALID_OPERATION`, missing buffer → `GL_INVALID_OPERATION`). The frontend `BufferObject` owns the authoritative CPU data store. Verified by `buffer_completeness_test` |
 | Clear | Implemented | `glClearColor`/`glClearDepth`/`glClearDepthf` record the per-context clear values in `GLStateTracker` (pushed only on change, SPEC §10); `glClear` validates the mask (bits outside color/depth/stencil → `GL_INVALID_VALUE`) then flushes tracked state and issues the native clear via `IGraphicsBackend::clear`. `glFlush`/`glFinish` forward to the backend command stream (SPEC §2.1). Mock records every call; GLES drives `glClearColor`/`glClearDepthf`/`glClear`/`glFlush`/`glFinish` through `GLESLib`. Verified by `clear_test` |
 | Framebuffer readback | Implemented | `glReadPixels` flushes tracked state then reads the bound framebuffer via `IGraphicsBackend::readPixels`; non-positive width/height → `GL_INVALID_VALUE`. Mock records the call; GLES drives `glReadPixels` through `GLESLib`. Verified by `readpixels_test` |
-| Shaders | Implemented | `glCreateShader`/`glShaderSource`/`glCompileShader`/`glGetShaderiv`; desktop GLSL translated via `IShaderCompiler` before the backend compiles. Capability-gated: `createShader` maps each stage to its `Feature` (vertex/fragment→ShaderObjects, geometry→GeometryShaders, tessellation→TessellationShaders, compute→ComputeShaders). Unsupported stage → `GL_INVALID_OPERATION`; unknown stage → `GL_INVALID_ENUM`. `compileShader` rejects GLSL versions beyond the translatable ceiling (desktop > 4.60, ES > 3.20) before translation, reporting via COMPILE_STATUS + info log. Verified by `shader_program_test`/`shader_stage_test`/`glsl_version_check_test`/`gles_e2e_program_test` |
+| Shaders | Implemented | `glCreateShader`/`glShaderSource`/`glCompileShader`/`glGetShaderiv`; desktop GLSL translated via `IShaderCompiler` before the backend compiles. Capability-gated: `createShader` maps each stage to its `Feature` (vertex/fragment→ShaderObjects, geometry→GeometryShaders, tessellation→TessellationShaders, compute→ComputeShaders, now created/compiled/linked/dispatched where the backend reports it — native in GLES 3.1+, the mock mirrors that baseline). Geometry/tessellation remain Unsupported (rejected at creation → `GL_INVALID_OPERATION`); unknown stage → `GL_INVALID_ENUM`. `compileShader` rejects GLSL versions beyond the translatable ceiling (desktop > 4.60, ES > 3.20) before translation, reporting via COMPILE_STATUS + info log. Verified by `shader_program_test`/`shader_stage_test`/`glsl_version_check_test`/`gles_e2e_program_test`/`compute_shader_object_test` |
 | Programs | Implemented | `glCreateProgram`/`glAttachShader`/`glLinkProgram`/`glGetProgramiv`/`glGetAttribLocation`/`glBindAttribLocation`; link status gated by ProgramObjects; name → native id mapping for bind-at-draw. `glBindAttribLocation` (SPEC §7.3.7) records the generic attribute binding on the frontend program and applies it to the backend program just before the next `glLinkProgram` (unknown program → `GL_INVALID_OPERATION`); the Mock backend honors the binding for `getAttribLocation` and the GLES backend forwards to `glBindAttribLocation`. `glProgramParameteri` (SPEC §7.3/§7.4.2) sets `GL_PROGRAM_SEPARABLE` (before link) and `GL_PROGRAM_BINARY_RETRIEVABLE_HINT`. **Shader binaries** (SPEC §7.2/§19.1): `glShaderBinary`/`glProgramBinary`/`glGetProgramBinary` load and retrieve a precompiled binary blob; the frontend keeps the authoritative mirror (buffer-mirror pattern) and marks the program linked / shader compiled; `glGetProgramiv(GL_PROGRAM_BINARY_LENGTH)` reports the stored length. `glGetProgramiv` covers LINK_STATUS, DELETE_STATUS, ATTACHED_SHADERS, INFO_LOG_LENGTH, ACTIVE_UNIFORMS/ATTRIBUTES/UNIFORM_BLOCKS (delegated to backend; mock 0). Verified by `shader_program_test`/`gles_e2e_program_test`/`shader_program_query_test`/`bind_attrib_location_test`/`program_parameter_test`/`shader_binary_test` |
 | Shader/Program queries | Implemented | `glGetShaderiv` covers SHADER_TYPE, COMPILE_STATUS, DELETE_STATUS, SHADER_SOURCE_LENGTH, INFO_LOG_LENGTH; `glGetProgramiv` covers LINK_STATUS, DELETE_STATUS, ATTACHED_SHADERS, INFO_LOG_LENGTH, ACTIVE_UNIFORMS/ATTRIBUTES/UNIFORM_BLOCKS. Unknown pname → `GL_INVALID_ENUM`, unknown object → `GL_INVALID_OPERATION` (SPEC §7.3/§7.14). `glGetShaderInfoLog`/`glGetProgramInfoLog` copy the log (nul-terminated, length excludes nul; bufSize 0 writes nothing). Verified by `shader_program_query_test`/`infolog_test` |
 | Program-interface reflection (SPEC §7.3.11) | Implemented | `glGetProgramResourceIndex`/`Name`/`iv`/`Location`/`LocationIndex` with frontend validation (program must be a linked program; `programInterface` must be a valid interface enum else `GL_INVALID_ENUM`; name not found → `GL_INVALID_INDEX`/`-1` honestly, no error; out-of-range index / negative buffer → `GL_INVALID_VALUE`; unknown property → `GL_INVALID_ENUM`). Property reads (TYPE/ARRAY_SIZE/LOCATION/NAME_LENGTH/…) are validated against the known property set and forwarded to `BackendProgram`; the GLES backend routes to the ES 3.0+ `glGetProgramResource*` driver entry points, the Mock backend honestly reports no introspection (0 resources). Verified by `program_resource_test` (Mock validation + honest-not-found) and `gles_e2e_program_resource_reflection` (real Mesa reflection). The legacy equivalents `glGetActiveUniform`/`glGetActiveAttrib` (SPEC §7.6/§11.1), `glGetUniformBlockIndex`, `glGetActiveUniformBlockiv`/`glGetActiveUniformBlockName` (SPEC §7.6) are implemented as exact delegations onto the same `GetProgramResource*` backend methods (UNIFORM / PROGRAM_INPUT / UNIFORM_BLOCK interfaces), so no new backend virtuals were needed. `glGetActiveUniformBlockiv` maps each `pname` to its program-resource property (table 7.7) and validates the `pname` (else `GL_INVALID_ENUM`) and index range (else `GL_INVALID_VALUE`); `UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES` sizes the result buffer from `NUM_ACTIVE_VARIABLES`. Verified by `active_uniform_attrib_test` (Mock validation: unlinked program → `INVALID_OPERATION`, out-of-range index / negative `bufSize` → `INVALID_VALUE`, `getUniformBlockIndex` honest `GL_INVALID_INDEX`, bad `pname` → `INVALID_ENUM`, null params → `INVALID_VALUE`) and `gles_e2e_get_active_uniform` (real Mesa: name/size/type round-trip for a known uniform) |
@@ -93,19 +95,21 @@ remain honestly reported as `Unsupported` rather than faked.
 
 ## Emulation roadmap (future heavy lifting)
 
-Geometry shaders, tessellation (hull/domain), and compute shaders are currently
-`Unsupported` (honestly reported). They MUST eventually be supported — the goal is
-"not feature reduction" (SPEC §1). Planned approach: **heavy emulation**, not native
-backend passthrough, because GLES has no geometry/tessellation/compute stages:
+Geometry shaders and tessellation (hull/domain) are currently `Unsupported`
+(honestly reported). They MUST eventually be supported — the goal is "not feature
+reduction" (SPEC §1). Planned approach: **heavy emulation**, not native backend
+passthrough, because GLES has no geometry/tessellation stages:
 
 - **Geometry shaders** → expand primitives on CPU or via a vertex/fragment
   expansion pass; emit extra instances, feed a transformed vertex stream back
   through the GLES pipeline.
 - **Tessellation** → CPU or compute-free evaluation of the patch + tessellation
   factors; generate the subdivided vertex grid and feed it as a draw.
-- **Compute** → emulate via fragment-shader "transform feedback"-style passes or
-  multi-pass rasterization into textures (GPU-driven), with a CPU fallback for
-  platforms lacking the needed GLES features.
+
+Compute shaders are **not** in this list: they are native in GLES 3.1+
+(`GL_COMPUTE_SHADER` + `glDispatchCompute`), so no emulation is required — YAGLT
+creates, compiles, links, and dispatches compute programs directly on a backend
+that reports `ComputeShaders`.
 
 All three require the capability system to select the emulation path once, keeping
 the scattered-version-branch rule (SPEC §4/§18) intact. Tracked as a phase-3+

@@ -58,8 +58,8 @@ scope per `docs/feature-matrix.md`).
 
 **Estimated true core coverage** (adjusting for the undercount above and for
 core commands that exist as an entry point but are capability-gated to
-*Unsupported*, e.g. instanced draw / transform feedback on the mock, and
-geometry/tess/compute shader stages which are not yet created): roughly
+*Unsupported*, e.g. the geometry/tessellation shader stages which have no GLES
+equivalent): roughly
 **two-fifths of the real ~700-entry GL core command set** (279 of
 ~700 ≈ 40%).
 
@@ -71,8 +71,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 |---------------------|--------|-------|
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glIsEnabled`, `glEnablei/glDisablei/glIsEnabledi` (indexed caps, SPEC §10.3.1; only `GL_BLEND`/`GL_SCISSOR_TEST` indexable, invalid cap → `GL_INVALID_ENUM`, index ≥ 16 → `GL_INVALID_VALUE`, tracked per-slot, push-only-on-change) |
 | §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferParameteri64v`/`glGetNamedBufferParameteri64v` (64-bit size/usage queries, SPEC §6.1.1), `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). Bounds/format/mapping validation matches SPEC §6. |
-| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). Missing: compute **shader object/stage** translation (compute programs just
-aren't created yet). **Shader binaries** (§7.2/§19.1): `glShaderBinary` /
+| §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). **Compute shader objects/stages** are now created/translated when the backend reports `ComputeShaders` (native in GLES 3.1+; the mock mirrors that baseline), so a compute program can be built, linked, and dispatched (see §7.4 dispatch). **Shader binaries** (§7.2/§19.1): `glShaderBinary` /
 `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
 blob (the frontend keeps the authoritative mirror, matching the buffer-mirror
 pattern); loading a binary marks the program linked / the shader compiled. |
@@ -90,7 +89,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🟡 | `glHint` implemented (SPEC §21.1.1; target/mode validated, pushed on flush via `GLStateSink::hint`). Evaluators/selection/feedback/display lists remain removed-in-core (correct). |
 | §22 State queries (non-generic) | 🟡 | generic `glGet*` done; many specific `glGet*` (buffer params, internalformat, named-object params, shader interface queries like `glGetActiveUniform`, `glGetAttribLocation` done) not yet exposed |
-| Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no entry points; capability-gated). **Compute** dispatch commands (`glDispatchCompute`/`glDispatchComputeIndirect`) are implemented (see §7 row), but compute **shader objects/stages** are not yet created/translated (compute programs are rejected until `ComputeShaders` support lands). Only vertex + fragment stages translate (desktop→GLSL ES via glslang + SPIRV-Cross). |
+| Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no GLES equivalent; capability-gated, rejected at creation). **Compute** dispatch commands *and* compute shader objects/stages are implemented (native in GLES 3.1+; the mock mirrors that baseline): a compute program can be created, compiled, linked, and dispatched (see §7 row). Vertex + fragment + compute stages translate (desktop→GLSL ES via glslang + SPIRV-Cross for ES compute). |
 
 ## The implemented frontend surface (gl_api entry points)
 
@@ -166,11 +165,12 @@ Done in earlier drafts (buffer/texture completeness, full DSA surface, queries &
 sync, whole-framebuffer ops, draw expansion, program pipelines & subroutines,
 rasterization controls) are now implemented and omitted here.
 
-1. **Compute / geometry / tessellation shader stages** — compute **dispatch**
-   commands (`glDispatchCompute`/`glDispatchComputeIndirect`) are implemented, but
-   compute **shader objects/stages** are not yet created/translated (compute
-   programs are rejected until `ComputeShaders` support lands). Geometry and
-   tessellation stages are honestly Unsupported (no entry points). (§7/§13)
+ 1. **Geometry / tessellation shader stages** — honestly **Unsupported** (no GLES
+    equivalent; `createShader` for these stages is rejected with
+    `GL_INVALID_OPERATION`). Compute shaders are now implemented (native in GLES
+    3.1+; the mock mirrors that baseline) — a compute program can be created,
+    compiled, linked, and dispatched. Geometry/tessellation remain the only
+    unsupported shader stages. (§7/§13)
 2. ~~**Shader binaries**~~ — **Implemented** (SPEC §7.2/§19.1): `glShaderBinary` /
    `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
    blob; the frontend keeps the authoritative mirror (buffer-mirror pattern) and
@@ -202,8 +202,8 @@ prototypes** (275/571) and **~53.3% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
 roughly **40%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
-complete 4.6 core implementation**. The largest remaining gaps are the three
-unsupported shader stages (compute-object/geometry/tessellation), a few texture
+complete 4.6 core implementation**. The largest remaining gaps are the two
+unsupported shader stages (geometry/tessellation), a few texture
 targets/views, and broader specific `glGet*` coverage.
 
 Per project policy (`docs/feature-matrix.md`), the **compatibility profile**

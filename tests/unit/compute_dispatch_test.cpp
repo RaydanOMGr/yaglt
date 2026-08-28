@@ -19,14 +19,16 @@ TEST_CASE("compute_dispatch_requires_feature_and_program") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    // Without ComputeShaders support, dispatch is rejected honestly.
+    // The default mock profile supports compute (GLES 3.1 baseline). Disable it
+    // to verify the honest rejection path first.
+    backend.setCapability(Feature::ComputeShaders, FeatureSupport::Unsupported);
     EXPECT_EQ(backend.capabilities().isSupported(Feature::ComputeShaders), false);
     glDispatchCompute(1, 1, 1);
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_INVALID_OPERATION));
     EXPECT_EQ(backend.dispatchComputeCalls, 0);
 
     // Enable compute support (the mock records the call without a driver).
-    backend.setCapability(Feature::ComputeShaders, FeatureSupport::Emulated);
+    backend.setCapability(Feature::ComputeShaders, FeatureSupport::Native);
     EXPECT_EQ(backend.capabilities().isSupported(Feature::ComputeShaders), true);
 
     // Still requires an active program.
@@ -76,7 +78,9 @@ TEST_CASE("compute_program_stage_is_gated_by_feature") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    // ComputeShaders unsupported in the default mock profile → object rejected.
+    // With ComputeShaders disabled, the compute stage object is rejected
+    // honestly (GLES-only stages have no emulation path).
+    backend.setCapability(Feature::ComputeShaders, FeatureSupport::Unsupported);
     GLuint cs = glCreateShader(GL_COMPUTE_SHADER);
     EXPECT_EQ(cs, 0u);
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_INVALID_OPERATION));

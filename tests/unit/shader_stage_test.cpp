@@ -33,9 +33,10 @@ TEST_CASE("shader_stage_unsupported_reported_honestly") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    // Geometry / tessellation / compute stages have no GLES equivalent and are
-    // reported Unsupported in the mock profile. Creating them must fail honestly
-    // with GL_INVALID_OPERATION and return name 0 (no fake success).
+    // Geometry / tessellation stages have no GLES equivalent and are reported
+    // Unsupported in the mock profile. Compute is native in GLES 3.1+ and
+    // supported. Creating the unsupported stages must fail honestly with
+    // GL_INVALID_OPERATION and return name 0 (no fake success).
     GLuint gs = glCreateShader(GL_GEOMETRY_SHADER);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
     EXPECT_EQ(gs, 0u);
@@ -47,10 +48,6 @@ TEST_CASE("shader_stage_unsupported_reported_honestly") {
     GLuint tes = glCreateShader(GL_TESS_EVALUATION_SHADER);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
     EXPECT_EQ(tes, 0u);
-
-    GLuint cs = glCreateShader(GL_COMPUTE_SHADER);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
-    EXPECT_EQ(cs, 0u);
 
     setCurrentContext(nullptr);
 }

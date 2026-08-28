@@ -20,7 +20,9 @@ TEST_CASE("mock_backend_core_features_native") {
     EXPECT_EQ(caps.getFeatureSupport(Feature::TextureObjects), FeatureSupport::Native);
     EXPECT_EQ(caps.getFeatureSupport(Feature::VertexArrayObjects), FeatureSupport::Native);
     EXPECT_TRUE(caps.isSupported(Feature::DirectStateAccess)); // emulated
-    EXPECT_FALSE(caps.isSupported(Feature::ComputeShaders));   // unsupported
+    EXPECT_TRUE(caps.isSupported(Feature::ComputeShaders));   // native in GLES 3.1+
+    EXPECT_FALSE(caps.isSupported(Feature::GeometryShaders));   // no GLES equivalent
+    EXPECT_FALSE(caps.isSupported(Feature::TessellationShaders));
 }
 
 TEST_CASE("mock_backend_resource_factory_unique_ids") {
