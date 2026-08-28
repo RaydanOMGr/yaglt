@@ -352,6 +352,22 @@ void GLESBackend::stencilMask(GLuint mask) {
     if (lib_->glStencilMask) lib_->glStencilMask(mask);
 }
 
+void GLESBackend::stencilFuncSeparate(GLenum face, GLenum func, GLint ref,
+                                      GLuint mask) {
+    if (lib_->glStencilFuncSeparate)
+        lib_->glStencilFuncSeparate(face, func, ref, mask);
+}
+
+void GLESBackend::stencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail,
+                                    GLenum dppass) {
+    if (lib_->glStencilOpSeparate)
+        lib_->glStencilOpSeparate(face, sfail, dpfail, dppass);
+}
+
+void GLESBackend::stencilMaskSeparate(GLenum face, GLuint mask) {
+    if (lib_->glStencilMaskSeparate) lib_->glStencilMaskSeparate(face, mask);
+}
+
 void GLESBackend::colorMask(bool r, bool g, bool b, bool a) {
     if (lib_->glColorMask)
         lib_->glColorMask(r ? GL_TRUE : GL_FALSE, g ? GL_TRUE : GL_FALSE,

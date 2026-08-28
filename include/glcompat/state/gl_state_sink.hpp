@@ -45,6 +45,13 @@ public:
     virtual void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) = 0;
     virtual void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) = 0;
     virtual void stencilMask(uint32_t mask) = 0;
+    // Per-face variants (glStencil*Separate, SPEC §17.3.3): face is
+    // GL_FRONT (0x0404) or GL_BACK (0x0405).
+    virtual void stencilFuncSeparate(uint32_t face, uint32_t func, int32_t ref,
+                                     uint32_t mask) = 0;
+    virtual void stencilOpSeparate(uint32_t face, uint32_t sfail, uint32_t dpfail,
+                                   uint32_t dppass) = 0;
+    virtual void stencilMaskSeparate(uint32_t face, uint32_t mask) = 0;
 
     // Color write mask (glColorMask, SPEC §17.3.6). Each channel is an
     // independent boolean pushed only when the set of masked channels changes.

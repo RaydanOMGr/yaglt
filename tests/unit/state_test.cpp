@@ -39,6 +39,9 @@ struct RecordingSink : GLStateSink {
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilCalls; }
     void stencilMask(GLuint) override { ++stencilCalls; }
+    void stencilFuncSeparate(GLenum, GLenum, GLint, GLuint) override { ++stencilCalls; }
+    void stencilOpSeparate(GLenum, GLenum, GLenum, GLenum) override { ++stencilCalls; }
+    void stencilMaskSeparate(GLenum, GLuint) override { ++stencilCalls; }
     void colorMask(bool, bool, bool, bool) override {}
     void sampleCoverage(float, bool) override {}
     void primitiveRestart(uint32_t) override {}

@@ -59,3 +59,59 @@ TEST_CASE("stencil_state_pushed_only_when_category_changes") {
 
     setCurrentContext(nullptr);
 }
+
+TEST_CASE("stencil_separate_faces_pushed_only_when_changed") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // Defaults produce no push on either the combined or separate counters.
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncCalls, 0);
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 0);
+
+    // Setting both faces equal to the default is still a no-op.
+    glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_ALWAYS, 0, 0xFFFFFFFFu);
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 0);
+
+    // Changing only the back face pushes a single separate call for BACK.
+    glStencilFuncSeparate(GL_BACK, GL_LESS, 3, 0x00FFu);
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 1);
+    EXPECT_EQ(backend.lastStencilFace, static_cast<uint32_t>(GL_BACK));
+    EXPECT_EQ(backend.stencilFuncCalls, 0);
+
+    // Re-flush with no further change: nothing new pushed.
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 1);
+
+    // Changing the front face pushes a separate call for FRONT only.
+    glStencilFuncSeparate(GL_FRONT, GL_GREATER, 7, 0xFF00u);
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 2);
+    EXPECT_EQ(backend.lastStencilFace, static_cast<uint32_t>(GL_FRONT));
+
+    // Making both faces equal again collapses to a single combined push.
+    glStencilFuncSeparate(GL_FRONT_AND_BACK, GL_ALWAYS, 0, 0xFFFFFFFFu);
+    ctx.flushState();
+    EXPECT_EQ(backend.stencilFuncCalls, 1);
+    EXPECT_EQ(backend.stencilFuncSeparateCalls, 2);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("stencil_separate_invalid_face_is_invalid_enum") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    glStencilFuncSeparate(0xDEAD, GL_ALWAYS, 0, 0xFFFFFFFFu);
+    EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_INVALID_ENUM));
+    glStencilOpSeparate(0xDEAD, GL_KEEP, GL_KEEP, GL_KEEP);
+    EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_INVALID_ENUM));
+    glStencilMaskSeparate(0xDEAD, 0xFFFFFFFFu);
+    EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_INVALID_ENUM));
+
+    setCurrentContext(nullptr);
+}

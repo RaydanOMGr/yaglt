@@ -130,6 +130,9 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilFunc, "glStencilFunc");
     ok &= resolve(gles, glStencilOp, "glStencilOp");
     ok &= resolve(gles, glStencilMask, "glStencilMask");
+    ok &= resolve(gles, glStencilFuncSeparate, "glStencilFuncSeparate");
+    ok &= resolve(gles, glStencilOpSeparate, "glStencilOpSeparate");
+    ok &= resolve(gles, glStencilMaskSeparate, "glStencilMaskSeparate");
     ok &= resolve(gles, glColorMask, "glColorMask");
     ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");
     // glPrimitiveRestartIndex is core in GLES 3.0 but some implementations expose

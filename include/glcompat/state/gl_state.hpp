@@ -80,6 +80,9 @@ public:
     bool setStencilFunc(GLenum func, GLint ref, GLuint mask);
     bool setStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass);
     bool setStencilMask(GLuint mask);
+    bool setStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
+    bool setStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
+    bool setStencilMaskSeparate(GLenum face, GLuint mask);
 
     // --- Color write mask (SPEC §17.3.6, glColorMask) ---
     bool setColorMask(bool r, bool g, bool b, bool a);
@@ -252,7 +255,7 @@ private:
             return nearVal == o.nearVal && farVal == o.farVal;
         }
     };
-    struct StencilState {
+    struct StencilFaceState {
         GLenum func = 0x0207;     // GL_ALWAYS
         GLint ref = 0;
         GLuint mask = ~0u;
@@ -260,7 +263,7 @@ private:
         GLenum dpfail = 0x1E00;   // GL_KEEP
         GLenum dppass = 0x1E00;   // GL_KEEP
         GLuint writeMask = ~0u;
-        bool equal(const StencilState& o) const {
+        bool equal(const StencilFaceState& o) const {
             return func == o.func && ref == o.ref && mask == o.mask &&
                    sfail == o.sfail && dpfail == o.dpfail &&
                    dppass == o.dppass && writeMask == o.writeMask;
@@ -428,7 +431,8 @@ private:
     BlendColorState blendColor_, blendColorApplied_;
     DepthState depth_, depthApplied_;
     DepthRangeState depthRange_, depthRangeApplied_;
-    StencilState stencil_, stencilApplied_;
+    StencilFaceState stencilFront_, stencilBack_;
+    StencilFaceState stencilFrontApplied_, stencilBackApplied_;
     RasterState raster_, rasterApplied_;
     RasterScalarState rasterScalar_, rasterScalarApplied_;
     PixelStoreState pixel_, pixelApplied_;

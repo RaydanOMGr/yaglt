@@ -1545,6 +1545,33 @@ void glStencilMask(GLuint mask) {
     g_current->state().setStencilMask(mask);
 }
 
+void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask) {
+    if (g_current == nullptr) return;
+    if (face != GL_FRONT && face != GL_BACK && face != GL_FRONT_AND_BACK) {
+        g_current->setError(GLError::InvalidEnum);
+        return;
+    }
+    g_current->state().setStencilFuncSeparate(face, func, ref, mask);
+}
+
+void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass) {
+    if (g_current == nullptr) return;
+    if (face != GL_FRONT && face != GL_BACK && face != GL_FRONT_AND_BACK) {
+        g_current->setError(GLError::InvalidEnum);
+        return;
+    }
+    g_current->state().setStencilOpSeparate(face, sfail, dpfail, dppass);
+}
+
+void glStencilMaskSeparate(GLenum face, GLuint mask) {
+    if (g_current == nullptr) return;
+    if (face != GL_FRONT && face != GL_BACK && face != GL_FRONT_AND_BACK) {
+        g_current->setError(GLError::InvalidEnum);
+        return;
+    }
+    g_current->state().setStencilMaskSeparate(face, mask);
+}
+
 void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha) {
     if (g_current == nullptr) return;
     g_current->state().setColorMask(red != 0, green != 0, blue != 0, alpha != 0);

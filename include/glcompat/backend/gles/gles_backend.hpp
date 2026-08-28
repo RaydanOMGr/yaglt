@@ -64,6 +64,11 @@ public:
     void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) override;
     void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) override;
     void stencilMask(uint32_t mask) override;
+    void stencilFuncSeparate(uint32_t face, uint32_t func, int32_t ref,
+                             uint32_t mask) override;
+    void stencilOpSeparate(uint32_t face, uint32_t sfail, uint32_t dpfail,
+                           uint32_t dppass) override;
+    void stencilMaskSeparate(uint32_t face, uint32_t mask) override;
     // Color write mask (SPEC §17.3.6, glColorMask).
     void colorMask(bool r, bool g, bool b, bool a) override;
     // Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage).

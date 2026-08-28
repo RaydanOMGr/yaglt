@@ -127,6 +127,9 @@ struct GLESLib {
     void (*glStencilFunc)(GLenum, GLint, GLuint) = nullptr;
     void (*glStencilOp)(GLenum, GLenum, GLenum) = nullptr;
     void (*glStencilMask)(GLuint) = nullptr;
+    void (*glStencilFuncSeparate)(GLenum, GLenum, GLint, GLuint) = nullptr;
+    void (*glStencilOpSeparate)(GLenum, GLenum, GLenum, GLenum) = nullptr;
+    void (*glStencilMaskSeparate)(GLenum, GLuint) = nullptr;
     void (*glColorMask)(GLboolean, GLboolean, GLboolean, GLboolean) = nullptr;
     void (*glSampleCoverage)(GLfloat, GLboolean) = nullptr;
     void (*glPrimitiveRestartIndex)(GLuint) = nullptr;

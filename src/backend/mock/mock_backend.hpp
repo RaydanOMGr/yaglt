@@ -131,6 +131,10 @@ public:
     int stencilFuncCalls = 0;
     int stencilOpCalls = 0;
     int stencilMaskCalls = 0;
+    int stencilFuncSeparateCalls = 0;
+    int stencilOpSeparateCalls = 0;
+    int stencilMaskSeparateCalls = 0;
+    uint32_t lastStencilFace = 0;
     int colorMaskCalls = 0;
     bool lastColorMaskR = true, lastColorMaskG = true, lastColorMaskB = true,
          lastColorMaskA = true;
@@ -244,6 +248,18 @@ public:
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilFuncCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilOpCalls; }
     void stencilMask(GLuint) override { ++stencilMaskCalls; }
+    void stencilFuncSeparate(GLenum face, GLenum, GLint, GLuint) override {
+        ++stencilFuncSeparateCalls;
+        lastStencilFace = face;
+    }
+    void stencilOpSeparate(GLenum face, GLenum, GLenum, GLenum) override {
+        ++stencilOpSeparateCalls;
+        lastStencilFace = face;
+    }
+    void stencilMaskSeparate(GLenum face, GLuint) override {
+        ++stencilMaskSeparateCalls;
+        lastStencilFace = face;
+    }
     void colorMask(bool r, bool g, bool b, bool a) override {
         ++colorMaskCalls;
         lastColorMaskR = r;

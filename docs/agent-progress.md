@@ -1547,6 +1547,27 @@ crashed agent, this session)
   unrelated `shader_translate_test.cpp:53` empty-source quirk unchanged. Coverage §2 row
   updated (glEnablei/glDisablei/glIsEnabledi done).
 
+2026-08-28 (separate stencil state — glStencilFuncSeparate/glStencilOpSeparate/glStencilMaskSeparate, SPEC §17.3.3)
+- Split the stencil model into independent front/back faces. `GLStateTracker` now holds
+  `StencilFaceState stencilFront_, stencilBack_` (+ applied twins); the legacy
+  `setStencilFunc`/`setStencilOp`/`setStencilMask` set both faces, new
+  `setStencilFuncSeparate`/`setStencilOpSeparate`/`setStencilMaskSeparate(face, …)` apply to
+  `GL_FRONT`/`GL_BACK`/`GL_FRONT_AND_BACK`. `apply()` pushes a single combined
+  `stencilFunc`/`Op`/`Mask` when both faces are equal and changed, otherwise each differing face
+  via the new `stencilFuncSeparate`/`stencilOpSeparate`/`stencilMaskSeparate` sink methods
+  (SPEC §10: no redundant native call).
+- `GLStateSink` gained the three `*Separate` pure virtuals (all implementers updated: MockBackend,
+  GLESBackend, and the three test `RecordingSink`s). `GLESBackend` forwards them to the native
+  driver via newly resolved `glStencilFuncSeparate`/`glStencilOpSeparate`/`glStencilMaskSeparate`
+  `GLESLib` symbols (required, core in GLES 2.0+). `gl_api` exposes the three entry points with
+  honest face validation (`GL_INVALID_ENUM` for an unknown face). Mock records the separate calls
+  (`stencil*SeparateCalls`, `lastStencilFace`).
+- Extended `tests/unit/stencil_test.cpp` (2 cases: per-face push-only-on-change + collapse-to-
+  combined when faces re-equal, invalid-face `GL_INVALID_ENUM`).
+- Validation: default 408/408 green; sanitizer 418/418 (pre-existing unrelated
+  `shader_translate_test.cpp:53` empty-source quirk unchanged). Coverage §17 row updated
+  (separate stencil done).
+
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.
 - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.

@@ -146,28 +146,117 @@ bool GLStateTracker::setDepthRange(double nearVal, double farVal) {
 }
 
 bool GLStateTracker::setStencilFunc(GLenum func, GLint ref, GLuint mask) {
-    if (stencil_.func == func && stencil_.ref == ref && stencil_.mask == mask)
-        return false;
-    stencil_.func = func;
-    stencil_.ref = ref;
-    stencil_.mask = mask;
-    return true;
+    bool changed = false;
+    if (!(stencilFront_.func == func && stencilFront_.ref == ref &&
+          stencilFront_.mask == mask)) {
+        stencilFront_.func = func;
+        stencilFront_.ref = ref;
+        stencilFront_.mask = mask;
+        changed = true;
+    }
+    if (!(stencilBack_.func == func && stencilBack_.ref == ref &&
+          stencilBack_.mask == mask)) {
+        stencilBack_.func = func;
+        stencilBack_.ref = ref;
+        stencilBack_.mask = mask;
+        changed = true;
+    }
+    return changed;
 }
 
 bool GLStateTracker::setStencilOp(GLenum sfail, GLenum dpfail, GLenum dppass) {
-    if (stencil_.sfail == sfail && stencil_.dpfail == dpfail &&
-        stencil_.dppass == dppass)
-        return false;
-    stencil_.sfail = sfail;
-    stencil_.dpfail = dpfail;
-    stencil_.dppass = dppass;
-    return true;
+    bool changed = false;
+    if (!(stencilFront_.sfail == sfail && stencilFront_.dpfail == dpfail &&
+          stencilFront_.dppass == dppass)) {
+        stencilFront_.sfail = sfail;
+        stencilFront_.dpfail = dpfail;
+        stencilFront_.dppass = dppass;
+        changed = true;
+    }
+    if (!(stencilBack_.sfail == sfail && stencilBack_.dpfail == dpfail &&
+          stencilBack_.dppass == dppass)) {
+        stencilBack_.sfail = sfail;
+        stencilBack_.dpfail = dpfail;
+        stencilBack_.dppass = dppass;
+        changed = true;
+    }
+    return changed;
 }
 
 bool GLStateTracker::setStencilMask(GLuint mask) {
-    if (stencil_.writeMask == mask) return false;
-    stencil_.writeMask = mask;
-    return true;
+    bool changed = false;
+    if (stencilFront_.writeMask != mask) {
+        stencilFront_.writeMask = mask;
+        changed = true;
+    }
+    if (stencilBack_.writeMask != mask) {
+        stencilBack_.writeMask = mask;
+        changed = true;
+    }
+    return changed;
+}
+
+bool GLStateTracker::setStencilFuncSeparate(GLenum face, GLenum func, GLint ref,
+                                            GLuint mask) {
+    bool changed = false;
+    auto apply = [&](StencilFaceState& s) {
+        if (!(s.func == func && s.ref == ref && s.mask == mask)) {
+            s.func = func;
+            s.ref = ref;
+            s.mask = mask;
+            changed = true;
+        }
+    };
+    if (face == GL_FRONT)
+        apply(stencilFront_);
+    else if (face == GL_BACK)
+        apply(stencilBack_);
+    else if (face == GL_FRONT_AND_BACK) {
+        apply(stencilFront_);
+        apply(stencilBack_);
+    }
+    return changed;
+}
+
+bool GLStateTracker::setStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail,
+                                         GLenum dppass) {
+    bool changed = false;
+    auto apply = [&](StencilFaceState& s) {
+        if (!(s.sfail == sfail && s.dpfail == dpfail && s.dppass == dppass)) {
+            s.sfail = sfail;
+            s.dpfail = dpfail;
+            s.dppass = dppass;
+            changed = true;
+        }
+    };
+    if (face == GL_FRONT)
+        apply(stencilFront_);
+    else if (face == GL_BACK)
+        apply(stencilBack_);
+    else if (face == GL_FRONT_AND_BACK) {
+        apply(stencilFront_);
+        apply(stencilBack_);
+    }
+    return changed;
+}
+
+bool GLStateTracker::setStencilMaskSeparate(GLenum face, GLuint mask) {
+    bool changed = false;
+    auto apply = [&](StencilFaceState& s) {
+        if (s.writeMask != mask) {
+            s.writeMask = mask;
+            changed = true;
+        }
+    };
+    if (face == GL_FRONT)
+        apply(stencilFront_);
+    else if (face == GL_BACK)
+        apply(stencilBack_);
+    else if (face == GL_FRONT_AND_BACK) {
+        apply(stencilFront_);
+        apply(stencilBack_);
+    }
+    return changed;
 }
 
 bool GLStateTracker::setColorMask(bool r, bool g, bool b, bool a) {
@@ -564,12 +653,37 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
-    if (!stencil_.equal(stencilApplied_)) {
-        sink.stencilFunc(stencil_.func, stencil_.ref, stencil_.mask);
-        sink.stencilOp(stencil_.sfail, stencil_.dpfail, stencil_.dppass);
-        sink.stencilMask(stencil_.writeMask);
-        stencilApplied_ = stencil_;
-        ++applied;
+    // Stencil: push per-face. When both faces are equal and changed, a single
+    // both-faces call (stencilFunc/Op/Mask) is sufficient (SPEC §10); otherwise
+    // push each differing face via the *Separate sink methods.
+    if (stencilFront_.equal(stencilBack_)) {
+        if (!stencilFront_.equal(stencilFrontApplied_)) {
+            sink.stencilFunc(stencilFront_.func, stencilFront_.ref, stencilFront_.mask);
+            sink.stencilOp(stencilFront_.sfail, stencilFront_.dpfail,
+                           stencilFront_.dppass);
+            sink.stencilMask(stencilFront_.writeMask);
+            stencilFrontApplied_ = stencilBackApplied_ = stencilFront_;
+            ++applied;
+        }
+    } else {
+        if (!stencilFront_.equal(stencilFrontApplied_)) {
+            sink.stencilFuncSeparate(GL_FRONT, stencilFront_.func, stencilFront_.ref,
+                                     stencilFront_.mask);
+            sink.stencilOpSeparate(GL_FRONT, stencilFront_.sfail, stencilFront_.dpfail,
+                                   stencilFront_.dppass);
+            sink.stencilMaskSeparate(GL_FRONT, stencilFront_.writeMask);
+            stencilFrontApplied_ = stencilFront_;
+            ++applied;
+        }
+        if (!stencilBack_.equal(stencilBackApplied_)) {
+            sink.stencilFuncSeparate(GL_BACK, stencilBack_.func, stencilBack_.ref,
+                                     stencilBack_.mask);
+            sink.stencilOpSeparate(GL_BACK, stencilBack_.sfail, stencilBack_.dpfail,
+                                   stencilBack_.dppass);
+            sink.stencilMaskSeparate(GL_BACK, stencilBack_.writeMask);
+            stencilBackApplied_ = stencilBack_;
+            ++applied;
+        }
     }
 
     if (!raster_.equal(rasterApplied_)) {
@@ -973,8 +1087,10 @@ void GLStateTracker::reset() {
     depthApplied_ = DepthState{};
     depthRange_ = DepthRangeState{};
     depthRangeApplied_ = DepthRangeState{};
-    stencil_ = StencilState{};
-    stencilApplied_ = StencilState{};
+    stencilFront_ = StencilFaceState{};
+    stencilBack_ = StencilFaceState{};
+    stencilFrontApplied_ = StencilFaceState{};
+    stencilBackApplied_ = StencilFaceState{};
     raster_ = RasterState{};
     rasterApplied_ = RasterState{};
     rasterScalar_ = RasterScalarState{};
