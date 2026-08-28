@@ -56,7 +56,11 @@ void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params);
 void glGetInternalformativ(GLenum target, GLenum internalformat, GLenum pname,
                           GLsizei bufSize, GLint* params);
 void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname,
-                             GLsizei bufSize, GLint64* params);
+                              GLsizei bufSize, GLint64* params);
+
+// Multisample sample-position query (SPEC §14.3.1). Returns the (x, y) location
+// of the given sample; pname must be SAMPLE_POSITION.
+void glGetMultisamplefv(GLenum pname, GLuint index, GLfloat* val);
 
 // Buffer mapping (SPEC §6). Returns a pointer into the frontend data store, or
 // nullptr on error. glUnmapBuffer returns GL_TRUE on success.

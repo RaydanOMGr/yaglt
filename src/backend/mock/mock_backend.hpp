@@ -717,8 +717,24 @@ public:
         default: params[0] = 0; break;
         }
     }
+    // Multisample sample-position queries (SPEC §14.3.1). Sample positions are
+    // implementation-defined; the mock reports a fixed placeholder sample count
+    // and a fixed sub-pixel grid so the frontend's index validation and the
+    // (x, y) result contract are deterministic and testable. Unit tests assert
+    // this contract.
+    uint32_t getMultisampleSampleCount() override { return kMockSampleCount; }
+    void getMultisamplefv(uint32_t pname, uint32_t index, float* val) override {
+        (void)pname;
+        if (val == nullptr || index >= kMockSampleCount) return;
+        // Fixed deterministic grid in [0,1]^2; not meant to model any real GPU.
+        val[0] = (index % 2u) ? 0.25f : 0.75f;
+        val[1] = ((index / 2u) % 2u) ? 0.25f : 0.75f;
+    }
 
 private:
+    // Number of samples the mock pretends its framebuffers have.
+    static constexpr uint32_t kMockSampleCount = 4;
+
     CapabilityTable capabilities_;
     MockPlatformCapabilities platform_;
     MockResourceFactory factory_;

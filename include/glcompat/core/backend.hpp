@@ -113,8 +113,17 @@ public:
                                      int32_t* params) = 0;
     virtual void getInternalformati64v(uint32_t target, uint32_t internalformat,
                                        uint32_t pname, int32_t bufSize,
-                                       int64_t* params) = 0;
+                                        int64_t* params) = 0;
 
+    // Multisample sample-position queries (SPEC §14.3.1, glGetMultisamplefv).
+    // `getMultisampleSampleCount` returns the number of samples available for
+    // position queries (the SAMPLES of the bound framebuffer); the frontend uses
+    // it to validate `index` against GL_INVALID_VALUE. `getMultisamplefv` writes
+    // the (x, y) sample location for the given pname/index; the frontend has
+    // already validated that pname == SAMPLE_POSITION and index is in range, so
+    // backends may assume those preconditions.
+    virtual uint32_t getMultisampleSampleCount() = 0;
+    virtual void getMultisamplefv(uint32_t pname, uint32_t index, float* val) = 0;
 
     // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer). Copies a rectangle of
     // the bound read framebuffer into the bound draw framebuffer; `mask` selects

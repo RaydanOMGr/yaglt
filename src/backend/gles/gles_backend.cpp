@@ -615,4 +615,18 @@ void GLESBackend::getInternalformati64v(uint32_t target, uint32_t internalformat
     for (int32_t i = 0; i < n; ++i) params[i] = static_cast<int64_t>(tmp[i]);
 }
 
+uint32_t GLESBackend::getMultisampleSampleCount() {
+    if (!lib_->glGetFramebufferParameteriv) return 0;
+    GLint samples = 0;
+    // GL_SAMPLES of the bound draw framebuffer (SPEC §14.3.1 uses the framebuffer
+    // sample count as the index upper bound).
+    lib_->glGetFramebufferParameteriv(GL_DRAW_FRAMEBUFFER, GL_SAMPLES, &samples);
+    return samples > 0 ? static_cast<uint32_t>(samples) : 0;
+}
+
+void GLESBackend::getMultisamplefv(uint32_t pname, uint32_t index, float* val) {
+    if (!lib_->glGetMultisamplefv || val == nullptr) return;
+    lib_->glGetMultisamplefv(pname, index, val);
+}
+
 } // namespace glcompat

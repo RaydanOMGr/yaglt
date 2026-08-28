@@ -109,6 +109,11 @@ void glGetInternalformati64v(GLenum target, GLenum internalformat, GLenum pname,
     g_current->getInternalformati64v(target, internalformat, pname, bufSize, params);
 }
 
+void glGetMultisamplefv(GLenum pname, GLuint index, GLfloat* val) {
+    if (g_current == nullptr) return;
+    g_current->getMultisamplefv(pname, index, val);
+}
+
 GLvoid* glMapBuffer(GLenum target, GLenum access) {
     if (g_current == nullptr) return nullptr;
     return g_current->mapBuffer(target, access);

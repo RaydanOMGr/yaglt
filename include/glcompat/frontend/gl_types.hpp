@@ -611,6 +611,8 @@ constexpr GLenum GL_SAMPLE_COVERAGE_INVERT = 0x80AB;
 // Multisample raster mask / minimum sample shading (SPEC §11.5).
 constexpr GLenum GL_SAMPLE_MASK = 0x8E51;
 constexpr GLenum GL_MIN_SAMPLE_SHADING = 0x8C36;
+// Per-sample location query (SPEC §14.3.1 glGetMultisamplefv).
+constexpr GLenum GL_SAMPLE_POSITION = 0x8E50;
 constexpr GLenum GL_DEPTH_RANGE = 0x0B70;
 constexpr GLenum GL_DEPTH_FUNC = 0x0B74;
 

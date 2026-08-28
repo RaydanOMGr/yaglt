@@ -445,6 +445,22 @@ void Context::getInternalformati64v(uint32_t target, uint32_t internalformat,
     backend_.getInternalformati64v(target, internalformat, pname, bufSize, params);
 }
 
+void Context::getMultisamplefv(uint32_t pname, uint32_t index, float* val) {
+    if (val == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (pname != GL_SAMPLE_POSITION) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= backend_.getMultisampleSampleCount()) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    backend_.getMultisamplefv(pname, index, val);
+}
+
 void Context::getNamedBufferParameteri64v(GLObjectName buffer, uint32_t pname,
 
                                            int64_t* params) {

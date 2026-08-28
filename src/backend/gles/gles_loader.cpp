@@ -190,6 +190,10 @@ bool GLESLib::load() {
     resolve(gles, glGetTexLevelParameteriv, "glGetTexLevelParameteriv");
     resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
     resolve(gles, glGetInternalformativ, "glGetInternalformativ");
+    // Multisample sample-position query (SPEC §14.3.1 glGetMultisamplefv). GLES
+    // 3.1+; resolved optionally so load() still succeeds on a driver that lacks
+    // it (the frontend reports the entry point unsupported-dependently via error).
+    resolve(gles, glGetMultisamplefv, "glGetMultisamplefv");
     resolve(gles, glTexBuffer, "glTexBuffer");
     resolve(gles, glTexBufferRange, "glTexBufferRange");
     // Texture views (SPEC §8.19 glTextureView) are ES 3.1+; resolved optionally so
@@ -205,6 +209,10 @@ bool GLESLib::load() {
     ok &= resolve(gles, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     resolve(gles, glFramebufferTextureLayer, "glFramebufferTextureLayer");
     resolve(gles, glFramebufferParameteri, "glFramebufferParameteri");
+    // Framebuffer parameter read-back (SPEC §9.2.3). GLES 3.0+; resolved
+    // optionally. Used to read the bound framebuffer's SAMPLES for
+    // glGetMultisamplefv index validation.
+    resolve(gles, glGetFramebufferParameteriv, "glGetFramebufferParameteriv");
     ok &= resolve(gles, glCheckFramebufferStatus, "glCheckFramebufferStatus");
     // Whole-framebuffer buffer selection (core in GLES but resolved defensively).
     resolve(gles, glDrawBuffers, "glDrawBuffers");

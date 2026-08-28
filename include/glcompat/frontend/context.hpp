@@ -93,7 +93,12 @@ public:
     void getInternalformativ(uint32_t target, uint32_t internalformat,
                             uint32_t pname, int32_t bufSize, int32_t* params);
     void getInternalformati64v(uint32_t target, uint32_t internalformat,
-                              uint32_t pname, int32_t bufSize, int64_t* params);
+                               uint32_t pname, int32_t bufSize, int64_t* params);
+    // Multisample sample-position query (SPEC §14.3.1, glGetMultisamplefv).
+    // Validates val != null (GL_INVALID_VALUE), pname == SAMPLE_POSITION
+    // (GL_INVALID_ENUM), and index < the backend's sample count
+    // (GL_INVALID_VALUE), then forwards to the backend.
+    void getMultisamplefv(uint32_t pname, uint32_t index, float* val);
     // Map a buffer for CPU access (SPEC §6 glMapBuffer / glMapBufferRange).
     // Returns a pointer into the frontend data store, or nullptr on error.
     // Mapping an already-mapped buffer reports GL_INVALID_OPERATION.

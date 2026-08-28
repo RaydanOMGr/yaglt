@@ -107,3 +107,39 @@ TEST_CASE("glget: indexed queries read indexed capability state") {
 
     setCurrentContext(nullptr);
 }
+
+TEST_CASE("glget: getMultisamplefv reads sample positions") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // Happy path: pname SAMPLE_POSITION, in-range index -> (x, y) location. The
+    // mock returns a fixed deterministic grid (see mock_backend.hpp). 0.25 and
+    // 0.75 are exactly representable, so exact equality is safe here.
+    float pos[2] = {0.f, 0.f};
+    glGetMultisamplefv(GL_SAMPLE_POSITION, 0, pos);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(pos[0], 0.75f);
+    EXPECT_EQ(pos[1], 0.75f);
+
+    float pos1[2] = {0.f, 0.f};
+    glGetMultisamplefv(GL_SAMPLE_POSITION, 1, pos1);
+    EXPECT_EQ(pos1[0], 0.25f);
+    EXPECT_EQ(pos1[1], 0.75f);
+
+    // Bad pname -> INVALID_ENUM, val untouched by the backend contract.
+    float bad[2] = {-1.f, -1.f};
+    glGetMultisamplefv(0xDEAD, 0, bad);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+
+    // Null val -> INVALID_VALUE.
+    glGetMultisamplefv(GL_SAMPLE_POSITION, 0, nullptr);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    // Out-of-range index -> INVALID_VALUE (mock reports 4 samples, indices 0..3).
+    float oob[2] = {0.f, 0.f};
+    glGetMultisamplefv(GL_SAMPLE_POSITION, 4, oob);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}

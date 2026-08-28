@@ -88,12 +88,12 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §4 / §19 Sync objects & fences | ✅ | `glFenceSync`, `glClientWaitSync`, `glWaitSync`, `glDeleteSync`, `glIsSync`, `glGetSynciv` implemented (frontend-owned `SyncObject`, SPEC §3/§20) |
 | §4 / §20 Query objects (occlusion, timer, pipeline, primitive) | ✅ | `glGenQueries`, `glBeginQuery`/`BeginQueryIndexed`, `glEndQuery`, `glGetQueryiv`, `glGetQueryObjectiv`/`uiv`/`i64v`/`ui64v` implemented (SPEC §4/§19) |
 | §21 (evaluators / selection / feedback / display lists / hints) | 🟡 | `glHint` implemented (SPEC §21.1.1; target/mode validated, pushed on flush via `GLStateSink::hint`). Evaluators/selection/feedback/display lists remain removed-in-core (correct). |
-| §22 State queries (non-generic) | 🟡 | generic `glGet*` done (incl. `glGetInteger64v`, `glGetBooleani_v`/`glGetIntegeri_v`, `glGetStringi`, `glGetGraphicsResetStatus`); internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); remaining specific `glGet*` (e.g. `glGetMultisamplefv`, `glGetPointerv`, `glGetTexImage` readback) not yet exposed |
+| §22 State queries (non-generic) | 🟡 | generic `glGet*` done (incl. `glGetInteger64v`, `glGetBooleani_v`/`glGetIntegeri_v`, `glGetStringi`, `glGetGraphicsResetStatus`); internal format queries `glGetInternalformativ` / `glGetInternalformati64v` (SPEC §22.3) read the backend's format support (mock returns a conservative documented default, GLES forwards to the driver); `glGetMultisamplefv` (SPEC §14.3.1) returns the indexed sample position, validating pname == SAMPLE_POSITION, null params, and index against the backend's sample count, then forwarding to the GLES driver (mock returns a fixed grid); remaining specific `glGet*` (e.g. `glGetPointerv`, `glGetTexImage` readback) not yet exposed |
 | Shader stages | 🟡 | **Geometry, Tessellation** honestly **Unsupported** (no GLES equivalent; capability-gated, rejected at creation). **Compute** dispatch commands *and* compute shader objects/stages are implemented (native in GLES 3.1+; the mock mirrors that baseline): a compute program can be created, compiled, linked, and dispatched (see §7 row). Vertex + fragment + compute stages translate (desktop→GLSL ES via glslang + SPIRV-Cross for ES compute). |
 
 ## The implemented frontend surface (gl_api entry points)
 
-299 `gl*` entry points; 293 map to a spec command family (see Method). Listed
+300 `gl*` entry points; 294 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -118,7 +118,7 @@ glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRende
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv, glGetBooleani_v,
-glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetNamedBufferSubData,
+glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv, glGetGraphicsResetStatus,
 glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,

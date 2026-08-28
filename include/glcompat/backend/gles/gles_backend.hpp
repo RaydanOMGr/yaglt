@@ -194,8 +194,15 @@ public:
                             uint32_t pname, int32_t bufSize,
                             int32_t* params) override;
     void getInternalformati64v(uint32_t target, uint32_t internalformat,
-                              uint32_t pname, int32_t bufSize,
-                              int64_t* params) override;
+                               uint32_t pname, int32_t bufSize,
+                               int64_t* params) override;
+
+    // Multisample sample-position queries (SPEC §14.3.1 glGetMultisamplefv). The
+    // sample count is the SAMPLES of the bound draw framebuffer (read via
+    // glGetFramebufferParameteriv; 0 if unsupported or no MSAA framebuffer). The
+    // position query forwards to the GLES driver's glGetMultisamplefv.
+    uint32_t getMultisampleSampleCount() override;
+    void getMultisamplefv(uint32_t pname, uint32_t index, float* val) override;
 
 private:
     GLESLibPtr lib_;
