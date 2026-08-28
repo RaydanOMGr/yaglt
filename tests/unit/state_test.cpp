@@ -46,6 +46,8 @@ struct RecordingSink : GLStateSink {
     void sampleCoverage(float, bool) override {}
     void primitiveRestart(uint32_t) override {}
     void hint(uint32_t, uint32_t) override {}
+    void beginConditionalRender(uint32_t, uint32_t) override {}
+    void endConditionalRender() override {}
     void cullFace(GLenum) override { ++cullCalls; }
     void frontFace(GLenum) override { ++frontCalls; }
     void pointSize(float) override {}

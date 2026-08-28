@@ -177,6 +177,12 @@ struct GLESLib {
     void (*glGetQueryObjectuiv)(GLuint, GLenum, GLuint*) = nullptr;
     void (*glGetQueryObjectui64v)(GLuint, GLenum, GLuint64*) = nullptr;
 
+    // Conditional rendering (SPEC §10.11). On GLES only available via
+    // GL_NV_conditional_render; resolved optionally so load() still succeeds on
+    // drivers that lack it (the capability system reports it Unsupported).
+    void (*glBeginConditionalRenderNV)(GLuint, GLenum) = nullptr;
+    void (*glEndConditionalRenderNV)(void) = nullptr;
+
     // Sampler objects (SPEC §8.2, GLES 3.0+). Resolved optionally so load()
     // still succeeds on a driver that lacks them (capability reports unsupported).
     void (*glGenSamplers)(GLsizei, GLuint*) = nullptr;

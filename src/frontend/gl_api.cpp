@@ -2160,6 +2160,16 @@ void glHint(GLenum target, GLenum mode) {
     g_current->hint(target, mode);
 }
 
+void glBeginConditionalRender(GLuint id, GLenum mode) {
+    if (g_current == nullptr) return;
+    g_current->beginConditionalRender(id, mode);
+}
+
+void glEndConditionalRender() {
+    if (g_current == nullptr) return;
+    g_current->endConditionalRender();
+}
+
 void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
                        GLsizei drawcount) {
     if (g_current == nullptr) return;

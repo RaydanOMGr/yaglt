@@ -673,6 +673,16 @@ constexpr GLenum GL_QUERY_RESULT = 0x8866;
 constexpr GLenum GL_QUERY_RESULT_AVAILABLE = 0x8867;
 constexpr GLenum GL_QUERY_RESULT_NO_WAIT = 0x8868;
 
+// Conditional-render predicate modes (SPEC §10.11, glBeginConditionalRender).
+constexpr GLenum GL_QUERY_WAIT = 0x8E13;
+constexpr GLenum GL_QUERY_NO_WAIT = 0x8E14;
+constexpr GLenum GL_QUERY_BY_REGION_WAIT = 0x8E15;
+constexpr GLenum GL_QUERY_BY_REGION_NO_WAIT = 0x8E16;
+constexpr GLenum GL_QUERY_WAIT_INVERTED = 0x8E17;
+constexpr GLenum GL_QUERY_NO_WAIT_INVERTED = 0x8E18;
+constexpr GLenum GL_QUERY_BY_REGION_WAIT_INVERTED = 0x8E19;
+constexpr GLenum GL_QUERY_BY_REGION_NO_WAIT_INVERTED = 0x8E1A;
+
 // Sync object parameters / status (SPEC §4 / §20, ARB_sync).
 constexpr GLenum GL_SYNC_STATUS = 0x9114;
 constexpr GLenum GL_SIGNALED = 0x9119;

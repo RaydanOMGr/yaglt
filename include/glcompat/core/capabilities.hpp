@@ -54,6 +54,10 @@ enum class Feature {
     SyncObjects,
     // Per-fragment color logic op (SPEC §17.3.4)
     LogicOp,
+    // Conditional rendering (SPEC §10.11, glBeginConditionalRender /
+    // glEndConditionalRender). Core in desktop GL 4.6 (ARB_conditional_render_*
+    // and *_inverted); on GLES only available via GL_NV_conditional_render.
+    ConditionalRendering,
     // Sentinel
     FeatureCount
 };

@@ -6141,6 +6141,76 @@ uint32_t Context::getHint(uint32_t target) {
     return state_.getHint(target);
 }
 
+// --- Conditional rendering (SPEC §10.11) ---
+
+bool Context::isConditionalRenderQueryType(uint32_t target) const {
+    switch (target) {
+    case GL_SAMPLES_PASSED:
+    case GL_ANY_SAMPLES_PASSED:
+    case GL_ANY_SAMPLES_PASSED_CONSERVATIVE:
+    case GL_PRIMITIVES_GENERATED:
+        return true;
+    default:
+        return false;
+    }
+}
+
+void Context::beginConditionalRender(GLObjectName id, uint32_t mode) {
+    if (!backend_.capabilities().isSupported(Feature::ConditionalRendering)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (conditionalRenderActive_) {
+        setError(GLError::InvalidOperation); // already in a region
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // not a query object
+        return;
+    }
+    if (q->active) {
+        setError(GLError::InvalidOperation); // query still active
+        return;
+    }
+    if (!isConditionalRenderQueryType(q->target)) {
+        setError(GLError::InvalidOperation); // wrong query type
+        return;
+    }
+    switch (mode) {
+    case GL_QUERY_WAIT:
+    case GL_QUERY_NO_WAIT:
+    case GL_QUERY_BY_REGION_WAIT:
+    case GL_QUERY_BY_REGION_NO_WAIT:
+    case GL_QUERY_WAIT_INVERTED:
+    case GL_QUERY_NO_WAIT_INVERTED:
+    case GL_QUERY_BY_REGION_WAIT_INVERTED:
+    case GL_QUERY_BY_REGION_NO_WAIT_INVERTED:
+        break;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink())
+        sink->beginConditionalRender(id, mode);
+    conditionalRenderActive_ = true;
+    conditionalRenderQuery_ = id;
+}
+
+void Context::endConditionalRender() {
+    if (!backend_.capabilities().isSupported(Feature::ConditionalRendering)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!conditionalRenderActive_) {
+        setError(GLError::InvalidOperation); // not in a region
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink()) sink->endConditionalRender();
+    conditionalRenderActive_ = false;
+    conditionalRenderQuery_ = 0;
+}
+
 // --- Direct State Access vertex arrays (SPEC §10.3.1) ---
 
 void Context::createVertexArrays(uint32_t n, GLObjectName* names) {

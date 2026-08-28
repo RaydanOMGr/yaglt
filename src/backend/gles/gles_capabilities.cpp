@@ -71,6 +71,15 @@ void populateGLESCapabilities(CapabilityTable& table, const GLESLib& lib) {
     table.set(F::SyncObjects, es3 ? S::Native : S::Unsupported);
     // Color logic op (glLogicOp) is core in GLES 3.0.
     table.set(F::LogicOp, es3 ? S::Native : S::Unsupported);
+
+    // Conditional rendering (SPEC §10.11). Core in desktop GL 4.6; on GLES only
+    // available via GL_NV_conditional_render, which is not guaranteed. Report it
+    // Emulated only when both the extension and the NV entry points resolve;
+    // otherwise honestly Unsupported.
+    bool nvConditionalRender =
+        has("GL_NV_conditional_render") && lib.glBeginConditionalRenderNV != nullptr;
+    table.set(F::ConditionalRendering,
+              nvConditionalRender ? S::Emulated : S::Unsupported);
 }
 
 } // namespace glcompat

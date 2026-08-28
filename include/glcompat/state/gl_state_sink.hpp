@@ -162,6 +162,17 @@ public:
     // ignore them, but the frontend records the requested target/mode and pushes
     // it on flush so a real driver receives the request.
     virtual void hint(uint32_t target, uint32_t mode) = 0;
+
+    // Conditional rendering (SPEC §10.11, glBeginConditionalRender /
+    // glEndConditionalRender). `id` is the frontend query-object name the region
+    // is predicated on; `mode` is the GL_QUERY_* predicate mode. The backend
+    // resolves the query name to its native id and installs the predicate so
+    // subsequent draws are suppressed when the query fails. Backends without
+    // conditional-render support record the region but cannot suppress draws
+    // (reported honestly via the ConditionalRendering capability); the frontend
+    // never calls these when the feature is Unsupported.
+    virtual void beginConditionalRender(uint32_t id, uint32_t mode) = 0;
+    virtual void endConditionalRender() = 0;
 };
 
 } // namespace glcompat

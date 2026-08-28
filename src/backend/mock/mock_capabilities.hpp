@@ -50,6 +50,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::Queries, S::Native);
     table.set(F::SyncObjects, S::Native);
     table.set(F::LogicOp, S::Native);
+    table.set(F::ConditionalRendering, S::Emulated);
 }
 
 // Mock platform: used for headless Linux testing. On Android the real

@@ -234,6 +234,19 @@ void GLESBackend::hint(uint32_t target, uint32_t mode) {
     if (lib_->glHint) lib_->glHint(target, mode);
 }
 
+void GLESBackend::beginConditionalRender(uint32_t id, uint32_t mode) {
+    // Resolve the frontend query name to its native query id, like useProgram /
+    // bindVertexArray do for programs/VAOs.
+    auto it = nativeMap_.find(id);
+    GLuint native = it != nativeMap_.end() ? it->second : id;
+    if (lib_->glBeginConditionalRenderNV)
+        lib_->glBeginConditionalRenderNV(native, mode);
+}
+
+void GLESBackend::endConditionalRender() {
+    if (lib_->glEndConditionalRenderNV) lib_->glEndConditionalRenderNV();
+}
+
 void GLESBackend::bindProgramPipeline(uint32_t pipeline) {
     // GLES has no separable program pipeline object to install (a single linked
     // program drives each draw), so there is no native call to forward. The

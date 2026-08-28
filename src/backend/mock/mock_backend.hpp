@@ -282,6 +282,18 @@ public:
         lastHintMode = mode;
         hintCallsList.emplace_back(target, mode);
     }
+    // Conditional rendering (SPEC §10.11). Recorded so tests can assert the
+    // region is opened/closed with the expected query id and predicate mode.
+    int beginConditionalRenderCalls = 0;
+    uint32_t lastConditionalRenderId = 0;
+    uint32_t lastConditionalRenderMode = 0;
+    int endConditionalRenderCalls = 0;
+    void beginConditionalRender(uint32_t id, uint32_t mode) override {
+        ++beginConditionalRenderCalls;
+        lastConditionalRenderId = id;
+        lastConditionalRenderMode = mode;
+    }
+    void endConditionalRender() override { ++endConditionalRenderCalls; }
     void cullFace(GLenum) override { ++cullFaceCalls; }
     void frontFace(GLenum) override { ++frontFaceCalls; }
     void pointSize(float size) override {

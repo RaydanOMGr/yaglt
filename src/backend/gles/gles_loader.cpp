@@ -266,6 +266,11 @@ bool GLESLib::load() {
     resolve(gles, glGetQueryObjectuiv, "glGetQueryObjectuiv");
     resolve(gles, glGetQueryObjectui64v, "glGetQueryObjectui64v");
 
+    // Conditional rendering (SPEC §10.11). NV_conditional_render on GLES;
+    // resolved optionally so load() still succeeds without it.
+    resolve(gles, glBeginConditionalRenderNV, "glBeginConditionalRenderNV");
+    resolve(gles, glEndConditionalRenderNV, "glEndConditionalRenderNV");
+
     // Color logic op + framebuffer copy/invalidate (ES 3.0+); resolved optionally.
     resolve(gles, glLogicOp, "glLogicOp");
     resolve(gles, glBlitFramebuffer, "glBlitFramebuffer");

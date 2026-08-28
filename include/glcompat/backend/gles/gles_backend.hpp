@@ -46,6 +46,8 @@ public:
     void enableIndexed(uint32_t cap, uint32_t index) override;
     void disableIndexed(uint32_t cap, uint32_t index) override;
     void hint(uint32_t target, uint32_t mode) override;
+    void beginConditionalRender(uint32_t id, uint32_t mode) override;
+    void endConditionalRender() override;
     void useProgram(uint32_t prog) override;
     // Program pipeline (SPEC §7.4). GLES uses a single linked program per draw,
     // so a separable pipeline cannot be consumed for rendering; we record the

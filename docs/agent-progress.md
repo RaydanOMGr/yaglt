@@ -11,6 +11,29 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-29 — conditional rendering, this session)
+- Added conditional rendering (SPEC §10.11): `glBeginConditionalRender` /
+  `glEndConditionalRender` open/close a draw region predicated on an existing
+  query object. New `Feature::ConditionalRendering` in the capability enum; the
+  mock profile marks it `Emulated` (records the region) and the GLES backend
+  reports it `Emulated` only when `GL_NV_conditional_render` + the NV entry
+  points resolve, else `Unsupported` honestly (the frontend rejects the call).
+  `Context::beginConditionalRender`/`endConditionalRender` validate: capability
+  present; not already in a region; `id` is a generated query object; the query
+  is not currently active; the query type is one of `GL_SAMPLES_PASSED` /
+  `GL_ANY_SAMPLES_PASSED` / `GL_ANY_SAMPLES_PASSED_CONSERVATIVE` /
+  `GL_PRIMITIVES_GENERATED`; and `mode` is a valid `GL_QUERY_*` predicate
+  (including the `*_INVERTED` 4.6 variants). The region is forwarded to the
+  backend `GLStateSink` immediately (it delimits draws, like begin/end query).
+  New `GLStateSink::beginConditionalRender`/`endConditionalRender` pure virtuals
+  (both backends + the three test sinks implement them); GLES resolves
+  `glBeginConditionalRenderNV`/`glEndConditionalRenderNV` optionally. New
+  `tests/unit/conditional_render_test.cpp` (open/close, all predicate modes,
+  capability gate, full validation, disallowed query type, public dispatch).
+  Default **522/522**, sanitizer **522/522**, translate (Mesa) **532/532** green.
+  Coverage bumped in `docs/coverage-core.md` (313/571 ≈ 54.8% declared;
+  ~60.6% core).
+
 ## Recent Work (2026-08-28 — texture sub-image readback, this session)
 - Added `glGetTextureSubImage` / `glGetCompressedTextureSubImage` (SPEC §8.11.4 /
   §8.11.5). New `BackendTexture::getTextureSubImage` /

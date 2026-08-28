@@ -954,6 +954,17 @@ public:
     void hint(uint32_t target, uint32_t mode);
     uint32_t getHint(uint32_t target);
 
+    // --- Conditional rendering (SPEC §10.11) ---
+    // Begin/end a conditional-render region predicated on an existing query
+    // object. Capability-gated by ConditionalRendering. Already-active region, a
+    // non-query `id`, an active query, a query of disallowed type, or an invalid
+    // `mode` -> GL_INVALID_OPERATION/GL_INVALID_ENUM. The region is forwarded to
+    // the backend's GLStateSink immediately (it delimits a draw region, like
+    // begin/end query, not deferred pipeline state).
+    void beginConditionalRender(GLObjectName id, uint32_t mode);
+    void endConditionalRender();
+    bool conditionalRenderActive() const { return conditionalRenderActive_; }
+
     // --- Draw (SPEC §2.1) ---
     // Flush tracked pipeline state to the backend, then issue the draw. Drawing
     // with no active program is GL_INVALID_OPERATION (core profile). Instanced
@@ -1114,6 +1125,12 @@ private:
     bool vertexStateDirty_ = false;
     bool transformFeedbackActive_ = false;
     bool transformFeedbackPaused_ = false;
+    bool conditionalRenderActive_ = false;
+    GLObjectName conditionalRenderQuery_ = 0;
+
+    // True if `target` is a query type allowed to predicate a conditional-render
+    // region (SPEC §10.11).
+    bool isConditionalRenderQueryType(uint32_t target) const;
 
     std::unordered_map<uint32_t, GLObjectName> boundBuffers_;
     GLObjectName boundRenderbuffer_ = 0;

@@ -760,6 +760,15 @@ void glGetVertexArrayIndexed64v(GLuint vao, GLuint index, GLenum pname, GLint64*
 // or mode -> GL_INVALID_ENUM.
 void glHint(GLenum target, GLenum mode);
 
+// Conditional rendering (SPEC §10.11, glBeginConditionalRender /
+// glEndConditionalRender). Begins/ends a render region predicated on an existing
+// query object. Capability-gated by ConditionalRendering; the frontend validates
+// the query existence/type/activity and the predicate `mode` and forwards the
+// region to the backend. Already-active region, non-query `id`, active query,
+// disallowed query type, or invalid `mode` -> GL_INVALID_OPERATION/GL_INVALID_ENUM.
+void glBeginConditionalRender(GLuint id, GLenum mode);
+void glEndConditionalRender();
+
 // Draw expansion (SPEC §10). Multi-draw, range-bounded indexed draw, and
 // base-vertex indexed draw. Each flushes tracked state first; non-instanced
 // variants require an active program; capability-gated per the feature table.
