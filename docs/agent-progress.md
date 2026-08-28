@@ -1901,7 +1901,7 @@ crashed agent, this session)
    indexed-cap agreement with `glEnablei`/`glDisablei`.
  - Validation: default **476/476** green; `build_tx` green (Mesa softpipe e2e
    suite); `build_san` green.
- - Docs: `coverage-core.md` -> 299 entry points / 293 matched families (51.3%
-   declared / ~56.8% core / ~42% true), §2 + §22 rows and the entry list updated.
-   (Commit pending.)
+  - Docs: `coverage-core.md` -> 299 entry points / 293 matched families (51.3%
+    declared / ~56.8% core / ~42% true), §2 + §22 rows and the entry list updated.
+   - Committed as `2d514b8`: generic §22 state queries.
 
