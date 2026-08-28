@@ -298,6 +298,7 @@ constexpr GLbitfield GL_ALL_SHADER_BITS = 0xFFFFFFFFu;
 // Program pipeline parameters (glGetProgramPipelineiv, SPEC §7.4).
 constexpr GLenum GL_ACTIVE_PROGRAM = 0x8259;
 constexpr GLenum GL_PROGRAM_SEPARABLE = 0x8258;
+constexpr GLenum GL_PROGRAM_BINARY_RETRIEVABLE_HINT = 0x8257;
 // GL_VALID_STATUS shares the 0x8B83 value with GL_VALIDATE_STATUS (programs).
 constexpr GLenum GL_VALID_STATUS = 0x8B83;
 constexpr GLenum GL_ATTACHED_SHADERS = 0x8B85;

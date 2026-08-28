@@ -277,6 +277,7 @@ public:
     std::vector<GLObjectName> attachedShaders;
     bool linked = false;
     bool separable = false;
+    bool binaryRetrievableHint = false;
     std::string infoLog;
     std::unique_ptr<BackendProgram> backend;
     // Generic attribute bindings requested via glBindAttribLocation before link.

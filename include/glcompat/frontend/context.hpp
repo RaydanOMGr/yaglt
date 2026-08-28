@@ -682,6 +682,11 @@ public:
     GLObjectName createProgram();
     void attachShader(GLObjectName program, GLObjectName shader);
     void linkProgram(GLObjectName program);
+    // Set program parameters before/after linking (SPEC §7.3 / §7.4.2).
+    // GL_PROGRAM_SEPARABLE must be set before linking (after link ->
+    // GL_INVALID_OPERATION); GL_PROGRAM_BINARY_RETRIEVABLE_HINT may be set at
+    // any time. Unknown pname -> GL_INVALID_ENUM; non-program -> GL_INVALID_OPERATION.
+    void programParameteri(GLObjectName program, uint32_t pname, int32_t value);
     bool isProgramLinked(GLObjectName program) const;
     std::string programInfoLog(GLObjectName program) const;
     int getAttribLocation(GLObjectName program, const std::string& name) const;

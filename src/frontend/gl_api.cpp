@@ -1128,6 +1128,11 @@ void glLinkProgram(GLuint program) {
     g_current->linkProgram(program);
 }
 
+void glProgramParameteri(GLuint program, GLenum pname, GLint value) {
+    if (g_current == nullptr) return;
+    g_current->programParameteri(program, pname, value);
+}
+
 GLint glGetProgramiv(GLuint program, GLenum pname) {
     if (g_current == nullptr) return 0;
     return g_current->getProgramiv(program, pname);

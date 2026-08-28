@@ -3674,6 +3674,8 @@ GLint Context::getProgramiv(GLObjectName program, uint32_t pname) {
         return p->backend ? p->backend->activeAttributeCount() : 0;
     case GL_ACTIVE_UNIFORM_BLOCKS:
         return p->backend ? p->backend->activeUniformBlockCount() : 0;
+    case GL_PROGRAM_SEPARABLE:
+        return p->separable ? GL_TRUE : GL_FALSE;
     default:
         setError(GLError::InvalidEnum);
         return 0;
@@ -4385,6 +4387,31 @@ void Context::linkProgram(GLObjectName program) {
     // Register the name->native mapping so the backend can bind the program at
     // draw time (SPEC §3/§11).
     backend_.bindNativeObject(program, p->backend ? p->backend->nativeId() : 0);
+}
+
+void Context::programParameteri(GLObjectName program, uint32_t pname, int32_t value) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    switch (pname) {
+    case GL_PROGRAM_SEPARABLE:
+        // SPEC §7.3: this parameter must be set before linking. Once the program
+        // is linked, changing it is an error.
+        if (p->linked) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        p->separable = (value != 0);
+        return;
+    case GL_PROGRAM_BINARY_RETRIEVABLE_HINT:
+        p->binaryRetrievableHint = (value != 0);
+        return;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
 }
 
 bool Context::isProgramLinked(GLObjectName program) const {

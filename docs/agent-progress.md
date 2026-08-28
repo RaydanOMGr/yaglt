@@ -83,6 +83,22 @@ Known major blockers:
       `Context::flushState()` / `glFlushState()`, so redundant native calls are
       skipped. Tests verify only-changed-caps are pushed.
 
+- [x] `glProgramParameteri` (SPEC §7.3 / §7.4.2, this session).
+   - `Context::programParameteri` + public `glProgramParameteri` entry point.
+     `GL_PROGRAM_SEPARABLE` must be set before linking (after link →
+     `GL_INVALID_OPERATION`); `GL_PROGRAM_BINARY_RETRIEVABLE_HINT` may be set
+     any time. Unknown pname → `GL_INVALID_ENUM`; non-program →
+     `GL_INVALID_OPERATION`. `ProgramObject` gained `binaryRetrievableHint`.
+   - `glGetProgramiv` now answers `GL_PROGRAM_SEPARABLE` (frontend-owned flag).
+     This fixes a real correctness gap: a regular program could only become
+     separable via `glCreateShaderProgramv`; now `glProgramParameteri(prog,
+     GL_PROGRAM_SEPARABLE, TRUE)` before `linkProgram` is the standard path and
+     is honored by the existing `glUseProgramStages` separable check.
+   - New `tests/unit/program_parameter_test.cpp` covers pre-link flag, post-link
+     error, binary-hint timing, validation, and the public dispatch path.
+   - Constant `GL_PROGRAM_BINARY_RETRIEVABLE_HINT` added to `gl_types.hpp`.
+   - Validation: default + sanitizer suites green.
+
 ## Completed (this session)
 
 - [x] Shader translation pipeline behind `IShaderCompiler` (Phase 4 per SPEC).

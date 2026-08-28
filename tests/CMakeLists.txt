@@ -57,6 +57,7 @@ add_executable(yaglt_tests
     unit/colormask_test.cpp
     unit/samplecoverage_test.cpp
     unit/dsa_program_pipeline_test.cpp
+    unit/program_parameter_test.cpp
     unit/rasterization_control_test.cpp
     unit/program_resource_test.cpp
     unit/subroutine_test.cpp

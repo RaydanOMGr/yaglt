@@ -374,6 +374,7 @@ void glDeleteShader(GLuint shader);
 GLuint glCreateProgram();
 void glAttachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
+void glProgramParameteri(GLuint program, GLenum pname, GLint value);
 GLint glGetProgramiv(GLuint program, GLenum pname);
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
                         GLchar* infoLog);
