@@ -4213,6 +4213,10 @@ void Context::getNamedBufferPointerv(GLObjectName buffer, uint32_t pname,
 
 namespace {
 
+uint64_t objectLabelKey(uint32_t identifier, uint32_t name) {
+    return (static_cast<uint64_t>(identifier) << 32) | static_cast<uint64_t>(name);
+}
+
 bool isValidProgramInterface(uint32_t iface) {
     switch (iface) {
     case GL_UNIFORM:
@@ -6307,6 +6311,128 @@ void Context::uniformMatrix4fv(int loc, const float* m, int count, bool transpos
     BackendProgram* bp = activeBackendProgram();
     if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
     bp->uniformMatrix4fv(loc, m, count, transpose);
+}
+
+// --- Object labels (SPEC §22.2) ---
+
+bool Context::objectHasType(uint32_t identifier, GLObjectName name) const {
+    switch (identifier) {
+    case GL_BUFFER: return buffers_.count(name) != 0;
+    case GL_SHADER: return shaders_.count(name) != 0;
+    case GL_PROGRAM: return programs_.count(name) != 0;
+    case GL_VERTEX_ARRAY: return vertexArrays_.count(name) != 0;
+    case GL_QUERY: return queries_.count(name) != 0;
+    case GL_PROGRAM_PIPELINE: return pipelines_.count(name) != 0;
+    case GL_TRANSFORM_FEEDBACK: return transformFeedbacks_.count(name) != 0;
+    case GL_SAMPLER: return samplers_.count(name) != 0;
+    case GL_TEXTURE: return textures_.count(name) != 0;
+    case GL_RENDERBUFFER: return renderbuffers_.count(name) != 0;
+    case GL_FRAMEBUFFER: return framebuffers_.count(name) != 0;
+    default: return false;
+    }
+}
+
+void Context::objectLabel(uint32_t identifier, GLObjectName name, int32_t length,
+                         const char* label) {
+    switch (identifier) {
+    case GL_BUFFER: case GL_SHADER: case GL_PROGRAM: case GL_VERTEX_ARRAY:
+    case GL_QUERY: case GL_PROGRAM_PIPELINE: case GL_TRANSFORM_FEEDBACK:
+    case GL_SAMPLER: case GL_TEXTURE: case GL_RENDERBUFFER: case GL_FRAMEBUFFER:
+        break;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (!objectHasType(identifier, name)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (label == nullptr) {
+        // Clearing a label is always allowed (SPEC §22.2).
+        objectLabels_.erase(objectLabelKey(identifier, name));
+        return;
+    }
+    size_t len = (length < 0) ? std::strlen(label) : static_cast<size_t>(length);
+    if (len > static_cast<size_t>(kMaxObjectLabelLength)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    objectLabels_[objectLabelKey(identifier, name)] = std::string(label, len);
+}
+
+void Context::getObjectLabel(uint32_t identifier, GLObjectName name, int32_t bufSize,
+                            int32_t* length, char* label) {
+    switch (identifier) {
+    case GL_BUFFER: case GL_SHADER: case GL_PROGRAM: case GL_VERTEX_ARRAY:
+    case GL_QUERY: case GL_PROGRAM_PIPELINE: case GL_TRANSFORM_FEEDBACK:
+    case GL_SAMPLER: case GL_TEXTURE: case GL_RENDERBUFFER: case GL_FRAMEBUFFER:
+        break;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (!objectHasType(identifier, name)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    auto it = objectLabels_.find(objectLabelKey(identifier, name));
+    const std::string s = (it != objectLabels_.end()) ? it->second : std::string();
+    if (label == nullptr) {
+        // Query-only mode: length includes the nul terminator (SPEC §22.2).
+        if (length) *length = static_cast<int32_t>(s.size() + 1);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize > 0) {
+        int32_t copy = std::min(bufSize - 1, static_cast<int32_t>(s.size()));
+        if (copy > 0) std::memcpy(label, s.data(), static_cast<size_t>(copy));
+        label[copy] = '\0';
+    }
+    if (length) *length = static_cast<int32_t>(s.size());
+}
+
+void Context::objectPtrLabel(const void* ptr, int32_t length, const char* label) {
+    if (ptr == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (label == nullptr) {
+        ptrLabels_.erase(ptr);
+        return;
+    }
+    size_t len = (length < 0) ? std::strlen(label) : static_cast<size_t>(length);
+    if (len > static_cast<size_t>(kMaxObjectLabelLength)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    ptrLabels_[ptr] = std::string(label, len);
+}
+
+void Context::getObjectPtrLabel(const void* ptr, int32_t bufSize, int32_t* length,
+                               char* label) {
+    if (ptr == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    auto it = ptrLabels_.find(ptr);
+    const std::string s = (it != ptrLabels_.end()) ? it->second : std::string();
+    if (label == nullptr) {
+        if (length) *length = static_cast<int32_t>(s.size() + 1);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize > 0) {
+        int32_t copy = std::min(bufSize - 1, static_cast<int32_t>(s.size()));
+        if (copy > 0) std::memcpy(label, s.data(), static_cast<size_t>(copy));
+        label[copy] = '\0';
+    }
+    if (length) *length = static_cast<int32_t>(s.size());
 }
 
 } // namespace glcompat

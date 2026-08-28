@@ -11,6 +11,26 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — object labeling, this session)
+- Added object-label entry points (SPEC §22.2): `glObjectLabel` / `glObjectPtrLabel` /
+  `glGetObjectLabel` / `glGetObjectPtrLabel`. Labels are frontend-owned: a central
+  `std::unordered_map<uint64_t,std::string>` keyed by `(identifier << 32 | name)` for
+  named objects, and a `std::unordered_map<const void*,std::string>` for sync-pointer
+  labels. `objectHasType(identifier, name)` validates the name against the correct
+  object map (buffers/shaders/programs/VAOs/queries/pipelines/transform-feedbacks/
+  samplers/textures/renderbuffers/framebuffers); an unknown `identifier` →
+  `GL_INVALID_ENUM`, a non-live name → `GL_INVALID_OPERATION`. Labels are limited to
+  `kMaxObjectLabelLength` (256) characters → `GL_INVALID_VALUE` beyond; a null `label`
+  clears the label. `glGetObjectLabel`/`glGetObjectPtrLabel` support query-only mode
+  (`label == nullptr` returns `length` including the nul terminator) and nul-terminated
+  copy with truncation. New constants in `gl_types.hpp` (`GL_BUFFER`/`GL_SHADER`/
+  `GL_PROGRAM`/`GL_QUERY`/`GL_PROGRAM_PIPELINE`/`GL_SAMPLER`/`GL_MAX_LABEL_LENGTH`/
+  `GL_TRANSFORM_FEEDBACK`); the texture/renderbuffer/framebuffer/vertex-array
+  namespaces reuse existing target tokens. New `tests/unit/object_label_test.cpp`
+  (round-trip, cross-namespace, validation, pointer-label cases). Validation: default,
+  translate (Mesa), and sanitizer suites all green. Coverage bumped in
+  `docs/coverage-core.md` (now 308/571 ≈ 52.7% declared; ~58.3% core).
+
 ## Recent Work (2026-08-28 — frontend-owned reflection queries, this session)
 - Added three more frontend-owned query entry points (SPEC §6.1.1 / §7.3.4 / §7.3.7):
   `glGetAttachedShaders` (fills up to `maxCount` attached shader names + the true

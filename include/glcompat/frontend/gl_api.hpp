@@ -418,7 +418,20 @@ GLint glGetProgramiv(GLuint program, GLenum pname);
 void glGetAttachedShaders(GLuint program, GLsizei maxCount, GLsizei* count,
                          GLuint* shaders);
 void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length,
-                      GLchar* source);
+                       GLchar* source);
+
+// Object labels (SPEC §22.2). glObjectLabel / glGetObjectLabel address objects by
+// namespace `identifier` (GL_BUFFER / GL_SHADER / GL_PROGRAM / GL_VERTEX_ARRAY /
+// GL_QUERY / GL_PROGRAM_PIPELINE / GL_TRANSFORM_FEEDBACK / GL_SAMPLER / GL_TEXTURE /
+// GL_RENDERBUFFER / GL_FRAMEBUFFER) and name; glObjectPtrLabel / glGetObjectPtrLabel
+// address sync objects via their raw pointer.
+void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar* label);
+void glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length,
+                     GLchar* label);
+void glObjectPtrLabel(const void* ptr, GLsizei length, const GLchar* label);
+void glGetObjectPtrLabel(const void* ptr, GLsizei bufSize, GLsizei* length,
+                        GLchar* label);
+
 
 void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length);
 void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei* length,

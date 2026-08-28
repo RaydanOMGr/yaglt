@@ -1246,6 +1246,28 @@ void glGetShaderSource(GLuint shader, GLsizei bufSize, GLsizei* length,
     g_current->getShaderSource(shader, bufSize, length, source);
 }
 
+void glObjectLabel(GLenum identifier, GLuint name, GLsizei length, const GLchar* label) {
+    if (g_current == nullptr) return;
+    g_current->objectLabel(identifier, name, length, label);
+}
+
+void glGetObjectLabel(GLenum identifier, GLuint name, GLsizei bufSize, GLsizei* length,
+                    GLchar* label) {
+    if (g_current == nullptr) return;
+    g_current->getObjectLabel(identifier, name, bufSize, length, label);
+}
+
+void glObjectPtrLabel(const void* ptr, GLsizei length, const GLchar* label) {
+    if (g_current == nullptr) return;
+    g_current->objectPtrLabel(ptr, length, label);
+}
+
+void glGetObjectPtrLabel(const void* ptr, GLsizei bufSize, GLsizei* length,
+                        GLchar* label) {
+    if (g_current == nullptr) return;
+    g_current->getObjectPtrLabel(ptr, bufSize, length, label);
+}
+
 void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length) {
     if (g_current == nullptr) return;
     g_current->programBinary(program, binaryFormat, binary, length);

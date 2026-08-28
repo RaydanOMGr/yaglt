@@ -52,6 +52,21 @@ constexpr GLenum GL_PIXEL_UNPACK_BUFFER = 0x88EC;
 constexpr GLenum GL_QUERY_BUFFER = 0x9192;
 constexpr GLenum GL_BUFFER_MAP_POINTER = 0x88BD;
 
+// Object label identifier namespaces (SPEC §22.2, glObjectLabel /
+// glGetObjectLabel). GL_TEXTURE / GL_RENDERBUFFER / GL_FRAMEBUFFER /
+// GL_VERTEX_ARRAY reuse their existing target tokens (defined elsewhere here).
+constexpr GLenum GL_BUFFER = 0x82E0;
+constexpr GLenum GL_SHADER = 0x82E1;
+constexpr GLenum GL_PROGRAM = 0x82E2;
+constexpr GLenum GL_QUERY = 0x82E3;
+constexpr GLenum GL_PROGRAM_PIPELINE = 0x82E4;
+constexpr GLenum GL_SAMPLER = 0x82E6;
+constexpr GLenum GL_MAX_LABEL_LENGTH = 0x82E8;
+constexpr GLenum GL_TRANSFORM_FEEDBACK = 0x8E22;
+// Maximum object-label length accepted by glObjectLabel (SPEC §22.2: an
+// implementation must support at least 256 characters).
+constexpr int kMaxObjectLabelLength = 256;
+
 constexpr GLenum GL_STATIC_DRAW = 0x88E4;
 constexpr GLenum GL_DYNAMIC_DRAW = 0x88E8;
 constexpr GLenum GL_STREAM_DRAW = 0x88E0;

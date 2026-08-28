@@ -681,9 +681,28 @@ public:
     // nul. A negative bufSize -> GL_INVALID_VALUE; a non-shader object ->
     // GL_INVALID_OPERATION.
     void getAttachedShaders(GLObjectName program, int32_t maxCount, int32_t* count,
-                           GLObjectName* shaders);
+                            GLObjectName* shaders);
     void getShaderSource(GLObjectName shader, int32_t bufSize, int32_t* length,
                          char* source);
+
+    // --- Object labels (SPEC §22.2) ---
+    // glObjectLabel assigns a debug label to the object `name` in the namespace
+    // given by `identifier` (GL_BUFFER / GL_SHADER / GL_PROGRAM / GL_VERTEX_ARRAY /
+    // GL_QUERY / GL_PROGRAM_PIPELINE / GL_TRANSFORM_FEEDBACK / GL_SAMPLER /
+    // GL_TEXTURE / GL_RENDERBUFFER / GL_FRAMEBUFFER). `label` == nullptr clears the
+    // label; a negative `length` means `label` is nul-terminated. The label is
+    // limited to kMaxObjectLabelLength characters (GL_INVALID_VALUE beyond). An
+    // unknown `identifier` is GL_INVALID_ENUM; a `name` that is not a live object of
+    // that type is GL_INVALID_OPERATION.
+    void objectLabel(uint32_t identifier, GLObjectName name, int32_t length,
+                     const char* label);
+    void getObjectLabel(uint32_t identifier, GLObjectName name, int32_t bufSize,
+                        int32_t* length, char* label);
+    // Pointer labels (SPEC §22.2, glObjectPtrLabel / glGetObjectPtrLabel) apply to
+    // sync objects addressed by `ptr`. A null `ptr` is GL_INVALID_VALUE.
+    void objectPtrLabel(const void* ptr, int32_t length, const char* label);
+    void getObjectPtrLabel(const void* ptr, int32_t bufSize, int32_t* length,
+                           char* label);
 
     // Program-interface reflection (SPEC §7.3.11). `programInterface` must be a
     // valid interface enum; `program` must be a linked program object. Name/Index
@@ -978,6 +997,10 @@ private:
     void getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params, bool is64,
                             bool isSigned);
 
+    // Object-label support (SPEC §22.2). objectHasType reports whether `name` is a
+    // live object in the namespace given by `identifier`.
+    bool objectHasType(uint32_t identifier, GLObjectName name) const;
+
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.
     BackendProgram* activeBackendProgram();
@@ -1032,6 +1055,11 @@ private:
     GLObjectName boundVertexArray_ = 0;
     GLObjectName boundTransformFeedback_ = 0;
     GLObjectName boundProgramPipeline_ = 0;
+
+    // Object-label stores (SPEC §22.2). objectLabels_ is keyed by (identifier << 32
+    // | name); ptrLabels_ by the raw sync pointer.
+    std::unordered_map<uint64_t, std::string> objectLabels_;
+    std::unordered_map<const void*, std::string> ptrLabels_;
 };
 
 } // namespace glcompat
