@@ -1455,6 +1455,13 @@ void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
                                          uniformBlockName);
 }
 
+void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
+                           GLuint uniformBlockBinding) {
+    if (g_current == nullptr) return;
+    g_current->uniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
+}
+
+
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype,
                             const GLchar* name) {
     if (g_current == nullptr) return GL_INVALID_INDEX;

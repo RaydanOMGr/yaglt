@@ -33,15 +33,15 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal.    A reproducible regen script counts 571 declared families, 317 `gl_api`
-   entry points, and 313 matched families.
+    signal.    A reproducible regen script counts 571 declared families, 318 `gl_api`
+    entry points, and 314 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 313 | **54.8%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 313 | **~60.6%** |
+| Full spec (compat + core) | 571 | 314 | **55.0%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 314 | **~60.9%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
@@ -70,7 +70,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 | Spec area (chapter) | Status | Notes |
 |---------------------|--------|-------|
 | §2 Fundamentals / errors / strings / flush-finish | ✅ | `glGetError`, `glGetString`, `glGetStringi` (SPEC §22.2, indexed; only `GL_EXTENSIONS` indexable, 0 extensions exposed → `GL_INVALID_VALUE` for any index), `glGetGraphicsResetStatus` (always `GL_NO_ERROR`), `glFlush`, `glFinish`, `glEnable/Disable` (tracked caps), `glGetBooleanv/Integerv/Floatv/Doublev`, `glGetInteger64v` (SPEC §22.1, widens tracked integer state to `GLint64`), `glGetBooleani_v`/`glGetIntegeri_v` (SPEC §22.1, indexed caps `GL_BLEND`/`GL_SCISSOR_TEST` per slot), `glIsEnabled`, `glEnablei/glDisablei/glIsEnabledi` (indexed caps, SPEC §10.3.1; only `GL_BLEND`/`GL_SCISSOR_TEST` indexable, invalid cap → `GL_INVALID_ENUM`, index ≥ 16 → `GL_INVALID_VALUE`, tracked per-slot, push-only-on-change) |
-| §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferParameteri64v`/`glGetNamedBufferParameteri64v` (64-bit size/usage queries, SPEC §6.1.1), `glGetNamedBufferParameteriv` (32-bit DSA counterpart, SPEC §6.1.1), `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). Bounds/format/mapping validation matches SPEC §6. |
+| §6 Buffer objects | 🟢 | gen/bind/delete, `glBufferData`, `glBindBufferBase/Range`, `glBufferSubData`, `glBufferStorage` (immutable, capability-gated), `glMapBuffer`/`glMapBufferRange`/`glUnmapBuffer`, `glCopyBufferSubData`, `glGetBufferParameteriv`, `glGetBufferParameteri64v`/`glGetNamedBufferParameteri64v` (64-bit size/usage queries, SPEC §6.1.1), `glGetNamedBufferParameteriv` (32-bit DSA counterpart, SPEC §6.1.1), `glGetBufferSubData`/`glGetNamedBufferSubData` (read the frontend CPU mirror), `glClearBufferData`/`glClearNamedBufferData`/`glClearBufferSubData`/`glClearNamedBufferSubData` (fill the mirror in-memory; the practical subset of table 8.24 sized internal formats is handled with full component/type conversion), `glInvalidateBufferData`/`glInvalidateBufferSubData`/`glInvalidateNamedBuffer*` (driver discard hint). **Uniform-buffer program binding** (SPEC §7.6.2): `glUniformBlockBinding` validates the program is linked, the block index is within the active uniform-block count, and the binding point is within the `MAX_UNIFORM_BUFFER_BINDINGS` floor, then forwards to the backend; the mock records the block→binding association and reports it through `glGetActiveUniformBlockiv(UNIFORM_BLOCK_BINDING)`, GLES forwards to `glUniformBlockBinding` on the native program. Bounds/mapping validation matches SPEC §6. |
 | §7 Shaders / programs | 🟡 | create/source/compile/attach/link, `glGetShader*`, `glGetProgram*`, info logs, `glUseProgram`, `glGetAttribLocation`, `glGetUniformLocation`, full `glUniform*` (f/i/vec/mat4), GLSL version gate, **program pipelines** (§7.4): `glGen/Delete/IsProgramPipeline`, `glBindProgramPipeline`, `glCreateShaderProgramv`, `glUseProgramStages`, `glActiveShaderProgram`, `glGetProgramPipelineiv`, `glValidateProgramPipeline`, `glGetProgramPipelineInfoLog` (capability-gated by `ProgramPipelines`; GLES consumes the bound pipeline via `GLStateSink` only where separable programs exist), `glBindAttribLocation` (SPEC §7.3.7: recorded frontend-side, applied to the backend program at the next link; unknown program → `GL_INVALID_OPERATION`), and **compute dispatch** (§7.4): `glDispatchCompute`/`glDispatchComputeIndirect` (capability-gated by `ComputeShaders`; requires an active program; indirect requires a buffer bound to `GL_DISPATCH_INDIRECT_BUFFER`; forwarded to the backend via `GLStateSink::dispatchCompute`/`dispatchComputeIndirect`). **Compute shader objects/stages** are now created/translated when the backend reports `ComputeShaders` (native in GLES 3.1+; the mock mirrors that baseline), so a compute program can be built, linked, and dispatched (see §7.4 dispatch). **Shader binaries** (§7.2/§19.1): `glShaderBinary` /
 `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
 blob (the frontend keeps the authoritative mirror, matching the buffer-mirror
@@ -117,7 +117,7 @@ glEndTransformFeedback, glFinish, glFlush, glFramebufferRenderbuffer, glFramebuf
 glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRenderbuffers, glGenSamplers,
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
-glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetAttachedShaders, glGetBooleanv, glGetBooleani_v,
+glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glUniformBlockBinding, glGetAttachedShaders, glGetBooleanv, glGetBooleani_v,
 glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferPointerv, glGetNamedBufferPointerv, glGetBufferSubData, glGetCompressedTexImage, glGetCompressedTextureImage, glGetCompressedTextureSubImage, glGetTextureSubImage, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv, glGetGraphicsResetStatus,
 glGetNamedRenderbufferParameteriv, glGetFragDataIndex, glGetFragDataLocation, glGetObjectLabel, glGetObjectPtrLabel, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramInterfaceiv, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,

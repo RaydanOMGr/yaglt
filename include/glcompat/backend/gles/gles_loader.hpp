@@ -95,6 +95,8 @@ struct GLESLib {
     void (*glDeleteProgram)(GLuint) = nullptr;
     // Program-interface reflection (SPEC §7.3.11, ES 3.0+). Resolved optionally.
     void (*glGetProgramInterfaceiv)(GLuint, GLenum, GLenum, GLint*) = nullptr;
+    // Uniform-block binding (SPEC §7.6.2). ES 3.0+; resolved optionally.
+    void (*glUniformBlockBinding)(GLuint, GLuint, GLuint) = nullptr;
     GLuint (*glGetProgramResourceIndex)(GLuint, GLenum, const GLchar*) = nullptr;
     void (*glGetProgramResourceName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
     void (*glGetProgramResourceiv)(GLuint, GLenum, GLuint, GLsizei, const GLenum*, GLsizei, GLsizei*, GLint*) = nullptr;

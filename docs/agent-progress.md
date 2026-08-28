@@ -11,6 +11,24 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-29 — uniform block binding, this session)
+- Added `glUniformBlockBinding` (SPEC §7.6.2) to complete the UBO story. New
+  `BackendProgram::uniformBlockBinding(blockIndex, blockBinding)` virtual
+  (default no-op; GLES forwards to `glUniformBlockBinding` on the native program
+  via the resolved `GLESLib::glUniformBlockBinding`, the mock records the
+  block-index→binding association in `blockBindings` and reports it back through
+  `glGetActiveUniformBlockiv(UNIFORM_BLOCK_BINDING)`). `Context::uniformBlockBinding`
+  validates: the program is linked with a backend (`GL_INVALID_OPERATION`
+  otherwise); the block index is `< activeUniformBlockCount`
+  (`GL_INVALID_VALUE`); the binding point is `< kMaxUniformBufferBindings` (36,
+  the GL 4.6 floor; `GL_INVALID_VALUE`). New `GL_MAX_UNIFORM_BUFFER_BINDINGS`
+  constant; `MockResourceFactory::lastCreatedProgram` test hook added. New
+  `tests/unit/uniform_block_binding_test.cpp` (record + query round-trip,
+  unlinked-program / out-of-range block index / out-of-range binding validation).
+  Default **527/527**, sanitizer **527/527**, translate (Mesa) **pass** green.
+  Coverage bumped in `docs/coverage-core.md` (314/571 ≈ 55.0% declared;
+  ~60.9% core). `docs/feature-matrix.md` marks UniformBufferObjects Implemented.
+
 ## Recent Work (2026-08-29 — conditional rendering, this session)
 - Added conditional rendering (SPEC §10.11): `glBeginConditionalRender` /
   `glEndConditionalRender` open/close a draw region predicated on an existing

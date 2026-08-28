@@ -652,6 +652,31 @@ public:
         boundAttribLocations[name] = index;
     }
     std::map<std::string, int> boundAttribLocations;
+    // Uniform-block binding recording (SPEC §7.6.2). `activeUniformBlocks` lets
+    // the frontend's blockIndex validation pass (else INVALID_VALUE); the mock
+    // records the block index -> binding-point association for test observability
+    // and reports it back through glGetActiveUniformBlockiv(UNIFORM_BLOCK_BINDING).
+    uint32_t activeUniformBlocks = 0;
+    std::map<uint32_t, uint32_t> blockBindings;
+    int activeUniformBlockCount() const override {
+        return static_cast<int>(activeUniformBlocks);
+    }
+    void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
+        blockBindings[blockIndex] = blockBinding;
+    }
+    void getProgramResourceiv(uint32_t programInterface, uint32_t index,
+                              int32_t propCount, const uint32_t* props,
+                              int32_t bufSize, int32_t* length,
+                              int32_t* params) const override {
+        if (programInterface == GL_UNIFORM_BLOCK && propCount >= 1 &&
+            props[0] == GL_BUFFER_BINDING && params && bufSize >= 1) {
+            auto it = blockBindings.find(index);
+            params[0] = (it != blockBindings.end())
+                            ? static_cast<int32_t>(it->second)
+                            : 0;
+            if (length) *length = 1;
+        }
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 
     // glGetProgramInterfaceiv recording (SPEC §7.3.1). ACTIVE_RESOURCES is taken
@@ -663,7 +688,8 @@ public:
     uint32_t lastInterfacePname = 0;
     int32_t lastInterfaceResult = 0;
     std::map<uint32_t, int32_t> interfaceCounts;
-    uint32_t programResourceCount(uint32_t) const override {
+    uint32_t programResourceCount(uint32_t programInterface) const override {
+        if (programInterface == GL_UNIFORM_BLOCK) return activeUniformBlocks;
         return interfaceActiveResources;
     }
     void getProgramInterfaceiv(uint32_t programInterface, uint32_t pname,

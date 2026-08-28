@@ -83,6 +83,7 @@ add_executable(yaglt_tests
     unit/indexed_query_test.cpp
     unit/texture_sub_image_test.cpp
     unit/conditional_render_test.cpp
+    unit/uniform_block_binding_test.cpp
     backend/gles_backend_test.cpp
 )
 

@@ -1,3 +1,5 @@
+#pragma once
+
 #include "mock_resources.hpp"
 
 #include "glcompat/core/factory.hpp"
@@ -54,8 +56,12 @@ public:
     std::unique_ptr<BackendProgram> createProgram() override {
         auto r = std::make_unique<MockProgram>();
         r->id = ++counter_;
+        lastCreatedProgram = r.get();
         return r;
     }
+    // Test helper: the most recently created MockProgram (nullptr before any
+    // program is created). Lets tests configure/observe program state directly.
+    MockProgram* lastCreatedProgram = nullptr;
 
 private:
     int counter_ = 0;

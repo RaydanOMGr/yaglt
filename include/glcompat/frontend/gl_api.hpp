@@ -491,9 +491,12 @@ void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize,
 GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName);
 void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
                               GLenum pname, GLint* params);
-void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
-                                 GLsizei bufSize, GLsizei* length,
-                                 GLchar* uniformBlockName);
+ void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
+                                  GLsizei bufSize, GLsizei* length,
+                                  GLchar* uniformBlockName);
+ void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
+                            GLuint uniformBlockBinding);
+
 
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar* name);
 GLint glGetSubroutineUniformLocation(GLuint program, GLenum shadertype,

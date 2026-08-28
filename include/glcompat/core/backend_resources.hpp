@@ -331,6 +331,13 @@ public:
     // (SPEC §7.3.7 glBindAttribLocation). Called before link(); takes effect on
     // the next link. Default no-op so backends opt in.
     virtual void bindAttribLocation(const std::string& name, int index) {}
+    // Associate a program's uniform block `blockIndex` with uniform-buffer
+    // binding point `blockBinding` (SPEC §7.6.2 glUniformBlockBinding). Default
+    // no-op so backends opt in; the GLES backend forwards to the driver on the
+    // native program, and the mock records it.
+    virtual void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) {
+        (void)blockIndex; (void)blockBinding;
+    }
     // Native backend program id (e.g. driver GLuint). 0 when not linked.
     virtual uint32_t nativeId() const = 0;
 

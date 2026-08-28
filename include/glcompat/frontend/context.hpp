@@ -782,7 +782,12 @@ public:
     void getActiveUniformBlockiv(GLObjectName program, uint32_t index, uint32_t pname,
                                  int32_t* params);
     void getActiveUniformBlockName(GLObjectName program, uint32_t index,
-                                   int32_t bufSize, int32_t* length, char* name);
+                                    int32_t bufSize, int32_t* length, char* name);
+    // Bind a program's uniform block `blockIndex` to uniform-buffer binding point
+    // `blockBinding` (SPEC §7.6.2 glUniformBlockBinding).
+    void uniformBlockBinding(GLObjectName program, uint32_t blockIndex,
+                             uint32_t blockBinding);
+
 
     // Subroutine reflection + selection (SPEC §7.9). All require the `Subroutines`
     // capability; `program` (for the reflection getters) must be a linked program;

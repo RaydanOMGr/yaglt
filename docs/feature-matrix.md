@@ -30,7 +30,7 @@ beliefable GLES 3.1-like baseline used to exercise the abstraction.
 | InstancedRendering | Native | (planned) |
 | FramebufferObjects | Native | `MockResourceFactory::createFramebuffer` |
 | RenderbufferObjects | Native | `MockResourceFactory::createRenderbuffer` |
-| UniformBufferObjects | Native | (planned) |
+| UniformBufferObjects | Native | `glBindBufferBase/Range` (target `GL_UNIFORM_BUFFER`) routed through `Context`; plus program block binding `glUniformBlockBinding` (SPEC §7.6.2) which validates the program is linked, the block index is `activeUniformBlockCount`-bounded, and the binding point is within the `MAX_UNIFORM_BUFFER_BINDINGS` floor, then forwards to the backend (`BackendProgram::uniformBlockBinding`). The mock records the block-index→binding association and reports it back through `glGetActiveUniformBlockiv(UNIFORM_BLOCK_BINDING)`; GLES forwards to `glUniformBlockBinding` on the native program. |
 | ShaderStorageBufferObjects | Native | (planned) |
 | TransformFeedback | Native | (planned) |
 | ImageLoadStore | Unsupported | — |

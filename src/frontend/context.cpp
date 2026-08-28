@@ -4776,9 +4776,35 @@ void Context::getActiveUniformBlockiv(GLObjectName program, uint32_t index,
 }
 
 void Context::getActiveUniformBlockName(GLObjectName program, uint32_t index,
-                                        int32_t bufSize, int32_t* length, char* name) {
+                                         int32_t bufSize, int32_t* length, char* name) {
     // Equivalent (SPEC §7.6) to GetProgramResourceName(UNIFORM_BLOCK, index).
     getProgramResourceName(program, GL_UNIFORM_BLOCK, index, bufSize, length, name);
+}
+
+namespace {
+// GL 4.6 guarantees at least this many uniform-buffer binding points
+// (table 23.47). Used only as a floor for the blockBinding upper bound;
+// real drivers report >= this via MAX_UNIFORM_BUFFER_BINDINGS.
+constexpr uint32_t kMaxUniformBufferBindings = 36;
+} // namespace
+
+void Context::uniformBlockBinding(GLObjectName program, uint32_t blockIndex,
+                                  uint32_t blockBinding) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    const uint32_t count = static_cast<uint32_t>(p->backend->activeUniformBlockCount());
+    if (blockIndex >= count) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (blockBinding >= kMaxUniformBufferBindings) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    p->backend->uniformBlockBinding(blockIndex, blockBinding);
 }
 
 namespace {
