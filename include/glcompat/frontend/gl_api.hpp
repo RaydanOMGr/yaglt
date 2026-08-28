@@ -700,6 +700,9 @@ void glGetInteger64v(GLenum pname, GLint64* params);
 // GL_INVALID_VALUE, null params -> GL_INVALID_VALUE.
 void glGetIntegeri_v(GLenum pname, GLuint index, GLint* params);
 void glGetBooleani_v(GLenum pname, GLuint index, GLboolean* params);
+void glGetFloati_v(GLenum pname, GLuint index, GLfloat* params);
+void glGetDoublei_v(GLenum pname, GLuint index, GLdouble* params);
+void glGetInteger64i_v(GLenum pname, GLuint index, GLint64* params);
 // Current graphics-reset status (SPEC §22.5). This frontend always reports
 // GL_NO_ERROR.
 GLenum glGetGraphicsResetStatus(void);

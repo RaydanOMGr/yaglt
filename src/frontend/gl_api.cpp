@@ -1894,6 +1894,21 @@ void glGetBooleani_v(GLenum pname, GLuint index, GLboolean* params) {
     g_current->getBooleani_v(pname, index, params);
 }
 
+void glGetFloati_v(GLenum pname, GLuint index, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getFloati_v(pname, index, params);
+}
+
+void glGetDoublei_v(GLenum pname, GLuint index, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getDoublei_v(pname, index, params);
+}
+
+void glGetInteger64i_v(GLenum pname, GLuint index, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getInteger64i_v(pname, index, params);
+}
+
 GLenum glGetGraphicsResetStatus(void) {
     if (g_current == nullptr) return GL_NO_ERROR;
     return g_current->getGraphicsResetStatus();

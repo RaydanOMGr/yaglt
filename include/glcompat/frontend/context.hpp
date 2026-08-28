@@ -1027,6 +1027,14 @@ public:
     // GL_INVALID_VALUE, and a null `params` sets GL_INVALID_VALUE.
     void getIntegeri_v(uint32_t pname, uint32_t index, int32_t* params);
     void getBooleani_v(uint32_t pname, uint32_t index, unsigned char* params);
+    // Typed variants of the indexed-state query (SPEC §22.3): glGetFloati_v /
+    // glGetDoublei_v / glGetInteger64i_v. They share the indexed-enable-cap
+    // protocol with getIntegeri_v / getBooleani_v (BLEND / SCISSOR_TEST per draw
+    // buffer); an unknown pname -> GL_INVALID_ENUM, an out-of-range `index` ->
+    // GL_INVALID_VALUE, and a null `params` -> GL_INVALID_VALUE.
+    void getFloati_v(uint32_t pname, uint32_t index, float* params);
+    void getDoublei_v(uint32_t pname, uint32_t index, double* params);
+    void getInteger64i_v(uint32_t pname, uint32_t index, int64_t* params);
     // Returns the current graphics-reset status (SPEC §22.5). This frontend has no
     // reset-detection path, so it always reports GL_NO_ERROR.
     GLenum getGraphicsResetStatus();

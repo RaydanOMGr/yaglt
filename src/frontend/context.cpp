@@ -5054,6 +5054,60 @@ void Context::getBooleani_v(uint32_t pname, uint32_t index, unsigned char* param
     params[0] = enabled ? 0x01 : 0x00;
 }
 
+void Context::getFloati_v(uint32_t pname, uint32_t index, float* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedQueryBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(pname), index, &enabled);
+    params[0] = enabled ? 1.0f : 0.0f;
+}
+
+void Context::getDoublei_v(uint32_t pname, uint32_t index, double* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedQueryBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(pname), index, &enabled);
+    params[0] = enabled ? 1.0 : 0.0;
+}
+
+void Context::getInteger64i_v(uint32_t pname, uint32_t index, int64_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedQueryBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(pname), index, &enabled);
+    params[0] = enabled ? 1 : 0;
+}
+
 GLenum Context::getGraphicsResetStatus() {
     // No reset-detection path exists in this frontend (SPEC §22.5); report the
     // steady-state value.
