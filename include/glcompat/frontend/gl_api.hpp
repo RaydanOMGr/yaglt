@@ -193,7 +193,11 @@ void glGetTextureParameterfv(GLuint texture, GLenum pname, GLfloat* params);
 void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname,
                                   GLint* params);
 void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname,
-                                  GLfloat* params);
+                                   GLfloat* params);
+void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname,
+                             GLint* params);
+void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
+                             GLfloat* params);
 void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                        GLvoid* pixels);
 void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);

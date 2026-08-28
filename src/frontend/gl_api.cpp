@@ -488,9 +488,23 @@ void glGetTextureLevelParameteriv(GLuint texture, GLint level, GLenum pname,
 }
 
 void glGetTextureLevelParameterfv(GLuint texture, GLint level, GLenum pname,
-                                  GLfloat* params) {
+                                   GLfloat* params) {
     if (g_current == nullptr) return;
     g_current->getTextureLevelParameterfv(texture, level, pname, params);
+}
+
+void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname,
+                              GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexLevelParameteriv(static_cast<uint32_t>(target), level, pname,
+                                      params);
+}
+
+void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
+                              GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getTexLevelParameterfv(static_cast<uint32_t>(target), level, pname,
+                                      params);
 }
 
 void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,

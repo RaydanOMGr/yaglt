@@ -266,3 +266,32 @@ TEST_CASE("dsa_on_ungenerated_name_invalid_operation") {
     ctx.textureParameteri(99999, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
+
+// Classic (non-DSA) glGetTexLevelParameteriv/fv (SPEC §8.1) operate on the
+// texture currently bound to the given target.
+TEST_CASE("get_tex_level_parameter_iv_bound_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName tex = ctx.genTexture();
+    ctx.bindTexture(GL_TEXTURE_2D, tex);
+    ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 32, 16, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    GLint w = 0, h = 0, internal = 0;
+    ctx.getTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &w);
+    ctx.getTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &h);
+    ctx.getTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &internal);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(w, 32);
+    EXPECT_EQ(h, 16);
+    EXPECT_EQ(internal, GL_RGBA8);
+    GLfloat fw = 0.0f;
+    ctx.getTexLevelParameterfv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &fw);
+    EXPECT_EQ(fw, 32.0f);
+}
+
+TEST_CASE("get_tex_level_parameter_no_bound_texture_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLint v = 0;
+    ctx.getTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}

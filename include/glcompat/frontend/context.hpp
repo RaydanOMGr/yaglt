@@ -271,9 +271,14 @@ public:
     void generateTextureMipmap(GLObjectName texture);
     void getTextureParameterfv(GLObjectName texture, GLenum pname, float* params);
     void getTextureLevelParameteriv(GLObjectName texture, int level, GLenum pname,
-                                   int32_t* params);
+                                    int32_t* params);
     void getTextureLevelParameterfv(GLObjectName texture, int level, GLenum pname,
-                                    float* params);
+                                     float* params);
+    // Classic (non-DSA) counterparts operating on the texture bound to `target`.
+    void getTexLevelParameteriv(uint32_t target, int level, GLenum pname,
+                               int32_t* params);
+    void getTexLevelParameterfv(uint32_t target, int level, GLenum pname,
+                               float* params);
     void getTextureImage(GLObjectName texture, int level, uint32_t format,
                          uint32_t type, void* pixels);
     void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
@@ -889,6 +894,11 @@ private:
     // recorded glTexImage* levels so getTextureLevelParameter* queries return the
     // uploaded size. Immutable storage (glTextureStorage*) owns these fields itself.
     void updateMutableTextureStorage(TextureObject* tex);
+    // Shared body for DSA + classic texture-level parameter queries (SPEC §8.1).
+    void getTexLevelParameterivImpl(TextureObject* tex, int level, GLenum pname,
+                                    int32_t* params);
+    void getTexLevelParameterfvImpl(TextureObject* tex, int level, GLenum pname,
+                                    float* params);
     GLObjectName nextName_ = 1;
 
     IGraphicsBackend& backend_;

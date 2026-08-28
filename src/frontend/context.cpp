@@ -1883,10 +1883,42 @@ void Context::textureParameteriv(GLObjectName texture, uint32_t pname,
     *params = 0.0f; // GL default for an unset parameter
 }
 
+void Context::getTexLevelParameteriv(uint32_t target, int level, GLenum pname,
+                                      int32_t* params) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getTexLevelParameterivImpl(tex, level, pname, params);
+}
+
+void Context::getTexLevelParameterfv(uint32_t target, int level, GLenum pname,
+                                     float* params) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getTexLevelParameterfvImpl(tex, level, pname, params);
+}
+
 void Context::getTextureLevelParameteriv(GLObjectName texture, int level,
                                          GLenum pname, int32_t* params) {
     TextureObject* tex = dsaTexture(*this, texture);
     if (tex == nullptr) return;
+    getTexLevelParameterivImpl(tex, level, pname, params);
+}
+
+void Context::getTextureLevelParameterfv(GLObjectName texture, int level,
+                                         GLenum pname, float* params) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    getTexLevelParameterfvImpl(tex, level, pname, params);
+}
+
+void Context::getTexLevelParameterivImpl(TextureObject* tex, int level,
+                                         GLenum pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
         return;
@@ -1915,10 +1947,8 @@ void Context::getTextureLevelParameteriv(GLObjectName texture, int level,
     // Frontend owns these values; do not round-trip to the backend.
 }
 
-void Context::getTextureLevelParameterfv(GLObjectName texture, int level,
+void Context::getTexLevelParameterfvImpl(TextureObject* tex, int level,
                                          GLenum pname, float* params) {
-    TextureObject* tex = dsaTexture(*this, texture);
-    if (tex == nullptr) return;
     if (params == nullptr) {
         setError(GLError::InvalidValue);
         return;

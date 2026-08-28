@@ -24,6 +24,20 @@ Known major blockers:
   `get_texture_level_parameter_mutable_1d` (1D height == 1) cover the mutable
   path. Validation: default, translate (Mesa), and sanitizer suites all green.
 
+## Recent Work (2026-08-28 — classic GetTexLevelParameter, this session)
+- Added the classic (non-DSA) `glGetTexLevelParameteriv` / `glGetTexLevelParameterfv`
+  (SPEC §8.1) operating on the texture bound to `target`. The frontend DSA methods
+  were refactored to share a common `getTexLevelParameter*Impl` body (frontend owns
+  WIDTH/HEIGHT/DEPTH/INTERNAL_FORMAT; unknown pnames delegate to the backend
+  `getLevelParameter*` when a backend resource exists). Public `gl_api` dispatch and
+  `gl_api.hpp` declarations added; per-target validation (no bound texture →
+  `GL_INVALID_OPERATION`, null params / out-of-range level → `GL_INVALID_VALUE`).
+- New `tests/unit/dsa_named_texture_test.cpp` cases
+  `get_tex_level_parameter_iv_bound_target` (iv + fv via bound target) and
+  `get_tex_level_parameter_no_bound_texture_invalid_operation`. Validation:
+  default, translate (Mesa), and sanitizer suites all green. Coverage bumped in
+  `docs/coverage-core.md` (now 277/571 ≈ 48.5% declared; ~53.7% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):
