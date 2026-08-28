@@ -17,6 +17,12 @@ public:
     virtual void enable(uint32_t cap) = 0;
     virtual void disable(uint32_t cap) = 0;
 
+    // Indexed capabilities (glEnablei / glDisablei / glIsEnabledi, SPEC §10.3.1).
+    // `cap` is a per-buffer/per-viewport capability (e.g. GL_BLEND,
+    // GL_SCISSOR_TEST); `index` selects the buffer/viewport slot.
+    virtual void enableIndexed(uint32_t cap, uint32_t index) = 0;
+    virtual void disableIndexed(uint32_t cap, uint32_t index) = 0;
+
     virtual void useProgram(uint32_t prog) = 0;
 
     // Program pipeline (glBindProgramPipeline, SPEC §7.4). The frontend tracks

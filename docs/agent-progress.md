@@ -1521,8 +1521,31 @@ crashed agent, this session)
   gl_types.hpp, caps switch + getInteger case in gl_state.cpp; backend already
   forwards any cap to native glEnable/glDisable. `tests/unit/srgb_alpha_coverage_test.cpp`
   (2 cases: default-off + push-only-on-change). Default 403/403, sanitizer 413/413
-  (+1 pre-existing unrelated `shader_translate_test.cpp:53` quirk). Coverage §15/§16
-  row updated (sRGB/alpha-to-coverage done; glClampColor already done — stale note removed).
+   (+1 pre-existing unrelated `shader_translate_test.cpp:53` quirk). Coverage §15/§16
+   row updated (sRGB/alpha-to-coverage done; glClampColor already done — stale note removed).
+
+2026-08-28 (indexed capabilities — glEnablei/glDisablei/glIsEnabledi, SPEC §10.3.1)
+- Implemented indexed capabilities (closes the §10.3.1 per-slot enable/disable gap).
+  `GLStateSink` gained two pure virtuals `enableIndexed(cap,index)` /
+  `disableIndexed(cap,index)`. `GLStateTracker` gained `setIndexedCapability` /
+  `isIndexedCapabilityEnabled` backed by per-slot `indexedCapsCurrent_` /
+  `indexedCapsApplied_` / `indexedCapsDirty_` maps, flushed in `apply()` only for
+  changed slots (SPEC §10: no redundant native call), and reset in `reset()`.
+- `Context` gained `enableIndexed` / `disableIndexed` / `isEnabledIndexed` with
+  honest validation: only `GL_BLEND` / `GL_SCISSOR_TEST` are indexable
+  (`isIndexableCap`) else `GL_INVALID_ENUM`; index ≥ `kMaxIndexedBuffers = 16` →
+  `GL_INVALID_VALUE`. `gl_api` exposes `glEnablei` / `glDisablei` / `glIsEnabledi`.
+- `GLESLib` resolves `glEnablei` / `glDisablei` (optional, ES 3.0+); `GLESBackend`
+  forwards the two sink methods to the native driver. `MockBackend` records the
+  calls (`enableIndexedCalls` / `disableIndexedCalls` / `last*Cap` / `last*Index`).
+  The three test `RecordingSink`s in `state_test.cpp` / `texture_unit_test.cpp` /
+  `dsa_texture_test.cpp` gained the two sink overrides.
+- New `tests/unit/indexed_caps_test.cpp` (3 cases: default-off per slot, push-only-on-
+  change for enable/disable, validation of invalid-cap + out-of-range index). Registered
+  in `tests/CMakeLists.txt`.
+- Validation: default 406/406 green; sanitizer 416/416 with the single pre-existing
+  unrelated `shader_translate_test.cpp:53` empty-source quirk unchanged. Coverage §2 row
+  updated (glEnablei/glDisablei/glIsEnabledi done).
 
 ## Next Steps (carried)
 - Remaining §7 gaps: compute shaders, shader binaries.

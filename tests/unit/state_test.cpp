@@ -24,6 +24,8 @@ struct RecordingSink : GLStateSink {
 
     void enable(GLenum c) override { caps.emplace_back(c, true); }
     void disable(GLenum c) override { caps.emplace_back(c, false); }
+    void enableIndexed(uint32_t, uint32_t) override {}
+    void disableIndexed(uint32_t, uint32_t) override {}
     void useProgram(GLObjectName p) override { programs.push_back(p); }
     void bindProgramPipeline(uint32_t) override {}
     void blendFuncSeparate(uint32_t, uint32_t, uint32_t, uint32_t) override {

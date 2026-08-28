@@ -824,6 +824,13 @@ public:
     // sets GL_INVALID_ENUM and returns false (mirrors desktop GL glIsEnabled).
     bool isEnabled(uint32_t cap);
 
+    // Indexed capability variants (SPEC §10.3.1). `cap` must be an indexable
+    // capability (GL_BLEND, GL_SCISSOR_TEST) else GL_INVALID_ENUM; `index` must be
+    // < kMaxIndexedBuffers else GL_INVALID_VALUE.
+    void enableIndexed(uint32_t cap, uint32_t index);
+    void disableIndexed(uint32_t cap, uint32_t index);
+    bool isEnabledIndexed(uint32_t cap, uint32_t index);
+
 private:
     // Shared body for glGetQueryObject* (SPEC §4): reads the cached result /
     // availability from the backend query resource into the requested width/sign.

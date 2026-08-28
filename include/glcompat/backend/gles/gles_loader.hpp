@@ -113,6 +113,8 @@ struct GLESLib {
     // flushes tracked state to the driver.
     void (*glEnable)(GLenum) = nullptr;
     void (*glDisable)(GLenum) = nullptr;
+    void (*glEnablei)(GLenum, GLuint) = nullptr;
+    void (*glDisablei)(GLenum, GLuint) = nullptr;
     void (*glUseProgram)(GLuint) = nullptr;
     void (*glBlendFunc)(GLenum, GLenum) = nullptr;
     void (*glBlendEquation)(GLenum) = nullptr;

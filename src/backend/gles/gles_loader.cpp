@@ -113,6 +113,8 @@ bool GLESLib::load() {
     resolve(gles, glGetUniformSubroutineuiv, "glGetUniformSubroutineuiv");
     ok &= resolve(gles, glEnable, "glEnable");
     ok &= resolve(gles, glDisable, "glDisable");
+    resolve(gles, glEnablei, "glEnablei");
+    resolve(gles, glDisablei, "glDisablei");
     ok &= resolve(gles, glUseProgram, "glUseProgram");
     ok &= resolve(gles, glBlendFunc, "glBlendFunc");
     ok &= resolve(gles, glBlendEquation, "glBlendEquation");

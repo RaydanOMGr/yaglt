@@ -23,6 +23,8 @@ struct UnitRecordingSink : GLStateSink {
     uint32_t currentUnit = GL_TEXTURE0;
     void enable(GLenum) override {}
     void disable(GLenum) override {}
+    void enableIndexed(uint32_t, uint32_t) override {}
+    void disableIndexed(uint32_t, uint32_t) override {}
     void useProgram(uint32_t) override {}
     void bindProgramPipeline(uint32_t) override {}
     void blendFuncSeparate(uint32_t, uint32_t, uint32_t, uint32_t) override {}

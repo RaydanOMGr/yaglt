@@ -42,6 +42,29 @@ GLenum GLStateTracker::getHint(GLenum target) const {
     return it == hints_.end() ? GL_DONT_CARE : it->second;
 }
 
+bool GLStateTracker::setIndexedCapability(GLenum cap, uint32_t index, bool enabled) {
+    auto& m = indexedCapsCurrent_[cap];
+    auto it = m.find(index);
+    if (it != m.end() && it->second == enabled) {
+        return false;
+    }
+    m[index] = enabled;
+    indexedCapsDirty_ = true;
+    return true;
+}
+
+bool GLStateTracker::isIndexedCapabilityEnabled(GLenum cap, uint32_t index,
+                                                bool* enabled) const {
+    auto it = indexedCapsCurrent_.find(cap);
+    if (it == indexedCapsCurrent_.end()) {
+        *enabled = false;
+        return true;
+    }
+    auto jt = it->second.find(index);
+    *enabled = (jt != it->second.end() && jt->second);
+    return true;
+}
+
 bool GLStateTracker::useProgram(GLObjectName prog) {
     if (activeProgram_ == prog) return false;
     activeProgram_ = prog;
@@ -465,6 +488,25 @@ int GLStateTracker::apply(GLStateSink& sink) {
         }
         capsApplied_ = capsCurrent_;
         capsDirty_ = false;
+        ++applied;
+    }
+
+    if (indexedCapsDirty_) {
+        for (const auto& capEntry : indexedCapsCurrent_) {
+            auto& appliedMap = indexedCapsApplied_[capEntry.first];
+            for (const auto& kv : capEntry.second) {
+                auto appliedIt = appliedMap.find(kv.first);
+                if (appliedIt == appliedMap.end() ||
+                    appliedIt->second != kv.second) {
+                    if (kv.second)
+                        sink.enableIndexed(capEntry.first, kv.first);
+                    else
+                        sink.disableIndexed(capEntry.first, kv.first);
+                    appliedMap[kv.first] = kv.second;
+                }
+            }
+        }
+        indexedCapsDirty_ = false;
         ++applied;
     }
 
@@ -914,6 +956,9 @@ void GLStateTracker::reset() {
     // SPEC §17.3.7: dithering is enabled by default.
     capsCurrent_[0x0BD0 /* GL_DITHER */] = true;
     capsApplied_[0x0BD0 /* GL_DITHER */] = true;
+    indexedCapsCurrent_.clear();
+    indexedCapsApplied_.clear();
+    indexedCapsDirty_ = false;
     activeProgram_ = 0;
     activeProgramApplied_ = 0;
     programDirty_ = false;

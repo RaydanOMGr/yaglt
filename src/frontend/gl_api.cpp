@@ -1358,6 +1358,16 @@ void glDisable(GLenum cap) {
     g_current->state().setCapability(cap, false);
 }
 
+void glEnablei(GLenum cap, GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->enableIndexed(cap, index);
+}
+
+void glDisablei(GLenum cap, GLuint index) {
+    if (g_current == nullptr) return;
+    g_current->disableIndexed(cap, index);
+}
+
 void glBlendFunc(GLenum sfactor, GLenum dfactor) {
     if (g_current == nullptr) return;
     g_current->state().setBlendFunc(sfactor, dfactor);
@@ -1593,6 +1603,11 @@ void glGetDoublev(GLenum pname, GLdouble* params) {
 GLboolean glIsEnabled(GLenum cap) {
     if (g_current == nullptr) return 0;
     return g_current->isEnabled(cap) ? 1 : 0;
+}
+
+GLboolean glIsEnabledi(GLenum cap, GLuint index) {
+    if (g_current == nullptr) return 0;
+    return g_current->isEnabledIndexed(cap, index) ? 1 : 0;
 }
 
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha) {

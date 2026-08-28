@@ -39,6 +39,10 @@ public:
     bool setCapability(GLenum cap, bool enabled);
     bool isCapabilityEnabled(GLenum cap) const;
 
+    // --- Indexed capabilities (glEnablei / glDisablei / glIsEnabledi, SPEC §10.3.1) ---
+    bool setIndexedCapability(GLenum cap, uint32_t index, bool enabled);
+    bool isIndexedCapabilityEnabled(GLenum cap, uint32_t index, bool* enabled) const;
+
     // --- Hints (glHint, SPEC §21.1.1) ---
     bool setHint(GLenum target, GLenum mode);
     GLenum getHint(GLenum target) const;
@@ -395,6 +399,11 @@ private:
     std::unordered_map<GLenum, bool> capsCurrent_;
     std::unordered_map<GLenum, bool> capsApplied_;
     bool capsDirty_ = false;
+
+    // Indexed capabilities (glEnablei/glDisablei). cap -> (index -> enabled).
+    std::unordered_map<GLenum, std::unordered_map<uint32_t, bool>> indexedCapsCurrent_;
+    std::unordered_map<GLenum, std::unordered_map<uint32_t, bool>> indexedCapsApplied_;
+    bool indexedCapsDirty_ = false;
 
     // Quality hints (SPEC §21.1.1, glHint). target -> mode. Pushed on flush.
     std::unordered_map<GLenum, GLenum> hints_;

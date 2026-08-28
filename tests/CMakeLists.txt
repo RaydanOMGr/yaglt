@@ -21,6 +21,7 @@ add_executable(yaglt_tests
     unit/hint_test.cpp
     unit/dither_test.cpp
     unit/srgb_alpha_coverage_test.cpp
+    unit/indexed_caps_test.cpp
     unit/texture_fbo_test.cpp
     unit/teximage_cube_test.cpp
     unit/texture_unit_test.cpp

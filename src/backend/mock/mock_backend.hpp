@@ -72,6 +72,15 @@ public:
     GLenum lastDisableCap = 0;
     std::vector<std::pair<GLenum, bool>> capCalls;
 
+    // glEnablei/glDisablei recording (SPEC §10.3.1).
+    int enableIndexedCalls = 0;
+    int disableIndexedCalls = 0;
+    GLenum lastEnableIndexedCap = 0;
+    uint32_t lastEnableIndexedIndex = 0;
+    GLenum lastDisableIndexedCap = 0;
+    uint32_t lastDisableIndexedIndex = 0;
+    std::vector<std::tuple<GLenum, uint32_t, bool>> indexedCapCalls;
+
     // glHint recording (SPEC §21.1.1).
     int hintCalls = 0;
     GLenum lastHintTarget = 0;
@@ -184,6 +193,18 @@ public:
         ++disableCalls;
         lastDisableCap = cap;
         capCalls.emplace_back(cap, false);
+    }
+    void enableIndexed(GLenum cap, uint32_t index) override {
+        ++enableIndexedCalls;
+        lastEnableIndexedCap = cap;
+        lastEnableIndexedIndex = index;
+        indexedCapCalls.emplace_back(cap, index, true);
+    }
+    void disableIndexed(GLenum cap, uint32_t index) override {
+        ++disableIndexedCalls;
+        lastDisableIndexedCap = cap;
+        lastDisableIndexedIndex = index;
+        indexedCapCalls.emplace_back(cap, index, false);
     }
     void useProgram(GLObjectName prog) override {
         ++useProgramCalls;

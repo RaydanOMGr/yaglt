@@ -4196,6 +4196,53 @@ bool Context::isEnabled(uint32_t cap) {
 }
 
 namespace {
+// Only these capabilities are defined as indexable by the GL spec (SPEC §10.3.1,
+// §22.3). Indexed enables for any other cap are GL_INVALID_ENUM.
+bool isIndexableCap(GLenum cap) {
+    return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0C11 /* GL_SCISSOR_TEST */;
+}
+constexpr uint32_t kMaxIndexedBuffers = 16; // covers MAX_DRAW_BUFFERS / MAX_VIEWPORTS
+} // namespace
+
+void Context::enableIndexed(uint32_t cap, uint32_t index) {
+    if (!isIndexableCap(static_cast<GLenum>(cap))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setIndexedCapability(static_cast<GLenum>(cap), index, true);
+}
+
+void Context::disableIndexed(uint32_t cap, uint32_t index) {
+    if (!isIndexableCap(static_cast<GLenum>(cap))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxIndexedBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setIndexedCapability(static_cast<GLenum>(cap), index, false);
+}
+
+bool Context::isEnabledIndexed(uint32_t cap, uint32_t index) {
+    if (!isIndexableCap(static_cast<GLenum>(cap))) {
+        setError(GLError::InvalidEnum);
+        return false;
+    }
+    if (index >= kMaxIndexedBuffers) {
+        setError(GLError::InvalidValue);
+        return false;
+    }
+    bool enabled = false;
+    state_.isIndexedCapabilityEnabled(static_cast<GLenum>(cap), index, &enabled);
+    return enabled;
+}
+
+namespace {
 // Copy `log` into `out` (up to bufSize-1 chars, nul-terminated). Sets *length to
 // the number of characters written, excluding the nul. Honors bufSize==0.
 void copyInfoLog(const std::string& log, uint32_t bufSize, int32_t* length,

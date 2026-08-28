@@ -204,6 +204,14 @@ void GLESBackend::disable(GLenum cap) {
     if (lib_->glDisable) lib_->glDisable(cap);
 }
 
+void GLESBackend::enableIndexed(uint32_t cap, uint32_t index) {
+    if (lib_->glEnablei) lib_->glEnablei(cap, index);
+}
+
+void GLESBackend::disableIndexed(uint32_t cap, uint32_t index) {
+    if (lib_->glDisablei) lib_->glDisablei(cap, index);
+}
+
 void GLESBackend::hint(uint32_t target, uint32_t mode) {
     if (lib_->glHint) lib_->glHint(target, mode);
 }

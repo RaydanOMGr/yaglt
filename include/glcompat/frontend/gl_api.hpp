@@ -447,6 +447,8 @@ void glVertexAttribPointer(GLuint index, GLint size, GLenum type,
 // state is pushed to the backend via glFlushState() at draw / flush time.
 void glEnable(GLenum cap);
 void glDisable(GLenum cap);
+void glEnablei(GLenum cap, GLuint index);
+void glDisablei(GLenum cap, GLuint index);
 void glBlendFunc(GLenum sfactor, GLenum dfactor);
 void glBlendEquation(GLenum mode);
 // Separate RGB/alpha blend factors and equations (SPEC §17.3). glBlendFunc and
@@ -581,6 +583,7 @@ void glGetIntegerv(GLenum pname, GLint* params);
 void glGetFloatv(GLenum pname, GLfloat* params);
 void glGetDoublev(GLenum pname, GLdouble* params);
 GLboolean glIsEnabled(GLenum cap);
+GLboolean glIsEnabledi(GLenum cap, GLuint index);
 
 // --- Draw commands (SPEC §2.1) ---
 // The frontend flushes tracked pipeline state to the backend immediately before
