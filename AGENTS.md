@@ -11,4 +11,6 @@
 - `.kilo/` is also intentionally untracked.
 
 ## Commits
-- Commit changes only when explicitly asked. Keep changes incremental.
+- Commit after every change that qualifies as one coherent thing. Multiple
+  commits may be made per session; keep each incremental and focused.
+- Never stage, commit, or push anything under a build directory.
