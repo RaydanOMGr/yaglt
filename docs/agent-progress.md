@@ -66,6 +66,17 @@ Known major blockers:
   default, translate (Mesa), and sanitizer suites green. Coverage bumped in
   `docs/coverage-core.md` (now 279/571 ≈ 48.9% declared; ~54.1% core).
 
+## Recent Work (2026-08-28 — classic GetFramebufferParameteriv, this session)
+- Added the classic (non-DSA) `glGetFramebufferParameteriv` (SPEC §9.2.3),
+  operating on the framebuffer bound to `target` (invalid target →
+  `GL_INVALID_ENUM`; no bound FBO → `GL_INVALID_OPERATION`; null params →
+  `GL_INVALID_VALUE`). User FBOs report 0 for FRAMEBUFFER_DEFAULT_* (frontend-
+  owned default, SPEC §10). Public `gl_api` dispatch + `gl_api.hpp` declaration
+  added; `get_framebuffer_parameter_*` cases appended to
+  `tests/unit/dsa_named_framebuffer_test.cpp`. Validation: default, translate
+  (Mesa), and sanitizer suites green. Coverage bumped in `docs/coverage-core.md`
+  (now 280/571 ≈ 49.0% declared; ~54.3% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):

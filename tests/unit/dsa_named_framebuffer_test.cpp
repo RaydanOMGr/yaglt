@@ -327,6 +327,39 @@ TEST_CASE("get_named_framebuffer_parameter_null_invalid") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
+// Classic (non-DSA) glGetFramebufferParameteriv (SPEC §9.2.3) operates on the
+// framebuffer bound to `target`. User FBOs report 0 for FRAMEBUFFER_DEFAULT_*.
+TEST_CASE("get_framebuffer_parameter_bound_target_returns_default") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fb;
+    ctx.createFramebuffers(1, &fb);
+    ctx.bindFramebuffer(fb);
+    int32_t v = -1;
+    ctx.getFramebufferParameteriv(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(v, 0);
+}
+
+TEST_CASE("get_framebuffer_parameter_invalid_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fb;
+    ctx.createFramebuffers(1, &fb);
+    ctx.bindFramebuffer(fb);
+    int32_t v = -1;
+    ctx.getFramebufferParameteriv(GL_TEXTURE_2D, GL_FRAMEBUFFER_DEFAULT_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("get_framebuffer_parameter_no_bound_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    int32_t v = -1;
+    ctx.getFramebufferParameteriv(GL_FRAMEBUFFER, GL_FRAMEBUFFER_DEFAULT_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
 TEST_CASE("blit_named_framebuffer_binds_and_records") {
     auto backend = makeBackend();
     Context ctx(*backend);

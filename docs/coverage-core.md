@@ -33,15 +33,15 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 283 `gl_api`
-entry points, and 279 matched families.
+signal. A reproducible regen script counts 571 declared families, 284 `gl_api`
+entry points, and 280 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 279 | **48.9%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 279 | **~54.1%** |
+| Full spec (compat + core) | 571 | 280 | **49.0%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 280 | **~54.3%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
@@ -119,7 +119,7 @@ glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glG
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv,
 glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetNamedBufferSubData,
-glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv,
+glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv,
 glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
 glProgramBinary, glProgramParameteri,

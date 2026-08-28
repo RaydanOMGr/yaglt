@@ -2799,6 +2799,27 @@ void Context::getNamedFramebufferParameteriv(GLObjectName framebuffer,
     *params = 0;
 }
 
+void Context::getFramebufferParameteriv(uint32_t target, uint32_t pname,
+                                        int32_t* params) {
+    if (target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER &&
+        target != GL_DRAW_FRAMEBUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer());
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // FRAMEBUFFER_DEFAULT_* describe the default framebuffer; a user FBO has no
+    // default dimensions, so the GL default is 0 (frontend-owned, SPEC §10).
+    *params = 0;
+}
+
 void Context::getFramebufferAttachmentParameteriv(uint32_t target,
                                                   uint32_t attachment,
                                                   uint32_t pname,
