@@ -724,6 +724,13 @@ public:
     int32_t getProgramResourceLocationIndex(GLObjectName program,
                                              uint32_t programInterface,
                                              const std::string& name);
+    // Program-interface summary query (SPEC §7.3.1 glGetProgramInterfaceiv).
+    // Writes the requested property for programInterface into params; an
+    // unsupported interface sets GL_INVALID_ENUM, a null params sets
+    // GL_INVALID_VALUE, and a program that is not linked / not a program object
+    // sets GL_INVALID_OPERATION.
+    void getProgramInterfaceiv(GLObjectName program, uint32_t programInterface,
+                               uint32_t pname, int32_t* params);
 
     // Legacy uniform/attribute/uniform-block reflection (SPEC §7.6, §7.3.11).
     // These are defined by the spec as exact equivalents of the program-resource

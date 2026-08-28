@@ -422,8 +422,11 @@ constexpr GLenum GL_FRAGMENT_SUBROUTINE_UNIFORM = 0x92F2;
 constexpr GLenum GL_COMPUTE_SUBROUTINE_UNIFORM = 0x92F3;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYING = 0x92F4;
 constexpr GLenum GL_ATOMIC_COUNTER_BUFFER = 0x92C0;
-// glGetProgramInterfaceiv pnames (used by the backend to size reflection).
+// glGetProgramInterfaceiv pnames (SPEC §7.3.1, used to size reflection).
 constexpr GLenum GL_ACTIVE_RESOURCES = 0x92F5;
+constexpr GLenum GL_MAX_RESOURCE_NAME_LENGTH = 0x92F6;
+constexpr GLenum GL_MAX_NUM_ACTIVE_VARIABLES = 0x92F7;
+constexpr GLenum GL_MAX_NUM_COMPATIBLE_SUBROUTINES = 0x92F8;
 constexpr GLenum GL_MAX_NAME_LENGTH = 0x92F6;
 // Properties accepted by glGetProgramResourceiv.
 constexpr GLenum GL_NAME_LENGTH = 0x92F9;

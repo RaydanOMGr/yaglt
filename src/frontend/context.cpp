@@ -4277,6 +4277,18 @@ bool isKnownProgramResourceProperty(uint32_t prop) {
     }
 }
 
+bool isKnownProgramInterfacePname(uint32_t pname) {
+    switch (pname) {
+    case GL_ACTIVE_RESOURCES:
+    case GL_MAX_RESOURCE_NAME_LENGTH:
+    case GL_MAX_NUM_ACTIVE_VARIABLES:
+    case GL_MAX_NUM_COMPATIBLE_SUBROUTINES:
+        return true;
+    default:
+        return false;
+    }
+}
+
 } // namespace
 
 uint32_t Context::getProgramResourceIndex(GLObjectName program,
@@ -4396,6 +4408,28 @@ int32_t Context::getProgramResourceLocationIndex(GLObjectName program,
         return -1;
     }
     return p->backend->getProgramResourceLocationIndex(programInterface, name);
+}
+
+void Context::getProgramInterfaceiv(GLObjectName program, uint32_t programInterface,
+                                    uint32_t pname, int32_t* params) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidProgramInterface(programInterface)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isKnownProgramInterfacePname(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    p->backend->getProgramInterfaceiv(programInterface, pname, params);
 }
 
 namespace {

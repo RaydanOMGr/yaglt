@@ -451,6 +451,8 @@ GLint glGetProgramResourceLocation(GLuint program, GLenum programInterface,
                                    const GLchar* name);
 GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
                                          const GLchar* name);
+void glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname,
+                             GLint* params);
 
 void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize,
                         GLsizei* length, GLint* size, GLenum* type, GLchar* name);

@@ -680,6 +680,14 @@ struct GLESBackendProgram : BackendProgram {
         return lib->glGetProgramResourceLocationIndex(
             handle, static_cast<GLenum>(programInterface), name.c_str());
     }
+    void getProgramInterfaceiv(uint32_t programInterface, uint32_t pname,
+                               int32_t* params) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramInterfaceiv || params == nullptr)
+            return;
+        lib->glGetProgramInterfaceiv(handle, static_cast<GLenum>(programInterface),
+                                     static_cast<GLenum>(pname), params);
+    }
     // Subroutine reflection + selection (SPEC §7.9). ES 3.1+ driver entry points,
     // resolved optionally; otherwise the honest BackendProgram defaults apply.
     uint32_t getSubroutineIndex(uint32_t shadertype,

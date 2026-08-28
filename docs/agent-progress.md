@@ -11,6 +11,25 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — program interface summary query, this session)
+- Added `glGetProgramInterfaceiv` (SPEC §7.3.1): returns a summary property for a
+  program interface (ACTIVE_RESOURCES, MAX_RESOURCE_NAME_LENGTH,
+  MAX_NUM_ACTIVE_VARIABLES, MAX_NUM_COMPATIBLE_SUBROUTINES). New
+  `BackendProgram::getProgramInterfaceiv` virtual; default is honest for backends
+  without introspection (ACTIVE_RESOURCES mirrors `programResourceCount`, MAX_*
+  report 0). The GLES backend forwards to the driver
+  (`lib->glGetProgramInterfaceiv`). `MockProgram` records the call and returns a
+  configurable count (ACTIVE_RESOURCES) / explicit `interfaceCounts` overrides.
+  `Context::getProgramInterfaceiv` validates: non-linked program / non-program
+  object → `GL_INVALID_OPERATION`; unsupported interface → `GL_INVALID_ENUM`; null
+  `params` → `GL_INVALID_VALUE`; unknown pname → `GL_INVALID_ENUM`. Added the three
+  missing pname constants (`GL_MAX_RESOURCE_NAME_LENGTH` / `GL_MAX_NUM_ACTIVE_VARIABLES`
+  / `GL_MAX_NUM_COMPATIBLE_SUBROUTINES`) to `gl_types.hpp`. New
+  `tests/unit/program_interface_test.cpp` covers ACTIVE_RESOURCES, MAX_NAME_LENGTH
+  default/override, and every validation path. Default **497/497**, sanitizer
+  **497/497**, translate/Mesa **509/509** green. Coverage bumped in
+  `docs/coverage-core.md` (307/571 ≈ 53.8% declared; ~59.5% core).
+
 ## Recent Work (2026-08-28 — memory barriers, this session)
 - Added `glMemoryBarrier` / `glMemoryBarrierByRegion` (SPEC §7.13.2). New
   `IGraphicsBackend::memoryBarrier` / `memoryBarrierByRegion` virtuals (default

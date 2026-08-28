@@ -76,6 +76,7 @@ add_executable(yaglt_tests
     unit/frag_data_location_test.cpp
     unit/transform_feedback_varying_test.cpp
     unit/memory_barrier_test.cpp
+    unit/program_interface_test.cpp
     backend/gles_backend_test.cpp
 )
 

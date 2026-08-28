@@ -618,6 +618,35 @@ public:
     std::map<std::string, int> boundAttribLocations;
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 
+    // glGetProgramInterfaceiv recording (SPEC §7.3.1). ACTIVE_RESOURCES is taken
+    // from the configurable count below; MAX_* sizing pnames fall back to 0 unless
+    // explicitly set in interfaceCounts.
+    uint32_t interfaceActiveResources = 0;
+    int programInterfaceCalls = 0;
+    uint32_t lastInterface = 0;
+    uint32_t lastInterfacePname = 0;
+    int32_t lastInterfaceResult = 0;
+    std::map<uint32_t, int32_t> interfaceCounts;
+    uint32_t programResourceCount(uint32_t) const override {
+        return interfaceActiveResources;
+    }
+    void getProgramInterfaceiv(uint32_t programInterface, uint32_t pname,
+                               int32_t* params) const override {
+        ++const_cast<MockProgram*>(this)->programInterfaceCalls;
+        const_cast<MockProgram*>(this)->lastInterface = programInterface;
+        const_cast<MockProgram*>(this)->lastInterfacePname = pname;
+        int32_t val = 0;
+        auto it = interfaceCounts.find(pname);
+        if (it != interfaceCounts.end()) {
+            val = it->second;
+        } else if (pname == GL_ACTIVE_RESOURCES) {
+            val = static_cast<int32_t>(programResourceCount(programInterface));
+        }
+        const_cast<MockProgram*>(this)->lastInterfaceResult = val;
+        if (params) *params = val;
+    }
+
+
     // glProgramBinary recording (observable in tests).
     int loadBinaryCalls = 0;
     uint32_t lastBinaryFormat = 0;

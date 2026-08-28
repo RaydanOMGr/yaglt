@@ -1329,6 +1329,12 @@ GLint glGetProgramResourceLocationIndex(GLuint program, GLenum programInterface,
                                                      name ? name : "");
 }
 
+void glGetProgramInterfaceiv(GLuint program, GLenum programInterface, GLenum pname,
+                             GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getProgramInterfaceiv(program, programInterface, pname, params);
+}
+
 void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize,
                         GLsizei* length, GLint* size, GLenum* type, GLchar* name) {
     if (g_current == nullptr) return;

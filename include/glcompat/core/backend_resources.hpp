@@ -380,11 +380,26 @@ public:
         return -1;
     }
     virtual int32_t getProgramResourceLocationIndex(uint32_t programInterface,
-                                                   const std::string& name) const {
+                                                    const std::string& name) const {
         (void)programInterface;
         (void)name;
         return -1;
     }
+
+    // Program-interface summary query (SPEC §7.3.1 glGetProgramInterfaceiv).
+    // Defaults are honest for backends without introspection: ACTIVE_RESOURCES
+    // mirrors programResourceCount (0), and the MAX_* sizing pnames report 0.
+    virtual void getProgramInterfaceiv(uint32_t programInterface, uint32_t pname,
+                                       int32_t* params) const {
+        (void)programInterface;
+        (void)pname;
+        if (params) {
+            *params = (pname == 0x92F5u)  // GL_ACTIVE_RESOURCES
+                          ? static_cast<int32_t>(programResourceCount(programInterface))
+                          : 0;
+        }
+    }
+
 
     // Subroutine reflection + selection (SPEC §7.9). Defaults are honest for
     // backends without introspection: names are not found, locations are -1,
