@@ -378,6 +378,11 @@ void glAttachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
 void glProgramParameteri(GLuint program, GLenum pname, GLint value);
 GLint glGetProgramiv(GLuint program, GLenum pname);
+void glProgramBinary(GLuint program, GLenum binaryFormat, const void* binary, GLsizei length);
+void glGetProgramBinary(GLuint program, GLsizei bufSize, GLsizei* length,
+                        GLenum* binaryFormat, void* binary);
+void glShaderBinary(GLsizei count, const GLuint* shaders, GLenum binaryFormat,
+                    const void* binary, GLsizei length);
 void glGetProgramInfoLog(GLuint program, GLsizei bufSize, GLsizei* length,
                         GLchar* infoLog);
 GLuint glGetProgramResourceIndex(GLuint program, GLenum programInterface,
