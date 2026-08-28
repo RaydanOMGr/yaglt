@@ -38,6 +38,20 @@ Known major blockers:
   default, translate (Mesa), and sanitizer suites all green. Coverage bumped in
   `docs/coverage-core.md` (now 277/571 ≈ 48.5% declared; ~53.7% core).
 
+## Recent Work (2026-08-28 — classic GetRenderbufferParameteriv, this session)
+- Added the classic (non-DSA) `glGetRenderbufferParameteriv` (SPEC §9.2.4),
+  operating on the renderbuffer bound to GL_RENDERBUFFER (invalid target →
+  `GL_INVALID_ENUM`; no bound RBO → `GL_INVALID_OPERATION`). The DSA method was
+  refactored to share a `getRenderbufferParameterivImpl` body reading frontend-
+  owned storage (WIDTH/HEIGHT/INTERNAL_FORMAT/SAMPLES). Public `gl_api` dispatch +
+  `gl_api.hpp` declaration added.
+- New `tests/unit/dsa_named_framebuffer_test.cpp` cases
+  `get_renderbuffer_parameter_iv_bound_target`,
+  `get_renderbuffer_parameter_invalid_target`,
+  `get_renderbuffer_parameter_no_bound_invalid_operation`. Validation: default,
+  translate (Mesa), and sanitizer suites green. Coverage bumped in
+  `docs/coverage-core.md` (now 278/571 ≈ 48.7% declared; ~53.9% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):

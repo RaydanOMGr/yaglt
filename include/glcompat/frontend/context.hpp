@@ -346,6 +346,10 @@ public:
                                             int height);
     void getNamedRenderbufferParameteriv(GLObjectName renderbuffer, uint32_t pname,
                                         int32_t* params);
+    // Classic (non-DSA) counterpart operating on the renderbuffer bound to
+    // `target` (must be GL_RENDERBUFFER).
+    void getRenderbufferParameteriv(uint32_t target, uint32_t pname,
+                                    int32_t* params);
 
     // --- Framebuffers ---
     GLObjectName genFramebuffer();
@@ -899,6 +903,9 @@ private:
                                     int32_t* params);
     void getTexLevelParameterfvImpl(TextureObject* tex, int level, GLenum pname,
                                     float* params);
+    // Shared body for DSA + classic renderbuffer-parameter queries (SPEC §9.2.4).
+    void getRenderbufferParameterivImpl(RenderbufferObject* rbo, uint32_t pname,
+                                        int32_t* params);
     GLObjectName nextName_ = 1;
 
     IGraphicsBackend& backend_;

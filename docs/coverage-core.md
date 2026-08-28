@@ -33,15 +33,15 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 281 `gl_api`
-entry points, and 277 matched families.
+signal. A reproducible regen script counts 571 declared families, 282 `gl_api`
+entry points, and 278 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 277 | **48.5%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 277 | **~53.7%** |
+| Full spec (compat + core) | 571 | 278 | **48.7%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 278 | **~53.9%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
@@ -120,7 +120,7 @@ glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, 
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetBooleanv,
 glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetBufferSubData, glGetDoublev, glGetFloatv, glGetIntegerv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv,
-glGetNamedRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
+glGetNamedRenderbufferParameteriv, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
 glProgramBinary, glProgramParameteri,
 glGetQueryObjectui64v, glGetQueryObjectuiv, glGetQueryiv, glGetSamplerParameteriv, glGetShaderInfoLog,

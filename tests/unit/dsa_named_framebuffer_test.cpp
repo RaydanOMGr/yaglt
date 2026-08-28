@@ -97,6 +97,46 @@ TEST_CASE("get_named_renderbuffer_parameter_null_invalid") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
+// Classic (non-DSA) glGetRenderbufferParameteriv (SPEC §9.2.4) operates on the
+// renderbuffer currently bound to GL_RENDERBUFFER.
+TEST_CASE("get_renderbuffer_parameter_iv_bound_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rb;
+    ctx.createRenderbuffers(1, &rb);
+    ctx.bindRenderbuffer(rb);
+    ctx.namedRenderbufferStorageMultisample(rb, 4, GL_RGBA8, 96, 48);
+    int32_t v = -1;
+    ctx.getRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(v, 96);
+    ctx.getRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &v);
+    EXPECT_EQ(v, 48);
+    ctx.getRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_SAMPLES, &v);
+    EXPECT_EQ(v, 4);
+    ctx.getRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_INTERNAL_FORMAT, &v);
+    EXPECT_EQ(v, static_cast<int32_t>(GL_RGBA8));
+}
+
+TEST_CASE("get_renderbuffer_parameter_invalid_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rb;
+    ctx.createRenderbuffers(1, &rb);
+    ctx.bindRenderbuffer(rb);
+    int32_t v = -1;
+    ctx.getRenderbufferParameteriv(GL_TEXTURE_2D, GL_RENDERBUFFER_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("get_renderbuffer_parameter_no_bound_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    int32_t v = -1;
+    ctx.getRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
 // --- DSA framebuffer surface (SPEC §9.2) ---
 
 TEST_CASE("create_framebuffers_generates_names") {

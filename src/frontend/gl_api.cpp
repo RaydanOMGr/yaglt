@@ -692,6 +692,12 @@ void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname,
     g_current->getNamedRenderbufferParameteriv(renderbuffer, pname, params);
 }
 
+void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getRenderbufferParameteriv(static_cast<uint32_t>(target), pname,
+                                          params);
+}
+
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers) {
     if (g_current == nullptr) return;
     g_current->genFramebuffers(static_cast<uint32_t>(n), framebuffers);

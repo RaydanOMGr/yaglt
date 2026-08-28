@@ -249,7 +249,9 @@ void glNamedRenderbufferStorageMultisample(GLuint renderbuffer, GLsizei samples,
                                           GLenum internalFormat, GLsizei width,
                                           GLsizei height);
 void glGetNamedRenderbufferParameteriv(GLuint renderbuffer, GLenum pname,
-                                      GLint* params);
+                                       GLint* params);
+void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params);
+
 
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers);
 void glBindFramebuffer(GLenum target, GLuint framebuffer);

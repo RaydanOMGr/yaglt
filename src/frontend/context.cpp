@@ -2623,6 +2623,20 @@ void Context::namedRenderbufferStorageMultisample(GLObjectName renderbuffer,
                                                     internalFormat, width, height);
 }
 
+void Context::getRenderbufferParameteriv(uint32_t target, uint32_t pname,
+                                         int32_t* params) {
+    if (target != GL_RENDERBUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    RenderbufferObject* rbo = getRenderbuffer(boundRenderbuffer());
+    if (rbo == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getRenderbufferParameterivImpl(rbo, pname, params);
+}
+
 void Context::getNamedRenderbufferParameteriv(GLObjectName renderbuffer,
                                              uint32_t pname, int32_t* params) {
     if (params == nullptr) {
@@ -2631,6 +2645,15 @@ void Context::getNamedRenderbufferParameteriv(GLObjectName renderbuffer,
     }
     RenderbufferObject* rbo = dsaRenderbuffer(*this, renderbuffer);
     if (rbo == nullptr) return;
+    getRenderbufferParameterivImpl(rbo, pname, params);
+}
+
+void Context::getRenderbufferParameterivImpl(RenderbufferObject* rbo,
+                                            uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
     switch (pname) {
         case GL_RENDERBUFFER_WIDTH:        *params = rbo->width; break;
         case GL_RENDERBUFFER_HEIGHT:       *params = rbo->height; break;
