@@ -793,6 +793,15 @@ public:
     void drawArraysIndirect(uint32_t mode, const void* offset);
     void drawElementsIndirect(uint32_t mode, uint32_t type, const void* offset);
 
+    // Compute dispatch (SPEC §7.4). Requires Feature::ComputeShaders (else
+    // GL_INVALID_OPERATION) and an active program (else GL_INVALID_OPERATION).
+    // `dispatchComputeIndirect` additionally requires a buffer bound to
+    // GL_DISPATCH_INDIRECT_BUFFER (else GL_INVALID_OPERATION). `offset` is the byte
+    // offset into that bound buffer; the frontend flushes tracked state then issues
+    // the native dispatch.
+    void dispatchCompute(uint32_t x, uint32_t y, uint32_t z);
+    void dispatchComputeIndirect(uintptr_t offset);
+
 
     // --- Uniforms (SPEC §8) ---
     // Query a uniform location for an explicit program. Setting uniforms operates

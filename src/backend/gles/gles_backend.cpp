@@ -526,11 +526,21 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
          lib_->glDrawArraysIndirect(mode, indirect);
  }
  
- void GLESBackend::drawElementsIndirect(uint32_t mode, uint32_t type,
-                                        const void* indirect) {
-     if (lib_->glDrawElementsIndirect)
-         lib_->glDrawElementsIndirect(mode, type, indirect);
- }
+  void GLESBackend::drawElementsIndirect(uint32_t mode, uint32_t type,
+                                         const void* indirect) {
+      if (lib_->glDrawElementsIndirect)
+          lib_->glDrawElementsIndirect(mode, type, indirect);
+  }
+
+  void GLESBackend::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
+      if (lib_->glDispatchCompute) lib_->glDispatchCompute(x, y, z);
+  }
+
+  void GLESBackend::dispatchComputeIndirect(uintptr_t offset) {
+      if (lib_->glDispatchComputeIndirect)
+          lib_->glDispatchComputeIndirect(static_cast<GLintptr>(offset));
+  }
+
 
 
 void GLESBackend::clear(uint32_t mask) {

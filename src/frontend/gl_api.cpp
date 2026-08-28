@@ -1850,9 +1850,20 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
      g_current->drawArraysIndirect(mode, indirect);
  }
 
- void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
-     if (g_current == nullptr) return;
-     g_current->drawElementsIndirect(mode, type, indirect);
- }
+  void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
+      if (g_current == nullptr) return;
+      g_current->drawElementsIndirect(mode, type, indirect);
+  }
+
+  void glDispatchCompute(GLuint x, GLuint y, GLuint z) {
+      if (g_current == nullptr) return;
+      g_current->dispatchCompute(x, y, z);
+  }
+
+  void glDispatchComputeIndirect(const GLvoid* indirect) {
+      if (g_current == nullptr) return;
+      g_current->dispatchComputeIndirect(reinterpret_cast<uintptr_t>(indirect));
+  }
+
 
  } // namespace glcompat

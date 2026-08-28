@@ -640,8 +640,12 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
  // Indirect draw (SPEC §10). Requires an indirect buffer bound to
  // GL_DRAW_INDIRECT_BUFFER and an active program; capability-gated by
  // IndirectDrawing. `indirect` is the byte offset into that bound buffer.
- void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect);
- void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect);
+  void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect);
+  void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect);
+
+  void glDispatchCompute(GLuint x, GLuint y, GLuint z);
+  void glDispatchComputeIndirect(const GLvoid* indirect);
+
 
 
 } // namespace glcompat

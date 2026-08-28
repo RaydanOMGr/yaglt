@@ -267,6 +267,10 @@ constexpr GLenum GL_FIXED_ONLY = 0x891D;
 constexpr GLenum GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
 constexpr GLenum GL_DRAW_INDIRECT_BUFFER_BINDING = 0x8F43;
 
+// Compute dispatch (SPEC §7.4).
+constexpr GLenum GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;
+constexpr GLenum GL_DISPATCH_INDIRECT_BUFFER_BINDING = 0x90EF;
+
 // Shader stages.
 constexpr GLenum GL_VERTEX_SHADER = 0x8B31;
 constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30;

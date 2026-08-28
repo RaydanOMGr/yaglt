@@ -577,6 +577,23 @@ public:
         lastIndirect = indirect;
     }
 
+    // Compute dispatch (SPEC §7.4). Recorded so tests can assert the call is
+    // issued (the mock has no driver; the frontend validates the feature / program).
+    int dispatchComputeCalls = 0;
+    int dispatchComputeIndirectCalls = 0;
+    uint32_t lastDispatchX = 0, lastDispatchY = 0, lastDispatchZ = 0;
+    uintptr_t lastDispatchIndirect = 0;
+    void dispatchCompute(uint32_t x, uint32_t y, uint32_t z) override {
+        ++dispatchComputeCalls;
+        lastDispatchX = x;
+        lastDispatchY = y;
+        lastDispatchZ = z;
+    }
+    void dispatchComputeIndirect(uintptr_t offset) override {
+        ++dispatchComputeIndirectCalls;
+        lastDispatchIndirect = offset;
+    }
+
     void clear(uint32_t mask) override {
         ++clearCalls;
         lastClearMask = mask;

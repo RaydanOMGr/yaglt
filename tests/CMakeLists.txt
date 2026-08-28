@@ -50,6 +50,7 @@ add_executable(yaglt_tests
     unit/clear_test.cpp
     unit/blend_test.cpp
     unit/stencil_test.cpp
+    unit/compute_dispatch_test.cpp
     unit/raster_test.cpp
     unit/readpixels_test.cpp
     unit/logicop_blit_invalidate_test.cpp

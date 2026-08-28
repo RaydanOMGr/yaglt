@@ -159,6 +159,10 @@ public:
     void drawElementsIndirect(uint32_t mode, uint32_t type,
                               const void* indirect) override;
 
+    // Compute dispatch (SPEC §7.4, ES 3.1+; forwarded when the driver supports it).
+    void dispatchCompute(uint32_t x, uint32_t y, uint32_t z) override;
+    void dispatchComputeIndirect(uintptr_t offset) override;
+
     // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
     // clear color/depth through GLStateSink first, so this issues the native
     // clear with the current values.

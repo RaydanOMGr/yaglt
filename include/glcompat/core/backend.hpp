@@ -81,6 +81,12 @@ public:
     virtual void drawElementsIndirect(uint32_t mode, uint32_t type,
                                       const void* indirect) = 0;
 
+    // Compute dispatch (SPEC §7.4). glDispatchCompute issues a 3D work-group
+    // grid directly; glDispatchComputeIndirect reads the work-group counts from
+    // the bound GL_DISPATCH_INDIRECT_BUFFER at the given byte offset.
+    virtual void dispatchCompute(uint32_t x, uint32_t y, uint32_t z) = 0;
+    virtual void dispatchComputeIndirect(uintptr_t offset) = 0;
+
     // Clear the bound framebuffer (SPEC §2.1). The frontend pushes the tracked
     // clear color/depth values through GLStateSink before calling this, so the
     // backend issues the native clear with the current clear values.

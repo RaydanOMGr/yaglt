@@ -1564,12 +1564,31 @@ crashed agent, this session)
   (`stencil*SeparateCalls`, `lastStencilFace`).
 - Extended `tests/unit/stencil_test.cpp` (2 cases: per-face push-only-on-change + collapse-to-
   combined when faces re-equal, invalid-face `GL_INVALID_ENUM`).
-- Validation: default 408/408 green; sanitizer 418/418 (pre-existing unrelated
-  `shader_translate_test.cpp:53` empty-source quirk unchanged). Coverage §17 row updated
-  (separate stencil done).
+ - Validation: default 408/408 green; sanitizer 418/418 (pre-existing unrelated
+   `shader_translate_test.cpp:53` empty-source quirk unchanged). Coverage §17 row updated
+   (separate stencil done).
+
+ 2026-08-28 (compute dispatch — glDispatchCompute/glDispatchComputeIndirect, SPEC §7.4)
+ - Implemented compute dispatch commands. `IGraphicsBackend` gained pure virtuals
+   `dispatchCompute(x,y,z)` / `dispatchComputeIndirect(offset)`; `GLESBackend` forwards them to
+   the native driver via newly resolved/optional `GLESLib` symbols `glDispatchCompute` /
+   `glDispatchComputeIndirect`. `MockBackend` records the calls (`dispatchComputeCalls` /
+   `dispatchComputeIndirectCalls` / `lastDispatchX/Y/Z` / `lastDispatchIndirect`).
+ - `Context` gained `dispatchCompute` / `dispatchComputeIndirect` with honest validation: gated by
+   `Feature::ComputeShaders` (else `GL_INVALID_OPERATION`); require an active program
+   (`state_.activeProgram() != 0`, else `GL_INVALID_OPERATION`); indirect additionally requires a
+   buffer bound to `GL_DISPATCH_INDIRECT_BUFFER` (else `GL_INVALID_OPERATION`). Both flush tracked
+   state then forward to the backend. `GL_DISPATCH_INDIRECT_BUFFER` / `GL_DISPATCH_INDIRECT_BUFFER_
+   BINDING` constants added to `gl_types.hpp`. `gl_api` exposes the two entry points.
+ - New `tests/unit/compute_dispatch_test.cpp` (3 cases: feature+program gate, indirect-buffer gate,
+   compute-shader-object rejection until `ComputeShaders` lands). Registered in `tests/CMakeLists.txt`.
+ - Validation: default 411/411 green; sanitizer 421/421 (pre-existing unrelated
+   `shader_translate_test.cpp:53` empty-source quirk unchanged). Coverage §7 + Shader-stages rows
+   updated (compute dispatch done; compute shader objects still TODO).
 
 ## Next Steps (carried)
-- Remaining §7 gaps: compute shaders, shader binaries.
-- Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
-- §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
-- §10: indirect draw.
+ - Remaining §7 gaps: compute **shader objects/stages** (create/compile/link a compute program),
+   shader binaries.
+ - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
+ - §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
+ - §10: indirect draw.

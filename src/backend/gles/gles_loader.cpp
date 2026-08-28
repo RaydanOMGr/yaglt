@@ -134,6 +134,8 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilOpSeparate, "glStencilOpSeparate");
     ok &= resolve(gles, glStencilMaskSeparate, "glStencilMaskSeparate");
     ok &= resolve(gles, glColorMask, "glColorMask");
+    resolve(gles, glDispatchCompute, "glDispatchCompute");
+    resolve(gles, glDispatchComputeIndirect, "glDispatchComputeIndirect");
     ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");
     // glPrimitiveRestartIndex is core in GLES 3.0 but some implementations expose
     // it conditionally; resolve it optionally so load() still succeeds without it.
