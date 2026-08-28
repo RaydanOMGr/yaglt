@@ -1,5 +1,7 @@
 build/
+build_*/
 *.o
 *.a
 cmake-build-*/
 .DS_Store
+.kilo/
