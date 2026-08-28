@@ -1031,6 +1031,14 @@ void Context::bindBufferBase(uint32_t target, uint32_t index,
         setError(GLError::InvalidOperation);
         return;
     }
+    if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
+        if (TransformFeedbackObject::TfBufferBinding* slot =
+                activeTransformFeedbackBinding(index)) {
+            slot->buffer = buffer;
+            slot->offset = 0;
+            slot->size = 0;
+        }
+    }
     if (GLStateSink* sink = backend_.stateSink()) {
         sink->bindBufferBase(target, index, buffer);
     }
@@ -1048,6 +1056,14 @@ void Context::bindBufferRange(uint32_t target, uint32_t index,
     if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
         setError(GLError::InvalidOperation);
         return;
+    }
+    if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
+        if (TransformFeedbackObject::TfBufferBinding* slot =
+                activeTransformFeedbackBinding(index)) {
+            slot->buffer = buffer;
+            slot->offset = offset;
+            slot->size = size;
+        }
     }
     if (GLStateSink* sink = backend_.stateSink()) {
         sink->bindBufferRange(target, index, buffer, offset, size);
@@ -3466,6 +3482,75 @@ void Context::resumeTransformFeedback() {
     transformFeedbackPaused_ = false;
 }
 
+TransformFeedbackObject::TfBufferBinding* Context::tfBufferBindingSlot(
+        GLObjectName xfb, uint32_t index) {
+    if (index >= kMaxTransformFeedbackBuffers) {
+        setError(GLError::InvalidValue);
+        return nullptr;
+    }
+    if (xfb == 0) return &defaultTransformFeedbackBuffers_[index];
+    TransformFeedbackObject* tf = getTransformFeedback(xfb);
+    if (tf == nullptr) {
+        // An ungenerated TF object name cannot carry bindings (SPEC §13.2.1:
+        // the object must already exist).
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    return &tf->bufferBindings[index];
+}
+
+TransformFeedbackObject::TfBufferBinding* Context::activeTransformFeedbackBinding(
+        uint32_t index) {
+    if (index >= kMaxTransformFeedbackBuffers) {
+        setError(GLError::InvalidValue);
+        return nullptr;
+    }
+    if (boundTransformFeedback_ == 0) return &defaultTransformFeedbackBuffers_[index];
+    return tfBufferBindingSlot(boundTransformFeedback_, index);
+}
+
+void Context::transformFeedbackBufferBase(GLObjectName xfb, uint32_t index,
+                                         GLObjectName buffer) {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    TransformFeedbackObject::TfBufferBinding* slot = tfBufferBindingSlot(xfb, index);
+    if (slot == nullptr) return;
+    slot->buffer = buffer;
+    slot->offset = 0;
+    slot->size = 0;
+    if (GLStateSink* sink = backend_.stateSink()) {
+        sink->bindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer);
+    }
+}
+
+void Context::transformFeedbackBufferRange(GLObjectName xfb, uint32_t index,
+                                          GLObjectName buffer, intptr_t offset,
+                                          intptr_t size) {
+    if (!backend_.capabilities().isSupported(Feature::TransformFeedback)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    TransformFeedbackObject::TfBufferBinding* slot = tfBufferBindingSlot(xfb, index);
+    if (slot == nullptr) return;
+    slot->buffer = buffer;
+    slot->offset = offset;
+    slot->size = size;
+    if (GLStateSink* sink = backend_.stateSink()) {
+        sink->bindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer,
+                             offset, size);
+    }
+}
+
 // --- Query objects (SPEC §4 / §19) ---
 
 GLObjectName Context::genQuery() {
@@ -4310,6 +4395,12 @@ void Context::getProgramiv(GLObjectName program, uint32_t pname, GLint* params) 
     case GL_PROGRAM_BINARY_LENGTH:
         result = static_cast<GLint>(p->binary.size());
         break;
+    case GL_TRANSFORM_FEEDBACK_BUFFER_MODE:
+        result = static_cast<GLint>(p->tfBufferMode);
+        break;
+    case GL_TRANSFORM_FEEDBACK_VARYINGS:
+        result = static_cast<GLint>(p->tfVaryings.size());
+        break;
     default:
         setError(GLError::InvalidEnum);
         return;
@@ -5069,6 +5160,18 @@ void Context::getIntegeri_v(uint32_t pname, uint32_t index, int32_t* params) {
         setError(GLError::InvalidValue);
         return;
     }
+    if (pname == GL_TRANSFORM_FEEDBACK_BUFFER_BINDING) {
+        if (index >= kMaxTransformFeedbackBuffers) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        const TransformFeedbackObject::TfBufferBinding* slot =
+            (boundTransformFeedback_ == 0)
+                ? &defaultTransformFeedbackBuffers_[index]
+                : tfBufferBindingSlot(boundTransformFeedback_, index);
+        params[0] = slot ? static_cast<int32_t>(slot->buffer) : 0;
+        return;
+    }
     if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
         setError(GLError::InvalidEnum);
         return;
@@ -5139,6 +5242,18 @@ void Context::getDoublei_v(uint32_t pname, uint32_t index, double* params) {
 void Context::getInteger64i_v(uint32_t pname, uint32_t index, int64_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
+        return;
+    }
+    if (pname == GL_TRANSFORM_FEEDBACK_BUFFER_BINDING) {
+        if (index >= kMaxTransformFeedbackBuffers) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        const TransformFeedbackObject::TfBufferBinding* slot =
+            (boundTransformFeedback_ == 0)
+                ? &defaultTransformFeedbackBuffers_[index]
+                : tfBufferBindingSlot(boundTransformFeedback_, index);
+        params[0] = slot ? static_cast<int64_t>(slot->buffer) : 0;
         return;
     }
     if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {

@@ -13,6 +13,10 @@ namespace glcompat {
 
 using GLObjectName = uint32_t;
 
+// Maximum number of buffer binding points per transform-feedback object
+// (GL 4.6 floor for MAX_TRANSFORM_FEEDBACK_BUFFERS, SPEC §13.2.1).
+constexpr uint32_t kMaxTransformFeedbackBuffers = 4;
+
 // Frontend OpenGL object. Identity (the GL name) and OpenGL-visible state live
 // here, decoupled from the backend resource it owns. The backend handle is an
 // opaque unique_ptr so it can be recreated / lazily allocated / emulated
@@ -243,6 +247,16 @@ public:
     explicit TransformFeedbackObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
     std::unique_ptr<BackendTransformFeedback> backend;
+    // Indexed buffer bindings (SPEC §13.2.1 glTransformFeedbackBufferBase/Range).
+    // A binding of {0,0,0} means the point is unbound; `buffer` is the bound
+    // buffer object name, `offset`/`size` the captured sub-range (size==0 means
+    // the whole buffer).  Index 0..kMaxTransformFeedbackBuffers-1.
+    struct TfBufferBinding {
+        GLObjectName buffer = 0;
+        intptr_t offset = 0;
+        intptr_t size = 0;
+    };
+    std::vector<TfBufferBinding> bufferBindings{kMaxTransformFeedbackBuffers};
 };
 
 // Frontend query object (SPEC §4 / §19). Owns an opaque backend query resource

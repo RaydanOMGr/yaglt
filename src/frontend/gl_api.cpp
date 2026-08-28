@@ -1060,6 +1060,19 @@ void glResumeTransformFeedback() {
     g_current->resumeTransformFeedback();
 }
 
+void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer) {
+    if (g_current == nullptr) return;
+    g_current->transformFeedbackBufferBase(xfb, index, buffer);
+}
+
+void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer,
+                                    GLintptr offset, GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->transformFeedbackBufferRange(xfb, index, buffer,
+                                            static_cast<intptr_t>(offset),
+                                            static_cast<intptr_t>(size));
+}
+
 // --- Query objects (SPEC §4 / §19) ---
 
 GLuint glGenQuery() {

@@ -620,6 +620,17 @@ public:
     void pauseTransformFeedback();
     void resumeTransformFeedback();
 
+    // Transform-feedback buffer bindings (SPEC §13.2.1 glTransformFeedbackBuffer-
+    // Base/Range). `xfb == 0` operates on the currently bound TF object (the
+    // default object when none is bound); a non-zero `xfb` is the name of a
+    // generated TF object. The binding is recorded on the TF object and also
+    // pushed to the backend as a GL_TRANSFORM_FEEDBACK_BUFFER base/range binding.
+    void transformFeedbackBufferBase(GLObjectName xfb, uint32_t index,
+                                    GLObjectName buffer);
+    void transformFeedbackBufferRange(GLObjectName xfb, uint32_t index,
+                                     GLObjectName buffer, intptr_t offset,
+                                     intptr_t size);
+
     // --- Query objects (SPEC §4 / §19) ---
     // Capability-gated by Queries. gen/bind/delete manage the frontend query
     // objects; begin/end bracket a capture of the given target. A query cannot
@@ -1147,12 +1158,28 @@ private:
     // region (SPEC §10.11).
     bool isConditionalRenderQueryType(uint32_t target) const;
 
+    // Returns the indexed buffer-binding slot for a transform-feedback object, or
+    // nullptr after setting the appropriate GL error (out-of-range index, or an
+    // ungenerated TF object name). `xfb == 0` selects the default TF object.
+    TransformFeedbackObject::TfBufferBinding* tfBufferBindingSlot(
+        GLObjectName xfb, uint32_t index);
+
+    // Returns the binding slot of the currently active TF object (the bound named
+    // object, or the default object when none is bound). nullptr on out-of-range.
+    TransformFeedbackObject::TfBufferBinding* activeTransformFeedbackBinding(
+        uint32_t index);
+
     std::unordered_map<uint32_t, GLObjectName> boundBuffers_;
     GLObjectName boundRenderbuffer_ = 0;
     GLObjectName boundFramebuffer_ = 0;
     GLObjectName boundVertexArray_ = 0;
     GLObjectName boundTransformFeedback_ = 0;
     GLObjectName boundProgramPipeline_ = 0;
+
+    // Buffer bindings of the default (name 0) transform-feedback object
+    // (SPEC §13.2.1). Indexed by binding point 0..kMaxTransformFeedbackBuffers-1.
+    std::vector<TransformFeedbackObject::TfBufferBinding>
+        defaultTransformFeedbackBuffers_{kMaxTransformFeedbackBuffers};
 
     // Object-label stores (SPEC §22.2). objectLabels_ is keyed by (identifier << 32
     // | name); ptrLabels_ by the raw sync pointer.

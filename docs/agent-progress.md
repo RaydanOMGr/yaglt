@@ -29,6 +29,32 @@ Known major blockers:
    Coverage bumped in `docs/coverage-core.md` (314/571 ≈ 55.0% declared;
    ~60.9% core). `docs/feature-matrix.md` marks UniformBufferObjects Implemented.
 
+## Recent Work (2026-08-29 — transform-feedback buffer bindings, this session)
+- Added varying-capture buffer bindings (SPEC §13.2.1) to wire captured varyings
+  to buffers. `TransformFeedbackObject` gained an indexed `bufferBindings` vector
+  (4 points) of `{buffer, offset, size}`; the context holds a parallel
+  `defaultTransformFeedbackBuffers_` for the default (name 0) object. New
+  `Context::transformFeedbackBufferBase`/`transformFeedbackBufferRange` take an
+  `xfb` name: `xfb == 0` selects the default object, a non-zero `xfb` selects a
+  generated TF object (ungenerated → `GL_INVALID_OPERATION`); they record the
+  binding on that object and push `GL_TRANSFORM_FEEDBACK_BUFFER` base/range to the
+  backend `GLStateSink`. `glBindBufferBase`/`glBindBufferRange` with
+  `GL_TRANSFORM_FEEDBACK_BUFFER` now route into the *active* TF object's bindings
+  (out-of-range index → `GL_INVALID_VALUE`), so a bound named object owns its
+  capture buffers. The indexed query `glGetIntegeri_v`/`glGetInteger64i_v(
+  GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, index)` returns the active object's
+  binding. `glGetProgramiv` now answers `GL_TRANSFORM_FEEDBACK_BUFFER_MODE` (the
+  program's `tfBufferMode`) and `GL_TRANSFORM_FEEDBACK_VARYINGS` (capture count).
+  New constants `GL_TRANSFORM_FEEDBACK_BUFFER_BINDING` / `GL_TRANSFORM_FEEDBACK_
+  VARYINGS` in `gl_types.hpp`; public `glTransformFeedbackBufferBase` /
+  `glTransformFeedbackBufferRange` in `gl_api`. New
+  `tests/unit/transform_feedback_buffer_test.cpp` (default/named-object bind,
+  range offset+size, active-object routing, out-of-range / ungenerated-buffer /
+  ungenerated-object validation, program queries). Default **542/542**, sanitizer
+  **542/542**, translate (Mesa) **pass** green. Coverage bumped in
+  `docs/coverage-core.md` (317/571 ≈ 55.5% declared; ~61.6% core);
+  `docs/feature-matrix.md` notes the capture-buffer wiring.
+
 ## Recent Work (2026-08-29 — transform-feedback varyings, this session)
 - Added `glTransformFeedbackVaryings` (SPEC §13.3.1) to complete the
   transform-feedback setup surface. New `BackendProgram::transformFeedback-

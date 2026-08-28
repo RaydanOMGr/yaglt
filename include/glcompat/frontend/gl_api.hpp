@@ -381,7 +381,10 @@ void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names);
 void glBeginTransformFeedback(GLenum primitiveMode);
 void glEndTransformFeedback();
 void glPauseTransformFeedback();
-void glResumeTransformFeedback();
+ void glResumeTransformFeedback();
+ void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
+ void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer,
+                                     GLintptr offset, GLsizeiptr size);
 
 // --- Query objects (SPEC §4 / §19) ---
 GLuint glGenQuery();
