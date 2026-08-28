@@ -233,6 +233,15 @@ constexpr GLenum GL_ACTIVE_TEXTURE = 0x84E0;
 
 // Vertex attribute state queries (SPEC §10.2 / §10.3).
 constexpr GLenum GL_CURRENT_VERTEX_ATTRIB = 0x8626;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_INTEGER = 0x88FD;
+constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_DIVISOR = 0x88FE;
 
 // Hint targets / modes (SPEC §21.1.1, glHint).
 constexpr GLenum GL_DONT_CARE = 0x1100;

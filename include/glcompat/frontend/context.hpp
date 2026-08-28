@@ -803,11 +803,20 @@ public:
     void vertexAttribI4ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z, uint32_t w);
     void vertexAttribI4iv(uint32_t index, const int32_t* v);
     void vertexAttribI4uiv(uint32_t index, const uint32_t* v);
-    // Query per-attribute state. Only GL_CURRENT_VERTEX_ATTRIB is supported; any
-    // other pname -> GL_INVALID_ENUM. fv returns the value as float; iv returns
-    // the value as int (truncating for the float family).
+    // Query per-attribute state (SPEC §10.4), read from the bound VAO.
+    // fv returns CURRENT_VERTEX_ATTRIB as float[4]; dv as double[4].
+    // iv answers the integer/bool array pnames (ENABLED/SIZE/STRIDE/TYPE/
+    //   NORMALIZED/INTEGER/DIVISOR/BUFFER_BINDING, plus CURRENT_VERTEX_ATTRIB).
+    // Iiv/Iuiv return CURRENT_VERTEX_ATTRIB (signed/unsigned) and
+    //   VERTEX_ATTRIB_ARRAY_INTEGER. Pointerv returns VERTEX_ATTRIB_ARRAY_POINTER.
+    // Unknown pname -> GL_INVALID_ENUM; null params -> GL_INVALID_VALUE; no bound
+    // VAO -> GL_INVALID_OPERATION; index >= max -> GL_INVALID_VALUE.
     void getVertexAttribfv(uint32_t index, GLenum pname, float* params);
     void getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params);
+    void getVertexAttribdv(uint32_t index, GLenum pname, double* params);
+    void getVertexAttribIiv(uint32_t index, GLenum pname, int32_t* params);
+    void getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params);
+    void getVertexAttribPointerv(uint32_t index, GLenum pname, void** params);
 
     // --- Hints (SPEC §21.1.1) ---
     // Quality hint for a target. Invalid target or mode -> GL_INVALID_ENUM. If a

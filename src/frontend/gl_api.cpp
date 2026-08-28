@@ -1887,9 +1887,29 @@ void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params) {
     g_current->getVertexAttribfv(index, pname, params);
 }
 
+void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribdv(index, pname, params);
+}
+
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getVertexAttribiv(index, pname, params);
+}
+
+void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribIiv(index, pname, params);
+}
+
+void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribIuiv(index, pname, params);
+}
+
+void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribPointerv(index, pname, reinterpret_cast<void**>(params));
 }
 
 void glHint(GLenum target, GLenum mode) {

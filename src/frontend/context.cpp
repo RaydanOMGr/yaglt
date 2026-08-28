@@ -5198,22 +5198,109 @@ void Context::vertexAttribI4uiv(uint32_t index, const uint32_t* v) {
     vertexAttribI4ui(index, v[0], v[1], v[2], v[3]);
 }
 
+namespace {
+// Fills `out` (int32_t[4]) for the integer/boolean vertex-attribute pnames and
+// returns the element count (1 or 4). Returns 0 for unsupported pnames so the
+// caller can raise GL_INVALID_ENUM.
+int getVertexAttribIntParams(const VertexArrayObject::AttribState& a,
+                             GLenum pname, int32_t out[4]) {
+    switch (pname) {
+        case GL_VERTEX_ATTRIB_ARRAY_ENABLED:
+            out[0] = a.enabled ? 1 : 0; return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_SIZE:
+            out[0] = a.size; return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_STRIDE:
+            out[0] = a.stride; return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_TYPE:
+            out[0] = static_cast<int32_t>(a.type); return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_NORMALIZED:
+            out[0] = a.normalized ? 1 : 0; return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_INTEGER:
+            out[0] = (a.currentType != GL_FLOAT) ? 1 : 0; return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_DIVISOR:
+            out[0] = static_cast<int32_t>(a.divisor); return 1;
+        case GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING:
+            out[0] = static_cast<int32_t>(a.buffer); return 1;
+        case GL_CURRENT_VERTEX_ATTRIB:
+            for (int i = 0; i < 4; ++i)
+                out[i] = static_cast<int32_t>(a.currentValue[i]);
+            return 4;
+        default:
+            return 0;
+    }
+}
+}  // namespace
+
 void Context::getVertexAttribfv(uint32_t index, GLenum pname, float* params) {
     if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
     if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    for (int i = 0; i < 4; ++i) params[i] = float(a.currentValue[i]);
+    for (int i = 0; i < 4; ++i) params[i] = static_cast<float>(a.currentValue[i]);
+}
+
+void Context::getVertexAttribdv(uint32_t index, GLenum pname, double* params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    for (int i = 0; i < 4; ++i) params[i] = a.currentValue[i];
 }
 
 void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
     if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
-    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    for (int i = 0; i < 4; ++i) params[i] = int32_t(a.currentValue[i]);
+    int32_t out[4] = {0, 0, 0, 0};
+    int n = getVertexAttribIntParams(a, pname, out);
+    if (n == 0) { setError(GLError::InvalidEnum); return; }
+    for (int i = 0; i < n; ++i) params[i] = out[i];
+}
+
+void Context::getVertexAttribIiv(uint32_t index, GLenum pname, int32_t* params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_CURRENT_VERTEX_ATTRIB &&
+        pname != GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
+        setError(GLError::InvalidEnum); return;
+    }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    if (pname == GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
+        params[0] = (a.currentType != GL_FLOAT) ? 1 : 0;
+        return;
+    }
+    for (int i = 0; i < 4; ++i)
+        params[i] = static_cast<int32_t>(a.currentValue[i]);
+}
+
+void Context::getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_CURRENT_VERTEX_ATTRIB &&
+        pname != GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
+        setError(GLError::InvalidEnum); return;
+    }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    if (pname == GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
+        params[0] = (a.currentType != GL_FLOAT) ? 1u : 0u;
+        return;
+    }
+    for (int i = 0; i < 4; ++i)
+        params[i] = static_cast<uint32_t>(a.currentValue[i]);
+}
+
+void Context::getVertexAttribPointerv(uint32_t index, GLenum pname, void** params) {
+    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (pname != GL_VERTEX_ATTRIB_ARRAY_POINTER) { setError(GLError::InvalidEnum); return; }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    *params = reinterpret_cast<void*>(a.offset);
 }
 
 // --- Hints (SPEC §21.1.1) ---

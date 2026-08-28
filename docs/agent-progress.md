@@ -77,6 +77,29 @@ Known major blockers:
   (Mesa), and sanitizer suites green. Coverage bumped in `docs/coverage-core.md`
   (now 280/571 ≈ 49.0% declared; ~54.3% core).
 
+## Recent Work (2026-08-28 — classic GetVertexAttrib* family, this session)
+- Added the remaining classic (non-DSA) vertex-attribute query entry points
+  (SPEC §10.4): `glGetVertexAttribdv` (CURRENT_VERTEX_ATTRIB as double[4]),
+  `glGetVertexAttribIiv` / `glGetVertexAttribIuiv` (CURRENT_VERTEX_ATTRIB as
+  signed/unsigned int, plus VERTEX_ATTRIB_ARRAY_INTEGER flag), and
+  `glGetVertexAttribPointerv` (VERTEX_ATTRIB_ARRAY_POINTER). The existing
+  `glGetVertexAttribiv` was broadened to answer the full integer/boolean pname
+  set (ENABLED/SIZE/STRIDE/TYPE/NORMALIZED/INTEGER/DIVISOR/BUFFER_BINDING) in
+  addition to CURRENT_VERTEX_ATTRIB, reading the bound VAO's `AttribState`. Added
+  the missing `GL_VERTEX_ATTRIB_ARRAY_*` constants to `gl_types.hpp`; public
+  `gl_api` dispatch + `gl_api.hpp`/`context.hpp` declarations added. All four
+  entry points share validation (no bound VAO → GL_INVALID_OPERATION, out-of-range
+  index → GL_INVALID_VALUE, null params → GL_INVALID_VALUE, unknown pname →
+  GL_INVALID_ENUM).
+- New `tests/unit/vertex_attrib_generic_test.cpp` cases: `getVertexAttribiv_reads_-
+  array_enabled_state`, `getVertexAttribiv_reads_pointer_attributes`
+  (SIZE/TYPE/STRIDE/NORMALIZED/BUFFER_BINDING/DIVISOR + Pointerv round-trip),
+  `getVertexAttribdv_returns_current_value_as_double`, `getVertexAttribIiv_Iuiv_-
+  return_integer_current_and_flag`, `getVertexAttrib_validation_errors`,
+  `getVertexAttrib_without_bound_vao_is_invalid_operation`. Validation: default,
+  translate (Mesa), and sanitizer suites green. Coverage bumped in
+  `docs/coverage-core.md` (now 284/571 ≈ 49.7% declared; ~55.0% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):
