@@ -1676,3 +1676,25 @@ crashed agent, this session)
  - Remaining §8: cube/array/rect TexImage targets, `GetTexImage` multisample, texture views.
  - §15/§16: sRGB / alpha-to-coverage (done), `glClampColor` (already done).
  - §10: indirect draw.
+
+## Session 2026-08-28 (restore + texture views)
+ - Recovered the crashed agent's uncommitted texture-view work (SPEC §8.19):
+   `glTextureView` / `Context::textureView`. Frontend validates both objects
+   exist and differ, source has immutable storage, target is a valid texture
+   target, internalFormat != 0, and the level range fits (`minLevel + numLevels <=
+   storageLevels`, `numLevels != 0`); then records view state (derived base
+   dimensions/levels from `minLevel` shift) and forwards to the backend. New
+   `Feature::TextureViews` (Native on GLES 3.1, Unsupported otherwise; Mock Native).
+   `BackendTexture::view()` added; GLES forwards `glTextureView` (optionally
+   resolved) after sizing the internal format. New `tests/unit/texture_view_test.cpp`
+   (4 cases: forwards view, requires immutable source, rejects self/bad-range/enum,
+   rejects unknown object).
+ - Fixed a pre-existing failing shader test (`shader_translator_1d_emulated_as_2d`):
+   glslang rejects `texture1D`/`sampler1D` in modern core GLSL, so the 1D→2D
+   emulation rewrite now runs on the desktop source *before* glslang parses it
+   (`sampler1D`→`sampler2D`, `texture1D(s,x[,bias])`→`texture(s,vec2(x,0.5)[,bias])`).
+   Test now asserts the type-level rewrite on the output instead of the (SPIRV-Cross
+   dropped) fetch body.
+ - Validation: full suite **445/445** green (`build_tx`, `YAGLT_SHADER_TRANSLATE=ON`).
+ - Docs: `coverage-core.md` §8 row + gap #3 updated (texture views implemented).
+ - Commits: `b0a3d0d` (shader 1D fix), `554c1b5` (texture views).
