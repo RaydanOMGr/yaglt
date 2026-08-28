@@ -1429,6 +1429,16 @@ GLint glGetFragDataIndex(GLuint program, const GLchar* name) {
     return g_current->getFragDataIndex(program, name ? name : "");
 }
 
+void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize,
+                                   GLsizei* length, GLsizei* size, GLenum* type,
+                                   GLchar* name) {
+    if (g_current == nullptr) return;
+    g_current->getTransformFeedbackVarying(
+        program, static_cast<uint32_t>(index), static_cast<int>(bufSize),
+        static_cast<int*>(length), static_cast<int*>(size),
+        static_cast<uint32_t*>(type), static_cast<char*>(name));
+}
+
 void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name) {
     if (g_current == nullptr) return;
     g_current->bindAttribLocation(program, index, name ? name : "");

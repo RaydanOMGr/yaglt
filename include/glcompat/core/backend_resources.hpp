@@ -289,6 +289,19 @@ public:
     // GLES, which has no direct equivalent).
     virtual int getFragDataLocation(const std::string& name) const { return -1; }
     virtual int getFragDataIndex(const std::string& name) const { return -1; }
+    // Transform-feedback varying reflection (SPEC §13.3.1 glGetTransformFeedback-
+    // Varying). Writes the varying's `name` (trimmed to bufSize-1), `size`, and
+    // `type` for `index`, and the name length (excl. nul) into `*length`. Returns
+    // true on success. Returns false when `index` is out of range or the backend
+    // has no introspection; the default (false) is honest for backends such as
+    // GLES that expose no direct equivalent (EXT_transform_feedback query
+    // semantics differ), and the frontend maps "missing" to GL_INVALID_VALUE.
+    virtual bool getTransformFeedbackVarying(uint32_t index, int bufSize, int* length,
+                                             int* size, uint32_t* type,
+                                             char* name) const {
+        (void)index; (void)bufSize; (void)length; (void)size; (void)type; (void)name;
+        return false;
+    }
     // Bind generic vertex attribute `index` to the attribute variable `name`
     // (SPEC §7.3.7 glBindAttribLocation). Called before link(); takes effect on
     // the next link. Default no-op so backends opt in.

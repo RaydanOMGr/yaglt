@@ -11,6 +11,21 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — transform feedback varying query, this session)
+- Added `glGetTransformFeedbackVarying` (SPEC §13.3.1): returns the name (trimmed
+  to bufSize-1), size, and type of the `index`-th captured varying of a program.
+  New `BackendProgram::getTransformFeedbackVarying` virtual returns `bool` (false =
+  out of range / no introspection); default `false` is honest for backends such as
+  GLES that expose no direct equivalent, and the frontend maps "missing" to
+  `GL_INVALID_VALUE` (matching the spec's out-of-range error). `MockProgram` seeds
+  the captured list via `tfVaryings` so tests exercise name/size/type. `Context`
+  validates `bufSize < 0` (`GL_INVALID_VALUE`), a non-program object
+  (`GL_INVALID_OPERATION`), then delegates. `gl_api` exposes the entry point. New
+  `tests/unit/transform_feedback_varying_test.cpp` covers capture info, out-of-range
+  `GL_INVALID_VALUE`, and validation. Default **491/491**, sanitizer **491/491**,
+  translate/Mesa **503/503** green. Coverage bumped in `docs/coverage-core.md`
+  (304/571 ≈ 54.3% declared; ~58.9% core).
+
 ## Recent Work (2026-08-28 — fragment-output reflection, this session)
 - Added fragment-output reflection (SPEC §7.3.6): `glGetFragDataLocation` /
   `glGetFragDataIndex` return the location / dual-source index bound to a

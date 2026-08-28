@@ -5131,6 +5131,30 @@ int Context::getFragDataIndex(GLObjectName program, const std::string& name) con
     return -1;
 }
 
+void Context::getTransformFeedbackVarying(GLObjectName program, uint32_t index,
+                                          int bufSize, int* length, int* size,
+                                          uint32_t* type, char* name) const {
+    if (bufSize < 0) {
+        const_cast<Context*>(this)->setError(GLError::InvalidValue);
+        return;
+    }
+    const ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return;
+    }
+    if (p->backend &&
+        p->backend->getTransformFeedbackVarying(index, bufSize, length, size, type,
+                                                name)) {
+        return;
+    }
+    // Backend has no introspection or `index` is out of range -> INVALID_VALUE
+    // (SPEC §13.3.1: out-of-range index generates INVALID_VALUE; a backend
+    // without transform-feedback introspection cannot distinguish, so it maps
+    // to the same error, honest for e.g. GLES).
+    const_cast<Context*>(this)->setError(GLError::InvalidValue);
+}
+
 void Context::bindAttribLocation(GLObjectName program, uint32_t index,
                                  const std::string& name) {
     ProgramObject* p = getProgram(program);

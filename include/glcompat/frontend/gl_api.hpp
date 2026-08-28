@@ -480,6 +480,13 @@ void glDeleteProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 GLint glGetFragDataLocation(GLuint program, const GLchar* name);
 GLint glGetFragDataIndex(GLuint program, const GLchar* name);
+// Transform feedback varying reflection (SPEC §13.3.1). Returns through
+// `length`/`size`/`type`/`name` the properties of the `index`-th captured varying
+// of `program`. Out-of-range `index` or a backend without introspection yields
+// GL_INVALID_VALUE; a non-program object yields GL_INVALID_OPERATION.
+void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize,
+                                   GLsizei* length, GLsizei* size, GLenum* type,
+                                   GLchar* name);
 void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name);
 
 // --- Uniforms (SPEC §8) ---

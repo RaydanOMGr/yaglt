@@ -1,8 +1,11 @@
 #pragma once
 
 #include "glcompat/core/backend_resources.hpp"
+#include <algorithm>
+#include <cstring>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 namespace glcompat {
 
@@ -585,6 +588,27 @@ public:
         if (it != fragDataIndices.end()) return it->second;
         return -1; // not an active fragment output
     }
+    struct MockTfVarying {
+        std::string name;
+        int size = 1;
+        uint32_t type = 0x1406; // GL_FLOAT
+    };
+    bool getTransformFeedbackVarying(uint32_t index, int bufSize, int* length,
+                                     int* size, uint32_t* type, char* name) const override {
+        if (index >= tfVaryings.size()) return false;
+        const MockTfVarying& v = tfVaryings[index];
+        if (size) *size = v.size;
+        if (type) *type = v.type;
+        int n = static_cast<int>(v.name.size());
+        if (length) *length = n;
+        if (name && bufSize > 0) {
+            int copy = std::min(n, bufSize - 1);
+            std::memcpy(name, v.name.data(), static_cast<size_t>(copy));
+            name[copy] = '\0';
+        }
+        return true;
+    }
+    std::vector<MockTfVarying> tfVaryings;
     std::map<std::string, int> fragDataLocations;
     std::map<std::string, int> fragDataIndices;
     // Records a glBindAttribLocation request (SPEC §7.3.7). Observable in tests.
