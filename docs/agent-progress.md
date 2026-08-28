@@ -1905,3 +1905,32 @@ crashed agent, this session)
     declared / ~56.8% core / ~42% true), §2 + §22 rows and the entry list updated.
    - Committed as `2d514b8`: generic §22 state queries.
 
+## Session 2026-08-28 (multisample sample-position query §14.3.1)
+  - Added `glGetMultisamplefv` (SPEC §14.3.1), the indexed sample-position query.
+    It reads tracked rasterization state via a new `IGraphicsBackend` read-back
+    pair, mirroring the `getInternalformat*` pattern:
+    - `getMultisampleSampleCount()` returns the SAMPLES of the bound framebuffer
+      (frontend uses it to validate `index` against `GL_INVALID_VALUE`);
+    - `getMultisamplefv(pname, index, val)` writes the (x, y) location.
+    - **MockBackend**: reports a fixed `kMockSampleCount = 4` and a fixed
+      deterministic sub-pixel grid (positions are implementation-defined), so the
+      index-validation and result contract are deterministic and testable.
+    - **GLESBackend**: `getMultisampleSampleCount` reads the bound draw
+      framebuffer's `GL_SAMPLES` via the driver's `glGetFramebufferParameteriv`
+      (added to `GLESLib`, resolved optionally; 0 if unsupported); `getMultisamplefv`
+      forwards to the driver's `glGetMultisamplefv` (added to `GLESLib`, ES 3.1+,
+      resolved optionally).
+    - Frontend (`Context::getMultisamplefv`): null `val` -> `GL_INVALID_VALUE`;
+      `pname != SAMPLE_POSITION` -> `GL_INVALID_ENUM`; `index >= sampleCount` ->
+      `GL_INVALID_VALUE`; else forwards to the backend. Added `GL_SAMPLE_POSITION`
+      constant to `gl_types.hpp`.
+  - New `tests/unit/generic_query_test.cpp` case covers happy path (index 0/1
+    grid values), bad pname -> `GL_INVALID_ENUM`, null val -> `GL_INVALID_VALUE`,
+    and out-of-range index (>= 4) -> `GL_INVALID_VALUE`.
+  - Validation: default **477/477** green; `build_tx` green (Mesa softpipe e2e
+    suite); `build_san` green.
+   - Docs: `coverage-core.md` -> 300 entry points / 294 matched families,
+     §22 row + entry list updated; `glGetMultisamplefv` added to the §14.3.1
+     query surface.
+    - Committed as `b526cd3`: multisample sample-position query.
+
