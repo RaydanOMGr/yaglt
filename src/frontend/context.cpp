@@ -6250,6 +6250,14 @@ void Context::finishCommands() {
     backend_.finish();
 }
 
+void Context::memoryBarrier(uint32_t barriers) {
+    backend_.memoryBarrier(barriers);
+}
+
+void Context::memoryBarrierByRegion(uint32_t barriers) {
+    backend_.memoryBarrierByRegion(barriers);
+}
+
 void Context::readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                          uint32_t format, uint32_t type, void* pixels) {
     if (width <= 0 || height <= 0) {

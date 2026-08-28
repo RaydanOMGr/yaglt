@@ -97,6 +97,15 @@ public:
     virtual void flush() = 0;
     virtual void finish() = 0;
 
+    // Memory barriers (SPEC §7.13.2). glMemoryBarrier orders prior memory
+    // transactions (shader writes to images, SSBOs, atomic counters, buffer
+    // updates, etc.) so subsequent operations observe them; glMemoryBarrier-
+    // ByRegion is the framebuffer-region-scoped variant. Defaults are no-ops,
+    // since a backend without separate shader/CPU memory domains needs no
+    // ordering (the mock backend records the call for observability).
+    virtual void memoryBarrier(uint32_t barriers) { (void)barriers; }
+    virtual void memoryBarrierByRegion(uint32_t barriers) { (void)barriers; }
+
     // Read back pixels from the bound framebuffer (SPEC §2.1). The frontend
     // flushes tracked state first so the backend reads the current framebuffer.
     virtual void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,

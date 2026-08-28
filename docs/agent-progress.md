@@ -11,6 +11,22 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — memory barriers, this session)
+- Added `glMemoryBarrier` / `glMemoryBarrierByRegion` (SPEC §7.13.2). New
+  `IGraphicsBackend::memoryBarrier` / `memoryBarrierByRegion` virtuals (default
+  no-op, honest for backends without separate shader/CPU memory domains such as
+  the mock). `MockBackend` records `memoryBarrierCalls`/`lastBarriers` (and the
+  by-region variants) for observability. `Context::memoryBarrier` /
+  `memoryBarrierByRegion` delegate to the backend; `gl_api` exposes both entry
+  points. No frontend validation beyond the null-context guard. New
+  `tests/unit/memory_barrier_test.cpp` covers delegation + captured barrier bits.
+  Default **492/492**, sanitizer **492/492**, translate/Mesa **504/504** green.
+  Coverage bumped in `docs/coverage-core.md` (306/571 ≈ 53.6% declared; ~59.3%
+  core). NOTE: earlier this session I mistakenly tried to (re)add
+  `glGetUniformBlockIndex` / `glGetActiveUniformBlockiv` / `glGetActiveUniformsiv`,
+  but those were already implemented (routing through `GetProgramResource*`); the
+  duplicate attempt was fully reverted before commit.
+
 ## Recent Work (2026-08-28 — transform feedback varying query, this session)
 - Added `glGetTransformFeedbackVarying` (SPEC §13.3.1): returns the name (trimmed
   to bufSize-1), size, and type of the `index`-th captured varying of a program.

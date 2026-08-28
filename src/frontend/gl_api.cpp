@@ -1896,6 +1896,16 @@ void glFinish() {
     g_current->finishCommands();
 }
 
+void glMemoryBarrier(GLbitfield barriers) {
+    if (g_current == nullptr) return;
+    g_current->memoryBarrier(static_cast<uint32_t>(barriers));
+}
+
+void glMemoryBarrierByRegion(GLbitfield barriers) {
+    if (g_current == nullptr) return;
+    g_current->memoryBarrierByRegion(static_cast<uint32_t>(barriers));
+}
+
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                   GLenum type, GLvoid* pixels) {
     if (g_current == nullptr) return;

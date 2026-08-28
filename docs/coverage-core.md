@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-signal. A reproducible regen script counts 571 declared families, 304 `gl_api`
-   entry points, and 304 matched families.
+signal. A reproducible regen script counts 571 declared families, 306 `gl_api`
+   entry points, and 306 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 304 | **54.3%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 304 | **~58.9%** |
+| Full spec (compat + core) | 571 | 306 | **53.6%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 306 | **~59.3%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-All 304 matched families are real `gl_api` entry points with frontend semantics
-and tests (mock path, most also against Mesa GLES). The 310 `gl_api` entry
+All 306 matched families are real `gl_api` entry points with frontend semantics
+and tests (mock path, most also against Mesa GLES). The 312 `gl_api` entry
 points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -60,8 +60,8 @@ scope per `docs/feature-matrix.md`).
 core commands that exist as an entry point but are capability-gated to
 *Unsupported*, e.g. the geometry/tessellation shader stages which have no GLES
 equivalent): roughly
-   **two-fifths of the real ~700-entry GL core command set** (310 of
-~700 ≈ 44%).
+   **two-fifths of the real ~700-entry GL core command set** (312 of
+~700 ≈ 45%).
 
 ## Core coverage by spec area
 
@@ -93,7 +93,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 
 ## The implemented frontend surface (gl_api entry points)
 
- 310 `gl*` entry points; 304 map to a spec command family (see Method). Listed
+ 312 `gl*` entry points; 306 map to a spec command family (see Method). Listed
 alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -131,7 +131,7 @@ glGetTextureParameterIiv, glGetTextureParameterIuiv, glGetTextureParameterfv, gl
 glGetUniformSubroutineuiv, glGetVertexAttribfv, glGetVertexAttribiv, glGetVertexAttribdv, glGetVertexAttribIiv, glGetVertexAttribIuiv, glGetVertexAttribPointerv, glGetVertexArrayiv, glGetVertexArrayIndexediv, glGetVertexArrayIndexed64v, glHint, glInvalidateBufferData,
 glInvalidateBufferSubData, glInvalidateFramebuffer, glInvalidateNamedFramebufferData,
 glInvalidateNamedFramebufferSubData, glInvalidateSubFramebuffer, glInvalidateTexImage, glInvalidateTexSubImage,
-glLineWidth, glLinkProgram, glLogicOp, glMinSampleShading, glMultiDrawArrays, glMultiDrawElements,
+glLineWidth, glLinkProgram, glLogicOp, glMemoryBarrier, glMemoryBarrierByRegion, glMinSampleShading, glMultiDrawArrays, glMultiDrawElements,
 glNamedFramebufferParameteri, glNamedFramebufferRenderbuffer, glNamedFramebufferTexture,
 glNamedFramebufferTextureLayer, glNamedRenderbufferStorage, glNamedRenderbufferStorageMultisample,
 glObjectLabel, glObjectPtrLabel, glPauseTransformFeedback, glPixelStorei, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
@@ -199,8 +199,8 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-By the regenerated proxy (2026-08-28): **54.3% of the spec's declared command
-prototypes** (304/571) and **~58.9% of the core profile** have a frontend entry
+By the regenerated proxy (2026-08-28): **53.6% of the spec's declared command
+prototypes** (306/571) and **~59.3% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
 roughly **42%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a

@@ -645,6 +645,18 @@ public:
     }
     void flush() override { ++flushCalls; }
     void finish() override { ++finishCalls; }
+    void memoryBarrier(uint32_t barriers) override {
+        ++memoryBarrierCalls;
+        lastBarriers = barriers;
+    }
+    void memoryBarrierByRegion(uint32_t barriers) override {
+        ++memoryBarrierByRegionCalls;
+        lastBarriersByRegion = barriers;
+    }
+    int memoryBarrierCalls = 0;
+    uint32_t lastBarriers = 0;
+    int memoryBarrierByRegionCalls = 0;
+    uint32_t lastBarriersByRegion = 0;
     void readPixels(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t format,
                     uint32_t type, void* pixels) override {
         ++readPixelsCalls;

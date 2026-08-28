@@ -638,6 +638,14 @@ void glInvalidateSubFramebuffer(GLenum target, GLsizei numAttachments,
 void glFlush();
 void glFinish();
 
+// Memory barriers (SPEC §7.13.2). glMemoryBarrier orders prior memory transactions
+// (shader writes to images, SSBOs, atomic counters, buffer updates, …) so subsequent
+// operations observe them; glMemoryBarrierByRegion is the framebuffer-region-scoped
+// variant. `barriers` is a bitwise OR of the ALL_BARRIERS_BIT-derived flags. No
+// validation is performed beyond a null-context guard.
+void glMemoryBarrier(GLbitfield barriers);
+void glMemoryBarrierByRegion(GLbitfield barriers);
+
 // Read back pixels from the bound framebuffer (SPEC §2.1). Non-positive
 // width/height reports GL_INVALID_VALUE.
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,

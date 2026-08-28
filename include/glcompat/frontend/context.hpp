@@ -532,6 +532,8 @@ public:
     // --- Command stream (SPEC §2.1) ---
     void flushCommands();
     void finishCommands();
+    void memoryBarrier(uint32_t barriers);
+    void memoryBarrierByRegion(uint32_t barriers);
 
     // --- Framebuffer readback (SPEC §2.1) ---
     // Reads pixels from the bound framebuffer (after a state flush). A non-positive
