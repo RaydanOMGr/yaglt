@@ -2068,3 +2068,33 @@ crashed agent, this session)
      query surface.
     - Committed as `b526cd3`: multisample sample-position query.
 
+## 2026-08-28 — Robustness texture read-back (ARB_robustness / GL 4.5)
+
+- Added bounds-checked texture image queries to close a gap in the `feat(query)`
+  surface: `glGetnTexImage`, `glGetnCompressedTexImage` (non-DSA, operate on the
+  bound texture) and `glGetnTextureImage`, `glGetnCompressedTextureImage` (DSA).
+- Backend interface (`backend_resources.hpp`): added robust overloads
+  `getTexImage(target, level, format, type, bufSize, pixels)` and
+  `getCompressedTexImage(target, level, bufSize, pixels)` defaulting to no-op.
+- Frontend (`Context`): the four robust methods validate
+  `level < 0 || bufSize < 0` -> `GL_INVALID_VALUE` and (non-DSA) no texture bound
+  -> `GL_INVALID_OPERATION`, then forward to the backend robust overload.
+- Mock backend records the calls (`getTexImageRobustCalls`,
+  `getCompressedTexImageRobustCalls`); GLES backend calls `glGetnTexImage` /
+  `glGetnCompressedTexImage` when the driver exposes them and falls back to the
+  non-robust entry otherwise (loader resolves both optionally so load() still
+  succeeds). Also exposed the non-robust `glGetCompressedTexImage` symbol in
+  `GLESLib`.
+- Tests: new `tests/unit/tex_image_robustness_test.cpp` (registered in
+  `tests/CMakeLists.txt`) covers backend-call recording for all four, negative
+  level -> `GL_INVALID_VALUE`, negative bufSize -> `GL_INVALID_VALUE`, and
+  unbound texture -> `GL_INVALID_OPERATION`.
+- Validation: default `build` green (511/511 framework cases); `build_san`
+  (ASan/UBSan) green.
+- Docs: `feature-matrix.md` gained a "Texture image read-back (robustness)" row;
+  `coverage-core.md` is regenerated separately from `SPEC.md`.
+- Touched files: `gl_api.hpp`, `gl_api.cpp`, `context.hpp`, `context.cpp`,
+  `backend_resources.hpp`, `mock_resources.hpp`, `gles_resources.hpp`,
+  `gles_loader.hpp`, `gles_loader.cpp`, `tests/.../tex_image_robustness_test.cpp`,
+  `tests/CMakeLists.txt`, `docs/feature-matrix.md`.
+

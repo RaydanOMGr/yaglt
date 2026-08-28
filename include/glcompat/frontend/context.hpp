@@ -316,6 +316,16 @@ public:
                      void* pixels);
     void getCompressedTextureImage(GLObjectName texture, int level, void* pixels);
     void getCompressedTexImage(uint32_t target, int level, void* pixels);
+    // Robustness (ARB_robustness / GL 4.5) bounds-checked read-back variants.
+    // `bufSize` is the byte capacity of `pixels`; a negative `bufSize` or `level`
+    // yields GL_INVALID_VALUE, an unbound texture yields GL_INVALID_OPERATION.
+    void getTextureImage(GLObjectName texture, int level, uint32_t format,
+                         uint32_t type, int bufSize, void* pixels);
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     int bufSize, void* pixels);
+    void getCompressedTextureImage(GLObjectName texture, int level, int bufSize,
+                                   void* pixels);
+    void getCompressedTexImage(uint32_t target, int level, int bufSize, void* pixels);
     void getTextureSubImage(GLObjectName texture, int level, int xoffset, int yoffset,
                             int zoffset, int width, int height, int depth,
                             uint32_t format, uint32_t type, int bufSize, void* pixels);

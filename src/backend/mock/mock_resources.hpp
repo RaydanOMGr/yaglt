@@ -400,6 +400,19 @@ public:
         ++getCompressedTexImageCalls; lastSubTarget = target; lastSubLevel = level;
         (void)pixels;
     }
+    int getTexImageRobustCalls = 0;
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     int bufSize, void* pixels) override {
+        ++getTexImageRobustCalls; lastSubTarget = target; lastSubLevel = level;
+        lastCopyInternalFormat = format; lastCopyBorder = static_cast<int>(type);
+        (void)bufSize; (void)pixels;
+    }
+    int getCompressedTexImageRobustCalls = 0;
+    void getCompressedTexImage(uint32_t target, int level, int bufSize,
+                               void* pixels) override {
+        ++getCompressedTexImageRobustCalls; lastSubTarget = target;
+        lastSubLevel = level; (void)bufSize; (void)pixels;
+    }
     int getTextureSubImageCalls = 0;
     void getTextureSubImage(uint32_t target, int level, int xoffset, int yoffset,
                             int zoffset, int width, int height, int depth,

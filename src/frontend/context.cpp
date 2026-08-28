@@ -2185,6 +2185,59 @@ void Context::getCompressedTexImage(uint32_t target, int level, void* pixels) {
     if (tex->backend) tex->backend->getCompressedTexImage(target, level, pixels);
 }
 
+void Context::getTextureImage(GLObjectName texture, int level, uint32_t format,
+                              uint32_t type, int bufSize, void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getTexImage(tex->target, level, format, type,
+                                                 bufSize, pixels);
+}
+
+void Context::getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                          int bufSize, void* pixels) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getTexImage(target, level, format, type, bufSize,
+                                                pixels);
+}
+
+void Context::getCompressedTextureImage(GLObjectName texture, int level, int bufSize,
+                                        void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getCompressedTexImage(tex->target, level, bufSize,
+                                                          pixels);
+}
+
+void Context::getCompressedTexImage(uint32_t target, int level, int bufSize,
+                                     void* pixels) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getCompressedTexImage(target, level, bufSize, pixels);
+}
+
 void Context::getTextureSubImage(GLObjectName texture, int level, int xoffset,
                                  int yoffset, int zoffset, int width, int height,
                                  int depth, uint32_t format, uint32_t type,

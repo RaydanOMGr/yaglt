@@ -171,7 +171,13 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params);
  void glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type,
                     GLvoid* pixels);
- void glGetCompressedTexImage(GLenum target, GLint level, GLvoid* img);
+  void glGetCompressedTexImage(GLenum target, GLint level, GLvoid* img);
+  // Robustness (ARB_robustness / GL 4.5) bounds-checked read-back. `bufSize` is
+  // the byte capacity of `pixels`.
+  void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                     GLsizei bufSize, GLvoid* pixels);
+  void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize,
+                                GLvoid* img);
  void glGetTextureParameteriv(GLuint texture, GLenum pname, GLint* params);
 
 // Direct State Access texture surface (SPEC §2.1 / §8.1). Operate on an explicit
@@ -221,7 +227,12 @@ void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
                              GLfloat* params);
  void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                         GLvoid* pixels);
- void glGetCompressedTextureImage(GLuint texture, GLint level, GLvoid* img);
+  void glGetCompressedTextureImage(GLuint texture, GLint level, GLvoid* img);
+  // Robustness (ARB_robustness / GL 4.5) bounds-checked DSA read-back.
+  void glGetnTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                          GLsizei bufSize, GLvoid* pixels);
+  void glGetnCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize,
+                                    GLvoid* img);
  void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
                            GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                            GLenum format, GLenum type, GLsizei bufSize, GLvoid* pixels);

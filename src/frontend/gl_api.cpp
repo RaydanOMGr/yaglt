@@ -568,6 +568,32 @@ void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
       g_current->getCompressedTexImage(target, level, img);
   }
 
+  void glGetnTexImage(GLenum target, GLint level, GLenum format, GLenum type,
+                      GLsizei bufSize, GLvoid* pixels) {
+      if (g_current == nullptr) return;
+      g_current->getTexImage(target, level, static_cast<uint32_t>(format),
+                             static_cast<uint32_t>(type), bufSize, pixels);
+  }
+
+  void glGetnCompressedTexImage(GLenum target, GLint level, GLsizei bufSize,
+                                GLvoid* img) {
+      if (g_current == nullptr) return;
+      g_current->getCompressedTexImage(target, level, bufSize, img);
+  }
+
+  void glGetnTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                          GLsizei bufSize, GLvoid* pixels) {
+      if (g_current == nullptr) return;
+      g_current->getTextureImage(texture, level, static_cast<uint32_t>(format),
+                                 static_cast<uint32_t>(type), bufSize, pixels);
+  }
+
+  void glGetnCompressedTextureImage(GLuint texture, GLint level, GLsizei bufSize,
+                                    GLvoid* img) {
+      if (g_current == nullptr) return;
+      g_current->getCompressedTextureImage(texture, level, bufSize, img);
+  }
+
   void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
                             GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                             GLenum format, GLenum type, GLsizei bufSize, GLvoid* pixels) {

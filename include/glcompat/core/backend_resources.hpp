@@ -153,6 +153,13 @@ public:
     // glGetCompressedTextureImage). Returns the compressed block data directly;
     // backends without native reads are no-ops (the mock records the call).
     virtual void getCompressedTexImage(uint32_t target, int level, void* pixels) {}
+    // Robustness variants (ARB_robustness / GL 4.5): `bufSize` bounds the `pixels`
+    // write in bytes. Backends with a native robust entry call it; backends without
+    // one fall back to the non-robust read (the mock records the call).
+    virtual void getTexImage(uint32_t target, int level, uint32_t format,
+                             uint32_t type, int bufSize, void* pixels) {}
+    virtual void getCompressedTexImage(uint32_t target, int level, int bufSize,
+                                       void* pixels) {}
     // Read back a sub-rectangle of a texture image (SPEC §8.11.4
     // glGetTextureSubImage). Backends without native reads are no-ops (the mock
     // records the call).

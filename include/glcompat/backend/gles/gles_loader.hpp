@@ -220,6 +220,11 @@ struct GLESLib {
                                     GLsizei, GLboolean) = nullptr;
     void (*glGenerateMipmap)(GLenum) = nullptr;
     void (*glGetTexImage)(GLenum, GLint, GLenum, GLenum, void*) = nullptr;
+    void (*glGetnTexImage)(GLenum, GLint, GLenum, GLenum, GLsizei, void*) = nullptr;
+    void (*glGetnCompressedTexImage)(GLenum, GLint, GLsizei, void*) = nullptr;
+    // Non-robust compressed read-back fallback (not in GLES core; resolved
+    // optionally so load() still succeeds when the driver lacks it).
+    void (*glGetCompressedTexImage)(GLenum, GLint, void*) = nullptr;
     void (*glGetTexLevelParameteriv)(GLenum, GLint, GLenum, GLint*) = nullptr;
     void (*glGetTexLevelParameterfv)(GLenum, GLint, GLenum, GLfloat*) = nullptr;
     // Internal format queries (SPEC §22.3). GLES 3.0 core; resolved optionally so

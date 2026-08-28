@@ -346,10 +346,30 @@ struct GLESBackendTexture : BackendTexture {
         lib->glGetTexLevelParameterfv(glesActualTarget(target), level, pname, params);
     }
     void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
-                     void* pixels) override {
+                      void* pixels) override {
         if (!lib || !lib->driverLive() || !lib->glGetTexImage) return;
         if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
         lib->glGetTexImage(glesActualTarget(target), level, format, type, pixels);
+    }
+    void getTexImage(uint32_t target, int level, uint32_t format, uint32_t type,
+                     int bufSize, void* pixels) override {
+        if (!lib || !lib->driverLive()) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        if (lib->glGetnTexImage)
+            lib->glGetnTexImage(glesActualTarget(target), level, format, type, bufSize,
+                                pixels);
+        else if (lib->glGetTexImage)
+            lib->glGetTexImage(glesActualTarget(target), level, format, type, pixels);
+    }
+    void getCompressedTexImage(uint32_t target, int level, int bufSize,
+                               void* pixels) override {
+        if (!lib || !lib->driverLive()) return;
+        if (lib->glBindTexture) lib->glBindTexture(glesActualTarget(target), handle);
+        if (lib->glGetnCompressedTexImage)
+            lib->glGetnCompressedTexImage(glesActualTarget(target), level, bufSize,
+                                          pixels);
+        else if (lib->glGetCompressedTexImage)
+            lib->glGetCompressedTexImage(glesActualTarget(target), level, pixels);
     }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;

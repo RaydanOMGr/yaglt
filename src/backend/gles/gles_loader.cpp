@@ -187,6 +187,12 @@ bool GLESLib::load() {
     resolve(gles, glTexImage3DMultisample, "glTexImage3DMultisample");
     resolve(gles, glGenerateMipmap, "glGenerateMipmap");
     resolve(gles, glGetTexImage, "glGetTexImage");
+    // Robustness read-back (ARB_robustness / GL 4.5). Resolved optionally: a
+    // driver without these entries still loads; GLESBackend falls back to the
+    // non-robust read at runtime.
+    resolve(gles, glGetnTexImage, "glGetnTexImage");
+    resolve(gles, glGetnCompressedTexImage, "glGetnCompressedTexImage");
+    resolve(gles, glGetCompressedTexImage, "glGetCompressedTexImage");
     resolve(gles, glGetTexLevelParameteriv, "glGetTexLevelParameteriv");
     resolve(gles, glGetTexLevelParameterfv, "glGetTexLevelParameterfv");
     resolve(gles, glGetInternalformativ, "glGetInternalformativ");
