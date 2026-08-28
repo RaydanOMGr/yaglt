@@ -400,6 +400,24 @@ public:
         ++getCompressedTexImageCalls; lastSubTarget = target; lastSubLevel = level;
         (void)pixels;
     }
+    int getTextureSubImageCalls = 0;
+    void getTextureSubImage(uint32_t target, int level, int xoffset, int yoffset,
+                            int zoffset, int width, int height, int depth,
+                            uint32_t format, uint32_t type, int bufSize,
+                            void* pixels) override {
+        ++getTextureSubImageCalls; lastSubTarget = target; lastSubLevel = level;
+        (void)xoffset; (void)yoffset; (void)zoffset; (void)width; (void)height;
+        (void)depth; (void)format; (void)type; (void)bufSize; (void)pixels;
+    }
+    int getCompressedTextureSubImageCalls = 0;
+    void getCompressedTextureSubImage(uint32_t target, int level, int xoffset,
+                                      int yoffset, int zoffset, int width, int height,
+                                      int depth, int bufSize, void* pixels) override {
+        ++getCompressedTextureSubImageCalls; lastSubTarget = target;
+        lastSubLevel = level;
+        (void)xoffset; (void)yoffset; (void)zoffset; (void)width; (void)height;
+        (void)depth; (void)bufSize; (void)pixels;
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
 class MockRenderbuffer : public BackendRenderbuffer {

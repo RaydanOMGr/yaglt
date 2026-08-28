@@ -11,6 +11,21 @@ Last updated: 2026-08-28
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
+## Recent Work (2026-08-28 — texture sub-image readback, this session)
+- Added `glGetTextureSubImage` / `glGetCompressedTextureSubImage` (SPEC §8.11.4 /
+  §8.11.5). New `BackendTexture::getTextureSubImage` /
+  `getCompressedTextureSubImage` virtuals (default no-op, honest for backends
+  without native reads; the mock records target/level). `Context` validates
+  `level < 0`, negative `x/y/zoffset`, negative `width/height/depth`, and negative
+  `bufSize` → `GL_INVALID_VALUE`, then delegates; `dsaTexture` already gates on
+  `DirectStateAccess` + live name → `GL_INVALID_OPERATION`. GLES headers bundling
+  lacks these DSA entry points, so the GLES backend inherits the honest no-op
+  default. `gl_api` exposes both entry points. New
+  `tests/unit/texture_sub_image_test.cpp` covers DSA record, negative level /
+  extent / bufSize, and ungenerated-name validation. Default **504/504**, sanitizer
+  **504/504**, translate/Mesa **516/516** green. Coverage bumped in
+  `docs/coverage-core.md` (311/571 ≈ 54.5% declared; ~60.3% core).
+
 ## Recent Work (2026-08-28 — compressed texture readback, this session)
 - Added `glGetCompressedTexImage` / `glGetCompressedTextureImage` (SPEC §8.11).
   New `BackendProgram`/`BackendTexture::getCompressedTexImage` virtual (default

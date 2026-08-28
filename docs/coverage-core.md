@@ -34,20 +34,20 @@ are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
 signal. A reproducible regen script counts 571 declared families, 315 `gl_api`
-   entry points, and 309 matched families.
+   entry points, and 311 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 309 | **54.1%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 309 | **~59.9%** |
+| Full spec (compat + core) | 571 | 311 | **54.5%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 311 | **~60.3%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-All 309 matched families are real `gl_api` entry points with frontend semantics
+ All 311 matched families are real `gl_api` entry points with frontend semantics
 and tests (mock path, most also against Mesa GLES). The 315 `gl_api` entry
 points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
@@ -75,7 +75,7 @@ Status: ✅ Implemented · 🟡 Partial · ❌ Not implemented · 🚫 Honestly 
 `glProgramBinary` / `glGetProgramBinary` load and retrieve a precompiled binary
 blob (the frontend keeps the authoritative mirror, matching the buffer-mirror
 pattern); loading a binary marks the program linked / the shader compiled. |
-| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`) and classic target-based level queries (`GetTexLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`, integer texture params (`glTexParameterIiv`/`Iuiv` + `glTextureParameterIiv`/`Iuiv`), integer param queries (`glGetTexParameterIiv`/`Iuiv` + `glGetTextureParameterIiv`/`Iuiv`), classic `glGenerateMipmap`, texture invalidation (`glInvalidateTexImage`/`glInvalidateTexSubImage`), and **texture views** (`glTextureView`, SPEC §8.19: validates both objects exist and differ, source has immutable storage, target is valid, and the level range fits; records the view's derived base dimensions/levels and forwards to the backend; capability-gated by `TextureViews`, native on GLES 3.1, unsupported otherwise). Non-DSA `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) and the multisample surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` + DSA `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` — are now implemented with target/sample/dimension validation. Missing: cube/array/rect TexImage targets, `GetTexImage` multisample. Compressed image readback (`glGetCompressedTexImage` / `glGetCompressedTextureImage`, SPEC §8.11) is now implemented (honest no-op where the backend has no native read). |
+| §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects, DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`) and classic target-based level queries (`GetTexLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`, integer texture params (`glTexParameterIiv`/`Iuiv` + `glTextureParameterIiv`/`Iuiv`), integer param queries (`glGetTexParameterIiv`/`Iuiv` + `glGetTextureParameterIiv`/`Iuiv`), classic `glGenerateMipmap`, texture invalidation (`glInvalidateTexImage`/`glInvalidateTexSubImage`), and **texture views** (`glTextureView`, SPEC §8.19: validates both objects exist and differ, source has immutable storage, target is valid, and the level range fits; records the view's derived base dimensions/levels and forwards to the backend; capability-gated by `TextureViews`, native on GLES 3.1, unsupported otherwise). Non-DSA `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) and the multisample surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` + DSA `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` — are now implemented with target/sample/dimension validation. Missing: cube/array/rect TexImage targets, `GetTexImage` multisample. Compressed image readback (`glGetCompressedTexImage` / `glGetCompressedTextureImage`, SPEC §8.11) is now implemented (honest no-op where the backend has no native read). Texture-sub-image readback (`glGetTextureSubImage` / `glGetCompressedTextureSubImage`, SPEC §8.11.4/§8.11.5) is now implemented (DSA; honest no-op where the backend has no native read). |
 | §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path) and DSA queries `glGetVertexArrayiv` / `glGetVertexArrayIndexediv` / `glGetVertexArrayIndexed64v` (SPEC §10.3.1). **Generic vertex attribute values** (`glVertexAttrib1f..4f`/`*fv`, `glVertexAttribI4i`/`I4ui`/`I4iv`/`I4uiv`, `glGetVertexAttrib{fv,iv,dv,Iiv,Iuiv,Pointerv}` covering the full §10.4 pname set: CURRENT_VERTEX_ATTRIB plus the array state pnames ENABLED/SIZE/STRIDE/TYPE/NORMALIZED/INTEGER/DIVISOR/BUFFER_BINDING/POINTER) now implemented (SPEC §10.2/§10.4). Indirect draw implemented (SPEC §10). Missing: client array legacy (removed-in-core semantics) |
 | §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words), `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query), and `glProvokingVertex` (SPEC §11: `GL_FIRST_VERTEX_CONVENTION` / `GL_LAST_VERTEX_CONVENTION` tracked, pushed on change, `GL_PROVOKING_VERTEX` query; invalid mode → `GL_INVALID_ENUM`; GLES records without a native call). |
@@ -93,7 +93,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 
 ## The implemented frontend surface (gl_api entry points)
 
-  315 `gl*` entry points; 309 map to a spec command family (see Method). Listed
+  315 `gl*` entry points; 311 map to a spec command family (see Method). Listed
  alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -118,7 +118,7 @@ glGenBuffers, glGenFramebuffers, glGenProgramPipelines, glGenQueries, glGenRende
 glGenTextures, glGenTransformFeedbacks, glGenVertexArrays, glGenerateMipmap, glGenerateTextureMipmap,
 glGetActiveAttrib, glGetActiveSubroutineName, glGetActiveSubroutineUniformName, glGetActiveSubroutineUniformiv,
 glGetActiveUniform, glGetActiveUniformBlockName, glGetActiveUniformBlockiv, glGetAttachedShaders, glGetBooleanv, glGetBooleani_v,
-glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferPointerv, glGetNamedBufferPointerv, glGetBufferSubData, glGetCompressedTexImage, glGetCompressedTextureImage, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
+glGetBufferParameteriv, glGetBufferParameteri64v, glGetNamedBufferParameteri64v, glGetNamedBufferParameteriv, glGetBufferPointerv, glGetNamedBufferPointerv, glGetBufferSubData, glGetCompressedTexImage, glGetCompressedTextureImage, glGetCompressedTextureSubImage, glGetTextureSubImage, glGetDoublev, glGetFloatv, glGetIntegerv, glGetInteger64v, glGetIntegeri_v, glGetInternalformativ, glGetInternalformati64v, glGetMultisamplefv, glGetNamedBufferSubData,
 glGetNamedFramebufferAttachmentParameteriv, glGetFramebufferAttachmentParameteriv, glGetNamedFramebufferParameteriv, glGetFramebufferParameteriv, glGetGraphicsResetStatus,
 glGetNamedRenderbufferParameteriv, glGetFragDataIndex, glGetFragDataLocation, glGetObjectLabel, glGetObjectPtrLabel, glGetRenderbufferParameteriv, glGetProgramBinary, glGetProgramInfoLog, glGetProgramInterfaceiv, glGetProgramPipelineInfoLog, glGetProgramPipelineiv,
 glGetProgramResourceName, glGetProgramResourceiv, glGetQueryObjecti64v, glGetQueryObjectiv,
@@ -200,7 +200,7 @@ of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — a
 with dispatch, validation, and tests.
 
 By the regenerated proxy (2026-08-28): **54.1% of the spec's declared command
-prototypes** (309/571) and **~59.9% of the core profile** have a frontend entry
+prototypes** (311/571) and **~60.3% of the core profile** have a frontend entry
 point; true entry-point coverage against the real ~700-entry GL core API is
 roughly **42%**. This is materially more than the 2026-08-26 snapshot (then
 ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a

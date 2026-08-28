@@ -316,6 +316,12 @@ public:
                      void* pixels);
     void getCompressedTextureImage(GLObjectName texture, int level, void* pixels);
     void getCompressedTexImage(uint32_t target, int level, void* pixels);
+    void getTextureSubImage(GLObjectName texture, int level, int xoffset, int yoffset,
+                            int zoffset, int width, int height, int depth,
+                            uint32_t format, uint32_t type, int bufSize, void* pixels);
+    void getCompressedTextureSubImage(GLObjectName texture, int level, int xoffset,
+                                      int yoffset, int zoffset, int width, int height,
+                                      int depth, int bufSize, void* pixels);
     void textureBuffer(GLObjectName texture, uint32_t internalFormat,
                        GLObjectName buffer);
     void textureBufferRange(GLObjectName texture, uint32_t internalFormat,

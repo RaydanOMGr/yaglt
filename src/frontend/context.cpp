@@ -2185,6 +2185,40 @@ void Context::getCompressedTexImage(uint32_t target, int level, void* pixels) {
     if (tex->backend) tex->backend->getCompressedTexImage(target, level, pixels);
 }
 
+void Context::getTextureSubImage(GLObjectName texture, int level, int xoffset,
+                                 int yoffset, int zoffset, int width, int height,
+                                 int depth, uint32_t format, uint32_t type,
+                                 int bufSize, void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || width < 0 || height < 0 || depth < 0 || bufSize < 0 ||
+        xoffset < 0 || yoffset < 0 || zoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getTextureSubImage(tex->target, level, xoffset,
+                                                       yoffset, zoffset, width, height,
+                                                       depth, format, type, bufSize,
+                                                       pixels);
+}
+
+void Context::getCompressedTextureSubImage(GLObjectName texture, int level, int xoffset,
+                                           int yoffset, int zoffset, int width,
+                                           int height, int depth, int bufSize,
+                                           void* pixels) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || width < 0 || height < 0 || depth < 0 || bufSize < 0 ||
+        xoffset < 0 || yoffset < 0 || zoffset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (tex->backend) tex->backend->getCompressedTextureSubImage(tex->target, level,
+                                                                xoffset, yoffset,
+                                                                zoffset, width, height,
+                                                                depth, bufSize, pixels);
+}
+
 void Context::textureBuffer(GLObjectName texture, uint32_t internalFormat,
                             GLObjectName buffer) {
     TextureObject* tex = dsaTexture(*this, texture);

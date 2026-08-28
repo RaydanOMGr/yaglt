@@ -222,6 +222,13 @@ void glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname,
  void glGetTextureImage(GLuint texture, GLint level, GLenum format, GLenum type,
                         GLvoid* pixels);
  void glGetCompressedTextureImage(GLuint texture, GLint level, GLvoid* img);
+ void glGetTextureSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                           GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                           GLenum format, GLenum type, GLsizei bufSize, GLvoid* pixels);
+ void glGetCompressedTextureSubImage(GLuint texture, GLint level, GLint xoffset,
+                                     GLint yoffset, GLint zoffset, GLsizei width,
+                                     GLsizei height, GLsizei depth, GLsizei bufSize,
+                                     GLvoid* pixels);
  void glTextureBuffer(GLuint texture, GLenum internalFormat, GLuint buffer);
 void glTextureBufferRange(GLuint texture, GLenum internalFormat, GLuint buffer,
                            GLintptr offset, GLsizeiptr size);

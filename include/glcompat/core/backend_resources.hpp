@@ -153,6 +153,20 @@ public:
     // glGetCompressedTextureImage). Returns the compressed block data directly;
     // backends without native reads are no-ops (the mock records the call).
     virtual void getCompressedTexImage(uint32_t target, int level, void* pixels) {}
+    // Read back a sub-rectangle of a texture image (SPEC §8.11.4
+    // glGetTextureSubImage). Backends without native reads are no-ops (the mock
+    // records the call).
+    virtual void getTextureSubImage(uint32_t target, int level, int xoffset,
+                                    int yoffset, int zoffset, int width, int height,
+                                    int depth, uint32_t format, uint32_t type,
+                                    int bufSize, void* pixels) {}
+    // Read back a compressed sub-rectangle of a texture image (SPEC §8.11.5
+    // glGetCompressedTextureSubImage). Backends without native reads are no-ops
+    // (the mock records the call).
+    virtual void getCompressedTextureSubImage(uint32_t target, int level, int xoffset,
+                                              int yoffset, int zoffset, int width,
+                                              int height, int depth, int bufSize,
+                                              void* pixels) {}
     // Invalidate all or part of a texture's contents (SPEC §8.1 glInvalidateTexImage
     // / glInvalidateTexSubImage). A driver discard hint; backends opt in.
     virtual void invalidateTexImage(uint32_t target, int level) {}
