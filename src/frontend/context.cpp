@@ -5317,6 +5317,11 @@ void Context::linkProgram(GLObjectName program) {
     for (const auto& b : p->attribBindings) {
         if (p->backend) p->backend->bindAttribLocation(b.first, b.second);
     }
+    // Apply any pre-link transform-feedback varying capture setup (SPEC §13.3.1
+    // glTransformFeedbackVaryings).
+    if (p->backend && !p->tfVaryings.empty()) {
+        p->backend->transformFeedbackVaryings(p->tfVaryings, p->tfBufferMode);
+    }
     std::string log;
     bool ok = p->backend ? p->backend->link(log) : false;
     p->linked = ok;
@@ -5508,6 +5513,38 @@ void Context::bindAttribLocation(GLObjectName program, uint32_t index,
     // Record the binding; it is applied to the backend program at the next link
     // (SPEC §7.3.7: bindAttribLocation only takes effect on subsequent link).
     p->attribBindings[name] = static_cast<int>(index);
+}
+
+void Context::transformFeedbackVaryings(GLObjectName program, GLsizei count,
+                                        const char* const* varyings,
+                                        uint32_t bufferMode) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (count < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufferMode != GL_INTERLEAVED_ATTRIBS && bufferMode != GL_SEPARATE_ATTRIBS) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    // SPEC §13.3.1: transform feedback varyings must be specified before linking.
+    if (p->linked) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Record the request; it is applied to the backend program at the next link
+    // (SPEC §13.3.1: transformFeedbackVaryings only takes effect on subsequent
+    // link).
+    p->tfVaryings.clear();
+    for (GLsizei i = 0; i < count; ++i) {
+        p->tfVaryings.push_back(varyings && varyings[i] ? std::string(varyings[i])
+                                                        : std::string());
+    }
+    p->tfBufferMode = bufferMode;
 }
 
 void Context::deleteProgram(GLObjectName program) {

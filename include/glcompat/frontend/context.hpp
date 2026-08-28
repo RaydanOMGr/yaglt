@@ -863,6 +863,16 @@ public:
     // reports GL_INVALID_OPERATION honestly.
     void bindAttribLocation(GLObjectName program, uint32_t index,
                            const std::string& name);
+    // Specify the transform-feedback varyings captured when this program is the
+    // active program of a transform-feedback begin (SPEC §13.3.1
+    // glTransformFeedbackVaryings). Must be set before linking (after link ->
+    // GL_INVALID_OPERATION). `count < 0` -> GL_INVALID_VALUE; `bufferMode` must be
+    // GL_INTERLEAVED_ATTRIBS or GL_SEPARATE_ATTRIBS (else GL_INVALID_ENUM); an
+    // unknown program -> GL_INVALID_OPERATION. Records the request and applies it
+    // to the backend program at the next linkProgram.
+    void transformFeedbackVaryings(GLObjectName program, GLsizei count,
+                                   const char* const* varyings, uint32_t bufferMode);
+
     void deleteProgram(GLObjectName program);
     ProgramObject* getProgram(GLObjectName name);
     const ProgramObject* getProgram(GLObjectName name) const;

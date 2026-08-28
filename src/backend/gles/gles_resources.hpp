@@ -639,6 +639,16 @@ struct GLESBackendProgram : BackendProgram {
         if (lib && lib->driverLive() && handle != 0 && lib->glUniformBlockBinding)
             lib->glUniformBlockBinding(handle, blockIndex, blockBinding);
     }
+    void transformFeedbackVaryings(const std::vector<std::string>& varyings,
+                                   uint32_t bufferMode) override {
+        if (lib && lib->driverLive() && handle != 0 && lib->glTransformFeedbackVaryings) {
+            std::vector<const char*> names(varyings.size());
+            for (size_t i = 0; i < varyings.size(); ++i) names[i] = varyings[i].c_str();
+            lib->glTransformFeedbackVaryings(handle, static_cast<GLsizei>(names.size()),
+                                            names.data(),
+                                            static_cast<GLenum>(bufferMode));
+        }
+    }
     uint32_t nativeId() const override { return handle; }
 
     int getUniformLocation(const std::string& name) const override {

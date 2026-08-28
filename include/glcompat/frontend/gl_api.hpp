@@ -522,7 +522,12 @@ GLint glGetFragDataIndex(GLuint program, const GLchar* name);
 void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize,
                                    GLsizei* length, GLsizei* size, GLenum* type,
                                    GLchar* name);
-void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name);
+ void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name);
+
+ // Specify the transform-feedback varyings captured for `program` (SPEC §13.3.1).
+ void glTransformFeedbackVaryings(GLuint program, GLsizei count,
+                                  const GLchar* const* varyings, GLenum bufferMode);
+
 
 // --- Uniforms (SPEC §8) ---
 // glGetUniformLocation returns -1 for an unknown/non-linked program. The setters

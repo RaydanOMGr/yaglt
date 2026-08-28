@@ -164,6 +164,9 @@ bool GLESLib::load() {
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glUniformBlockBinding, "glUniformBlockBinding");
+    // Transform-feedback varying capture setup (SPEC §13.3.1). ES 3.0+; resolved
+    // optionally so load() still succeeds without it.
+    resolve(gles, glTransformFeedbackVaryings, "glTransformFeedbackVaryings");
     ok &= resolve(gles, glTexImage2D, "glTexImage2D");
     ok &= resolve(gles, glTexImage3D, "glTexImage3D");
     ok &= resolve(gles, glTexParameteri, "glTexParameteri");

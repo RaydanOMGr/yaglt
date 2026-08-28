@@ -664,6 +664,13 @@ public:
     void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
         blockBindings[blockIndex] = blockBinding;
     }
+    void transformFeedbackVaryings(const std::vector<std::string>& varyings,
+                                   uint32_t bufferMode) override {
+        tfRequestedVaryings = varyings;
+        tfRequestedBufferMode = bufferMode;
+    }
+    std::vector<std::string> tfRequestedVaryings;
+    uint32_t tfRequestedBufferMode = 0;
     void getProgramResourceiv(uint32_t programInterface, uint32_t index,
                               int32_t propCount, const uint32_t* props,
                               int32_t bufSize, int32_t* length,

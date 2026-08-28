@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace glcompat {
 
@@ -337,6 +338,16 @@ public:
     // native program, and the mock records it.
     virtual void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) {
         (void)blockIndex; (void)blockBinding;
+    }
+    // Specify the transform-feedback varying names captured when the program is
+    // the active program of a transform-feedback begin (SPEC §13.3.1
+    // glTransformFeedbackVaryings). Called before link(); takes effect on the
+    // next link. `bufferMode` is GL_INTERLEAVED_ATTRIBS or GL_SEPARATE_ATTRIBS.
+    // Default no-op so backends opt in; the GLES backend forwards to the driver
+    // on the native program, and the mock records the request.
+    virtual void transformFeedbackVaryings(const std::vector<std::string>& varyings,
+                                           uint32_t bufferMode) {
+        (void)varyings; (void)bufferMode;
     }
     // Native backend program id (e.g. driver GLuint). 0 when not linked.
     virtual uint32_t nativeId() const = 0;

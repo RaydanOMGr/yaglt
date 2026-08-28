@@ -7,7 +7,7 @@ milestones, architectural decisions, and before ending a session.
 
 Current milestone: Phase 3 — Core rendering state (viewport/scissor/depth-range/clear) + draw
 Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear)
-Last updated: 2026-08-28
+Last updated: 2026-08-29
 Known major blockers:
 - Geometry/tessellation/compute still honest-Unsupported (no emulation yet).
 
@@ -25,9 +25,31 @@ Known major blockers:
   constant; `MockResourceFactory::lastCreatedProgram` test hook added. New
   `tests/unit/uniform_block_binding_test.cpp` (record + query round-trip,
   unlinked-program / out-of-range block index / out-of-range binding validation).
-  Default **527/527**, sanitizer **527/527**, translate (Mesa) **pass** green.
-  Coverage bumped in `docs/coverage-core.md` (314/571 ≈ 55.0% declared;
-  ~60.9% core). `docs/feature-matrix.md` marks UniformBufferObjects Implemented.
+   Default **527/527**, sanitizer **527/527**, translate (Mesa) **pass** green.
+   Coverage bumped in `docs/coverage-core.md` (314/571 ≈ 55.0% declared;
+   ~60.9% core). `docs/feature-matrix.md` marks UniformBufferObjects Implemented.
+
+## Recent Work (2026-08-29 — transform-feedback varyings, this session)
+- Added `glTransformFeedbackVaryings` (SPEC §13.3.1) to complete the
+  transform-feedback setup surface. New `BackendProgram::transformFeedback-
+  Varyings(varyings, bufferMode)` virtual (default no-op); the GLES backend
+  forwards to `glTransformFeedbackVaryings` on the native program (resolved as an
+  optional `GLESLib` symbol, ES 3.0+), the mock records the requested varying
+  names + buffer mode in `tfRequestedVaryings` / `tfRequestedBufferMode`.
+  `Context::transformFeedbackVaryings` validates: an unknown program →
+  `GL_INVALID_OPERATION`; `count < 0` → `GL_INVALID_VALUE`; `bufferMode` not
+  `GL_INTERLEAVED_ATTRIBS`/`GL_SEPARATE_ATTRIBS` → `GL_INVALID_ENUM`; the call
+  after the program is linked → `GL_INVALID_OPERATION` (SPEC: must be set before
+  link). The request is stored on `ProgramObject` (`tfVaryings` / `tfBufferMode`)
+  and applied to the backend program at the next `linkProgram`, mirroring the
+  `glBindAttribLocation` pre-link pattern. New `GL_INTERLEAVED_ATTRIBS` /
+  `GL_SEPARATE_ATTRIBS` / `GL_TRANSFORM_FEEDBACK_BUFFER_MODE` constants. New
+  `tests/unit/transform_feedback_varyings_test.cpp` (unknown-program / negative
+  count / bad buffer-mode / post-link validation, program-object recording,
+  pre-link backend application, public dispatch). Default **534/534**, sanitizer
+  **534/534**, translate (Mesa) **pass** green. Coverage bumped in
+  `docs/coverage-core.md` (315/571 ≈ 55.2% declared; ~61.1% core);
+  `docs/feature-matrix.md` notes the varying-capture setup.
 
 ## Recent Work (2026-08-29 — conditional rendering, this session)
 - Added conditional rendering (SPEC §10.11): `glBeginConditionalRender` /

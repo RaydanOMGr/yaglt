@@ -1538,10 +1538,17 @@ void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize
         static_cast<uint32_t*>(type), static_cast<char*>(name));
 }
 
-void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name) {
-    if (g_current == nullptr) return;
-    g_current->bindAttribLocation(program, index, name ? name : "");
-}
+ void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name) {
+     if (g_current == nullptr) return;
+     g_current->bindAttribLocation(program, index, name ? name : "");
+ }
+
+ void glTransformFeedbackVaryings(GLuint program, GLsizei count,
+                                  const GLchar* const* varyings, GLenum bufferMode) {
+     if (g_current == nullptr) return;
+     g_current->transformFeedbackVaryings(program, count, varyings, bufferMode);
+ }
+
 
 // --- Uniforms (SPEC §8) ---
 

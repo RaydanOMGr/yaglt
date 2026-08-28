@@ -97,6 +97,9 @@ struct GLESLib {
     void (*glGetProgramInterfaceiv)(GLuint, GLenum, GLenum, GLint*) = nullptr;
     // Uniform-block binding (SPEC §7.6.2). ES 3.0+; resolved optionally.
     void (*glUniformBlockBinding)(GLuint, GLuint, GLuint) = nullptr;
+    // Transform-feedback varying capture setup (SPEC §13.3.1). ES 3.0+; resolved
+    // optionally so load() still succeeds on drivers without it.
+    void (*glTransformFeedbackVaryings)(GLuint, GLsizei, const GLchar* const*, GLenum) = nullptr;
     GLuint (*glGetProgramResourceIndex)(GLuint, GLenum, const GLchar*) = nullptr;
     void (*glGetProgramResourceName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
     void (*glGetProgramResourceiv)(GLuint, GLenum, GLuint, GLsizei, const GLenum*, GLsizei, GLsizei*, GLint*) = nullptr;

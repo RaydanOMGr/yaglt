@@ -33,23 +33,23 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-    signal.    A reproducible regen script counts 571 declared families, 318 `gl_api`
-    entry points, and 314 matched families.
+     signal.    A reproducible regen script counts 571 declared families, 319 `gl_api`
+     entry points, and 315 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 314 | **55.0%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 314 | **~60.9%** |
+| Full spec (compat + core) | 571 | 315 | **55.2%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 315 | **~61.1%** |
 
 > Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
- All 313 matched families are real `gl_api` entry points with frontend semantics
-and tests (mock path, most also against Mesa GLES). The 315 `gl_api` entry
-points include 4 that do not map to a spec *family* in the universe:
+ All 315 matched families are real `gl_api` entry points with frontend semantics
+ and tests (mock path, most also against Mesa GLES). The 319 `gl_api` entry
+ points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
 `glInvalidateNamedBufferSubData` (spec spelling differs). None of the
@@ -80,7 +80,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path) and DSA queries `glGetVertexArrayiv` / `glGetVertexArrayIndexediv` / `glGetVertexArrayIndexed64v` (SPEC §10.3.1).    **Generic vertex attribute values** (`glVertexAttrib1f..4f`/`*fv`, `glVertexAttribI4i`/`I4ui`/`I4iv`/`I4uiv`, `glGetVertexAttrib{fv,iv,dv,Iiv,Iuiv,Pointerv}` covering the full §10.4 pname set: CURRENT_VERTEX_ATTRIB plus the array state pnames ENABLED/SIZE/STRIDE/TYPE/NORMALIZED/INTEGER/DIVISOR/BUFFER_BINDING/POINTER) now implemented (SPEC §10.2/§10.4). Indirect draw implemented (SPEC §10). **Conditional rendering** (`glBeginConditionalRender`/`glEndConditionalRender`, SPEC §10.11) implemented: capability-gated by `ConditionalRendering`, validates the predicate query (generated, not active, allowed type) and `mode` (incl. `*_INVERTED` 4.6 variants), and forwards the region to the backend `GLStateSink` immediately. Missing: client array legacy (removed-in-core semantics) |
 | §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words), `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query), and `glProvokingVertex` (SPEC §11: `GL_FIRST_VERTEX_CONVENTION` / `GL_LAST_VERTEX_CONVENTION` tracked, pushed on change, `GL_PROVOKING_VERTEX` query; invalid mode → `GL_INVALID_ENUM`; GLES records without a native call). |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
-| §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. Missing: actual varying capture wiring to buffers, counter queries |
+| §13 Transform feedback | 🟡 | object lifecycle + begin/end/pause/resume + capability gate; forwards to backend. **Varying capture setup** (`glTransformFeedbackVaryings`, SPEC §13.3.1): records the captured varying names + `GL_INTERLEAVED_ATTRIBS`/`GL_SEPARATE_ATTRIBS` buffer mode on the program object, applies them to the backend program at the next link, and validates `count < 0` → `GL_INVALID_VALUE`, bad `bufferMode` → `GL_INVALID_ENUM`, call-after-link → `GL_INVALID_OPERATION`. Missing: actual varying capture wiring to buffers, counter queries |
 | §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test, `glSampleCoverage`, `glMinSampleShading`, `glPolygonOffset` (all tracked, push-only-on-change) |
 | §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush), `glBlitFramebuffer`+`glBlitNamedFramebuffer` (mask validated → `GL_INVALID_VALUE`, forwards after state flush/bind), `glInvalidateFramebuffer`/`glInvalidateSubFramebuffer`+`glInvalidateNamedFramebuffer*` (null-attachments / negative-dim `GL_INVALID_VALUE`, sub-rectangle form routed to backend), `glClearNamedFramebufferiv/uiv/fv/fi` (explicit clear values, DSA: no binding side effect). `glClampColor` implemented (SPEC §15.2.3). `GL_FRAMEBUFFER_SRGB` (SPEC §15.1.1) and `GL_SAMPLE_ALPHA_TO_COVERAGE` (SPEC §15.3.1) implemented as tracked capabilities (off by default, push-only-on-change). |
 | §17 (fragment op details — alpha test, dither, logical op) | 🟡 | `glLogicOp` implemented (SPEC §17.3.4, capability-gated, push-only-on-change); `glColorMask` implemented (SPEC §17.3.6, tracked, push-only-on-change, `GL_COLOR_WRITEMASK` query); `glSampleCoverage` implemented (SPEC §17.3.6 multisample, tracked value+invert, push-only-on-change, `GL_SAMPLE_COVERAGE_VALUE`/`GL_SAMPLE_COVERAGE_INVERT` queries); `glEnable/glDisable(GL_DITHER)` implemented (SPEC §17.3.7, tracked capability, enabled by default, push-only-on-change, `GL_DITHER` query). `glStencilFuncSeparate`/`glStencilOpSeparate`/`glStencilMaskSeparate` (SPEC §17.3.3) track per-face state and push per-face only when a face differs, else a single combined push (SPEC §10); invalid face → `GL_INVALID_ENUM`. Alpha test removed-in-core |
@@ -135,8 +135,8 @@ glLineWidth, glLinkProgram, glLogicOp, glMemoryBarrier, glMemoryBarrierByRegion,
 glNamedFramebufferParameteri, glNamedFramebufferRenderbuffer, glNamedFramebufferTexture,
 glNamedFramebufferTextureLayer, glNamedRenderbufferStorage, glNamedRenderbufferStorageMultisample,
 glObjectLabel, glObjectPtrLabel, glPauseTransformFeedback, glPixelStorei, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
-glProvokingVertex, glReadBuffer, glReadPixels, glRenderbufferStorage, glResumeTransformFeedback,
-glSampleCoverage, glSampleMaski, glShaderBinary, glShaderSource, glStencilFunc,
+ glProvokingVertex, glReadBuffer, glReadPixels, glRenderbufferStorage, glResumeTransformFeedback,
+ glTransformFeedbackVaryings, glSampleCoverage, glSampleMaski, glShaderBinary, glShaderSource, glStencilFunc,
 glStencilFuncSeparate, glStencilMask, glStencilMaskSeparate, glStencilOp, glStencilOpSeparate, glTexBuffer,
 glTexBufferRange, glTexImage1D, glTexImage2D, glTexImage2DMultisample, glTexImage3D, glTexImage3DMultisample,
 glTexParameterIiv, glTexParameterIuiv, glTexParameterf, glTexParameterfv, glTexParameteri, glTexParameteriv,

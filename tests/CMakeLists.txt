@@ -14,6 +14,7 @@ add_executable(yaglt_tests
     unit/draw_expansion_test.cpp
     unit/shader_program_test.cpp
     unit/bind_attrib_location_test.cpp
+    unit/transform_feedback_varyings_test.cpp
     unit/provoking_vertex_test.cpp
     unit/clamp_color_test.cpp
     unit/indirect_draw_test.cpp

@@ -309,6 +309,12 @@ public:
     // Generic attribute bindings requested via glBindAttribLocation before link.
     // name -> index; applied to the backend program at the next link (SPEC §7.3.7).
     std::map<std::string, int> attribBindings;
+    // Transform-feedback varying names requested via glTransformFeedbackVaryings
+    // before link, plus the chosen buffer mode. Applied to the backend program at
+    // the next link (SPEC §13.3.1).
+    std::vector<std::string> tfVaryings;
+    uint32_t tfBufferMode = 0x8C8C; // GL_INTERLEAVED_ATTRIBS
+
 };
 
 // Frontend program-pipeline object (SPEC §7.4). Maps each shader stage to the

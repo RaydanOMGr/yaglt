@@ -421,6 +421,9 @@ constexpr GLenum GL_GEOMETRY_SUBROUTINE_UNIFORM = 0x92F1;
 constexpr GLenum GL_FRAGMENT_SUBROUTINE_UNIFORM = 0x92F2;
 constexpr GLenum GL_COMPUTE_SUBROUTINE_UNIFORM = 0x92F3;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_VARYING = 0x92F4;
+constexpr GLenum GL_INTERLEAVED_ATTRIBS = 0x8C8C;
+constexpr GLenum GL_SEPARATE_ATTRIBS = 0x8C8D;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_MODE = 0x8C7F;
 constexpr GLenum GL_ATOMIC_COUNTER_BUFFER = 0x92C0;
 // glGetProgramInterfaceiv pnames (SPEC §7.3.1, used to size reflection).
 constexpr GLenum GL_ACTIVE_RESOURCES = 0x92F5;
