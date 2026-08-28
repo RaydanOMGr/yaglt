@@ -398,6 +398,10 @@ void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
 void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params);
 void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);
 void glGetQueryObjectui64v(GLuint id, GLenum pname, GLuint64* params);
+void glGetQueryBufferObjectiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+void glGetQueryBufferObjectuiv(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+void glGetQueryBufferObjecti64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
+void glGetQueryBufferObjectui64v(GLuint id, GLuint buffer, GLenum pname, GLintptr offset);
 
 // --- Sync objects (SPEC §4 / §20, ARB_sync) ---
 GLsync glFenceSync(GLenum condition, GLbitfield flags);

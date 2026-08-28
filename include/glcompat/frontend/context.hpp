@@ -644,6 +644,20 @@ public:
     void getQueryObjectuiv(GLObjectName id, uint32_t pname, uint32_t* params);
     void getQueryObjecti64v(GLObjectName id, uint32_t pname, int64_t* params);
     void getQueryObjectui64v(GLObjectName id, uint32_t pname, uint64_t* params);
+    // Query result written into a buffer object (SPEC §4 / §19 /
+    // ARB_query_buffer_object). The cached query result/availability is written
+    // into the buffer's CPU mirror at `offset` (alignment + bounds checked) then
+    // uploaded to the backend. Unknown pname -> GL_INVALID_ENUM; an ungenerated id
+    // or buffer -> GL_INVALID_OPERATION; a misaligned or out-of-bounds offset ->
+    // GL_INVALID_VALUE.
+    void getQueryBufferObjectiv(GLObjectName id, GLObjectName buffer, uint32_t pname,
+                                intptr_t offset);
+    void getQueryBufferObjectuiv(GLObjectName id, GLObjectName buffer, uint32_t pname,
+                                 intptr_t offset);
+    void getQueryBufferObjecti64v(GLObjectName id, GLObjectName buffer, uint32_t pname,
+                                  intptr_t offset);
+    void getQueryBufferObjectui64v(GLObjectName id, GLObjectName buffer, uint32_t pname,
+                                   intptr_t offset);
 
     // --- Sync objects (SPEC §4 / §20, ARB_sync) ---
     // Capability-gated by SyncObjects. fenceSync creates a GPU-commands-complete
@@ -1032,6 +1046,11 @@ private:
     // availability from the backend query resource into the requested width/sign.
     void getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params, bool is64,
                             bool isSigned);
+    // Shared body for glGetQueryBufferObject* (SPEC §4 / ARB_query_buffer_object):
+    // writes the cached query result/availability into a buffer object's CPU
+    // mirror at `offset` (alignment + bounds checked) then uploads to the backend.
+    void getQueryBufferObjectImpl(GLObjectName id, GLObjectName buffer, uint32_t pname,
+                                  intptr_t offset, bool is64, bool isSigned);
 
     // Object-label support (SPEC §22.2). objectHasType reports whether `name` is a
     // live object in the namespace given by `identifier`.

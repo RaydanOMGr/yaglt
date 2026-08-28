@@ -3664,6 +3664,104 @@ void Context::getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params,
     }
 }
 
+void Context::getQueryBufferObjectiv(GLObjectName id, GLObjectName buffer,
+                                     uint32_t pname, intptr_t offset) {
+    getQueryBufferObjectImpl(id, buffer, pname, offset, /*is64=*/false,
+                             /*isSigned=*/true);
+}
+
+void Context::getQueryBufferObjectuiv(GLObjectName id, GLObjectName buffer,
+                                      uint32_t pname, intptr_t offset) {
+    getQueryBufferObjectImpl(id, buffer, pname, offset, /*is64=*/false,
+                             /*isSigned=*/false);
+}
+
+void Context::getQueryBufferObjecti64v(GLObjectName id, GLObjectName buffer,
+                                       uint32_t pname, intptr_t offset) {
+    getQueryBufferObjectImpl(id, buffer, pname, offset, /*is64=*/true,
+                             /*isSigned=*/true);
+}
+
+void Context::getQueryBufferObjectui64v(GLObjectName id, GLObjectName buffer,
+                                        uint32_t pname, intptr_t offset) {
+    getQueryBufferObjectImpl(id, buffer, pname, offset, /*is64=*/true,
+                             /*isSigned=*/false);
+}
+
+// Shared body for glGetQueryBufferObject* (SPEC §4 / §19 / ARB_query_buffer_object):
+// writes the cached query result/availability into the buffer's CPU mirror at
+// `offset`, then uploads to the backend (emulating the driver write on backends
+// without a native entry point).
+void Context::getQueryBufferObjectImpl(GLObjectName id, GLObjectName buffer,
+                                      uint32_t pname, intptr_t offset, bool is64,
+                                      bool isSigned) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* buf = getBuffer(buffer);
+    if (!buf) {
+        setError(GLError::InvalidOperation); // ungenerated buffer object
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // ungenerated query id
+        return;
+    }
+    bool availOnly = false;
+    switch (pname) {
+        case GL_QUERY_RESULT: availOnly = false; break;
+        case GL_QUERY_RESULT_AVAILABLE: availOnly = true; break;
+        case GL_QUERY_RESULT_NO_WAIT: availOnly = false; break;
+        default:
+            setError(GLError::InvalidEnum); // unknown pname
+            return;
+    }
+    const size_t typeSize = is64 ? 8u : 4u;
+    if (offset < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (offset % static_cast<intptr_t>(typeSize) != 0) {
+        setError(GLError::InvalidValue); // misaligned write
+        return;
+    }
+    if (offset + static_cast<intptr_t>(typeSize) > buf->size) {
+        setError(GLError::InvalidValue); // write extends past the buffer
+        return;
+    }
+    int64_t value = 0;
+    bool available = false;
+    if (q->backend) q->backend->queryResult(&value, &available);
+    uint8_t raw[8] = {0};
+    if (availOnly) {
+        const int64_t v = available ? GL_TRUE : GL_FALSE;
+        if (is64) std::memcpy(raw, &v, 8);
+        else { const int32_t v32 = static_cast<int32_t>(v); std::memcpy(raw, &v32, 4); }
+    } else {
+        // QUERY_RESULT / QUERY_RESULT_NO_WAIT: when the result is not yet available
+        // the driver value is undefined; we write 0 to keep the CPU mirror defined.
+        const int64_t v = available ? value : 0;
+        if (is64) {
+            std::memcpy(raw, &v, 8);
+        } else if (isSigned) {
+            const int32_t v32 = static_cast<int32_t>(value);
+            std::memcpy(raw, &v32, 4);
+        } else {
+            const uint32_t v32 = static_cast<uint32_t>(value);
+            std::memcpy(raw, &v32, 4);
+        }
+    }
+    std::memcpy(buf->store.data() + static_cast<size_t>(offset), raw, typeSize);
+    if (buf->backend) {
+        // Use a dedicated copy target so the upload does not disturb application
+        // binding points (the driver has no native glGetQueryBufferObject* in ES).
+        buf->backend->bufferSubData(GL_COPY_WRITE_BUFFER, offset,
+                                    static_cast<intptr_t>(typeSize), raw);
+    }
+}
+
 // --- Sync objects (SPEC §4 / §20, ARB_sync) ---
 
 GLsync Context::fenceSync(uint32_t condition, uint32_t flags) {

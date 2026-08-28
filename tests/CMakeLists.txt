@@ -79,6 +79,7 @@ add_executable(yaglt_tests
     unit/program_interface_test.cpp
     unit/compressed_tex_image_test.cpp
     unit/tex_image_robustness_test.cpp
+    unit/query_buffer_object_test.cpp
     unit/texture_sub_image_test.cpp
     backend/gles_backend_test.cpp
 )

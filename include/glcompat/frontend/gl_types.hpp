@@ -671,6 +671,7 @@ constexpr GLenum GL_QUERY_COUNTER_BITS = 0x8864;
 constexpr GLenum GL_CURRENT_QUERY = 0x8865;
 constexpr GLenum GL_QUERY_RESULT = 0x8866;
 constexpr GLenum GL_QUERY_RESULT_AVAILABLE = 0x8867;
+constexpr GLenum GL_QUERY_RESULT_NO_WAIT = 0x8868;
 
 // Sync object parameters / status (SPEC §4 / §20, ARB_sync).
 constexpr GLenum GL_SYNC_STATUS = 0x9114;
