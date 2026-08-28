@@ -46,6 +46,7 @@ add_executable(yaglt_tests
     unit/sampler_test.cpp
     unit/query_sync_test.cpp
     unit/buffer_completeness_test.cpp
+    unit/buffer_parameter_i64_test.cpp
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
     unit/blend_test.cpp

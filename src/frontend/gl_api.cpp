@@ -77,6 +77,16 @@ void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params) {
     g_current->getBufferParameteriv(target, pname, params);
 }
 
+void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getBufferParameteri64v(target, pname, params);
+}
+
+void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getNamedBufferParameteri64v(buffer, pname, params);
+}
+
 GLvoid* glMapBuffer(GLenum target, GLenum access) {
     if (g_current == nullptr) return nullptr;
     return g_current->mapBuffer(target, access);

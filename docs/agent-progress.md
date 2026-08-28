@@ -99,6 +99,20 @@ Known major blockers:
    - Constant `GL_PROGRAM_BINARY_RETRIEVABLE_HINT` added to `gl_types.hpp`.
    - Validation: default + sanitizer suites green.
 
+- [x] 64-bit buffer parameter queries (SPEC §6.1.1, this session).
+   - `Context::getBufferParameteri64v` + public `glGetBufferParameteri64v`: reads
+     frontend-owned buffer state as `GLint64` (GL_BUFFER_SIZE genuinely 64-bit;
+     the rest widen the `glGetBufferParameteriv` form). Null params →
+     `GL_INVALID_VALUE`; unbound target → `GL_INVALID_OPERATION`; unknown pname →
+     `GL_INVALID_ENUM`.
+   - `Context::getNamedBufferParameteri64v` + public `glGetNamedBufferParameteri64v`
+     (DSA variant, capability-gated by `DirectStateAccess`; ungenerated name →
+     `GL_INVALID_OPERATION`).
+   - New `tests/unit/buffer_parameter_i64_test.cpp` covers size/usage/mapped
+     reads, validation, the DSA path, DSA-capability gating, and the public
+     dispatch surface.
+   - Validation: default + sanitizer suites green.
+
 ## Completed (this session)
 
 - [x] Shader translation pipeline behind `IShaderCompiler` (Phase 4 per SPEC).

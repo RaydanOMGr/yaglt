@@ -69,6 +69,15 @@ public:
     // frontend-owned state (size/usage/flags/mapped). A null `params` reports
     // GL_INVALID_VALUE; an unknown pname reports GL_INVALID_ENUM.
     void getBufferParameteriv(uint32_t target, uint32_t pname, int32_t* params);
+    // 64-bit buffer parameter query (SPEC §6.1.1). GL_BUFFER_SIZE is genuinely
+    // 64-bit; the other pnames widen the 32-bit form. Null params ->
+    // GL_INVALID_VALUE; unbound target -> GL_INVALID_OPERATION; unknown pname ->
+    // GL_INVALID_ENUM.
+    void getBufferParameteri64v(uint32_t target, uint32_t pname, int64_t* params);
+    // DSA variant (SPEC §6.1.1), capability-gated by DirectStateAccess.
+    // Ungenerated name -> GL_INVALID_OPERATION.
+    void getNamedBufferParameteri64v(GLObjectName buffer, uint32_t pname,
+                                     int64_t* params);
     // Map a buffer for CPU access (SPEC §6 glMapBuffer / glMapBufferRange).
     // Returns a pointer into the frontend data store, or nullptr on error.
     // Mapping an already-mapped buffer reports GL_INVALID_OPERATION.

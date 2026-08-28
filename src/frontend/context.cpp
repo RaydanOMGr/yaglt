@@ -267,6 +267,79 @@ void Context::getBufferParameteriv(uint32_t target, uint32_t pname,
     }
 }
 
+void Context::getBufferParameteri64v(uint32_t target, uint32_t pname,
+                                     int64_t* params) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+    case GL_BUFFER_SIZE: *params = static_cast<int64_t>(obj->size); break;
+    case GL_BUFFER_USAGE: *params = static_cast<int64_t>(obj->usage); break;
+    case GL_BUFFER_ACCESS: *params = static_cast<int64_t>(obj->mapAccess); break;
+    case GL_BUFFER_ACCESS_FLAGS:
+        *params = static_cast<int64_t>(obj->immutableFlags); break;
+    case GL_BUFFER_IMMUTABLE_STORAGE:
+        *params = obj->immutable ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAPPED:
+        *params = obj->mapped ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAP_LENGTH:
+        *params = static_cast<int64_t>(obj->mapLength); break;
+    case GL_BUFFER_MAP_OFFSET:
+        *params = static_cast<int64_t>(obj->mapOffset); break;
+    default:
+        setError(GLError::InvalidEnum);
+        *params = 0;
+        return;
+    }
+}
+
+void Context::getNamedBufferParameteri64v(GLObjectName buffer, uint32_t pname,
+                                          int64_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+    case GL_BUFFER_SIZE: *params = static_cast<int64_t>(obj->size); break;
+    case GL_BUFFER_USAGE: *params = static_cast<int64_t>(obj->usage); break;
+    case GL_BUFFER_ACCESS: *params = static_cast<int64_t>(obj->mapAccess); break;
+    case GL_BUFFER_ACCESS_FLAGS:
+        *params = static_cast<int64_t>(obj->immutableFlags); break;
+    case GL_BUFFER_IMMUTABLE_STORAGE:
+        *params = obj->immutable ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAPPED:
+        *params = obj->mapped ? GL_TRUE : GL_FALSE; break;
+    case GL_BUFFER_MAP_LENGTH:
+        *params = static_cast<int64_t>(obj->mapLength); break;
+    case GL_BUFFER_MAP_OFFSET:
+        *params = static_cast<int64_t>(obj->mapOffset); break;
+    default:
+        setError(GLError::InvalidEnum);
+        *params = 0;
+        return;
+    }
+}
+
 void* Context::mapBuffer(uint32_t target, uint32_t access) {
     return mapBufferRange(target, 0, 0, access);
 }
