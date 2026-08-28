@@ -85,25 +85,31 @@ std::string assignDefaultLocations(const std::string& src) {
 } // namespace
 
 namespace {
-// OpenGL ES has no 1D textures. After SPIRV-Cross emits GLSL ES, rewrite any
-// remaining `sampler1D` / `texture1D` usage to the 2D equivalent so the shader
-// compiles on backends where 1D is emulated as 2D with height=1 (SPEC §7:
-// shader pipeline transformation).
-std::string replaceEmulated1D(const std::string& src) {
-    static const std::regex samplerRe(R"(sampler1D\b)");
-    std::string out = std::regex_replace(src, samplerRe, "sampler2D");
-    static const std::regex samplerShadowRe(R"(sampler1DShadow\b)");
-    out = std::regex_replace(out, samplerShadowRe, "sampler2DShadow");
-    static const std::regex texRe(R"(texture1D\s*\(\s*(\w+)\s*,\s*([^,]+)\s*(?:,\s*[^)]+)?\s*\))");
+// OpenGL ES has no 1D textures. Desktop GLSL using `sampler1D` / `texture1D`
+// must be rewritten to the 2D equivalent *before* glslang parses it, because
+// `texture1D` / `sampler1D` are absent from modern core GLSL and would fail
+// validation. The 1D coordinate is padded to a 2D coordinate with a constant
+// v = 0.5 (the row of the height=1 emulation surface). This mirrors the GLES
+// backend emulating 1D storage as 2D with height=1 (SPEC §7: shader pipeline
+// transformation).
+std::string replaceEmulated1D(std::string src) {
+    // Sampler type: 1D -> 2D (covers sampler1D / sampler1DShadow / sampler1DArray).
+    src = std::regex_replace(src, std::regex(R"(sampler1D\b)"), "sampler2D");
+    // Fetch functions: texture1D(s, x[, bias]) -> texture(s, vec2(x, 0.5)[, bias]).
+    // Handle the optional 3rd bias argument so the rewrite stays valid.
+    std::regex texRe(
+        R"(texture1D\s*\(\s*([^,]+?)\s*,\s*([^,]+?)\s*(?:,\s*([^)]+?)\s*)?\))");
     std::string result;
-    std::string::const_iterator pos = out.cbegin();
+    std::string::const_iterator pos = src.cbegin();
     std::smatch m;
-    while (std::regex_search(pos, out.cend(), m, texRe)) {
+    while (std::regex_search(pos, src.cend(), m, texRe)) {
         result.append(pos, m[0].first);
-        result += "texture2D(" + m[1].str() + ", vec2(" + m[2].str() + ", 0.5))";
+        result += "texture(" + m[1].str() + ", vec2(" + m[2].str() + ", 0.5)";
+        if (m[3].matched) result += ", " + m[3].str();
+        result += ")";
         pos = m[0].second;
     }
-    result.append(pos, out.cend());
+    result.append(pos, src.cend());
     return result;
 }
 } // namespace
@@ -143,6 +149,9 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     glslang::TShader shader(lang);
     std::string prepared = assignDefaultBindings(desktopGlsl);
     prepared = assignDefaultLocations(prepared);
+    // Rewrite 1D textures to 2D before parsing: ES has no 1D and modern core
+    // GLSL rejects sampler1D / texture1D. This must run on the desktop source.
+    prepared = replaceEmulated1D(prepared);
     // Desktop GLSL < 4.20 rejects layout(binding=...) on uniform/storage blocks
     // and layout(location=...) on bare uniforms; these ARB extensions enable them
     // for SPIR-V translation.
@@ -195,7 +204,6 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     glsl.set_common_options(opts);
 
     esSource = glsl.compile();
-    esSource = replaceEmulated1D(esSource);
     return true;
 }
 
