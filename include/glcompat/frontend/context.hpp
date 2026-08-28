@@ -393,8 +393,12 @@ public:
     void getNamedFramebufferParameteriv(GLObjectName framebuffer, uint32_t pname,
                                        int32_t* params);
     void getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
-                                                 uint32_t attachment,
-                                                 uint32_t pname, int32_t* params);
+                                                  uint32_t attachment,
+                                                  uint32_t pname, int32_t* params);
+    // Classic (non-DSA) counterpart operating on the framebuffer bound to
+    // `target` (GL_FRAMEBUFFER / GL_READ_FRAMEBUFFER / GL_DRAW_FRAMEBUFFER).
+    void getFramebufferAttachmentParameteriv(uint32_t target, uint32_t attachment,
+                                             uint32_t pname, int32_t* params);
     void blitNamedFramebuffer(GLObjectName readFb, GLObjectName drawFb,
                              int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
@@ -906,6 +910,10 @@ private:
     // Shared body for DSA + classic renderbuffer-parameter queries (SPEC §9.2.4).
     void getRenderbufferParameterivImpl(RenderbufferObject* rbo, uint32_t pname,
                                         int32_t* params);
+    // Shared body for DSA + classic FBO attachment-parameter queries (SPEC §9.2.3).
+    void getFramebufferAttachmentParameterivImpl(FramebufferObject* fbo,
+                                                 uint32_t attachment,
+                                                 uint32_t pname, int32_t* params);
     GLObjectName nextName_ = 1;
 
     IGraphicsBackend& backend_;

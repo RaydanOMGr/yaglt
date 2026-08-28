@@ -52,6 +52,20 @@ Known major blockers:
   translate (Mesa), and sanitizer suites green. Coverage bumped in
   `docs/coverage-core.md` (now 278/571 ≈ 48.7% declared; ~53.9% core).
 
+## Recent Work (2026-08-28 — classic GetFramebufferAttachmentParameteriv, this session)
+- Added the classic (non-DSA) `glGetFramebufferAttachmentParameteriv` (SPEC
+  §9.2.3), operating on the framebuffer bound to `target` (invalid target →
+  `GL_INVALID_ENUM`; no bound FBO → `GL_INVALID_OPERATION`). The DSA method was
+  refactored to share a `getFramebufferAttachmentParameterivImpl` body reading
+  the attachment's object type / name / texture-level / layer. Public `gl_api`
+  dispatch + `gl_api.hpp` declaration added.
+- New `tests/unit/dsa_named_framebuffer_test.cpp` cases
+  `get_framebuffer_attachment_parameter_bound_target`,
+  `get_framebuffer_attachment_parameter_invalid_target`,
+  `get_framebuffer_attachment_parameter_no_bound_invalid_operation`. Validation:
+  default, translate (Mesa), and sanitizer suites green. Coverage bumped in
+  `docs/coverage-core.md` (now 279/571 ≈ 48.9% declared; ~54.1% core).
+
 ## Toolchain & Environment
 
 - Android NDK root (for building/testing the Android platform path):

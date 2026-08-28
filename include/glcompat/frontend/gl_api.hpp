@@ -281,8 +281,11 @@ void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param)
 void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname,
                                      GLint* params);
 void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
-                                               GLenum attachment, GLenum pname,
-                                               GLint* params);
+                                                GLenum attachment, GLenum pname,
+                                                GLint* params);
+void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment,
+                                           GLenum pname, GLint* params);
+
 void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
                            GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                            GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,

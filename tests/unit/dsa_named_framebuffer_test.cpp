@@ -272,6 +272,52 @@ TEST_CASE("get_named_framebuffer_attachment_parameter_reads_object") {
     EXPECT_EQ(level, 3);
 }
 
+// Classic (non-DSA) glGetFramebufferAttachmentParameteriv (SPEC §9.2.3) operates
+// on the framebuffer currently bound to the given target.
+TEST_CASE("get_framebuffer_attachment_parameter_bound_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fb, rb;
+    ctx.createFramebuffers(1, &fb);
+    ctx.createRenderbuffers(1, &rb);
+    ctx.namedRenderbufferStorage(rb, GL_RGBA8, 64, 64);
+    ctx.namedFramebufferRenderbuffer(fb, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, rb);
+    ctx.bindFramebuffer(fb);
+    int32_t type = 0, name = 0;
+    ctx.getFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                            GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE,
+                                            &type);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(type, GL_RENDERBUFFER);
+    ctx.getFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                            GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME,
+                                            &name);
+    EXPECT_EQ(name, static_cast<int32_t>(rb));
+}
+
+TEST_CASE("get_framebuffer_attachment_parameter_invalid_target") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName fb;
+    ctx.createFramebuffers(1, &fb);
+    ctx.bindFramebuffer(fb);
+    int32_t v = 0;
+    ctx.getFramebufferAttachmentParameteriv(GL_TEXTURE_2D, GL_COLOR_ATTACHMENT0,
+                                            GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE,
+                                            &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("get_framebuffer_attachment_parameter_no_bound_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    int32_t v = 0;
+    ctx.getFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                            GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE,
+                                            &v);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
 TEST_CASE("get_named_framebuffer_parameter_null_invalid") {
     auto backend = makeBackend();
     Context ctx(*backend);

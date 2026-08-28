@@ -772,6 +772,14 @@ void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
     g_current->getNamedFramebufferAttachmentParameteriv(framebuffer, attachment,
                                                        pname, params);
 }
+
+void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment,
+                                           GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getFramebufferAttachmentParameteriv(
+        static_cast<uint32_t>(target), static_cast<uint32_t>(attachment),
+        static_cast<uint32_t>(pname), params);
+}
 void glBlitNamedFramebuffer(GLuint readFramebuffer, GLuint drawFramebuffer,
                            GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1,
                            GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1,

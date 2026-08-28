@@ -2799,6 +2799,23 @@ void Context::getNamedFramebufferParameteriv(GLObjectName framebuffer,
     *params = 0;
 }
 
+void Context::getFramebufferAttachmentParameteriv(uint32_t target,
+                                                  uint32_t attachment,
+                                                  uint32_t pname,
+                                                  int32_t* params) {
+    if (target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER &&
+        target != GL_DRAW_FRAMEBUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer());
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getFramebufferAttachmentParameterivImpl(fbo, attachment, pname, params);
+}
+
 void Context::getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
                                                      uint32_t attachment,
                                                      uint32_t pname,
@@ -2809,6 +2826,17 @@ void Context::getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
     }
     FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
     if (fbo == nullptr) return;
+    getFramebufferAttachmentParameterivImpl(fbo, attachment, pname, params);
+}
+
+void Context::getFramebufferAttachmentParameterivImpl(FramebufferObject* fbo,
+                                                      uint32_t attachment,
+                                                      uint32_t pname,
+                                                      int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
     const FramebufferObject::Attachment* found = nullptr;
     for (const auto& a : fbo->attachments) {
         if (a.attachment == attachment) { found = &a; break; }
