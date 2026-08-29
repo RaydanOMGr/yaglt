@@ -57,6 +57,11 @@ void glDeleteBuffers(GLsizei n, const GLuint* buffers) {
     g_current->deleteBuffers(static_cast<uint32_t>(n), buffers);
 }
 
+GLboolean glIsBuffer(GLuint buffer) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isBuffer(buffer) ? GL_TRUE : GL_FALSE;
+}
+
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage) {
     if (g_current == nullptr) return;
     g_current->bufferData(target, size, usage, data);
@@ -247,6 +252,11 @@ void glBindTextures(GLuint first, GLsizei count, GLenum target,
 void glDeleteTextures(GLsizei n, const GLuint* textures) {
     if (g_current == nullptr) return;
     g_current->deleteTextures(static_cast<uint32_t>(n), textures);
+}
+
+GLboolean glIsTexture(GLuint texture) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isTexture(texture) ? GL_TRUE : GL_FALSE;
 }
 
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,
@@ -752,6 +762,11 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers) {
     g_current->deleteRenderbuffers(static_cast<uint32_t>(n), renderbuffers);
 }
 
+GLboolean glIsRenderbuffer(GLuint renderbuffer) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isRenderbuffer(renderbuffer) ? GL_TRUE : GL_FALSE;
+}
+
 void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                          GLsizei height) {
     if (g_current == nullptr) return;
@@ -807,6 +822,11 @@ void glBindFramebuffer(GLenum, GLuint framebuffer) {
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers) {
     if (g_current == nullptr) return;
     g_current->deleteFramebuffers(static_cast<uint32_t>(n), framebuffers);
+}
+
+GLboolean glIsFramebuffer(GLuint framebuffer) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isFramebuffer(framebuffer) ? GL_TRUE : GL_FALSE;
 }
 
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
@@ -1048,6 +1068,11 @@ void glDeleteTransformFeedback(GLuint name) {
 void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names) {
     if (g_current == nullptr) return;
     g_current->deleteTransformFeedbacks(static_cast<uint32_t>(n), names);
+}
+
+GLboolean glIsTransformFeedback(GLuint name) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isTransformFeedback(name) ? GL_TRUE : GL_FALSE;
 }
 
 void glBeginTransformFeedback(GLenum primitiveMode) {
@@ -1322,6 +1347,11 @@ void glDeleteShader(GLuint shader) {
     g_current->deleteShader(shader);
 }
 
+GLboolean glIsShader(GLuint shader) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isShader(shader) ? GL_TRUE : GL_FALSE;
+}
+
 GLuint glCreateProgram() {
     if (g_current == nullptr) return 0;
     return g_current->createProgram();
@@ -1544,6 +1574,11 @@ void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params
 void glDeleteProgram(GLuint program) {
     if (g_current == nullptr) return;
     g_current->deleteProgram(program);
+}
+
+GLboolean glIsProgram(GLuint program) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->isProgram(program) ? GL_TRUE : GL_FALSE;
 }
 
 GLint glGetAttribLocation(GLuint program, const GLchar* name) {

@@ -1,6 +1,6 @@
 # OpenGL 4.6 Core Profile — Implementation Coverage
 
-Status assessment for **YAGLT** as of 2026-08-28 (regenerated). Companion to
+Status assessment for **YAGLT** as of 2026-08-29 (regenerated). Companion to
 `docs/feature-matrix.md` and `docs/agent-progress.md`. The goal of this
 document is to answer one question quantitatively: **how much of the OpenGL
 4.6 spec is implemented, specifically the core profile?**
@@ -33,23 +33,23 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-      signal.    A reproducible regen script counts 571 declared families, 326 `gl_api`
-      entry points, and 322 matched families.
+    signal.    A reproducible regen script counts 571 declared families, 333 `gl_api`
+    entry points, and 329 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 322 | **~56.4%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 322 | **~62.4%** |
+| Full spec (compat + core) | 571 | 329 | **~57.6%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 329 | **~63.8%** |
 
-> Note: this document was regenerated on 2026-08-28 from `gl_api.hpp` vs the
+> Note: this document was regenerated on 2026-08-29 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
- All 317 matched families are real `gl_api` entry points with frontend semantics
- and tests (mock path, most also against Mesa GLES). The 321 `gl_api` entry
- points include 4 that do not map to a spec *family* in the universe:
+  All 329 matched families are real `gl_api` entry points with frontend semantics
+  and tests (mock path, most also against Mesa GLES). The 333 `gl_api` entry
+  points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
 `glInvalidateNamedBufferSubData` (spec spelling differs). None of the
@@ -93,8 +93,8 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 
 ## The implemented frontend surface (gl_api entry points)
 
-   321 `gl*` entry points; 313 map to a spec command family (see Method). Listed
- alphabetically:
+    333 `gl*` entry points; 329 map to a spec command family (see Method). Listed
+  alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
 glBeginTransformFeedback, glBindAttribLocation, glBindBuffer, glBindBufferBase, glBindBufferRange,
@@ -130,8 +130,8 @@ glGetTexLevelParameterfv, glGetTexLevelParameteriv,
 glGetTextureParameterIiv, glGetTextureParameterIuiv, glGetTextureParameterfv, glGetTextureParameteriv, glGetTransformFeedbackVarying,
 glGetUniformSubroutineuiv, glGetVertexAttribfv, glGetVertexAttribiv, glGetVertexAttribdv, glGetVertexAttribIiv, glGetVertexAttribIuiv, glGetVertexAttribPointerv, glGetVertexArrayiv, glGetVertexArrayIndexediv, glGetVertexArrayIndexed64v, glHint, glInvalidateBufferData,
 glInvalidateBufferSubData, glInvalidateFramebuffer, glInvalidateNamedFramebufferData,
-glInvalidateNamedFramebufferSubData, glInvalidateSubFramebuffer, glInvalidateTexImage, glInvalidateTexSubImage,
-glLineWidth, glLinkProgram, glLogicOp, glMemoryBarrier, glMemoryBarrierByRegion, glMinSampleShading, glMultiDrawArrays, glMultiDrawElements,
+ glInvalidateNamedFramebufferSubData, glInvalidateSubFramebuffer, glInvalidateTexImage, glInvalidateTexSubImage, glIsBuffer, glIsFramebuffer, glIsProgram, glIsRenderbuffer, glIsShader, glIsTexture, glIsTransformFeedback,
+ glLineWidth, glLinkProgram, glLogicOp, glMemoryBarrier, glMemoryBarrierByRegion, glMinSampleShading, glMultiDrawArrays, glMultiDrawElements,
 glNamedFramebufferParameteri, glNamedFramebufferRenderbuffer, glNamedFramebufferTexture,
 glNamedFramebufferTextureLayer, glNamedRenderbufferStorage, glNamedRenderbufferStorageMultisample,
 glObjectLabel, glObjectPtrLabel, glPauseTransformFeedback, glPixelStorei, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
@@ -161,7 +161,7 @@ glVertexAttribI4uiv, glVertexAttribPointer, glViewport, glWaitSync, glBeginCondi
 
 ## Major unimplemented core areas (priority order for next steps)
 
-This list reflects only what is **not yet done** as of 2026-08-28. Items marked
+This list reflects only what is **not yet done** as of 2026-08-29. Items marked
 Done in earlier drafts (buffer/texture completeness, full DSA surface, queries &
 sync, whole-framebuffer ops, draw expansion, program pipelines & subroutines,
 rasterization controls) are now implemented and omitted here.
@@ -199,10 +199,10 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-  By the regenerated proxy (2026-08-29): **56.4% of the spec's declared command
- prototypes** (322/571) and **~62.4% of the core profile** have a frontend entry
- point; true entry-point coverage against the real ~700-entry GL core API is
- roughly **46%**. This is materially more than the 2026-08-26 snapshot (then
+  By the regenerated proxy (2026-08-29): **57.6% of the spec's declared command
+  prototypes** (329/571) and **~63.8% of the core profile** have a frontend entry
+  point; true entry-point coverage against the real ~700-entry GL core API is
+  roughly **48%**. This is materially more than the 2026-08-26 snapshot (then
  ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
  complete 4.6 core implementation**. The largest remaining gaps are the two
  unsupported shader stages (geometry/tessellation), a few texture

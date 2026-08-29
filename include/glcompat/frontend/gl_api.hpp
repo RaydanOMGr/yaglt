@@ -35,6 +35,7 @@ void glGenBuffers(GLsizei n, GLuint* buffers);
 void glCreateBuffers(GLsizei n, GLuint* buffers);
 void glBindBuffer(GLenum target, GLuint buffer);
 void glDeleteBuffers(GLsizei n, const GLuint* buffers);
+GLboolean glIsBuffer(GLuint buffer);
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
 
 // Buffer sub-data / immutable storage / copy (SPEC §6).
@@ -108,6 +109,7 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
 void glGenTextures(GLsizei n, GLuint* textures);
 void glBindTexture(GLenum target, GLuint texture);
 void glDeleteTextures(GLsizei n, const GLuint* textures);
+GLboolean glIsTexture(GLuint texture);
 // Selects the active texture image unit (SPEC §2.1). `texture` must be
 // GL_TEXTURE0 + i within the supported unit range.
 void glActiveTexture(GLenum texture);
@@ -279,6 +281,7 @@ void glTextureStorage3DMultisample(GLuint texture, GLsizei samples,
 void glGenRenderbuffers(GLsizei n, GLuint* renderbuffers);
 void glBindRenderbuffer(GLenum target, GLuint renderbuffer);
 void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
+GLboolean glIsRenderbuffer(GLuint renderbuffer);
 void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                          GLsizei height);
 
@@ -297,6 +300,7 @@ void glGetRenderbufferParameteriv(GLenum target, GLenum pname, GLint* params);
 void glGenFramebuffers(GLsizei n, GLuint* framebuffers);
 void glBindFramebuffer(GLenum target, GLuint framebuffer);
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers);
+GLboolean glIsFramebuffer(GLuint framebuffer);
 
 // Framebuffer attachments (SPEC §2.1).
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
@@ -380,6 +384,7 @@ void glCreateTransformFeedbacks(GLsizei n, GLuint* names);
 void glBindTransformFeedback(GLuint name);
 void glDeleteTransformFeedback(GLuint name);
 void glDeleteTransformFeedbacks(GLsizei n, const GLuint* names);
+GLboolean glIsTransformFeedback(GLuint name);
 void glBeginTransformFeedback(GLenum primitiveMode);
 void glEndTransformFeedback();
 void glPauseTransformFeedback();
@@ -443,6 +448,7 @@ GLint glGetShaderiv(GLuint shader, GLenum pname);
 void glGetShaderInfoLog(GLuint shader, GLsizei bufSize, GLsizei* length,
                        GLchar* infoLog);
 void glDeleteShader(GLuint shader);
+GLboolean glIsShader(GLuint shader);
 
 GLuint glCreateProgram();
 void glAttachShader(GLuint program, GLuint shader);
@@ -519,6 +525,7 @@ void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
                             const GLuint* indices);
 void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params);
 void glDeleteProgram(GLuint program);
+GLboolean glIsProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 GLint glGetFragDataLocation(GLuint program, const GLchar* name);
 GLint glGetFragDataIndex(GLuint program, const GLchar* name);

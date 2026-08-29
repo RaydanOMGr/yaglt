@@ -3,6 +3,20 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — object-type predicates, this session)
+- Added the missing `glIs*` object-type predicates, completing the object-lifecycle
+  introspection surface (gen/bind/delete already existed). New `Context::isBuffer` /
+  `isTexture` / `isRenderbuffer` / `isFramebuffer` / `isTransformFeedback` /
+  `isShader` / `isProgram` (each a const lookup of the matching frontend object map)
+  and public `glIsBuffer` / `glIsTexture` / `glIsRenderbuffer` / `glIsFramebuffer` /
+  `glIsTransformFeedback` / `glIsShader` / `glIsProgram` (null-context guard, returns
+  GL_TRUE/GL_FALSE). `glIsVertexArray` / `glIsQuery` / `glIsSampler` /
+  `glIsProgramPipeline` were already present. New `tests/unit/object_is_test.cpp`
+  covers ungenerated/generated/deleted per type plus the public dispatch path.
+  Default **550/550**, sanitizer **550/550** green. Coverage bumped in
+  `docs/coverage-core.md` (333 `gl_api` entry points, 329/571 ≈ 57.6% declared;
+  ~63.8% core).
+
 ## Recent Work (2026-08-29 — DSA object-creation generators, this session)
 - Added the missing DSA `glCreate*` object generators to complete the
   object-creation surface (their `glGen*` counterparts already existed and

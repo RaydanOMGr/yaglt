@@ -53,6 +53,7 @@ public:
     GLObjectName boundBuffer(uint32_t target) const;
     void deleteBuffer(GLObjectName name);
     void deleteBuffers(uint32_t n, const GLObjectName* names);
+    bool isBuffer(GLObjectName name) const;
     void bufferData(uint32_t target, intptr_t size, uint32_t usage,
                      const void* data);
     // Update a sub-region of existing storage (SPEC §6 glBufferSubData). Requires
@@ -189,6 +190,7 @@ public:
     GLObjectName boundTextureForUnitTarget(uint32_t unit, GLenum target) const;
     void deleteTexture(GLObjectName name);
     void deleteTextures(uint32_t n, const GLObjectName* names);
+    bool isTexture(GLObjectName name) const;
     TextureObject* getTexture(GLObjectName name);
 
     // --- Textures (SPEC §2.1) ---
@@ -374,6 +376,7 @@ public:
     GLObjectName boundRenderbuffer() const;
     void deleteRenderbuffer(GLObjectName name);
     void deleteRenderbuffers(uint32_t n, const GLObjectName* names);
+    bool isRenderbuffer(GLObjectName name) const;
     RenderbufferObject* getRenderbuffer(GLObjectName name);
 
     // --- Renderbuffers (SPEC §2.1) ---
@@ -408,6 +411,7 @@ public:
     GLObjectName boundFramebuffer() const;
     void deleteFramebuffer(GLObjectName name);
     void deleteFramebuffers(uint32_t n, const GLObjectName* names);
+    bool isFramebuffer(GLObjectName name) const;
     FramebufferObject* getFramebuffer(GLObjectName name);
 
     // --- Framebuffers (SPEC §2.1) ---
@@ -616,6 +620,7 @@ public:
     GLObjectName boundTransformFeedback() const;
     void deleteTransformFeedback(GLObjectName name);
     void deleteTransformFeedbacks(uint32_t n, const GLObjectName* names);
+    bool isTransformFeedback(GLObjectName name) const;
     TransformFeedbackObject* getTransformFeedback(GLObjectName name);
     void beginTransformFeedback(uint32_t primitiveMode);
     void endTransformFeedback();
@@ -835,6 +840,7 @@ public:
     void getProgramInfoLog(GLObjectName program, uint32_t bufSize, int32_t* length,
                           char* infoLog);
     void deleteShader(GLObjectName shader);
+    bool isShader(GLObjectName name) const;
     ShaderObject* getShader(GLObjectName name);
     const ShaderObject* getShader(GLObjectName name) const;
 
@@ -889,6 +895,7 @@ public:
                                    const char* const* varyings, uint32_t bufferMode);
 
     void deleteProgram(GLObjectName program);
+    bool isProgram(GLObjectName name) const;
     ProgramObject* getProgram(GLObjectName name);
     const ProgramObject* getProgram(GLObjectName name) const;
 

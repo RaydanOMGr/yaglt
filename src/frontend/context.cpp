@@ -113,6 +113,10 @@ BufferObject* Context::getBuffer(GLObjectName name) {
     return it == buffers_.end() ? nullptr : it->second.get();
 }
 
+bool Context::isBuffer(GLObjectName name) const {
+    return buffers_.find(name) != buffers_.end();
+}
+
 void Context::genBuffers(uint32_t n, GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) {
         names[i] = genBuffer();
@@ -1196,6 +1200,10 @@ void Context::deleteTexture(GLObjectName name) {
 TextureObject* Context::getTexture(GLObjectName name) {
     auto it = textures_.find(name);
     return it == textures_.end() ? nullptr : it->second.get();
+}
+
+bool Context::isTexture(GLObjectName name) const {
+    return textures_.find(name) != textures_.end();
 }
 
 void Context::genTextures(uint32_t n, GLObjectName* names) {
@@ -2657,6 +2665,10 @@ RenderbufferObject* Context::getRenderbuffer(GLObjectName name) {
     return it == renderbuffers_.end() ? nullptr : it->second.get();
 }
 
+bool Context::isRenderbuffer(GLObjectName name) const {
+    return renderbuffers_.find(name) != renderbuffers_.end();
+}
+
 void Context::renderbufferStorage(uint32_t target, uint32_t internalFormat,
                                  int width, int height) {
     if (!backend_.capabilities().isSupported(Feature::RenderbufferObjects)) {
@@ -2731,6 +2743,10 @@ void Context::deleteFramebuffer(GLObjectName name) {
 FramebufferObject* Context::getFramebuffer(GLObjectName name) {
     auto it = framebuffers_.find(name);
     return it == framebuffers_.end() ? nullptr : it->second.get();
+}
+
+bool Context::isFramebuffer(GLObjectName name) const {
+    return framebuffers_.find(name) != framebuffers_.end();
 }
 
 void Context::framebufferTexture2D(uint32_t target, uint32_t attachment,
@@ -3436,6 +3452,10 @@ void Context::deleteTransformFeedbacks(uint32_t n, const GLObjectName* names) {
 TransformFeedbackObject* Context::getTransformFeedback(GLObjectName name) {
     auto it = transformFeedbacks_.find(name);
     return it == transformFeedbacks_.end() ? nullptr : it->second.get();
+}
+
+bool Context::isTransformFeedback(GLObjectName name) const {
+    return transformFeedbacks_.find(name) != transformFeedbacks_.end();
 }
 
 void Context::beginTransformFeedback(uint32_t primitiveMode) {
@@ -5443,6 +5463,10 @@ const ShaderObject* Context::getShader(GLObjectName name) const {
     return it == shaders_.end() ? nullptr : it->second.get();
 }
 
+bool Context::isShader(GLObjectName name) const {
+    return shaders_.find(name) != shaders_.end();
+}
+
 GLObjectName Context::createProgram() {
     if (!backend_.capabilities().isSupported(Feature::ProgramObjects)) {
         setError(GLError::InvalidOperation);
@@ -5731,6 +5755,10 @@ ProgramObject* Context::getProgram(GLObjectName name) {
 const ProgramObject* Context::getProgram(GLObjectName name) const {
     auto it = programs_.find(name);
     return it == programs_.end() ? nullptr : it->second.get();
+}
+
+bool Context::isProgram(GLObjectName name) const {
+    return programs_.find(name) != programs_.end();
 }
 
 // --- Program pipelines (SPEC §7.4) ---
