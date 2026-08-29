@@ -2815,8 +2815,9 @@ crashed agent, this session)
    `GL_STACK_UNDERFLOW` (new `GLError::StackUnderflow`; `GL_STACK_OVERFLOW` reserved;
    both mapped in `gl_api` `mapError`). `gl_api` exposes all six entry points (C shim
    regenerated at build). Debug constants + `GLDEBUGPROC` typedef added to
-   `gl_types.hpp`. New `tests/unit/debug_message_test.cpp` (5 cases) covering
-   callback delivery + log retrieval, control-based silencing, invalid-insert-source
-   rejection, push/pop stack depth + group messages, and the public-dispatch path.
-   Coverage regenerated: 448/1052 (~42.6%) full, 408/570 (~71.6%) core. Validation:
-   `build` 759/759, `build_san` 759/759, `build_tx` (GLES e2e) 771/771.
+   `gl_types.hpp`. New `tests/unit/debug_message_test.cpp` (6 cases) covering
+   callback delivery + arg passthrough, control-based silencing (re-enable),
+   invalid-insert source + null-buffer rejection, FIFO log drain, push/pop stack
+   depth + empty-stack `STACK_UNDERFLOW` + group messages, and the public-dispatch
+   path. Coverage regenerated: 448/1052 (~42.6%) full, 408/570 (~71.6%) core.
+   Validation: `build` 760/760, `build_san` 760/760, `build_tx` (GLES e2e) 772/772.
