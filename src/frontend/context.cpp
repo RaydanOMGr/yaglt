@@ -5064,6 +5064,7 @@ void Context::getProgramiv(GLObjectName program, uint32_t pname, GLint* params) 
     GLint result = 0;
     switch (pname) {
     case GL_LINK_STATUS: result = p->linked ? GL_TRUE : GL_FALSE; break;
+    case GL_VALIDATE_STATUS: result = p->validated ? GL_TRUE : GL_FALSE; break;
     case GL_DELETE_STATUS: result = GL_FALSE; break;
     case GL_ATTACHED_SHADERS:
         result = static_cast<GLint>(p->attachedShaders.size());
@@ -6330,6 +6331,18 @@ void Context::linkProgram(GLObjectName program) {
     // Register the name->native mapping so the backend can bind the program at
     // draw time (SPEC §3/§11).
     backend_.bindNativeObject(program, p->backend ? p->backend->nativeId() : 0);
+}
+
+void Context::validateProgram(GLObjectName program) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    std::string log;
+    if (p->backend) p->backend->validate(log);
+    p->infoLog = log;
+    p->validated = true;
 }
 
 void Context::programParameteri(GLObjectName program, uint32_t pname, int32_t value) {

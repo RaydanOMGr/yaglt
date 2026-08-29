@@ -314,6 +314,7 @@ public:
     bool linked = false;
     bool separable = false;
     bool binaryRetrievableHint = false;
+    bool validated = false;
     std::string infoLog;
     std::unique_ptr<BackendProgram> backend;
     // Loaded program binary (glProgramBinary) / retrieved blob (glGetProgramBinary).

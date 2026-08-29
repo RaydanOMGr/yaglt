@@ -1528,6 +1528,11 @@ void glLinkProgram(GLuint program) {
     g_current->linkProgram(program);
 }
 
+void glValidateProgram(GLuint program) {
+    if (g_current == nullptr) return;
+    g_current->validateProgram(program);
+}
+
 void glProgramParameteri(GLuint program, GLenum pname, GLint value) {
     if (g_current == nullptr) return;
     g_current->programParameteri(program, pname, value);

@@ -2774,3 +2774,15 @@ crashed agent, this session)
    entry points, plus texture-0 detach. Coverage regenerated: 440/1052 (~41.8%)
    full, 402/570 (~70.5%) core. Validation: `build` 748/748,
    `build_san` 742/742, `build_tx` (GLES e2e) 754/754.
+
+- **glValidateProgram (SPEC §7.3)** — completes the program-object lifecycle.
+   Added `Context::validateProgram(program)`: validates the program exists
+   (else `GL_INVALID_OPERATION`), forwards to the backend `BackendProgram::validate`
+   (new virtual with a default no-op; `MockProgram` records `validateCalls` and
+   returns a "validated" log), and records `ProgramObject::validated`. Wired
+   `GL_VALIDATE_STATUS` into `getProgramiv` so it reflects the flag. Public
+   `gl_api` now exposes `glValidateProgram`. New `tests/unit/validate_program_test.cpp`
+   (3 cases) covering backend record + status set, unknown-object rejection, and the
+   context-method path. Coverage regenerated: 441/1052 (~41.9%) full,
+   403/570 (~70.7%) core. Validation: `build` 751/751,
+   `build_san` 742/742, `build_tx` (GLES e2e) 754/754.

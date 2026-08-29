@@ -634,6 +634,11 @@ public:
         log.clear();
         return true;
     }
+    int validateCalls = 0;
+    void validate(std::string& log) override {
+        ++validateCalls;
+        log = "validated";
+    }
     int getAttribLocation(const std::string& name) const override {
         // A prior glBindAttribLocation takes precedence over the mock's
         // auto-assigned location (SPEC §7.3.7: bound locations are authoritative).

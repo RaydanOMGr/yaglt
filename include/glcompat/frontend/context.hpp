@@ -1050,6 +1050,10 @@ public:
     // backend program. A non-program or non-shader name reports GL_INVALID_OPERATION.
     void detachShader(GLObjectName program, GLObjectName shader);
     void linkProgram(GLObjectName program);
+    // Validate the linked program against current GL state (SPEC §7.3
+    // glValidateProgram). Marks the program validated and forwards to the backend.
+    // A null/unknown or non-program object -> GL_INVALID_OPERATION.
+    void validateProgram(GLObjectName program);
     // Set program parameters before/after linking (SPEC §7.3 / §7.4.2).
     // GL_PROGRAM_SEPARABLE must be set before linking (after link ->
     // GL_INVALID_OPERATION); GL_PROGRAM_BINARY_RETRIEVABLE_HINT may be set at

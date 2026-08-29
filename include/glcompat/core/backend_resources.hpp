@@ -315,6 +315,13 @@ public:
     virtual void detach(BackendShader& shader) {}
     // Link the attached shaders. Returns true on success; fills `log` on failure.
     virtual bool link(std::string& log) = 0;
+    // Validate the linked program against the current GL state (SPEC §7.3
+    // glValidateProgram). Sets `log` with the driver validation message. Default
+    // no-op so backends opt in; the mock records the call and reports success.
+    virtual void validate(std::string& log) {
+        (void)log;
+        log = "validated";
+    }
     // Attribute location for `name` after linking (-1 if absent).
     virtual int getAttribLocation(const std::string& name) const = 0;
     // Fragment-output location / dual-source index for `name` (SPEC §7.3.6
