@@ -147,15 +147,16 @@ public:
     void clearNamedBufferSubData(GLObjectName buffer, uint32_t internalformat,
                                intptr_t offset, intptr_t size, uint32_t format,
                                uint32_t type, const void* data);
-    // Discard a buffer's data store or sub-range (SPEC §6 glInvalidateBufferData /
-    // glInvalidateBufferSubData and *Named variants). The frontend validates
-    // bounds and mapping (GL_INVALID_VALUE / GL_INVALID_OPERATION) and forwards
-    // the hint to the backend, which drops any cached copy.
-    void invalidateBufferData(uint32_t target);
-    void invalidateBufferSubData(uint32_t target, intptr_t offset, intptr_t length);
-    void invalidateNamedBufferData(GLObjectName buffer);
-    void invalidateNamedBufferSubData(GLObjectName buffer, intptr_t offset,
-                                      intptr_t length);
+    // Discard a buffer's data store or sub-range (SPEC §6.5,
+    // glInvalidateBufferData / glInvalidateBufferSubData). Both take the *buffer
+    // object name* (the spec has no target-based form). A zero or ungenerated
+    // name, a negative offset/length or a range past GL_BUFFER_SIZE report
+    // GL_INVALID_VALUE; invalidating a non-persistently mapped buffer reports
+    // GL_INVALID_OPERATION. The hint is forwarded to the backend, which drops any
+    // cached copy.
+    void invalidateBufferData(GLObjectName buffer);
+    void invalidateBufferSubData(GLObjectName buffer, intptr_t offset,
+                                 intptr_t length);
     BufferObject* getBuffer(GLObjectName name);
 
     // --- Indexed buffer bindings (SPEC §6.1.1) ---
@@ -1068,7 +1069,7 @@ public:
     // getVertexArrayiv reads VAO-level state (ELEMENT_ARRAY_BUFFER_BINDING).
     // getVertexArrayIndexediv reads per-attribute int state (ENABLED/SIZE/STRIDE/
     //   TYPE/NORMALIZED/INTEGER/LONG/DIVISOR/BUFFER_BINDING).
-    // getVertexArrayIndexed64v reads 64-bit per-attribute binding state
+    // getVertexArrayIndexed64iv reads 64-bit per-attribute binding state
     //   (VERTEX_ATTRIB_BINDING, VERTEX_ATTRIB_RELATIVE_OFFSET).
     // Capability-gated by DirectStateAccess. Ungenerated VAO name ->
     //   GL_INVALID_OPERATION; index >= max -> GL_INVALID_VALUE; null params ->
@@ -1076,7 +1077,7 @@ public:
     void getVertexArrayiv(GLObjectName vao, uint32_t pname, int32_t* params);
     void getVertexArrayIndexediv(GLObjectName vao, uint32_t index, uint32_t pname,
                                  int32_t* params);
-    void getVertexArrayIndexed64v(GLObjectName vao, uint32_t index, uint32_t pname,
+    void getVertexArrayIndexed64iv(GLObjectName vao, uint32_t index, uint32_t pname,
                                   int64_t* params);
 
     // --- Hints (SPEC §21.1.1) ---

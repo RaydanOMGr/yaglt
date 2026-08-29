@@ -309,8 +309,8 @@ TEST_CASE("get_vertex_array_indexed_64v_binding_and_relative_offset") {
     EXPECT_EQ(ctx.getError(), GLError::NoError);
 
     int64_t binding = -1, relOffset = -1;
-    ctx.getVertexArrayIndexed64v(vao, 0, GL_VERTEX_ATTRIB_BINDING, &binding);
-    ctx.getVertexArrayIndexed64v(vao, 0, GL_VERTEX_ATTRIB_RELATIVE_OFFSET, &relOffset);
+    ctx.getVertexArrayIndexed64iv(vao, 0, GL_VERTEX_ATTRIB_BINDING, &binding);
+    ctx.getVertexArrayIndexed64iv(vao, 0, GL_VERTEX_ATTRIB_RELATIVE_OFFSET, &relOffset);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     EXPECT_EQ(binding, 1);
     EXPECT_EQ(relOffset, 12);
@@ -326,7 +326,7 @@ TEST_CASE("get_vertex_array_indexed_validation") {
     ctx.getVertexArrayIndexediv(vao, 0, 0xDEAD, &v);
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
     int64_t v64 = 0;
-    ctx.getVertexArrayIndexed64v(vao, 0, 0xDEAD, &v64);
+    ctx.getVertexArrayIndexed64iv(vao, 0, 0xDEAD, &v64);
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
 
     // Out-of-range index -> INVALID_VALUE.

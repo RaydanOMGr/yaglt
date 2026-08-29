@@ -535,7 +535,7 @@ Known major blockers:
 - Added the DSA vertex-array query entry points (SPEC §10.3.1): `glGetVertexArrayiv`
   (VAO-level `GL_ELEMENT_ARRAY_BUFFER_BINDING`), `glGetVertexArrayIndexediv`
   (per-attribute `ENABLED`/`SIZE`/`STRIDE`/`TYPE`/`NORMALIZED`/`INTEGER`/`LONG`/
-  `DIVISOR`/`BUFFER_BINDING`), and `glGetVertexArrayIndexed64v` (64-bit
+  `DIVISOR`/`BUFFER_BINDING`), and `glGetVertexArrayIndexed64iv` (64-bit
   `VERTEX_ATTRIB_BINDING` / `VERTEX_ATTRIB_RELATIVE_OFFSET`). All read the explicit
   VAO name's `VertexArrayObject` state, capability-gated by `DirectStateAccess`
   (consistent with the other DSA vertex-array methods); ungenerated VAO name →
@@ -2265,7 +2265,7 @@ crashed agent, this session)
    DIVISOR/BUFFER_BINDING/POINTER). Coverage proxy → 288 entry points / 284 matched.
  - `212ea35` **DSA vertex-array queries** (SPEC §10.3.1):
    `glGetVertexArrayiv` (ELEMENT_ARRAY_BUFFER_BINDING),
-   `glGetVertexArrayIndexediv` (per-attrib int state), `glGetVertexArrayIndexed64v`
+   `glGetVertexArrayIndexediv` (per-attrib int state), `glGetVertexArrayIndexed64iv`
    (VERTEX_ATTRIB_BINDING / VERTEX_ATTRIB_RELATIVE_OFFSET); capability-gated by
    `DirectStateAccess`; ungenerated VAO → `InvalidOperation`, oob index →
    `InvalidValue`, null params → `InvalidValue`, unknown pname → `InvalidEnum`.

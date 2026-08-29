@@ -94,11 +94,11 @@ void glClearBufferSubData(GLenum target, GLenum internalformat, GLintptr offset,
 void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
                              GLintptr offset, GLsizeiptr size, GLenum format,
                              GLenum type, const GLvoid* data);
-void glInvalidateBufferData(GLenum target);
-void glInvalidateBufferSubData(GLenum target, GLintptr offset, GLsizeiptr length);
-void glInvalidateNamedBufferData(GLuint buffer);
-void glInvalidateNamedBufferSubData(GLuint buffer, GLintptr offset,
-                                   GLsizeiptr length);
+// Buffer data invalidation (SPEC §6.5). These take a buffer object name, not a
+// binding target; GL has no target-based or "Named" spelling for them.
+void glInvalidateBufferData(GLuint buffer);
+void glInvalidateBufferSubData(GLuint buffer, GLintptr offset,
+                               GLsizeiptr length);
 
 // Indexed buffer bindings (SPEC §6.1.1). Capability-guarded in the frontend:
 // a target without indexed binding points yields GL_INVALID_ENUM and binding an
@@ -822,7 +822,7 @@ void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params);
 void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params);
 void glGetVertexArrayiv(GLuint vao, GLenum pname, GLint* params);
 void glGetVertexArrayIndexediv(GLuint vao, GLuint index, GLenum pname, GLint* params);
-void glGetVertexArrayIndexed64v(GLuint vao, GLuint index, GLenum pname, GLint64* params);
+void glGetVertexArrayIndexed64iv(GLuint vao, GLuint index, GLenum pname, GLint64* params);
 
 // Quality hint (SPEC §21.1.1, glHint). Non-binding; the frontend records the
 // requested target/mode and forwards it to the backend at flush. Invalid target

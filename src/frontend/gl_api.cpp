@@ -190,25 +190,15 @@ void glClearNamedBufferSubData(GLuint buffer, GLenum internalformat,
                                      format, type, data);
 }
 
-void glInvalidateBufferData(GLenum target) {
+void glInvalidateBufferData(GLuint buffer) {
     if (g_current == nullptr) return;
-    g_current->invalidateBufferData(target);
+    g_current->invalidateBufferData(buffer);
 }
 
-void glInvalidateBufferSubData(GLenum target, GLintptr offset, GLsizeiptr length) {
+void glInvalidateBufferSubData(GLuint buffer, GLintptr offset,
+                               GLsizeiptr length) {
     if (g_current == nullptr) return;
-    g_current->invalidateBufferSubData(target, offset, length);
-}
-
-void glInvalidateNamedBufferData(GLuint buffer) {
-    if (g_current == nullptr) return;
-    g_current->invalidateNamedBufferData(buffer);
-}
-
-void glInvalidateNamedBufferSubData(GLuint buffer, GLintptr offset,
-                                   GLsizeiptr length) {
-    if (g_current == nullptr) return;
-    g_current->invalidateNamedBufferSubData(buffer, offset, length);
+    g_current->invalidateBufferSubData(buffer, offset, length);
 }
 
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer) {
@@ -2375,9 +2365,9 @@ void glGetVertexArrayIndexediv(GLuint vao, GLuint index, GLenum pname, GLint* pa
     g_current->getVertexArrayIndexediv(vao, index, pname, params);
 }
 
-void glGetVertexArrayIndexed64v(GLuint vao, GLuint index, GLenum pname, GLint64* params) {
+void glGetVertexArrayIndexed64iv(GLuint vao, GLuint index, GLenum pname, GLint64* params) {
     if (g_current == nullptr) return;
-    g_current->getVertexArrayIndexed64v(vao, index, pname, params);
+    g_current->getVertexArrayIndexed64iv(vao, index, pname, params);
 }
 
 void glHint(GLenum target, GLenum mode) {

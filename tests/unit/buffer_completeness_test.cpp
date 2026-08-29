@@ -419,8 +419,8 @@ TEST_CASE("invalidate_buffer_forwards_hint_to_backend") {
     ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
     ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
 
-    ctx.invalidateBufferData(GL_ARRAY_BUFFER);
-    ctx.invalidateBufferSubData(GL_ARRAY_BUFFER, 0, 4);
+    ctx.invalidateBufferData(buf);
+    ctx.invalidateBufferSubData(buf, 0, 4);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
 
     auto* obj = ctx.getBuffer(buf);
@@ -431,14 +431,23 @@ TEST_CASE("invalidate_buffer_forwards_hint_to_backend") {
     EXPECT_EQ(mb->lastInvalidateLength, 4);
 }
 
-TEST_CASE("invalidate_named_buffer_sub_data_out_of_bounds_is_invalid_value") {
+TEST_CASE("invalidate_buffer_sub_data_out_of_bounds_is_invalid_value") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLuint buf = 0;
     ctx.genBuffers(1, &buf);
     ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
     ctx.bufferData(GL_ARRAY_BUFFER, 8, GL_STATIC_DRAW, nullptr);
-    ctx.invalidateNamedBufferSubData(buf, 4, 8); // 4+8 > 8
+    ctx.invalidateBufferSubData(buf, 4, 8); // 4+8 > 8
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("invalidate_buffer_unknown_name_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.invalidateBufferData(999);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+    ctx.invalidateBufferSubData(999, 0, 4);
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
@@ -461,7 +470,7 @@ TEST_CASE("buffer_clear_invalidate_dispatch_through_api") {
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     EXPECT_EQ(out, *reinterpret_cast<int*>(reinterpret_cast<float*>(&v)));
 
-    glInvalidateBufferData(GL_ARRAY_BUFFER);
+    glInvalidateBufferData(buf);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     setCurrentContext(nullptr);
 }

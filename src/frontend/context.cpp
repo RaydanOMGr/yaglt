@@ -913,29 +913,25 @@ void Context::clearNamedBufferSubData(GLObjectName buffer, uint32_t internalform
     }
 }
 
-void Context::invalidateBufferData(uint32_t target) {
-    invalidateNamedBufferData(boundBuffer(target));
-}
-
-void Context::invalidateNamedBufferData(GLObjectName buffer) {
+void Context::invalidateBufferData(GLObjectName buffer) {
+    // SPEC §6.5: equivalent to invalidating [0, BUFFER_SIZE).
     BufferObject* obj = getBuffer(buffer);
     if (obj == nullptr) {
-        setError(GLError::InvalidOperation); // not an existing buffer object
+        setError(GLError::InvalidValue); // zero or not an existing buffer object
+        return;
+    }
+    if (obj->mapped && (obj->mapAccess & GL_MAP_PERSISTENT_BIT) == 0) {
+        setError(GLError::InvalidOperation); // non-persistent map active
         return;
     }
     if (obj->backend) obj->backend->invalidateBufferData(obj->target);
 }
 
-void Context::invalidateBufferSubData(uint32_t target, intptr_t offset,
-                                     intptr_t length) {
-    invalidateNamedBufferSubData(boundBuffer(target), offset, length);
-}
-
-void Context::invalidateNamedBufferSubData(GLObjectName buffer, intptr_t offset,
-                                          intptr_t length) {
+void Context::invalidateBufferSubData(GLObjectName buffer, intptr_t offset,
+                                      intptr_t length) {
     BufferObject* obj = getBuffer(buffer);
     if (obj == nullptr) {
-        setError(GLError::InvalidOperation); // not an existing buffer object
+        setError(GLError::InvalidValue); // zero or not an existing buffer object
         return;
     }
     if (offset < 0 || length < 0 || offset + length > obj->size) {
@@ -6647,7 +6643,7 @@ void Context::getVertexArrayIndexediv(GLObjectName vao, uint32_t index,
     }
 }
 
-void Context::getVertexArrayIndexed64v(GLObjectName vao, uint32_t index,
+void Context::getVertexArrayIndexed64iv(GLObjectName vao, uint32_t index,
                                        uint32_t pname, int64_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);
