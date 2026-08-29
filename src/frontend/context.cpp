@@ -1160,29 +1160,45 @@ void Context::bindTextureUnit(uint32_t unit, GLObjectName texture) {
     state_.setTextureUnitBinding(unit, target, texture);
 }
 
-void Context::bindTextures(uint32_t first, uint32_t count, GLenum target,
+void Context::bindTextures(uint32_t first, GLsizei count,
                            const GLObjectName* textures) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!isValidTextureTarget(target)) {
-        setError(GLError::InvalidEnum);
+    if (count < 0) {
+        setError(GLError::InvalidValue); // SPEC §8.1: count negative
         return;
     }
-    if (first > state_.maxCombinedTextureUnits() ||
-        first + count > state_.maxCombinedTextureUnits()) {
-        setError(GLError::InvalidValue);
+    const uint32_t n = static_cast<uint32_t>(count);
+    const uint32_t maxUnits = state_.maxCombinedTextureUnits();
+    if (first > maxUnits || n > maxUnits - first) {
+        // SPEC §8.1: first + count beyond the texture image unit count is
+        // GL_INVALID_OPERATION (not GL_INVALID_VALUE).
+        setError(GLError::InvalidOperation);
         return;
     }
-    for (uint32_t i = 0; i < count; ++i) {
-        GLObjectName name = (textures != nullptr) ? textures[i] : 0;
-        if (name != 0 && textures_.find(name) == textures_.end()) {
-            setError(GLError::InvalidOperation); // ungenerated name
-            return;
+    // SPEC §8.1: entries are validated separately per texture image unit. An
+    // invalid entry leaves that unit unchanged and generates
+    // GL_INVALID_OPERATION; the valid entries are still bound. Each texture is
+    // bound to the target it was created with; a zero entry (or a null array)
+    // resets every target of that unit to its default texture.
+    bool sawInvalid = false;
+    for (uint32_t i = 0; i < n; ++i) {
+        const GLObjectName name = (textures != nullptr) ? textures[i] : 0;
+        const uint32_t unit = first + i;
+        if (name == 0) {
+            state_.setTextureUnitBinding(unit, GL_TEXTURE_2D, 0);
+            continue;
         }
+        TextureObject* tex = getTexture(name);
+        if (tex == nullptr) {
+            sawInvalid = true; // ungenerated name: this unit stays unchanged
+            continue;
+        }
+        state_.setTextureUnitBinding(unit, tex->target, name);
     }
-    state_.setTextureBindings(first, count, target, textures);
+    if (sawInvalid) setError(GLError::InvalidOperation);
 }
 
 GLObjectName Context::boundTextureForUnitTarget(uint32_t unit,

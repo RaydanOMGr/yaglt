@@ -242,11 +242,9 @@ void glBindTextureUnit(GLuint unit, GLuint texture) {
     g_current->bindTextureUnit(static_cast<uint32_t>(unit), texture);
 }
 
-void glBindTextures(GLuint first, GLsizei count, GLenum target,
-                    const GLuint* textures) {
+void glBindTextures(GLuint first, GLsizei count, const GLuint* textures) {
     if (g_current == nullptr) return;
-    g_current->bindTextures(static_cast<uint32_t>(first),
-                            static_cast<uint32_t>(count), target, textures);
+    g_current->bindTextures(static_cast<uint32_t>(first), count, textures);
 }
 
 void glDeleteTextures(GLsizei n, const GLuint* textures) {

@@ -178,14 +178,19 @@ public:
     GLObjectName boundTextureForTarget(GLenum target) const;
     // DSA texture binding (SPEC §2.1, capability-gated by DirectStateAccess).
     // glBindTextureUnit binds `texture` to `target` on a specific `unit` (zero
-    // based) without modifying the active-texture selector. glBindTextures binds
-    // an array of textures to consecutive units [first, first+count) for one
-    // `target`. Out-of-range units report GL_INVALID_VALUE; an ungenerated
-    // texture name reports GL_INVALID_OPERATION; an invalid target reports
-    // GL_INVALID_ENUM. When DirectStateAccess is unsupported these report
-    // GL_INVALID_OPERATION honestly.
+    // based) without modifying the active-texture selector. glBindTextures
+    // (SPEC §8.1 / ARB_multi_bind) binds an array of textures to consecutive
+    // units [first, first+count); each texture goes to the target it was created
+    // with, and a zero entry (or a null array) resets every target of that unit.
+    // Both capability-gated by DirectStateAccess (GL_INVALID_OPERATION when
+    // unsupported). glBindTextureUnit: out-of-range unit -> GL_INVALID_VALUE,
+    // ungenerated name -> GL_INVALID_OPERATION. glBindTextures: negative count
+    // -> GL_INVALID_VALUE, `first + count` past the unit count ->
+    // GL_INVALID_OPERATION, and entries are validated per unit so an ungenerated
+    // name leaves only that unit unchanged (GL_INVALID_OPERATION) while the
+    // remaining valid entries still bind.
     void bindTextureUnit(uint32_t unit, GLObjectName texture);
-    void bindTextures(uint32_t first, uint32_t count, GLenum target,
+    void bindTextures(uint32_t first, GLsizei count,
                       const GLObjectName* textures);
     GLObjectName boundTextureForUnitTarget(uint32_t unit, GLenum target) const;
     void deleteTexture(GLObjectName name);

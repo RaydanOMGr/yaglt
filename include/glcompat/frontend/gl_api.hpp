@@ -116,11 +116,11 @@ void glActiveTexture(GLenum texture);
 
 // Direct State Access texture binding (SPEC §2.1, capability-gated by
 // DirectStateAccess). glBindTextureUnit binds a texture to a specific unit
-// without changing the active-texture selector; glBindTextures binds an array
-// of textures to consecutive units for a single target.
+// without changing the active-texture selector; glBindTextures (SPEC §8.1)
+// binds an array of textures to consecutive units, each to the target it was
+// created with (a zero entry / null array resets the unit's targets).
 void glBindTextureUnit(GLuint unit, GLuint texture);
-void glBindTextures(GLuint first, GLsizei count, GLenum target,
-                    const GLuint* textures);
+void glBindTextures(GLuint first, GLsizei count, const GLuint* textures);
 
 // Texture storage + parameters (SPEC §2.1). Operate on the bound texture.
 void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei width,

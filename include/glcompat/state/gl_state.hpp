@@ -233,12 +233,6 @@ public:
     // caller reports GL_INVALID_VALUE); binding 0 clears every target on the
     // unit (unbind).
     bool setTextureUnitBinding(uint32_t unit, GLenum target, GLObjectName name);
-    // Binds an array of textures to consecutive units [first, first+count) for
-    // `target` (`glBindTextures`). `names` may be null (treated as all-zero).
-    // Returns true when any (unit, target) binding changed. Out-of-range bounds
-    // return false (caller reports GL_INVALID_VALUE).
-    bool setTextureBindings(uint32_t first, uint32_t count, GLenum target,
-                            const GLObjectName* names);
     // Texture bound to `target` on a specific `unit` (0 when none).
     GLObjectName boundTextureForUnitTarget(uint32_t unit, GLenum target) const;
 

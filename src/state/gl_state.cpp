@@ -548,30 +548,6 @@ bool GLStateTracker::setTextureUnitBinding(uint32_t unit, GLenum target,
     return true;
 }
 
-bool GLStateTracker::setTextureBindings(uint32_t first, uint32_t count,
-                                        GLenum target,
-                                        const GLObjectName* names) {
-    if (first > kMaxTextureUnits || first + count > kMaxTextureUnits)
-        return false; // out of range
-    bool changed = false;
-    for (uint32_t i = 0; i < count; ++i) {
-        uint32_t unit = first + i;
-        GLObjectName name = (names != nullptr) ? names[i] : 0;
-        auto& bound = texUnits_[unit].bound;
-        auto it = bound.find(target);
-        if (it == bound.end() || it->second != name) {
-            if (name == 0) {
-                if (!bound.empty()) { bound.clear(); changed = true; }
-            } else {
-                bound[target] = name;
-                changed = true;
-            }
-        }
-    }
-    if (changed) textureUnitsDirty_ = true;
-    return changed;
-}
-
 GLObjectName GLStateTracker::boundTextureForUnitTarget(uint32_t unit,
                                                        GLenum target) const {
     if (unit >= texUnits_.size()) return 0;

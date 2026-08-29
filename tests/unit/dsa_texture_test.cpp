@@ -115,18 +115,33 @@ TEST_CASE("bind_texture_unit_unbind_clears_unit") {
 }
 
 TEST_CASE("bind_textures_binds_consecutive_units") {
-    UnitRecordingSink sink;
-    GLStateTracker t;
-    GLObjectName arr[3] = {11, 22, 33};
-    t.setTextureBindings(0, 3, GL_TEXTURE_2D, arr);
-    EXPECT_EQ(t.apply(sink), 1);
-    EXPECT_TRUE(sink.binds.size() == 3u);
-    EXPECT_EQ(sink.binds[0].unit, GL_TEXTURE0 + 0);
-    EXPECT_EQ(sink.binds[0].texture, 11u);
-    EXPECT_EQ(sink.binds[1].unit, GL_TEXTURE0 + 1);
-    EXPECT_EQ(sink.binds[1].texture, 22u);
-    EXPECT_EQ(sink.binds[2].unit, GL_TEXTURE0 + 2);
-    EXPECT_EQ(sink.binds[2].texture, 33u);
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName t0 = ctx.genTexture();
+    GLObjectName t1 = ctx.genTexture();
+    GLObjectName t2 = ctx.genTexture();
+    // Each texture is bound to the target it was created with (SPEC §8.1): bind
+    // t1 to GL_TEXTURE_3D first so the multi-bind must honor that target.
+    ctx.bindTexture(GL_TEXTURE_3D, t1);
+    GLObjectName arr[3] = {t0, t1, t2};
+    ctx.bindTextures(0, 3, arr);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(0, GL_TEXTURE_2D), t0);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(1, GL_TEXTURE_3D), t1);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(1, GL_TEXTURE_2D), 0u);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(2, GL_TEXTURE_2D), t2);
+}
+
+TEST_CASE("bind_textures_null_array_resets_range") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName arr[2] = {ctx.genTexture(), ctx.genTexture()};
+    ctx.bindTextures(0, 2, arr);
+    // A null array resets every target of each touched unit to its default.
+    ctx.bindTextures(0, 2, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(0, GL_TEXTURE_2D), 0u);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(1, GL_TEXTURE_2D), 0u);
 }
 
 TEST_CASE("bind_texture_unit_out_of_range_invalid_value") {
@@ -144,29 +159,34 @@ TEST_CASE("bind_texture_unit_ungenerated_invalid_operation") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
 
-TEST_CASE("bind_textures_out_of_range_invalid_value") {
+TEST_CASE("bind_textures_out_of_range_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLObjectName arr[5] = {0};
     uint32_t max = ctx.state().maxCombinedTextureUnits();
-    ctx.bindTextures(max - 2, 5, GL_TEXTURE_2D, arr); // (max-2)+5 > max
-    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+    // SPEC §8.1: first + count past the unit count is GL_INVALID_OPERATION.
+    ctx.bindTextures(max - 2, 5, arr); // (max-2)+5 > max
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
 
-TEST_CASE("bind_textures_invalid_target_invalid_enum") {
+TEST_CASE("bind_textures_negative_count_invalid_value") {
     auto backend = makeBackend();
     Context ctx(*backend);
-    GLObjectName arr[1] = {0};
-    ctx.bindTextures(0, 1, 0xDEAD, arr); // not a valid texture target
-    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+    GLObjectName arr[1] = {ctx.genTexture()};
+    ctx.bindTextures(0, -1, arr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
 TEST_CASE("bind_textures_ungenerated_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
-    GLObjectName arr[2] = {ctx.genTexture(), 4242}; // second is ungenerated
-    ctx.bindTextures(0, 2, GL_TEXTURE_2D, arr);
+    GLObjectName good = ctx.genTexture();
+    GLObjectName arr[2] = {good, 4242}; // second is ungenerated
+    ctx.bindTextures(0, 2, arr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    // SPEC §8.1: the valid entry still binds, the invalid unit is unchanged.
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(0, GL_TEXTURE_2D), good);
+    EXPECT_EQ(ctx.boundTextureForUnitTarget(1, GL_TEXTURE_2D), 0u);
 }
 
 TEST_CASE("dsa_unsupported_reports_invalid_operation") {
@@ -179,7 +199,7 @@ TEST_CASE("dsa_unsupported_reports_invalid_operation") {
     ctx.bindTextureUnit(0, tex);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
     GLObjectName arr[1] = {tex};
-    ctx.bindTextures(0, 1, GL_TEXTURE_2D, arr);
+    ctx.bindTextures(0, 1, arr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
 
@@ -198,7 +218,7 @@ TEST_CASE("gl_api_bind_texture_unit_and_bind_textures_surface") {
     EXPECT_EQ(ctx.boundTextureForUnitTarget(2, GL_TEXTURE_2D), t1);
 
     GLuint arr[3] = {t0, t1, t2};
-    glBindTextures(0, 3, GL_TEXTURE_2D, arr);
+    glBindTextures(0, 3, arr);
     EXPECT_EQ(glGetError(), GL_NO_ERROR);
     EXPECT_EQ(ctx.boundTextureForUnitTarget(0, GL_TEXTURE_2D), t0);
     EXPECT_EQ(ctx.boundTextureForUnitTarget(1, GL_TEXTURE_2D), t1);

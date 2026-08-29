@@ -3,6 +3,30 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — glBindTextures signature/semantics fix, this session)
+- `glBindTextures` had a non-spec signature: it took an extra `GLenum target` and
+  bound every entry to that one target. The real GL 4.6 command (SPEC §8.1 /
+  `ARB_multi_bind`) is `BindTextures(uint first, sizei count, const uint*
+  textures)` and binds **each texture to the target it was created with**; a zero
+  entry (or a null array) resets every target of that unit to its default. Fixed
+  the frontend entry point, `Context::bindTextures`, and the public dispatch, so
+  an unmodified application calling `glBindTextures` through the drop-in shim now
+  gets the ABI it expects (the `gl_exports.cpp` wrapper is regenerated from
+  `gl_api.hpp`, so the shim followed automatically).
+- Error behavior also corrected to the spec: negative `count` →
+  `GL_INVALID_VALUE`; `first + count` beyond `MAX_COMBINED_TEXTURE_IMAGE_UNITS` →
+  `GL_INVALID_OPERATION` (was `GL_INVALID_VALUE`); entries validated **per
+  binding**, so an ungenerated name leaves only its own unit unchanged and reports
+  `GL_INVALID_OPERATION` while the remaining valid entries still bind (was: abort
+  the whole call). The now-unused `GLStateTracker::setTextureBindings` batch
+  setter was removed (single-target by construction; per-entry targets make it
+  meaningless) — `setTextureUnitBinding` per unit is the correct primitive.
+- `tests/unit/dsa_texture_test.cpp` updated: the multi-bind case now checks that a
+  texture created on `GL_TEXTURE_3D` lands on the 3D target of its unit, plus new
+  cases for null-array reset, negative count, range overflow →
+  `GL_INVALID_OPERATION`, and partial application with a mixed valid/invalid array.
+- Validation: default **611/611** green; sanitizer (ASan/UBSan) build green.
+
 ## Recent Work (2026-08-29 — multi-bind samplers, this session)
 - Added `glBindSamplers` (SPEC §8.2 / `ARB_multi_bind`), the multi-bind form of
   `glBindSampler`. Restores and completes work a crashed session left uncommitted.
