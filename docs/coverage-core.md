@@ -54,9 +54,13 @@ for, so a match means an exact command name is exposed by the frontend.
 ## Implemented surface
 
 <!-- coverage:surface:begin -->
-404 `gl*` entry points; 395 map to a spec command. The remaining 9 are
-helpers or spellings the spec text does not declare: `glDeleteQuery`, `glDeleteSampler`, `glDeleteTransformFeedback`, `glFlushState`, `glGenQuery`, `glGenSampler`, `glGenTransformFeedback`, `glGetnCompressedTextureImage`, `glGetnTextureImage`.
-Listed alphabetically:
+404 `gl*` entry points; 395 map to a spec command.
+
+Genuinely extra (helpers / non-spec convenience spellings): `glDeleteQuery`, `glDeleteSampler`, `glDeleteTransformFeedback`, `glFlushState`, `glGenQuery`, `glGenSampler`, `glGenTransformFeedback`.
+
+Valid GL but absent from this spec's prototype index: `glGetnCompressedTextureImage`, `glGetnTextureImage`.
+
+All implemented entry points, listed alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginConditionalRender, glBeginQuery,
 glBeginQueryIndexed, glBeginTransformFeedback, glBindAttribLocation, glBindBuffer,

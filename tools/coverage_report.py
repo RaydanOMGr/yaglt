@@ -122,6 +122,17 @@ def is_compat_only(name):
     return any(name.startswith(p) for p in COMPAT_PREFIXES)
 
 
+# Entry points that are real OpenGL (core profile / GL 4.5 ARB) functions but
+# are *not* enumerated as prototypes in `OpenGL-4.6-Compatibility.md`'s command
+# index. They are valid and implemented; the spec reference text simply omits
+# their DSA-robust prototypes, so the automatic matcher cannot see them. Listing
+# them here keeps the "unmatched" list honest instead of implying a defect.
+KNOWN_VALID = {
+    "glGetnTextureImage",            # GL 4.5 DSA robust (spec only lists GetnTexImage)
+    "glGetnCompressedTextureImage",  # GL 4.5 DSA robust (spec only lists GetnCompressedTexImage)
+}
+
+
 def build_report():
     spec = spec_commands(open(SPEC).read())
     api = api_entry_points(open(API).read())
@@ -129,7 +140,10 @@ def build_report():
     core = [n for n in universe if not is_compat_only(n)]
     implemented = sorted(api)
     matched = sorted(n for n in implemented if n[2:] in spec)
-    unmatched = sorted(n for n in implemented if n[2:] not in spec)
+    unmatched = sorted(n for n in implemented
+                       if n[2:] not in spec and n not in KNOWN_VALID)
+    extra_valid = sorted(n for n in implemented
+                         if n[2:] not in spec and n in KNOWN_VALID)
     core_matched = sorted(n for n in matched if not is_compat_only(n[2:]))
     return {
         "universe": len(universe),
@@ -139,6 +153,7 @@ def build_report():
         "core_matched": len(core_matched),
         "implemented": implemented,
         "unmatched": unmatched,
+        "extra_valid": extra_valid,
     }
 
 
@@ -164,13 +179,22 @@ def render_headline(r):
 
 
 def render_surface(r):
-    return (
-        "{n} `gl*` entry points; {m} map to a spec command. The remaining {k} are\n"
-        "helpers or spellings the spec text does not declare: {extra}.\n"
-        "Listed alphabetically:\n\n{lst}\n"
-    ).format(n=r["entry_points"], m=r["matched"], k=len(r["unmatched"]),
-             extra=", ".join("`%s`" % n for n in r["unmatched"]),
-             lst=format_entry_list(r["implemented"]))
+    lines = []
+    lines.append("%d `gl*` entry points; %d map to a spec command."
+                 % (r["entry_points"], r["matched"]))
+    if r["unmatched"]:
+        lines.append("")
+        lines.append("Genuinely extra (helpers / non-spec convenience spellings): "
+                     + ", ".join("`%s`" % n for n in r["unmatched"]) + ".")
+    if r["extra_valid"]:
+        lines.append("")
+        lines.append("Valid GL but absent from this spec's prototype index: "
+                     + ", ".join("`%s`" % n for n in r["extra_valid"]) + ".")
+    lines.append("")
+    lines.append("All implemented entry points, listed alphabetically:")
+    lines.append("")
+    lines.append(format_entry_list(r["implemented"]))
+    return "\n".join(lines) + "\n"
 
 
 def replace_region(text, key, body):
@@ -193,6 +217,9 @@ def main():
     sys.stdout.write(render_headline(r))
     sys.stdout.write("\n%d entry points without a spec command: %s\n"
                      % (len(r["unmatched"]), ", ".join(r["unmatched"])))
+    if r["extra_valid"]:
+        sys.stdout.write("%d valid GL entry points absent from spec index: %s\n"
+                         % (len(r["extra_valid"]), ", ".join(r["extra_valid"])))
 
     if args.update:
         doc = open(DOC).read()
