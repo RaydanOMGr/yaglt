@@ -76,6 +76,11 @@ public:
     virtual void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
                                  GLenum spriteCoordOrigin) = 0;
 
+    // Clip control (SPEC §12.1, glClipControl). Pushed only when the origin or
+    // depth mode changed; backends without a native glClipControl (e.g. GLES)
+    // record without a native call, matching the honest capability.
+    virtual void clipControl(GLenum origin, GLenum depth) = 0;
+
     // Polygon render mode (glPolygonMode, SPEC §11.1). `front`/`back` are the
     // GL_POINT/GL_LINE/GL_FILL modes pushed for the respective sides. Backends
     // without polygon-mode support (e.g. GLES) record but do not apply it.

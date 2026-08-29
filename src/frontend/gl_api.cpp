@@ -967,6 +967,10 @@ void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stenc
     if (g_current == nullptr) return;
     g_current->clearBufferfi(buffer, drawbuffer, depth, stencil);
 }
+void glClipControl(GLenum origin, GLenum depth) {
+    if (g_current == nullptr) return;
+    g_current->clipControl(origin, depth);
+}
 
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays) {

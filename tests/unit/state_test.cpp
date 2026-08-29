@@ -58,6 +58,7 @@ struct RecordingSink : GLStateSink {
     void minSampleShading(float) override {}
     void provokingVertex(uint32_t) override {}
     void pointParameters(float, float, float, GLenum) override {}
+    void clipControl(GLenum, GLenum) override {}
     void clampColor(uint32_t, uint32_t) override {}
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
     void setViewport(int32_t, int32_t, int32_t, int32_t) override {}

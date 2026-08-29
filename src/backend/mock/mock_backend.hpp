@@ -157,6 +157,9 @@ public:
     float lastPointSizeMax = 1.0f;
     float lastPointFadeThreshold = 0.0f;
     GLenum lastSpriteCoordOrigin = 0x8CA2; // GL_UPPER_LEFT
+    int clipControlCalls = 0;
+    GLenum lastClipOrigin = 0x8CA1; // GL_LOWER_LEFT
+    GLenum lastClipDepthMode = 0x8E27; // GL_NEGATIVE_ONE_TO_ONE
     int polygonModeCalls = 0;
     uint32_t lastPolygonModeFront = 0x1B02; // GL_FILL
     uint32_t lastPolygonModeBack = 0x1B02;  // GL_FILL
@@ -339,6 +342,11 @@ public:
         lastPointSizeMax = sizeMax;
         lastPointFadeThreshold = fadeThreshold;
         lastSpriteCoordOrigin = spriteCoordOrigin;
+    }
+    void clipControl(GLenum origin, GLenum depth) override {
+        ++clipControlCalls;
+        lastClipOrigin = origin;
+        lastClipDepthMode = depth;
     }
     void clampColor(uint32_t target, uint32_t mode) override {
         ++clampColorCalls;

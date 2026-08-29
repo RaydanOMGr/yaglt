@@ -355,6 +355,8 @@ void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint* value);
 void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat* value);
 void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
 
+void glClipControl(GLenum origin, GLenum depth);
+
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);

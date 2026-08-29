@@ -3,6 +3,20 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — clip control, this session)
+- Added `glClipControl` (SPEC §12.1): sets the clip-volume origin
+  (`GL_LOWER_LEFT` / `GL_UPPER_LEFT`) and depth mode (`GL_NEGATIVE_ONE_TO_ONE` /
+  `GL_ZERO_TO_ONE`). New frontend-owned `ClipControlState` in `GLStateTracker`
+  (default `GL_LOWER_LEFT` + `GL_NEGATIVE_ONE_TO_ONE`), `setClipControl` setter,
+  a `GLStateSink::clipControl` push applied only on change (SPEC §10), and
+  `glGetIntegerv(GL_CLIP_ORIGIN | GL_CLIP_DEPTH_MODE)` queries. `Context` validates
+  both enums (else `GL_INVALID_ENUM`) and leaves state untouched on error. The GLES
+  backend and the three test sinks implement `clipControl` as a no-op (honest for
+  the desktop-only clip-volume state). New `tests/unit/clip_control_test.cpp` (7
+  cases). Default **589/589** and sanitizer (ASan) **589/589** green. Coverage
+  bumped in `docs/coverage-core.md` (345 `gl_api` entry points, 341/571 ≈ 59.7%
+  declared; ~66.1% core).
+
 ## Recent Work (2026-08-29 — classic bound-framebuffer clears, this session)
 - Added the classic (bound-framebuffer) per-buffer clears `glClearBufferfv` /
   `glClearBufferiv` / `glClearBufferuiv` / `glClearBufferfi` (SPEC §9.3.1 /

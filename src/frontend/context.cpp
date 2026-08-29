@@ -3429,6 +3429,19 @@ void Context::clearBufferfi(uint32_t buffer, int drawbuffer, float depth, int st
                               GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }
 
+void Context::clipControl(uint32_t origin, uint32_t depth) {
+    if (origin != GL_LOWER_LEFT && origin != GL_UPPER_LEFT) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (depth != GL_NEGATIVE_ONE_TO_ONE && depth != GL_ZERO_TO_ONE) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setClipControl(static_cast<GLenum>(origin), static_cast<GLenum>(depth));
+}
+
+
 GLObjectName Context::genVertexArray() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<VertexArrayObject>(name);

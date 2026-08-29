@@ -444,6 +444,7 @@ void GLESBackend::minSampleShading(float) {}
 void GLESBackend::provokingVertex(uint32_t) {}
 void GLESBackend::clampColor(uint32_t, uint32_t) {}
 void GLESBackend::pointParameters(float, float, float, GLenum) {}
+void GLESBackend::clipControl(GLenum, GLenum) {}
 
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {
     if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);

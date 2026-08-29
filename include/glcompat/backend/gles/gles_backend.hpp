@@ -87,6 +87,9 @@ public:
     // point-sprite state.
     void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
                          GLenum spriteCoordOrigin) override;
+    // GLES has no glClipControl; recorded but not forwarded to the driver
+    // (honest "Unsupported"), matching the desktop-only clip-volume state.
+    void clipControl(GLenum origin, GLenum depth) override;
     // GLES has no polygon mode / sample mask / min sample shading; recorded but
     // not forwarded to the driver (honest "Unsupported").
     void polygonMode(uint32_t front, uint32_t back) override;

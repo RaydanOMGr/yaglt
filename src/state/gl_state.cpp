@@ -357,6 +357,12 @@ bool GLStateTracker::setPointParameterfv(GLenum pname, const GLfloat* params) {
     return setPointParameterf(pname, params[0]);
 }
 
+bool GLStateTracker::setClipControl(GLenum origin, GLenum depth) {
+    clip_.origin = origin;
+    clip_.depth = depth;
+    return true;
+}
+
 bool GLStateTracker::setPolygonMode(GLenum face, GLenum mode) {
     const bool front = (face == 0x0404 /* GL_FRONT */) ||
                        (face == 0x0408 /* GL_FRONT_AND_BACK */);
@@ -756,6 +762,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!clip_.equal(clipApplied_)) {
+        sink.clipControl(clip_.origin, clip_.depth);
+        clipApplied_ = clip_;
+        ++applied;
+    }
+
     if (!pixel_.equal(pixelApplied_)) {
         sink.pixelStorei(0x0CF5 /* GL_UNPACK_ALIGNMENT */,
                          pixel_.unpackAlignment);
@@ -973,6 +985,10 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(pointParam_.fadeThreshold); return 1;
     case GL_POINT_SPRITE_COORD_ORIGIN:
         out[0] = static_cast<GLint>(pointParam_.spriteCoordOrigin); return 1;
+    case GL_CLIP_ORIGIN:
+        out[0] = static_cast<GLint>(clip_.origin); return 1;
+    case GL_CLIP_DEPTH_MODE:
+        out[0] = static_cast<GLint>(clip_.depth); return 1;
     case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
     case GL_ACTIVE_TEXTURE:
         out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
@@ -1059,6 +1075,10 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[0] = pointParam_.fadeThreshold; return 1;
     case GL_POINT_SPRITE_COORD_ORIGIN:
         out[0] = static_cast<GLfloat>(pointParam_.spriteCoordOrigin); return 1;
+    case GL_CLIP_ORIGIN:
+        out[0] = static_cast<GLfloat>(clip_.origin); return 1;
+    case GL_CLIP_DEPTH_MODE:
+        out[0] = static_cast<GLfloat>(clip_.depth); return 1;
     case 0x8005: // GL_BLEND_COLOR
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -1112,6 +1132,10 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[0] = pointParam_.fadeThreshold; return 1;
     case GL_POINT_SPRITE_COORD_ORIGIN:
         out[0] = static_cast<GLdouble>(pointParam_.spriteCoordOrigin); return 1;
+    case GL_CLIP_ORIGIN:
+        out[0] = static_cast<GLdouble>(clip_.origin); return 1;
+    case GL_CLIP_DEPTH_MODE:
+        out[0] = static_cast<GLdouble>(clip_.depth); return 1;
     case 0x8005:
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -1169,6 +1193,8 @@ void GLStateTracker::reset() {
     rasterScalarApplied_ = RasterScalarState{};
     pointParam_ = PointParamState{};
     pointParamApplied_ = PointParamState{};
+    clip_ = ClipControlState{};
+    clipApplied_ = ClipControlState{};
     pixel_ = PixelStoreState{};
     pixelApplied_ = PixelStoreState{};
     viewport_ = ViewportState{};

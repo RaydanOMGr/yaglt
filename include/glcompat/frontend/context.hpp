@@ -489,6 +489,13 @@ public:
     void clearBufferfv(uint32_t buffer, int drawbuffer, const float* value);
     void clearBufferfi(uint32_t buffer, int drawbuffer, float depth, int stencil);
 
+    // --- Clip control (SPEC §12.1, glClipControl) ---
+    // Record the clip-volume origin (GL_LOWER_LEFT / GL_UPPER_LEFT) and depth mode
+    // (GL_NEGATIVE_ONE_TO_ONE / GL_ZERO_TO_ONE) in the state tracker; pushed to the
+    // backend on the next state flush (SPEC §10). Invalid enums are rejected here
+    // (GL_INVALID_ENUM) and leave state untouched.
+    void clipControl(uint32_t origin, uint32_t depth);
+
 
     // --- Viewport / scissor (SPEC §10) ---
     // Record viewport (glViewport) and scissor box (glScissor) state in the

@@ -119,6 +119,14 @@ public:
     float pointFadeThreshold() const { return pointParam_.fadeThreshold; }
     GLenum pointSpriteCoordOrigin() const { return pointParam_.spriteCoordOrigin; }
 
+    // --- Clip control (SPEC §12.1, glClipControl) ---
+    // origin is GL_LOWER_LEFT / GL_UPPER_LEFT; depth is GL_NEGATIVE_ONE_TO_ONE /
+    // GL_ZERO_TO_ONE. GL defaults: GL_LOWER_LEFT + GL_NEGATIVE_ONE_TO_ONE. The
+    // caller validates both enums (GL_INVALID_ENUM) before invoking the setter.
+    bool setClipControl(GLenum origin, GLenum depth);
+    GLenum clipOrigin() const { return clip_.origin; }
+    GLenum clipDepthMode() const { return clip_.depth; }
+
 
     // --- Rasterization polygon mode (SPEC §11.1, glPolygonMode) ---
     // `face` selects which side(s) the mode applies to (GL_FRONT, GL_BACK,
@@ -463,6 +471,16 @@ private:
     RasterState raster_, rasterApplied_;
     RasterScalarState rasterScalar_, rasterScalarApplied_;
     PointParamState pointParam_, pointParamApplied_;
+    // glClipControl (SPEC §12.1). origin/depth select the clip-volume origin and
+    // depth range mapping; GL default GL_LOWER_LEFT + GL_NEGATIVE_ONE_TO_ONE.
+    struct ClipControlState {
+        GLenum origin = 0x8CA1; // GL_LOWER_LEFT (GL default)
+        GLenum depth = 0x8E27;  // GL_NEGATIVE_ONE_TO_ONE (GL default)
+        bool equal(const ClipControlState& o) const {
+            return origin == o.origin && depth == o.depth;
+        }
+    };
+    ClipControlState clip_, clipApplied_;
     PixelStoreState pixel_, pixelApplied_;
     ViewportState viewport_, viewportApplied_;
     ScissorBoxState scissor_, scissorApplied_;
