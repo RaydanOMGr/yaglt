@@ -1849,6 +1849,53 @@ void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
                                transpose != 0);
 }
 
+// --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
+
+void glProgramUniform1f(GLuint program, GLint location, GLfloat v0) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1f(program, location, v0);
+}
+void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2f(program, location, v0, v1);
+}
+void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3f(program, location, v0, v1, v2);
+}
+void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4f(program, location, v0, v1, v2, v3);
+}
+void glProgramUniform1i(GLuint program, GLint location, GLint v0) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1i(program, location, v0);
+}
+void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2i(program, location, v0, v1);
+}
+void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3i(program, location, v0, v1, v2);
+}
+void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4i(program, location, v0, v1, v2, v3);
+}
+void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1fv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1iv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix4fv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+
 // --- Vertex attributes (SPEC §2.1) ---
 
 void glEnableVertexAttribArray(GLuint index) {

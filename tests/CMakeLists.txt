@@ -38,6 +38,7 @@ add_executable(yaglt_tests
     unit/texture_storage_test.cpp
     unit/framebuffer_buf_test.cpp
     unit/uniform_test.cpp
+   unit/program_uniform_test.cpp
     unit/android_capabilities_test.cpp
     unit/getstring_test.cpp
     unit/shader_stage_test.cpp

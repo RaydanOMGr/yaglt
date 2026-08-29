@@ -1248,6 +1248,22 @@ public:
     void uniform1iv(int loc, const int* v, int count);
     void uniformMatrix4fv(int loc, const float* m, int count, bool transpose);
 
+    // --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
+    // Like the glUniform* setters but target an explicit program rather than the
+    // active one. The program must be a successfully linked program object
+    // (GL_INVALID_OPERATION otherwise); a -1 location is a silent no-op.
+    void programUniform1f(GLObjectName program, int loc, float v0);
+    void programUniform2f(GLObjectName program, int loc, float v0, float v1);
+    void programUniform3f(GLObjectName program, int loc, float v0, float v1, float v2);
+    void programUniform4f(GLObjectName program, int loc, float v0, float v1, float v2, float v3);
+    void programUniform1i(GLObjectName program, int loc, int v0);
+    void programUniform2i(GLObjectName program, int loc, int v0, int v1);
+    void programUniform3i(GLObjectName program, int loc, int v0, int v1, int v2);
+    void programUniform4i(GLObjectName program, int loc, int v0, int v1, int v2, int v3);
+    void programUniform1fv(GLObjectName program, int loc, const float* v, int count);
+    void programUniform1iv(GLObjectName program, int loc, const int* v, int count);
+    void programUniformMatrix4fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+
     // --- State queries (SPEC §22) ---
     // Read tracked pipeline state (the frontend owns these values, so glGet
     // never queries the backend driver, SPEC §10). An unknown pname sets
@@ -1341,6 +1357,10 @@ private:
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.
     BackendProgram* activeBackendProgram();
+    // Backend program for an explicit program object; nullptr (and
+    // GL_INVALID_OPERATION) when `program` is not a linked program with a
+    // backend resource. Used by the glProgramUniform* setters.
+    BackendProgram* backendProgramFor(GLObjectName program);
 
     // Recompute mutable-storage metadata (base dimensions / level count) from the
     // recorded glTexImage* levels so getTextureLevelParameter* queries return the

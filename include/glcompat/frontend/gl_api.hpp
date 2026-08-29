@@ -630,6 +630,22 @@ void glUniform1iv(GLint location, GLsizei count, const GLint* value);
 void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
                        const GLfloat* value);
 
+// --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
+// Like glUniform* but target an explicit program; the program must be a
+// successfully linked program object (GL_INVALID_OPERATION otherwise), and a
+// -1 location is a silent no-op.
+void glProgramUniform1f(GLuint program, GLint location, GLfloat v0);
+void glProgramUniform2f(GLuint program, GLint location, GLfloat v0, GLfloat v1);
+void glProgramUniform3f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2);
+void glProgramUniform4f(GLuint program, GLint location, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
+void glProgramUniform1i(GLuint program, GLint location, GLint v0);
+void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1);
+void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
+void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
+void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint* value);
+void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+
 // --- Vertex attributes (SPEC §2.1) ---
 void glEnableVertexAttribArray(GLuint index);
 void glDisableVertexAttribArray(GLuint index);

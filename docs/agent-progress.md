@@ -2681,3 +2681,19 @@ crashed agent, this session)
    (GLES e2e) 727/727. Coverage regenerated: 423/1052 (~40.2%) full,
    385/570 (~67.5%) core.
 
+- **glProgramUniform1f..4f / 1i..4i / 1fv / 1iv / Matrix4fv (SPEC §7.9, the
+  glProgramUniform* family)** — explicit-program uniform setters (separate
+  shader objects). `Context` gained `backendProgramFor(program)` (resolves a
+  linked program's `BackendProgram*`, else `GL_INVALID_OPERATION`) and 11
+  `programUniform*` setters that reuse the existing `BackendProgram` uniform
+  virtuals (1f..4f, 1i..4i, 1fv, 1iv, Matrix4fv) — no backend changes required.
+  -1 location is a silent no-op; an unlinked/invalid `program` (incl. 0) is
+  `GL_INVALID_OPERATION`. Public `gl_api` exposes all 11 `glProgramUniform*`
+  entry points; dispatch passes `transpose != 0` for the matrix variant.
+  - Tests: new `tests/unit/program_uniform_test.cpp` (4 cases, registered in
+    `tests/CMakeLists.txt`) covering targeting an explicit program without
+    glUseProgram, rejection of unlinked/zero program, -1-location no-op, and the
+    variant recording split. Validation: `build` 719/719, `build_san` 719/719,
+    `build_tx` (GLES e2e) 731/731. Coverage regenerated: 434/1052
+    (~41.3%) full, 396/570 (~69.5%) core.
+

@@ -8083,6 +8083,15 @@ BackendProgram* Context::activeBackendProgram() {
     return p->backend.get();
 }
 
+BackendProgram* Context::backendProgramFor(GLObjectName program) {
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return nullptr;
+    }
+    return p->backend.get();
+}
+
 int Context::getUniformLocation(GLObjectName program, const std::string& name) {
     ProgramObject* p = getProgram(program);
     if (p == nullptr || !p->linked || !p->backend) {
@@ -8166,6 +8175,85 @@ void Context::uniformMatrix4fv(int loc, const float* m, int count, bool transpos
     if (loc < 0 || m == nullptr || count <= 0) return;
     BackendProgram* bp = activeBackendProgram();
     if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix4fv(loc, m, count, transpose);
+}
+
+// --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
+
+void Context::programUniform1f(GLObjectName program, int loc, float v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1f(loc, v0);
+}
+
+void Context::programUniform2f(GLObjectName program, int loc, float v0, float v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2f(loc, v0, v1);
+}
+
+void Context::programUniform3f(GLObjectName program, int loc, float v0, float v1, float v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3f(loc, v0, v1, v2);
+}
+
+void Context::programUniform4f(GLObjectName program, int loc, float v0, float v1, float v2, float v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4f(loc, v0, v1, v2, v3);
+}
+
+void Context::programUniform1i(GLObjectName program, int loc, int v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1i(loc, v0);
+}
+
+void Context::programUniform2i(GLObjectName program, int loc, int v0, int v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2i(loc, v0, v1);
+}
+
+void Context::programUniform3i(GLObjectName program, int loc, int v0, int v1, int v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3i(loc, v0, v1, v2);
+}
+
+void Context::programUniform4i(GLObjectName program, int loc, int v0, int v1, int v2, int v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4i(loc, v0, v1, v2, v3);
+}
+
+void Context::programUniform1fv(GLObjectName program, int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1fv(loc, v, count);
+}
+
+void Context::programUniform1iv(GLObjectName program, int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1iv(loc, v, count);
+}
+
+void Context::programUniformMatrix4fv(GLObjectName program, int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
     bp->uniformMatrix4fv(loc, m, count, transpose);
 }
 
