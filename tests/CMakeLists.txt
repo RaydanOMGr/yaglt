@@ -89,6 +89,7 @@ add_executable(yaglt_tests
     unit/create_object_test.cpp
     unit/object_is_test.cpp
     unit/point_parameter_test.cpp
+    unit/clear_buffer_test.cpp
     backend/gles_backend_test.cpp
 )
 

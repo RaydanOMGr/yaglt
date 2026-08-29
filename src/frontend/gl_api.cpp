@@ -945,11 +945,29 @@ void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuff
     g_current->clearNamedFramebufferfv(framebuffer, buffer, drawbuffer, value);
 }
 void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
-                              GLfloat depth, GLint stencil) {
+                               GLfloat depth, GLint stencil) {
     if (g_current == nullptr) return;
     g_current->clearNamedFramebufferfi(framebuffer, buffer, drawbuffer, depth,
-                                      stencil);
+                                       stencil);
 }
+
+void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferiv(buffer, drawbuffer, value);
+}
+void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferuiv(buffer, drawbuffer, value);
+}
+void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferfv(buffer, drawbuffer, value);
+}
+void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil) {
+    if (g_current == nullptr) return;
+    g_current->clearBufferfi(buffer, drawbuffer, depth, stencil);
+}
+
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays) {
     if (g_current == nullptr) return;

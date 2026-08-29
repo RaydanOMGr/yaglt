@@ -476,7 +476,19 @@ public:
     void clearNamedFramebufferfv(GLObjectName framebuffer, uint32_t buffer,
                                 int drawbuffer, const float* value);
     void clearNamedFramebufferfi(GLObjectName framebuffer, uint32_t buffer,
-                                int drawbuffer, float depth, int stencil);
+                                 int drawbuffer, float depth, int stencil);
+
+    // --- Bound-framebuffer clears (SPEC §9.3.1 / §15.2.3) ---
+    // Clear a single buffer of the *currently bound* draw framebuffer (classic
+    // glClearBuffer*). Per-type clear values are pushed to the backend via the
+    // state sink before the native clear (SPEC §10). `drawbuffer` selects the
+    // color attachment; the depth/stencil clears apply to the single depth and
+    // stencil attachments.
+    void clearBufferiv(uint32_t buffer, int drawbuffer, const int32_t* value);
+    void clearBufferuiv(uint32_t buffer, int drawbuffer, const uint32_t* value);
+    void clearBufferfv(uint32_t buffer, int drawbuffer, const float* value);
+    void clearBufferfi(uint32_t buffer, int drawbuffer, float depth, int stencil);
+
 
     // --- Viewport / scissor (SPEC §10) ---
     // Record viewport (glViewport) and scissor box (glScissor) state in the

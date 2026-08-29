@@ -3,6 +3,24 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — classic bound-framebuffer clears, this session)
+- Added the classic (bound-framebuffer) per-buffer clears `glClearBufferfv` /
+  `glClearBufferiv` / `glClearBufferuiv` / `glClearBufferfi` (SPEC §9.3.1 /
+  §15.2.3), completing the clear-buffer family alongside the already-implemented
+  `glClearNamedFramebuffer*` (DSA) and `glClearBufferData`/`glClearBufferSubData`
+  (buffer stores). `Context::clearBuffer*` validate `value == nullptr` and a
+  negative `drawbuffer` → `GL_INVALID_VALUE`, and restrict `buffer` per type
+  (`clearBufferiv` → COLOR/STENCIL; `clearBufferfv` → COLOR/DEPTH; `clearBufferuiv`
+  → COLOR; `clearBufferfi` → DEPTH) → `GL_INVALID_ENUM` otherwise. They push the
+  per-type clear value through the `GLStateSink` (`clearColor` / `clearDepth`)
+  then issue a native `clear` on the bound draw framebuffer, reusing the existing
+  `clearNamedFramebufferImpl` helper with `boundFramebuffer()` (no DSA gating).
+  `clearBufferfi` clears both `GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT`
+  (stencil value uses the driver default 0 — the sink has no stencil clear). New
+  `tests/unit/clear_buffer_test.cpp` (12 cases). Default **583/583** green;
+  sanitizer (ASan) **583/583** clean. Coverage bumped in `docs/coverage-core.md`
+  (341 `gl_api` entry points, 337/571 ≈ 59.0% declared; ~65.3% core).
+
 ## Recent Work (2026-08-29 — point parameters, this session)
 - Added the point-parameter commands (SPEC §10.2): `glPointParameteri` /
   `glPointParameterf` / `glPointParameteriv` / `glPointParameterfv`. The four pnames

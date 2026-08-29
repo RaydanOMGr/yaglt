@@ -348,7 +348,13 @@ void glClearNamedFramebufferuiv(GLuint framebuffer, GLenum buffer, GLint drawbuf
 void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
                               const GLfloat* value);
 void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
-                              GLfloat depth, GLint stencil);
+                               GLfloat depth, GLint stencil);
+
+void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value);
+void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint* value);
+void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat* value);
+void glClearBufferfi(GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
+
 
 void glGenVertexArrays(GLsizei n, GLuint* arrays);
 void glBindVertexArray(GLuint array);

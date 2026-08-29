@@ -3353,6 +3353,82 @@ void Context::clearNamedFramebufferfi(GLObjectName framebuffer, uint32_t buffer,
     clearNamedFramebufferImpl(*this, framebuffer, GL_DEPTH_BUFFER_BIT);
 }
 
+void Context::clearBufferiv(uint32_t buffer, int drawbuffer, const int32_t* value) {
+    if (value == nullptr || drawbuffer < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t mask = 0;
+    if (buffer == GL_COLOR) {
+        mask = GL_COLOR_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearColor(static_cast<float>(value[0]),
+                             static_cast<float>(value[1]),
+                             static_cast<float>(value[2]),
+                             static_cast<float>(value[3]));
+    } else if (buffer == GL_STENCIL) {
+        mask = GL_STENCIL_BUFFER_BIT; // stencil clear value: driver default 0
+    } else {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    clearNamedFramebufferImpl(*this, boundFramebuffer(), mask);
+}
+
+void Context::clearBufferuiv(uint32_t buffer, int drawbuffer, const uint32_t* value) {
+    if (value == nullptr || drawbuffer < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (buffer != GL_COLOR) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink())
+        sink->clearColor(static_cast<float>(value[0]),
+                         static_cast<float>(value[1]),
+                         static_cast<float>(value[2]),
+                         static_cast<float>(value[3]));
+    clearNamedFramebufferImpl(*this, boundFramebuffer(), GL_COLOR_BUFFER_BIT);
+}
+
+void Context::clearBufferfv(uint32_t buffer, int drawbuffer, const float* value) {
+    if (value == nullptr || drawbuffer < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t mask = 0;
+    if (buffer == GL_COLOR) {
+        mask = GL_COLOR_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearColor(value[0], value[1], value[2], value[3]);
+    } else if (buffer == GL_DEPTH) {
+        mask = GL_DEPTH_BUFFER_BIT;
+        if (GLStateSink* sink = backend_.stateSink())
+            sink->clearDepth(static_cast<double>(value[0]));
+    } else {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    clearNamedFramebufferImpl(*this, boundFramebuffer(), mask);
+}
+
+void Context::clearBufferfi(uint32_t buffer, int drawbuffer, float depth, int stencil) {
+    (void)stencil; // stencil clear value: backend sink has no stencil clear; driver default 0
+    if (drawbuffer < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (buffer != GL_DEPTH) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (GLStateSink* sink = backend_.stateSink())
+        sink->clearDepth(static_cast<double>(depth));
+    clearNamedFramebufferImpl(*this, boundFramebuffer(),
+                              GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+}
+
 GLObjectName Context::genVertexArray() {
     GLObjectName name = nextName_++;
     auto obj = std::make_unique<VertexArrayObject>(name);
