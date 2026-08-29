@@ -425,6 +425,33 @@ bool GLStateTracker::setPointParameterfv(GLenum pname, const GLfloat* params) {
     return setPointParameterf(pname, params[0]);
 }
 
+bool GLStateTracker::setPatchParameteri(GLenum pname, GLint value) {
+    if (pname != GL_PATCH_VERTICES) return false;
+    uint32_t v = static_cast<uint32_t>(value);
+    bool changed = (v != patch_.patchVertices);
+    patch_.patchVertices = v;
+    return changed;
+}
+
+bool GLStateTracker::setPatchParameterfv(GLenum pname, const GLfloat* values) {
+    if (values == nullptr) return false;
+    if (pname == GL_PATCH_DEFAULT_OUTER_LEVEL) {
+        std::array<float, 4> v;
+        for (int i = 0; i < 4; ++i) v[i] = values[i];
+        bool changed = (v != patch_.patchOuterLevel);
+        patch_.patchOuterLevel = v;
+        return changed;
+    }
+    if (pname == GL_PATCH_DEFAULT_INNER_LEVEL) {
+        std::array<float, 2> v;
+        for (int i = 0; i < 2; ++i) v[i] = values[i];
+        bool changed = (v != patch_.patchInnerLevel);
+        patch_.patchInnerLevel = v;
+        return changed;
+    }
+    return false;
+}
+
 bool GLStateTracker::setClipControl(GLenum origin, GLenum depth) {
     clip_.origin = origin;
     clip_.depth = depth;
@@ -887,6 +914,23 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!patch_.equal(patchApplied_)) {
+        if (patch_.patchVertices != patchApplied_.patchVertices) {
+            sink.patchParameteri(GL_PATCH_VERTICES,
+                                 static_cast<int>(patch_.patchVertices));
+        }
+        if (patch_.patchOuterLevel != patchApplied_.patchOuterLevel) {
+            sink.patchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,
+                                  patch_.patchOuterLevel.data());
+        }
+        if (patch_.patchInnerLevel != patchApplied_.patchInnerLevel) {
+            sink.patchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,
+                                  patch_.patchInnerLevel.data());
+        }
+        patchApplied_ = patch_;
+        ++applied;
+    }
+
     if (!clip_.equal(clipApplied_)) {
         sink.clipControl(clip_.origin, clip_.depth);
         clipApplied_ = clip_;
@@ -1346,6 +1390,8 @@ void GLStateTracker::reset() {
     rasterScalarApplied_ = RasterScalarState{};
     pointParam_ = PointParamState{};
     pointParamApplied_ = PointParamState{};
+    patch_ = PatchParameterState{};
+    patchApplied_ = PatchParameterState{};
     clip_ = ClipControlState{};
     clipApplied_ = ClipControlState{};
     pixel_ = PixelStoreState{};

@@ -2621,3 +2621,33 @@ crashed agent, this session)
  - Validation: all three configs green — `build` 710/710, `build_san` 710/710, `build_tx`
    (GLES e2e) 722/722. Coverage regenerated: 419/1052 (~39.8%) full, 381/570 (~66.8%) core.
 
+## Recent Work (2026-08-29 — patch parameters, this session)
+ - Added tessellation patch parameters `glPatchParameteri` + `glPatchParameterfv`
+   (SPEC §10.6). New `PatchParameterState` in `GLStateTracker`: `patchVertices` (GL
+   default 3), `patchOuterLevel` (vec4, default 1.0), `patchInnerLevel` (vec2,
+   default 1.0) — stored as `std::array` for value semantics + `==` change detection.
+   `setPatchParameteri`/`setPatchParameterfv` validate the pname via the caller
+   (`Context`) and return true only on change. `apply()` pushes `patchParameteri`
+   when the vertex count changed and `patchParameterfv` for whichever of the outer
+   (4 floats) / inner (2 floats) levels changed.
+ - `Context::patchParameteri` validates `pname == GL_PATCH_VERTICES` (else
+   `GL_INVALID_ENUM`) and a positive vertex count (else `GL_INVALID_VALUE`); the
+   `MAX_PATCH_VERTICES` upper bound is intentionally not enforced (the tracker holds
+   no limits, mirroring other range checks). `Context::patchParameterfv` accepts only
+   `GL_PATCH_DEFAULT_OUTER_LEVEL` / `GL_PATCH_DEFAULT_INNER_LEVEL` (else
+   `GL_INVALID_ENUM`) and ignores a null `values` pointer. Public `glPatchParameteri` /
+   `glPatchParameterfv` dispatch wired through `gl_api.hpp`.
+ - `GLStateSink` gained `patchParameteri(pname, value)` + `patchParameterfv(pname,
+   values)`; the mock records `lastPatchPname` / `lastPatchVertices` /
+   `lastPatchOuterLevel` / `lastPatchInnerLevel` and a `patchParameterCalls` counter.
+   `GLESBackend` forwards `patchParameteri` to `lib->glPatchParameteri` (resolved
+   optionally; core in GLES 3.2) and no-ops `patchParameterfv` (no GLES equivalent —
+   default levels are set in-shader), an honest "Unsupported" drop consistent with
+   `polygonOffset` clamp. The three mirror test sinks gained the two overrides.
+ - Tests: new `tests/unit/patch_parameter_test.cpp` (2 cases, registered in
+   `tests/CMakeLists.txt`) covering the i/fv record-and-push, change-skipping,
+   invalid-pname `GL_INVALID_ENUM`, non-positive `GL_INVALID_VALUE`, and null-pointer
+   ignore paths. Validation: all three configs green — `build` 712/712,
+   `build_san` 712/712, `build_tx` (GLES e2e) 724/724. Coverage regenerated:
+   421/1052 (~40.0%) full, 383/570 (~67.2%) core.
+

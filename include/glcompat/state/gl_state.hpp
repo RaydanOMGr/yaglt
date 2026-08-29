@@ -143,6 +143,14 @@ public:
     float pointFadeThreshold() const { return pointParam_.fadeThreshold; }
     GLenum pointSpriteCoordOrigin() const { return pointParam_.spriteCoordOrigin; }
 
+    // --- Patch parameters (SPEC §10.6, glPatchParameter{i,fv}) ---
+    // The caller validates pname/value (GL_INVALID_ENUM / GL_INVALID_VALUE) and
+    // only invokes the matching setter. Each stores the field and returns true
+    // only when the relevant field actually changed.
+    bool setPatchParameteri(GLenum pname, GLint value);
+    bool setPatchParameterfv(GLenum pname, const GLfloat* values);
+    uint32_t patchVertices() const { return patch_.patchVertices; }
+
     // --- Clip control (SPEC §12.1, glClipControl) ---
     // origin is GL_LOWER_LEFT / GL_UPPER_LEFT; depth is GL_NEGATIVE_ONE_TO_ONE /
     // GL_ZERO_TO_ONE. GL defaults: GL_LOWER_LEFT + GL_NEGATIVE_ONE_TO_ONE. The
@@ -397,6 +405,20 @@ private:
                    spriteCoordOrigin == o.spriteCoordOrigin;
         }
     };
+    // Patch parameters (SPEC §10.6, glPatchParameter{i,fv}). patchVertices is the
+    // per-patch vertex count (GL default 3); outer/inner levels are the default
+    // tessellation levels (GL default all 1.0). std::array gives value semantics
+    // and == comparison for cheap change detection.
+    struct PatchParameterState {
+        uint32_t patchVertices = 3;
+        std::array<float, 4> patchOuterLevel = {1.0f, 1.0f, 1.0f, 1.0f};
+        std::array<float, 2> patchInnerLevel = {1.0f, 1.0f};
+        bool equal(const PatchParameterState& o) const {
+            return patchVertices == o.patchVertices &&
+                   patchOuterLevel == o.patchOuterLevel &&
+                   patchInnerLevel == o.patchInnerLevel;
+        }
+    };
     // glPolygonMode (SPEC §11.1). Per-side render mode (GL_POINT/GL_LINE/GL_FILL).
     struct PolygonModeState {
         GLenum front = 0x1B02; // GL_FILL
@@ -538,6 +560,8 @@ private:
     RasterState raster_, rasterApplied_;
     RasterScalarState rasterScalar_, rasterScalarApplied_;
     PointParamState pointParam_, pointParamApplied_;
+    // glPatchParameter{i,fv} (SPEC §10.6). patchVertices / outer / inner levels.
+    PatchParameterState patch_, patchApplied_;
     // glClipControl (SPEC §12.1). origin/depth select the clip-volume origin and
     // depth range mapping; GL default GL_LOWER_LEFT + GL_NEGATIVE_ONE_TO_ONE.
     struct ClipControlState {

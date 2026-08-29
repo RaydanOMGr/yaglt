@@ -60,6 +60,8 @@ struct UnitRecordingSink : GLStateSink {
     void minSampleShading(float) override {}
     void provokingVertex(uint32_t) override {}
     void pointParameters(float, float, float, GLenum) override {}
+    void patchParameteri(uint32_t, int) override {}
+    void patchParameterfv(uint32_t, const float*) override {}
     void clipControl(GLenum, GLenum) override {}
     void clampColor(uint32_t, uint32_t) override {}
     void pixelStorei(GLenum, GLint) override {}

@@ -93,6 +93,11 @@ public:
     // point-sprite state.
     void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
                          GLenum spriteCoordOrigin) override;
+    // Patch parameters (SPEC §10.6). glPatchParameteri is forwarded on GLES 3.2;
+    // glPatchParameterfv has no GLES equivalent (default levels are set in-shader)
+    // so it is recorded but not forwarded (honest "Unsupported").
+    void patchParameteri(uint32_t pname, int value) override;
+    void patchParameterfv(uint32_t pname, const float* values) override;
     // GLES has no glClipControl; recorded but not forwarded to the driver
     // (honest "Unsupported"), matching the desktop-only clip-volume state.
     void clipControl(GLenum origin, GLenum depth) override;

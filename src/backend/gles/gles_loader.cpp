@@ -150,6 +150,9 @@ bool GLESLib::load() {
     // glPrimitiveRestartIndex is core in GLES 3.0 but some implementations expose
     // it conditionally; resolve it optionally so load() still succeeds without it.
     resolve(gles, glPrimitiveRestartIndex, "glPrimitiveRestartIndex");
+    // glPatchParameteri is core in GLES 3.2; resolve it optionally so load()
+    // still succeeds on ES 3.0/3.1 drivers that omit it.
+    resolve(gles, glPatchParameteri, "glPatchParameteri");
     ok &= resolve(gles, glCullFace, "glCullFace");
     ok &= resolve(gles, glFrontFace, "glFrontFace");
     // glPointSize was removed from the OpenGL ES 3.0 API (point size is set via

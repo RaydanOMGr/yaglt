@@ -625,6 +625,14 @@ public:
     void pointParameteriv(GLenum pname, const GLint* params);
     void pointParameterfv(GLenum pname, const GLfloat* params);
 
+    // Patch parameters (SPEC §10.6, glPatchParameter{i,fv}). Validates the pname
+    // (GL_INVALID_ENUM otherwise) and, for glPatchParameteri, a non-positive
+    // vertex count (GL_INVALID_VALUE). glPatchParameterfv only accepts the two
+    // default-level pnames; a null values pointer is ignored. The upper bound
+    // MAX_PATCH_VERTICES is not enforced here (the tracker does not hold limits).
+    void patchParameteri(GLenum pname, GLint value);
+    void patchParameterfv(GLenum pname, const GLfloat* values);
+
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
     // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)

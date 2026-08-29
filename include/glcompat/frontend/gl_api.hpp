@@ -702,6 +702,12 @@ void glPointParameterf(GLenum pname, GLfloat param);
 void glPointParameteriv(GLenum pname, const GLint* params);
 void glPointParameterfv(GLenum pname, const GLfloat* params);
 
+// Patch parameters (SPEC §10.6, glPatchParameter{i,fv}). pname validation and
+// the non-positive vertex-count check live in Context; the frontend owns the
+// values and pushes them to the backend on the next state flush (SPEC §10).
+void glPatchParameteri(GLenum pname, GLint value);
+void glPatchParameterfv(GLenum pname, const GLfloat* values);
+
 // Rasterization polygon mode (SPEC §11.1, glPolygonMode). Per-side render mode;
 // unsupported `face`/`mode` report GL_INVALID_ENUM honestly (the tracker rejects
 // them).

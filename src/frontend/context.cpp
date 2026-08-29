@@ -7904,6 +7904,31 @@ void Context::pointParameterfv(GLenum pname, const GLfloat* params) {
     pointParameterf(pname, params[0]);
 }
 
+void Context::patchParameteri(GLenum pname, GLint value) {
+    if (pname != GL_PATCH_VERTICES) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (value <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // MAX_PATCH_VERTICES upper bound is not enforced: the tracker does not hold
+    // the limit, and overflow is forwarded honestly to the backend (which will
+    // emit GL_INVALID_VALUE if unsupported). Mirrors other range checks here.
+    state_.setPatchParameteri(pname, value);
+}
+
+void Context::patchParameterfv(GLenum pname, const GLfloat* values) {
+    if (pname != GL_PATCH_DEFAULT_OUTER_LEVEL &&
+        pname != GL_PATCH_DEFAULT_INNER_LEVEL) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (values == nullptr) return;
+    state_.setPatchParameterfv(pname, values);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,

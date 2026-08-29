@@ -150,6 +150,7 @@ struct GLESLib {
     void (*glDispatchComputeIndirect)(GLintptr) = nullptr;
     void (*glSampleCoverage)(GLfloat, GLboolean) = nullptr;
     void (*glPrimitiveRestartIndex)(GLuint) = nullptr;
+    void (*glPatchParameteri)(GLenum, GLint) = nullptr;
     void (*glCullFace)(GLenum) = nullptr;
     void (*glFrontFace)(GLenum) = nullptr;
     void (*glPointSize)(GLfloat) = nullptr;

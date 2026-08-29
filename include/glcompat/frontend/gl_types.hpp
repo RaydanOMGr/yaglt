@@ -680,6 +680,11 @@ constexpr GLenum GL_COLOR_CLEAR_VALUE = 0x0C22;
 constexpr GLenum GL_DEPTH_CLEAR_VALUE = 0x0B73;
 constexpr GLenum GL_STENCIL_CLEAR_VALUE = 0x0B91;
 
+// Patch parameters (SPEC §10.6, glPatchParameter{i,fv}).
+constexpr GLenum GL_PATCH_VERTICES = 0x8E72;
+constexpr GLenum GL_PATCH_DEFAULT_OUTER_LEVEL = 0x8E73;
+constexpr GLenum GL_PATCH_DEFAULT_INNER_LEVEL = 0x8E74;
+
 // Active program query (SPEC §7.14).
 constexpr GLenum GL_CURRENT_PROGRAM = 0x8B8D;
 

@@ -491,6 +491,10 @@ void GLESBackend::minSampleShading(float) {}
 void GLESBackend::provokingVertex(uint32_t) {}
 void GLESBackend::clampColor(uint32_t, uint32_t) {}
 void GLESBackend::pointParameters(float, float, float, GLenum) {}
+void GLESBackend::patchParameteri(uint32_t pname, int value) {
+    if (lib_->glPatchParameteri) lib_->glPatchParameteri(pname, value);
+}
+void GLESBackend::patchParameterfv(uint32_t, const float*) {}
 void GLESBackend::clipControl(GLenum, GLenum) {}
 
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {

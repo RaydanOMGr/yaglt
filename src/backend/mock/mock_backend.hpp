@@ -184,6 +184,11 @@ public:
     float lastPointSizeMax = 1.0f;
     float lastPointFadeThreshold = 0.0f;
     GLenum lastSpriteCoordOrigin = 0x8CA2; // GL_UPPER_LEFT
+    int patchParameterCalls = 0;
+    uint32_t lastPatchPname = 0;
+    uint32_t lastPatchVertices = 3;
+    std::array<float, 4> lastPatchOuterLevel = {1.0f, 1.0f, 1.0f, 1.0f};
+    std::array<float, 2> lastPatchInnerLevel = {1.0f, 1.0f};
     int clipControlCalls = 0;
     GLenum lastClipOrigin = 0x8CA1; // GL_LOWER_LEFT
     GLenum lastClipDepthMode = 0x8E27; // GL_NEGATIVE_ONE_TO_ONE
@@ -404,12 +409,26 @@ public:
         lastProvokingVertexMode = mode;
     }
     void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
-                         GLenum spriteCoordOrigin) override {
+                          GLenum spriteCoordOrigin) override {
         ++pointParametersCalls;
         lastPointSizeMin = sizeMin;
         lastPointSizeMax = sizeMax;
         lastPointFadeThreshold = fadeThreshold;
         lastSpriteCoordOrigin = spriteCoordOrigin;
+    }
+    void patchParameteri(uint32_t pname, int value) override {
+        ++patchParameterCalls;
+        lastPatchPname = pname;
+        lastPatchVertices = static_cast<uint32_t>(value);
+    }
+    void patchParameterfv(uint32_t pname, const float* values) override {
+        ++patchParameterCalls;
+        lastPatchPname = pname;
+        if (pname == GL_PATCH_DEFAULT_OUTER_LEVEL) {
+            for (int i = 0; i < 4; ++i) lastPatchOuterLevel[i] = values[i];
+        } else if (pname == GL_PATCH_DEFAULT_INNER_LEVEL) {
+            for (int i = 0; i < 2; ++i) lastPatchInnerLevel[i] = values[i];
+        }
     }
     void clipControl(GLenum origin, GLenum depth) override {
         ++clipControlCalls;

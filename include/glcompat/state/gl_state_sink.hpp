@@ -97,6 +97,13 @@ public:
     virtual void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
                                  GLenum spriteCoordOrigin) = 0;
 
+    // Patch parameters (SPEC §10.6, glPatchParameter{i,fv}). Pushed only when the
+    // relevant field changed. Backends without `glPatchParameteri` (pre-GLES 3.2)
+    // record without a native call; `glPatchParameterfv` has no GLES equivalent
+    // (default levels are set in-shader), so it is recorded but not forwarded.
+    virtual void patchParameteri(uint32_t pname, int value) = 0;
+    virtual void patchParameterfv(uint32_t pname, const float* values) = 0;
+
     // Clip control (SPEC §12.1, glClipControl). Pushed only when the origin or
     // depth mode changed; backends without a native glClipControl (e.g. GLES)
     // record without a native call, matching the honest capability.

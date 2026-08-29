@@ -2078,6 +2078,16 @@ void glPointParameterfv(GLenum pname, const GLfloat* params) {
     g_current->pointParameterfv(pname, params);
 }
 
+void glPatchParameteri(GLenum pname, GLint value) {
+    if (g_current == nullptr) return;
+    g_current->patchParameteri(pname, value);
+}
+
+void glPatchParameterfv(GLenum pname, const GLfloat* values) {
+    if (g_current == nullptr) return;
+    g_current->patchParameterfv(pname, values);
+}
+
 void glPolygonMode(GLenum face, GLenum mode) {
     if (g_current == nullptr) return;
     g_current->polygonMode(face, mode);
