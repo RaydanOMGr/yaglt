@@ -499,6 +499,9 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
                     const GLint* lengths);
 void glShaderSource(GLuint shader, const std::string& source);
 void glCompileShader(GLuint shader);
+void glSpecializeShader(GLuint shader, const GLchar* entryPoint,
+                        GLuint numSpecializationConstants, const GLuint* pConstantIndex,
+                        const GLuint* pConstantValue);
 void glGetShaderiv(GLuint shader, GLenum pname, GLint* params);
 // Convenience overload (C++ only, not exported by the C shim): returns the
 // queried value directly for callers that prefer the return-value style.

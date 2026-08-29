@@ -108,6 +108,7 @@ add_executable(yaglt_tests
     unit/framebuffer_parameter_test.cpp
     unit/framebuffer_attach_test.cpp
     unit/validate_program_test.cpp
+    unit/specialize_shader_test.cpp
     unit/clip_control_test.cpp
     unit/viewport_indexed_test.cpp
     backend/gles_backend_test.cpp

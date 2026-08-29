@@ -2786,3 +2786,19 @@ crashed agent, this session)
    context-method path. Coverage regenerated: 441/1052 (~41.9%) full,
    403/570 (~70.7%) core. Validation: `build` 751/751,
    `build_san` 751/751, `build_tx` (GLES e2e) 763/763.
+
+- **glSpecializeShader (SPEC §7.4)** — SPIR-V shader specialization completes the
+   shader-object lifecycle alongside `glShaderSource`/`glCompileShader`/
+   `glShaderBinary`. Added `BackendShader::specialize(entryPoint, numConstants,
+   constantIndex, constantValue, log)` (new virtual with a default no-op success so
+   backends opt in). `Context::specializeShader(shader, entryPoint, numConstants,
+   constantIndex, constantValue)` validates the shader exists (else
+   `GL_INVALID_OPERATION`), forwards to the backend `specialize` op, and records
+   `ShaderObject::compiled` (reflected by `GL_COMPILE_STATUS`). `MockShader`
+   overrides `specialize` and records `specializeCalls`, `lastEntryPoint`,
+   `lastNumConstants`, `lastConstantIndex`, `lastConstantValue`. Public `gl_api`
+   now exposes `glSpecializeShader` (C shim regenerated from `gl_api.hpp` at build).
+   New `tests/unit/specialize_shader_test.cpp` (3 cases) covering backend record +
+   compile status, unknown-object rejection, and the public-dispatch path. Coverage
+   regenerated: 442/1052 (~42.0%) full, 404/570 (~70.9%) core. Validation: `build`
+   754/754, `build_san` 754/754, `build_tx` (GLES e2e) 766/766.

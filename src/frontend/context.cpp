@@ -5030,6 +5030,28 @@ void Context::compileShader(GLObjectName shader) {
     }
 }
 
+void Context::specializeShader(GLObjectName shader, const std::string& entryPoint,
+                               uint32_t numConstants, const uint32_t* constantIndex,
+                               const uint32_t* constantValue) {
+    ShaderObject* s = getShader(shader);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    std::string blog;
+    bool ok = s->backend
+                  ? s->backend->specialize(entryPoint, numConstants, constantIndex,
+                                           constantValue, blog)
+                  : false;
+    s->compiled = ok;
+    s->infoLog = blog;
+    if (!ok) {
+        setError(GLError::InvalidOperation);
+        glcompat::log(LogCategory::Shader, LogLevel::Error)
+            << "shader specialize failed (stage=" << s->stage << "): " << blog;
+    }
+}
+
 bool Context::isShaderCompiled(GLObjectName shader) const {
     const ShaderObject* s = getShader(shader);
     return s != nullptr && s->compiled;

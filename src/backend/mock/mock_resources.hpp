@@ -613,6 +613,23 @@ public:
         lastBinaryLength = static_cast<int>(length);
         (void)binary;
     }
+    // glSpecializeShader recording (observable in tests).
+    int specializeCalls = 0;
+    std::string lastEntryPoint;
+    uint32_t lastNumConstants = 0;
+    std::vector<uint32_t> lastConstantIndex;
+    std::vector<uint32_t> lastConstantValue;
+    bool specialize(const std::string& entryPoint, uint32_t numConstants,
+                    const uint32_t* constantIndex, const uint32_t* constantValue,
+                    std::string& log) override {
+        ++specializeCalls;
+        lastEntryPoint = entryPoint;
+        lastNumConstants = numConstants;
+        lastConstantIndex.assign(constantIndex, constantIndex + numConstants);
+        lastConstantValue.assign(constantValue, constantValue + numConstants);
+        log.clear();
+        return true;
+    }
 };
 class MockProgram : public BackendProgram {
 public:

@@ -1480,6 +1480,15 @@ void glCompileShader(GLuint shader) {
     g_current->compileShader(shader);
 }
 
+void glSpecializeShader(GLuint shader, const GLchar* entryPoint,
+                        GLuint numSpecializationConstants, const GLuint* pConstantIndex,
+                        const GLuint* pConstantValue) {
+    if (g_current == nullptr) return;
+    g_current->specializeShader(shader, entryPoint ? entryPoint : "",
+                                numSpecializationConstants, pConstantIndex,
+                                pConstantValue);
+}
+
 void glGetShaderiv(GLuint shader, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getShaderiv(shader, pname, params);

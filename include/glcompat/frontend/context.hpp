@@ -910,6 +910,9 @@ public:
     GLObjectName createShader(uint32_t stage);
     void shaderSource(GLObjectName shader, const std::string& src);
     void compileShader(GLObjectName shader);
+    void specializeShader(GLObjectName shader, const std::string& entryPoint,
+                          uint32_t numConstants, const uint32_t* constantIndex,
+                          const uint32_t* constantValue);
     bool isShaderCompiled(GLObjectName shader) const;
     std::string shaderInfoLog(GLObjectName shader) const;
     // Query shader/program parameters (SPEC §7.3 / §7.14). Frontend-owned data

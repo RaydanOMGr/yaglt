@@ -303,6 +303,18 @@ public:
     virtual void loadBinary(uint32_t binaryFormat, const void* binary, int32_t length) {
         (void)binaryFormat; (void)binary; (void)length;
     }
+    // Specialize a previously loaded SPIR-V shader and compile it (glSpecialize-
+    // Shader, SPEC §7.4). `entryPoint` selects the SPIR-V entry point; `num-
+    // Constants` plus `constantIndex`/`constantValue` supply SPIR-V specialization
+    // constants. Returns true on success; on failure fills `log`. Default is a
+    // no-op success so backends that consume pre-specialized binaries opt in.
+    virtual bool specialize(const std::string& entryPoint, uint32_t numConstants,
+                            const uint32_t* constantIndex, const uint32_t* constantValue,
+                            std::string& log) {
+        (void)entryPoint; (void)numConstants; (void)constantIndex; (void)constantValue;
+        log.clear();
+        return true;
+    }
 };
 class BackendProgram {
 public:
