@@ -5099,6 +5099,33 @@ bool mapUniformBlockPname(uint32_t pname, uint32_t& prop) {
     }
 }
 
+// Map a glGetActiveUniformsiv pname to its GetProgramResource property
+// (SPEC §7.3.1, table 7.6).
+bool mapActiveUniformPname(uint32_t pname, uint32_t& prop) {
+    switch (pname) {
+    case GL_UNIFORM_TYPE:
+        prop = GL_TYPE; return true;
+    case GL_UNIFORM_SIZE:
+        prop = GL_ARRAY_SIZE; return true;
+    case GL_UNIFORM_NAME_LENGTH:
+        prop = GL_NAME_LENGTH; return true;
+    case GL_UNIFORM_BLOCK_INDEX:
+        prop = GL_BLOCK_INDEX; return true;
+    case GL_UNIFORM_OFFSET:
+        prop = GL_OFFSET; return true;
+    case GL_UNIFORM_ARRAY_STRIDE:
+        prop = GL_ARRAY_STRIDE; return true;
+    case GL_UNIFORM_MATRIX_STRIDE:
+        prop = GL_MATRIX_STRIDE; return true;
+    case GL_UNIFORM_IS_ROW_MAJOR:
+        prop = GL_IS_ROW_MAJOR; return true;
+    case GL_UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX:
+        prop = GL_ATOMIC_COUNTER_BUFFER_INDEX; return true;
+    default:
+        return false;
+    }
+}
+
 } // namespace
 
 void Context::getActiveUniform(GLObjectName program, uint32_t index, int32_t bufSize,
@@ -5139,6 +5166,48 @@ void Context::getActiveAttrib(GLObjectName program, uint32_t index, int32_t bufS
         uint32_t props[] = { GL_TYPE };
         getProgramResourceiv(program, GL_PROGRAM_INPUT, index, 1, props, 1, nullptr,
                              reinterpret_cast<int32_t*>(type));
+    }
+}
+
+void Context::getActiveUniformName(GLObjectName program, uint32_t uniformIndex,
+                                    int32_t bufSize, int32_t* length, char* name) {
+    // SPEC §7.3.1 glGetActiveUniformName: equivalent to
+    // GetProgramResourceName(UNIFORM, uniformIndex, ...).
+    getProgramResourceName(program, GL_UNIFORM, uniformIndex, bufSize, length, name);
+}
+
+void Context::getActiveUniformsiv(GLObjectName program, int32_t uniformCount,
+                                  const uint32_t* uniformIndices, uint32_t pname,
+                                  int32_t* params) {
+    // SPEC §7.3.1 glGetActiveUniformsiv.
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (uniformCount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (uniformCount > 0 && (uniformIndices == nullptr || params == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t prop;
+    if (!mapActiveUniformPname(pname, prop)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    uint32_t count = p->backend->programResourceCount(GL_UNIFORM);
+    for (int32_t i = 0; i < uniformCount; ++i) {
+        if (uniformIndices[i] >= count) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+    }
+    for (int32_t i = 0; i < uniformCount; ++i) {
+        getProgramResourceiv(program, GL_UNIFORM, uniformIndices[i], 1, &prop, 1,
+                             nullptr, &params[i]);
     }
 }
 

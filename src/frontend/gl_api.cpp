@@ -1587,6 +1587,21 @@ void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize,
                                reinterpret_cast<uint32_t*>(type), name);
 }
 
+void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize,
+                             GLsizei* length, GLchar* uniformName) {
+    if (g_current == nullptr) return;
+    g_current->getActiveUniformName(program, uniformIndex, bufSize, length,
+                                    uniformName);
+}
+
+void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount,
+                           const GLuint* uniformIndices, GLenum pname,
+                           GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getActiveUniformsiv(program, uniformCount, uniformIndices, pname,
+                                   params);
+}
+
 GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) {
     if (g_current == nullptr) return GL_INVALID_INDEX;
     return g_current->getUniformBlockIndex(program,

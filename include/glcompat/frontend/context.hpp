@@ -895,8 +895,13 @@ public:
     uint32_t getUniformBlockIndex(GLObjectName program, const std::string& name);
     void getActiveUniformBlockiv(GLObjectName program, uint32_t index, uint32_t pname,
                                  int32_t* params);
+    void getActiveUniformName(GLObjectName program, uint32_t uniformIndex,
+                               int32_t bufSize, int32_t* length, char* name);
+    void getActiveUniformsiv(GLObjectName program, int32_t uniformCount,
+                             const uint32_t* uniformIndices, uint32_t pname,
+                             int32_t* params);
     void getActiveUniformBlockName(GLObjectName program, uint32_t index,
-                                    int32_t bufSize, int32_t* length, char* name);
+                                     int32_t bufSize, int32_t* length, char* name);
     // Bind a program's uniform block `blockIndex` to uniform-buffer binding point
     // `blockBinding` (SPEC §7.6.2 glUniformBlockBinding).
     void uniformBlockBinding(GLObjectName program, uint32_t blockIndex,

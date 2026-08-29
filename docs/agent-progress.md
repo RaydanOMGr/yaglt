@@ -3,6 +3,30 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — active-uniform reflection completion, this session)
+- Added the classic program-introspection reflection entry points
+  `glGetActiveUniformName` and `glGetActiveUniformsiv` (SPEC §7.3.1), completing
+  the §7.3.1 uniform-reflection trio alongside the already-implemented
+  `glGetActiveUniform`. Both reuse the existing `getProgramResourceName` /
+  `getProgramResourceiv` backend methods (no new backend virtuals):
+  `glGetActiveUniformName` is equivalent to `GetProgramResourceName(UNIFORM,
+  index)`; `glGetActiveUniformsiv` maps each of the nine pnames
+  (`UNIFORM_TYPE` / `UNIFORM_SIZE` / `UNIFORM_NAME_LENGTH` / `UNIFORM_BLOCK_INDEX`
+  / `UNIFORM_OFFSET` / `UNIFORM_ARRAY_STRIDE` / `UNIFORM_MATRIX_STRIDE` /
+  `UNIFORM_IS_ROW_MAJOR` / `UNIFORM_ATOMIC_COUNTER_BUFFER_INDEX`) onto its
+  GetProgramResource property (table 7.6) and issues one `getProgramResourceiv`
+  per index. `Context::getActiveUniformsiv` validates: linked program (else
+  `GL_INVALID_OPERATION`), `uniformCount < 0` (`GL_INVALID_VALUE`), null
+  `uniformIndices` / `params` when count > 0 (`GL_INVALID_VALUE`), an unknown
+  pname (`GL_INVALID_ENUM`), and every index out of range (`GL_INVALID_VALUE`).
+  New pname constants added to `gl_types.hpp`; exported via the `gl*` shim
+  wildcard. New `tests/unit/active_uniform_attrib_test.cpp` cases (10) cover
+  unlinked-program, out-of-range index, negative bufSize/count, null arrays, bad
+  pname, and pname-acceptance validation for both commands. Default **646/646** →
+  **656/656**, sanitizer **656/656**, translate (Mesa) **pass** green. Coverage
+  bumped in `docs/coverage-core.md` (397/1052 full ≈ 37.7%; 360/570 core ≈
+  63.2%).
+
 ## Recent Work (2026-08-29 — multi-bind indexed buffers, this session)
 - Added `glBindBuffersBase` / `glBindBuffersRange` (SPEC §6.1.1 / `ARB_multi_bind`),
   completing the multi-bind family that already had `glBindTextures` /

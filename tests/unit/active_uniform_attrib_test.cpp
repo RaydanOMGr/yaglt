@@ -173,3 +173,146 @@ TEST_CASE("active_uniform_block_name_index_out_of_range_is_value_error") {
 
     setCurrentContext(nullptr);
 }
+
+// glGetActiveUniformName (SPEC §7.3.1) — equivalent to GetProgramResourceName on
+// the UNIFORM interface. The mock exposes 0 active uniforms, so every index is
+// out of range and these legacy reflection commands report honestly.
+
+TEST_CASE("active_uniform_name_unlinked_program_is_operation_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    glCreateProgram(); // program exists but is not linked
+    char name[16] = {0};
+    glGetActiveUniformName(1, 0, sizeof(name), nullptr, name);
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniform_name_index_out_of_range_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    char name[16] = {0};
+    glGetActiveUniformName(prog, 0, sizeof(name), nullptr, name);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniform_name_negative_bufsize_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    char name[16] = {0};
+    glGetActiveUniformName(prog, 0, -1, nullptr, name);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+// glGetActiveUniformsiv (SPEC §7.3.1) — per-index UNIFORM property query.
+
+TEST_CASE("active_uniformsiv_unlinked_program_is_operation_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = 1; // unlinked program
+    GLuint idx = 0;
+    GLint out = -1;
+    glGetActiveUniformsiv(prog, 1, &idx, GL_UNIFORM_TYPE, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_negative_count_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLuint idx = 0;
+    GLint out = -1;
+    glGetActiveUniformsiv(prog, -1, &idx, GL_UNIFORM_TYPE, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_null_indices_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLint out = -1;
+    glGetActiveUniformsiv(prog, 1, nullptr, GL_UNIFORM_TYPE, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_null_params_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLuint idx = 0;
+    glGetActiveUniformsiv(prog, 1, &idx, GL_UNIFORM_TYPE, nullptr);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_bad_pname_is_enum_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLuint idx = 0;
+    GLint out = -1;
+    glGetActiveUniformsiv(prog, 1, &idx, 0xDEAD, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_index_out_of_range_is_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLuint idx = 0; // mock has 0 active uniforms -> out of range
+    GLint out = -1;
+    glGetActiveUniformsiv(prog, 1, &idx, GL_UNIFORM_TYPE, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("active_uniformsiv_valid_pname_accepted_index_maps_only_value_error") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeLinkedProgram();
+    GLuint idx = 0;
+    GLint out = -1;
+    // A known pname maps to a GetProgramResource property, so the only error is
+    // the out-of-range index check (InvalidValue), not InvalidEnum.
+    glGetActiveUniformsiv(prog, 1, &idx, GL_UNIFORM_SIZE, &out);
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
