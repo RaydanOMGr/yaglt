@@ -678,6 +678,7 @@ constexpr GLenum GL_SCISSOR_TEST = 0x0C11;
 // Clear value queries (SPEC §22).
 constexpr GLenum GL_COLOR_CLEAR_VALUE = 0x0C22;
 constexpr GLenum GL_DEPTH_CLEAR_VALUE = 0x0B73;
+constexpr GLenum GL_STENCIL_CLEAR_VALUE = 0x0B91;
 
 // Active program query (SPEC §7.14).
 constexpr GLenum GL_CURRENT_PROGRAM = 0x8B8D;

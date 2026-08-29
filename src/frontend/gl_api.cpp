@@ -2303,6 +2303,11 @@ void glClearDepthf(GLfloat depth) {
     g_current->setClearDepth(static_cast<double>(depth));
 }
 
+void glClearStencil(GLint s) {
+    if (g_current == nullptr) return;
+    g_current->setClearStencil(static_cast<int>(s));
+}
+
 void glClear(GLuint mask) {
     if (g_current == nullptr) return;
     g_current->clear(mask);

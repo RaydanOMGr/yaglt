@@ -2580,3 +2580,25 @@ crashed agent, this session)
    (GLES e2e) 715/715. Coverage regenerated: 417/1052 (~39.6%) full, 379/570 (~66.5%) core.
    `coverage-core.md` §7 row updated (detach noted alongside attach).
 
+ 2026-08-29 (glClearStencil — SPEC §17.4.1)
+ - Implemented `glClearStencil`. Added `ClearStencilState` to `GLStateTracker` (`clearStencil_` /
+   `clearStencilApplied_`), `setClearStencil(int)` (no-op when unchanged), a `clearStencil(int)` sink
+   method on `GLStateSink` (pushed only on change in `apply()`), and `GL_STENCIL_CLEAR_VALUE` to
+   `getInteger`. `GLESBackend::clearStencil` forwards to `lib->glClearStencil` (resolved in
+   `GLESLib`, alongside `glClearColor`/`glClearDepthf`); the mock sink records `clearStencilCalls` /
+   `lastClearStencil`. `Context::setClearStencil` + public `glClearStencil` dispatch wired through.
+ - Also fished the previously stubbed stencil clear value through the clear path: `clearBufferiv`
+   (GL_STENCIL), `clearBufferfi`, `clearNamedFramebufferiv` (GL_STENCIL), and `clearNamedFramebufferfi`
+   now push `sink->clearStencil(...)` (and `clearBufferfi` / `clearNamedFramebufferfi` now set the
+   stencil buffer clear bit, since the value is no longer a driver-default no-op). Added
+   `GL_STENCIL_CLEAR_VALUE` (0x0B91) to `gl_types.hpp`.
+ - Tests: new `tests/unit/clear_stencil_test.cpp` (5 cases, registered in `tests/CMakeLists.txt`):
+   no push at default 0 / push on change / reset-to-0 push, public-dispatch recording,
+   `glGetIntegerv(GL_STENCIL_CLEAR_VALUE)` round-trip, `clearBufferiv(GL_STENCIL)` push, and
+   `clearBufferfi` pushing both stencil + depth with the merged mask. Mirror-sink subclasses in
+   `state_test.cpp` / `texture_unit_test.cpp` / `dsa_texture_test.cpp` gained the `clearStencil`
+   override.
+ - Validation: all three configs green — `build` 708/708, `build_san` 708/708, `build_tx`
+   (GLES e2e) 720/720. Coverage regenerated: 418/1052 (~39.7%) full, 380/570 (~66.7%) core.
+   `coverage-core.md` §7 row updated.
+

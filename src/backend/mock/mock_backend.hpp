@@ -221,6 +221,8 @@ public:
           lastClearA = 0.0f;
     int clearDepthCalls = 0;
     double lastClearDepth = 1.0;
+    int clearStencilCalls = 0;
+    int lastClearStencil = 0;
     int clearCalls = 0;
     uint32_t lastClearMask = 0;
     int flushCalls = 0;
@@ -460,6 +462,10 @@ public:
     void clearDepth(double d) override {
         ++clearDepthCalls;
         lastClearDepth = d;
+    }
+    void clearStencil(int s) override {
+        ++clearStencilCalls;
+        lastClearStencil = s;
     }
 
     int drawBuffersCalls = 0;

@@ -112,6 +112,7 @@ public:
                            int32_t h) override;
     void clearColor(float r, float g, float b, float a) override;
     void clearDepth(double d) override;
+    void clearStencil(int s) override;
     void drawBuffers(int32_t n, const uint32_t* bufs) override;
     void readBuffer(uint32_t buf) override;
     void bindBufferBase(uint32_t target, uint32_t index, uint32_t buffer) override;

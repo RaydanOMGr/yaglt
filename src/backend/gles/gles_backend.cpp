@@ -523,6 +523,10 @@ void GLESBackend::clearDepth(double d) {
     }
 }
 
+void GLESBackend::clearStencil(int s) {
+    if (lib_->glClearStencil) lib_->glClearStencil(static_cast<GLint>(s));
+}
+
 void GLESBackend::drawBuffers(int32_t n, const uint32_t* bufs) {
     if (lib_->glDrawBuffers && n > 0 && bufs)
         lib_->glDrawBuffers(n, reinterpret_cast<const GLenum*>(bufs));

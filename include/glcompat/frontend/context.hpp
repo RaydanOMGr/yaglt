@@ -571,6 +571,7 @@ public:
     // GL_INVALID_VALUE honestly.
     void setClearColor(float r, float g, float b, float a);
     void setClearDepth(double d);
+    void setClearStencil(int s);
     void clear(uint32_t mask);
 
     // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---

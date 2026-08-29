@@ -163,6 +163,7 @@ struct GLESLib {
     void (*glScissorIndexed)(GLuint, GLint, GLint, GLsizei, GLsizei) = nullptr;
     void (*glClearColor)(GLfloat, GLfloat, GLfloat, GLfloat) = nullptr;
     void (*glClearDepthf)(GLfloat) = nullptr;
+    void (*glClearStencil)(GLint) = nullptr;
     void (*glClear)(GLbitfield) = nullptr;
     void (*glFlush)(void) = nullptr;
     void (*glFinish)(void) = nullptr;

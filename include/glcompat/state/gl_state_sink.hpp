@@ -145,11 +145,13 @@ public:
     virtual void setScissorIndexed(uint32_t index, int32_t x, int32_t y,
                                    int32_t w, int32_t h) = 0;
 
-    // Clear values (glClearColor / glClearDepth, SPEC §2.1). These are GL state
-    // pushed to the backend before a clear command so the driver clears with the
-    // correct color/depth. Pushed only when the value changed (SPEC §10).
+    // Clear values (glClearColor / glClearDepth / glClearStencil, SPEC §2.1,
+    // §17.4.1). These are GL state pushed to the backend before a clear command
+    // so the driver clears with the correct color/depth/stencil. Pushed only
+    // when the value changed (SPEC §10).
     virtual void clearColor(float r, float g, float b, float a) = 0;
     virtual void clearDepth(double d) = 0;
+    virtual void clearStencil(int s) = 0;
 
     // Whole-framebuffer buffer selection (SPEC §15 / §16). `drawBuffers` selects
     // the draw buffers for the currently bound framebuffer; `readBuffer` selects

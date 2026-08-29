@@ -554,6 +554,12 @@ bool GLStateTracker::setClearDepth(double d) {
     return true;
 }
 
+bool GLStateTracker::setClearStencil(int s) {
+    if (clearStencil_.stencil == s) return false;
+    clearStencil_.stencil = s;
+    return true;
+}
+
 bool GLStateTracker::setDrawBuffers(const std::vector<GLenum>& bufs) {
     if (fbBuffers_.draw == bufs) return false;
     fbBuffers_.draw = bufs;
@@ -915,6 +921,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!clearStencil_.equal(clearStencilApplied_)) {
+        sink.clearStencil(clearStencil_.stencil);
+        clearStencilApplied_ = clearStencil_;
+        ++applied;
+    }
+
     if (!fbBuffers_.equal(fbBuffersApplied_)) {
         if (!fbBuffers_.draw.empty()) {
             sink.drawBuffers(static_cast<int32_t>(fbBuffers_.draw.size()),
@@ -1140,6 +1152,9 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         for (uint32_t i = 0; i < kMaxSampleMaskWords; ++i)
             out[i] = static_cast<GLint>(multisampleRaster_.sampleMask[i]);
         return static_cast<int>(kMaxSampleMaskWords);
+    case 0x0B91: // GL_STENCIL_CLEAR_VALUE
+        out[0] = static_cast<GLint>(clearStencil_.stencil);
+        return 1;
     }
     return 0;
 }
@@ -1330,6 +1345,8 @@ void GLStateTracker::reset() {
     clearColorApplied_ = ClearColorState{};
     clearDepth_ = ClearDepthState{};
     clearDepthApplied_ = ClearDepthState{};
+    clearStencil_ = ClearStencilState{};
+    clearStencilApplied_ = ClearStencilState{};
     fbBuffers_ = FramebufferBufferState{};
     fbBuffersApplied_ = FramebufferBufferState{};
     logicOp_ = LogicOpState{};

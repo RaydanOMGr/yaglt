@@ -54,6 +54,7 @@ add_executable(yaglt_tests
     unit/internalformat_query_test.cpp
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
+    unit/clear_stencil_test.cpp
     unit/blend_test.cpp
     unit/indexed_blend_test.cpp
     unit/viewport_scissor_depth_array_test.cpp

@@ -228,6 +228,7 @@ public:
     // --- Clear values (glClearColor / glClearDepth, SPEC §2.1) ---
     bool setClearColor(float r, float g, float b, float a);
     bool setClearDepth(double d);
+    bool setClearStencil(int s);
 
     // --- Color logic op (SPEC §17.3.4, glLogicOp) ---
     // The logic op mode is pushed to the backend only when it changes; it is
@@ -422,6 +423,12 @@ private:
             return depth == o.depth;
         }
     };
+    struct ClearStencilState {
+        int stencil = 0;
+        bool equal(const ClearStencilState& o) const {
+            return stencil == o.stencil;
+        }
+    };
     struct FramebufferBufferState {
         std::vector<GLenum> draw;            // draw buffer selection
         GLenum read = 0x0405;                // GL_BACK (default read buffer)
@@ -545,6 +552,7 @@ private:
     ScissorBoxState scissorApplied_[kMaxViewports] = {};
     ClearColorState clearColor_, clearColorApplied_;
     ClearDepthState clearDepth_, clearDepthApplied_;
+    ClearStencilState clearStencil_, clearStencilApplied_;
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
     LogicOpState logicOp_, logicOpApplied_;
     // Per-draw-buffer color write masks. Index 0 is the target of the

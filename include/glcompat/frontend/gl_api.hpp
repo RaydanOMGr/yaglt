@@ -755,6 +755,7 @@ void glScissorArrayv(GLuint first, GLsizei count, const GLint* v);
 void glClearColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
 void glClearDepth(GLdouble depth);
 void glClearDepthf(GLfloat depth);
+void glClearStencil(GLint s);
 void glClear(GLuint mask);
 
 // Whole-framebuffer buffer selection (SPEC §15 / §16). glDrawBuffers selects the

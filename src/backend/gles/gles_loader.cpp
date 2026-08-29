@@ -169,6 +169,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glScissorIndexed, "glScissorIndexed");
     ok &= resolve(gles, glClearColor, "glClearColor");
     ok &= resolve(gles, glClearDepthf, "glClearDepthf");
+    ok &= resolve(gles, glClearStencil, "glClearStencil");
     ok &= resolve(gles, glClear, "glClear");
     ok &= resolve(gles, glFlush, "glFlush");
     ok &= resolve(gles, glFinish, "glFinish");

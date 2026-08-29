@@ -71,6 +71,7 @@ struct RecordingSink : GLStateSink {
     void setScissorIndexed(uint32_t, int32_t, int32_t, int32_t, int32_t) override {}
     void clearColor(float, float, float, float) override {}
     void clearDepth(double) override {}
+    void clearStencil(int) override {}
     void bindBufferBase(uint32_t, uint32_t, uint32_t) override {}
     void bindBufferRange(uint32_t, uint32_t, uint32_t, intptr_t, intptr_t) override {}
     void bindVertexArray(uint32_t) override {}
