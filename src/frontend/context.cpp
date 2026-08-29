@@ -3221,10 +3221,69 @@ uint32_t Context::checkNamedFramebufferStatus(GLObjectName framebuffer,
     return GL_FRAMEBUFFER_COMPLETE;
 }
 
+namespace {
+// Valid FRAMEBUFFER_DEFAULT_* pnames for glFramebufferParameteri /
+// glNamedFramebufferParameteri (SPEC §9.2).
+bool isValidFramebufferDefaultParam(uint32_t p) {
+    switch (p) {
+        case GL_FRAMEBUFFER_DEFAULT_WIDTH:
+        case GL_FRAMEBUFFER_DEFAULT_HEIGHT:
+        case GL_FRAMEBUFFER_DEFAULT_LAYERS:
+        case GL_FRAMEBUFFER_DEFAULT_SAMPLES:
+        case GL_FRAMEBUFFER_DEFAULT_FIXED_SAMPLE_LOCATIONS:
+            return true;
+        default:
+            return false;
+    }
+}
+// The FRAMEBUFFER_DEFAULT_* pnames whose param is bounded below by zero and
+// above by a MAX_FRAMEBUFFER_* limit (SPEC §9.2).
+bool isBoundedFramebufferDefaultParam(uint32_t p) {
+    return p == GL_FRAMEBUFFER_DEFAULT_WIDTH ||
+           p == GL_FRAMEBUFFER_DEFAULT_HEIGHT ||
+           p == GL_FRAMEBUFFER_DEFAULT_LAYERS ||
+           p == GL_FRAMEBUFFER_DEFAULT_SAMPLES;
+}
+} // namespace
+
+void Context::framebufferParameteri(uint32_t target, uint32_t pname, int param) {
+    if (target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER &&
+        target != GL_DRAW_FRAMEBUFFER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (boundFramebuffer() == 0) {
+        setError(GLError::InvalidOperation); // default framebuffer bound
+        return;
+    }
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer());
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidFramebufferDefaultParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (isBoundedFramebufferDefaultParam(pname) && param < 0) {
+        setError(GLError::InvalidValue); // negative (MAX limit not tracked)
+        return;
+    }
+    if (fbo->backend) fbo->backend->framebufferParameteri(target, pname, param);
+}
+
 void Context::namedFramebufferParameteri(GLObjectName framebuffer, uint32_t pname,
                                         int param) {
     FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
     if (fbo == nullptr) return;
+    if (!isValidFramebufferDefaultParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (isBoundedFramebufferDefaultParam(pname) && param < 0) {
+        setError(GLError::InvalidValue); // negative (MAX limit not tracked)
+        return;
+    }
     if (fbo->backend) fbo->backend->framebufferParameteri(GL_FRAMEBUFFER, pname,
                                                          param);
 }

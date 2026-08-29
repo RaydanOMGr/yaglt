@@ -341,7 +341,8 @@ GLenum glCheckNamedFramebufferStatus(GLuint framebuffer, GLenum target);
 void glNamedFramebufferParameteri(GLuint framebuffer, GLenum pname, GLint param);
 void glGetNamedFramebufferParameteriv(GLuint framebuffer, GLenum pname,
                                      GLint* params);
-void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint* params);
+ void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint* params);
+ void glFramebufferParameteri(GLenum target, GLenum pname, GLint param);
 void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
                                                 GLenum attachment, GLenum pname,
                                                 GLint* params);

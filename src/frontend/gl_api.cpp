@@ -904,6 +904,13 @@ void glGetFramebufferParameteriv(GLenum target, GLenum pname, GLint* params) {
                                          static_cast<uint32_t>(pname), params);
 }
 
+void glFramebufferParameteri(GLenum target, GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->framebufferParameteri(static_cast<uint32_t>(target),
+                                     static_cast<uint32_t>(pname),
+                                     static_cast<int>(param));
+}
+
 void glGetNamedFramebufferAttachmentParameteriv(GLuint framebuffer,
                                                GLenum attachment, GLenum pname,
                                                GLint* params) {

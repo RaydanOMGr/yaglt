@@ -2738,3 +2738,21 @@ crashed agent, this session)
    747/747. Coverage regenerated: 437/1052 (~41.5%) full,
    399/570 (~70.0%) core.
 
+- **glFramebufferParameteri / glNamedFramebufferParameteri (SPEC §9.2)** —
+   framebuffer default parameters (no-attachment width/height/layers/samples/
+   fixed-sample-locations). Added `Context::framebufferParameteri(target, pname,
+   param)` (classic, DRAW/READ/FRAMEBUFFER target; `GL_INVALID_OPERATION` when the
+   default framebuffer is bound, resolved via the single `boundFramebuffer_`).
+   `Context::namedFramebufferParameteri` gained pname/param validation (previously
+   forwarded unvalidated). Both reject invalid `pname` (`GL_INVALID_ENUM`) and
+   negative bounded param (`GL_INVALID_VALUE`; upper MAX_FRAMEBUFFER_* limit is not
+   tracked, so the positive bound is checked leniently per the project's validation
+   convention). `BackendFramebuffer::framebufferParameteri` already existed
+   (no-op default; `MockFramebuffer` records it) so both frontends forward. Public
+   `gl_api` now exposes `glFramebufferParameteri`. New
+   `tests/unit/framebuffer_parameter_test.cpp` (7 cases) covering invalid target,
+   default-bound rejection, invalid pname, negative param, valid classic recording,
+   unknown-object named rejection, and valid named recording. Validation: `build`
+   742/742, `build_san` 742/742, `build_tx` (GLES e2e) 754/754. Coverage
+   regenerated: 438/1052 (~41.6%) full, 400/570 (~70.2%) core.
+

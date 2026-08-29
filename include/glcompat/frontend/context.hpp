@@ -471,6 +471,10 @@ public:
     // `target` (GL_FRAMEBUFFER / GL_READ_FRAMEBUFFER / GL_DRAW_FRAMEBUFFER).
     void getFramebufferParameteriv(uint32_t target, uint32_t pname,
                                    int32_t* params);
+    // Classic (non-DSA) counterpart operating on the framebuffer bound to
+    // `target` (GL_FRAMEBUFFER / GL_READ_FRAMEBUFFER / GL_DRAW_FRAMEBUFFER).
+    // Generates GL_INVALID_OPERATION when the default framebuffer is bound.
+    void framebufferParameteri(uint32_t target, uint32_t pname, int param);
     void getNamedFramebufferAttachmentParameteriv(GLObjectName framebuffer,
                                                   uint32_t attachment,
                                                   uint32_t pname, int32_t* params);
