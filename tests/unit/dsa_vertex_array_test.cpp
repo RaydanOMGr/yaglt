@@ -196,8 +196,18 @@ TEST_CASE("dsa_vertex_buffers_array_variant") {
     EXPECT_EQ(b1.offset, 8);
     EXPECT_EQ(b1.stride, 20);
 
+    // SPEC §10.3.2: a null `buffers` array is legal and resets every touched
+    // binding point to no buffer, offset 0 and stride 16 (offsets/strides are
+    // ignored). This previously reported GL_INVALID_VALUE, which the spec does
+    // not list as an error for this command.
     ctx.vertexArrayVertexBuffers(vao, 0, 2, nullptr, offsets, strides);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(b0.buffer, 0u);
+    EXPECT_EQ(b0.offset, 0);
+    EXPECT_EQ(b0.stride, 16);
+    EXPECT_EQ(b1.buffer, 0u);
+    EXPECT_EQ(b1.offset, 0);
+    EXPECT_EQ(b1.stride, 16);
 }
 
 // Regression: the unified flush path must still replay the legacy

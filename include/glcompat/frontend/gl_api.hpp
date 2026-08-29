@@ -385,6 +385,23 @@ void glVertexArrayAttribBinding(GLuint vaobj, GLuint attribindex,
 void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex,
                                  GLuint divisor);
 
+// Separate attribute format on the bound VAO (SPEC §10.3.2/§10.3.4,
+// ARB_vertex_attrib_binding). Non-DSA spellings of the glVertexArray* calls
+// above: the vertex array object is the one bound to GL_VERTEX_ARRAY_BINDING
+// (none bound -> GL_INVALID_OPERATION).
+void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset,
+                        GLsizei stride);
+void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers,
+                         const GLintptr* offsets, const GLsizei* strides);
+void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLboolean normalized, GLuint relativeoffset);
+void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
+                           GLuint relativeoffset);
+void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
+                           GLuint relativeoffset);
+void glVertexAttribBinding(GLuint attribindex, GLuint bindingindex);
+void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor);
+
 // --- Transform feedback (SPEC §13.3) ---
 GLuint glGenTransformFeedback();
 void glGenTransformFeedbacks(GLsizei n, GLuint* names);

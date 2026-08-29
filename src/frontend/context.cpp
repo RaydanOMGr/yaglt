@@ -6740,6 +6740,136 @@ void Context::disableVertexArrayAttrib(GLObjectName vaoName, uint32_t index) {
     vertexStateDirty_ = true;
 }
 
+namespace {
+// SPEC §10.3 implementation limits. GL guarantees these minimum maxima
+// (MAX_VERTEX_ATTRIB_BINDINGS >= 16, MAX_VERTEX_ATTRIB_STRIDE >= 2048,
+// MAX_VERTEX_ATTRIB_RELATIVE_OFFSET >= 2047); the frontend enforces the
+// guaranteed minimums so state accepted here is portable across backends.
+constexpr uint32_t kMaxVertexAttribBindings = 16;
+constexpr int32_t kMaxVertexAttribStride = 2048;
+
+// SPEC §10.3.2: BindVertexBuffers with a null `buffers` array resets every
+// touched binding point to no buffer, offset 0 and stride 16.
+constexpr int32_t kNullVertexBufferStride = 16;
+
+// Errors shared by BindVertexBuffer / VertexArrayVertexBuffer and their
+// multi-bind forms (SPEC §10.3.2). GLError::NoError means the parameters are
+// legal.
+GLError validateVertexBufferParams(uint32_t bindingindex, intptr_t offset,
+                                   int32_t stride) {
+    if (bindingindex >= kMaxVertexAttribBindings) return GLError::InvalidValue;
+    if (offset < 0 || stride < 0 || stride > kMaxVertexAttribStride)
+        return GLError::InvalidValue;
+    return GLError::NoError;
+}
+} // namespace
+
+void Context::bindVertexBufferImpl(VertexArrayObject& vao,
+                                   uint32_t bindingindex, GLObjectName buffer,
+                                   intptr_t offset, int32_t stride) {
+    const GLError err = validateVertexBufferParams(bindingindex, offset, stride);
+    if (err != GLError::NoError) {
+        setError(err);
+        return;
+    }
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated buffer name
+        return;
+    }
+    auto& b = vao.bindings[bindingindex];
+    b.buffer = buffer;
+    b.offset = offset;
+    b.stride = stride;
+    vertexStateDirty_ = true;
+}
+
+void Context::bindVertexBuffersImpl(VertexArrayObject& vao, uint32_t first,
+                                    GLsizei count, const GLObjectName* buffers,
+                                    const intptr_t* offsets,
+                                    const int32_t* strides) {
+    if (count < 0) {
+        setError(GLError::InvalidValue); // SPEC §10.3.2: count negative
+        return;
+    }
+    const uint32_t n = static_cast<uint32_t>(count);
+    if (first > kMaxVertexAttribBindings ||
+        n > kMaxVertexAttribBindings - first) {
+        // SPEC §10.3.2: first + count past MAX_VERTEX_ATTRIB_BINDINGS is
+        // GL_INVALID_OPERATION.
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // A null `buffers` array resets the whole range (offsets/strides ignored).
+    if (buffers == nullptr) {
+        for (uint32_t i = 0; i < n; ++i) {
+            auto& b = vao.bindings[first + i];
+            b.buffer = 0;
+            b.offset = 0;
+            b.stride = kNullVertexBufferStride;
+        }
+        if (n != 0) vertexStateDirty_ = true;
+        return;
+    }
+    if (offsets == nullptr || strides == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // SPEC §10.3.2: values are checked separately per binding point. An invalid
+    // entry leaves that binding point unchanged and generates an error; the
+    // other entries still apply.
+    GLError firstError = GLError::NoError;
+    bool changed = false;
+    for (uint32_t i = 0; i < n; ++i) {
+        const uint32_t bindingindex = first + i;
+        GLError err =
+            validateVertexBufferParams(bindingindex, offsets[i], strides[i]);
+        if (err == GLError::NoError && buffers[i] != 0 &&
+            buffers_.find(buffers[i]) == buffers_.end()) {
+            err = GLError::InvalidOperation; // ungenerated buffer name
+        }
+        if (err != GLError::NoError) {
+            if (firstError == GLError::NoError) firstError = err;
+            continue; // this binding point stays unchanged
+        }
+        auto& b = vao.bindings[bindingindex];
+        b.buffer = buffers[i];
+        b.offset = offsets[i];
+        b.stride = strides[i];
+        changed = true;
+    }
+    if (changed) vertexStateDirty_ = true;
+    if (firstError != GLError::NoError) setError(firstError);
+}
+
+void Context::vertexAttribBindingImpl(VertexArrayObject& vao,
+                                      uint32_t attribindex,
+                                      uint32_t bindingindex) {
+    if (attribindex >= kMaxVertexAttribs ||
+        bindingindex >= kMaxVertexAttribBindings) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    vao.attrib(attribindex).binding = bindingindex;
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexBindingDivisorImpl(VertexArrayObject& vao,
+                                       uint32_t bindingindex,
+                                       uint32_t divisor) {
+    if (bindingindex >= kMaxVertexAttribBindings) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    vao.bindings[bindingindex].divisor = divisor;
+    vertexStateDirty_ = true;
+}
+
+VertexArrayObject* Context::boundVertexArrayForEdit() {
+    VertexArrayObject* vao = getVertexArray(boundVertexArray_);
+    if (vao == nullptr) setError(GLError::InvalidOperation);
+    return vao;
+}
+
 void Context::vertexArrayVertexBuffer(GLObjectName vaoName,
                                       uint32_t bindingindex,
                                       GLObjectName buffer, intptr_t offset,
@@ -6753,15 +6883,7 @@ void Context::vertexArrayVertexBuffer(GLObjectName vaoName,
         setError(GLError::InvalidOperation);
         return;
     }
-    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
-    auto& b = vao->bindings[bindingindex];
-    b.buffer = buffer;
-    b.offset = offset;
-    b.stride = stride;
-    vertexStateDirty_ = true;
+    bindVertexBufferImpl(*vao, bindingindex, buffer, offset, stride);
 }
 
 void Context::vertexArrayVertexBuffers(GLObjectName vaoName, uint32_t first,
@@ -6777,23 +6899,22 @@ void Context::vertexArrayVertexBuffers(GLObjectName vaoName, uint32_t first,
         setError(GLError::InvalidOperation);
         return;
     }
-    if (buffers == nullptr || offsets == nullptr || strides == nullptr) {
-        setError(GLError::InvalidValue);
-        return;
-    }
-    for (uint32_t i = 0; i < count; ++i) {
-        uint32_t bindingindex = first + i;
-        if (buffers[i] != 0 &&
-            buffers_.find(buffers[i]) == buffers_.end()) {
-            setError(GLError::InvalidOperation); // ungenerated buffer name
-            return;
-        }
-        auto& b = vao->bindings[bindingindex];
-        b.buffer = buffers[i];
-        b.offset = offsets[i];
-        b.stride = strides[i];
-    }
-    vertexStateDirty_ = true;
+    bindVertexBuffersImpl(*vao, first, static_cast<GLsizei>(count), buffers,
+                          offsets, strides);
+}
+
+void Context::bindVertexBuffer(uint32_t bindingindex, GLObjectName buffer,
+                               intptr_t offset, int32_t stride) {
+    if (VertexArrayObject* vao = boundVertexArrayForEdit())
+        bindVertexBufferImpl(*vao, bindingindex, buffer, offset, stride);
+}
+
+void Context::bindVertexBuffers(uint32_t first, GLsizei count,
+                                const GLObjectName* buffers,
+                                const intptr_t* offsets,
+                                const int32_t* strides) {
+    if (VertexArrayObject* vao = boundVertexArrayForEdit())
+        bindVertexBuffersImpl(*vao, first, count, buffers, offsets, strides);
 }
 
 // Shared body for the three *Attrib*Format variants (SPEC §10.3.1): they differ
@@ -6883,8 +7004,7 @@ void Context::vertexArrayAttribBinding(GLObjectName vaoName, uint32_t attribinde
         setError(GLError::InvalidOperation);
         return;
     }
-    vao->attrib(attribindex).binding = bindingindex;
-    vertexStateDirty_ = true;
+    vertexAttribBindingImpl(*vao, attribindex, bindingindex);
 }
 
 void Context::vertexArrayBindingDivisor(GLObjectName vaoName,
@@ -6898,8 +7018,59 @@ void Context::vertexArrayBindingDivisor(GLObjectName vaoName,
         setError(GLError::InvalidOperation);
         return;
     }
-    vao->bindings[bindingindex].divisor = divisor;
+    vertexBindingDivisorImpl(*vao, bindingindex, divisor);
+}
+
+// Non-DSA separate attribute-format commands (SPEC §10.3.2/§10.3.4): identical
+// to the glVertexArray* forms above except that the vertex array object is the
+// one bound to GL_VERTEX_ARRAY_BINDING.
+void Context::vertexAttribFormat(uint32_t attribindex, int32_t size,
+                                 uint32_t type, bool normalized,
+                                 uint32_t relativeoffset) {
+    VertexArrayObject* vao = boundVertexArrayForEdit();
+    if (vao == nullptr) return;
+    if (attribindex >= kMaxVertexAttribs || size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    setAttribFormat(*vao, attribindex, size, type, normalized, relativeoffset);
     vertexStateDirty_ = true;
+}
+
+void Context::vertexAttribIFormat(uint32_t attribindex, int32_t size,
+                                  uint32_t type, uint32_t relativeoffset) {
+    VertexArrayObject* vao = boundVertexArrayForEdit();
+    if (vao == nullptr) return;
+    if (attribindex >= kMaxVertexAttribs || size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Integer attributes are never normalized (SPEC §10.3.2).
+    setAttribFormat(*vao, attribindex, size, type, false, relativeoffset);
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexAttribLFormat(uint32_t attribindex, int32_t size,
+                                  uint32_t type, uint32_t relativeoffset) {
+    VertexArrayObject* vao = boundVertexArrayForEdit();
+    if (vao == nullptr) return;
+    if (attribindex >= kMaxVertexAttribs || size < 1 || size > 4) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Double-precision attributes are never normalized (SPEC §10.3.2).
+    setAttribFormat(*vao, attribindex, size, type, false, relativeoffset);
+    vertexStateDirty_ = true;
+}
+
+void Context::vertexAttribBinding(uint32_t attribindex, uint32_t bindingindex) {
+    if (VertexArrayObject* vao = boundVertexArrayForEdit())
+        vertexAttribBindingImpl(*vao, attribindex, bindingindex);
+}
+
+void Context::vertexBindingDivisor(uint32_t bindingindex, uint32_t divisor) {
+    if (VertexArrayObject* vao = boundVertexArrayForEdit())
+        vertexBindingDivisorImpl(*vao, bindingindex, divisor);
 }
 
 void Context::pixelStorei(uint32_t pname, int param) {

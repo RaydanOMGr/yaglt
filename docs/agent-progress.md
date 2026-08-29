@@ -3,6 +3,35 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — non-DSA separate attribute format, this session)
+- Implemented the classic (bound-VAO) half of `ARB_vertex_attrib_binding`, which
+  was missing while only the DSA spellings existed: `glBindVertexBuffer`,
+  `glBindVertexBuffers`, `glVertexAttribFormat`, `glVertexAttribIFormat`,
+  `glVertexAttribLFormat`, `glVertexAttribBinding`, `glVertexBindingDivisor`
+  (SPEC §10.3.2/§10.3.4). They resolve the VAO bound to `GL_VERTEX_ARRAY_BINDING`
+  (none bound → `GL_INVALID_OPERATION`) and then call the same private
+  `bindVertexBufferImpl` / `bindVertexBuffersImpl` / `vertexAttribBindingImpl` /
+  `vertexBindingDivisorImpl` bodies the `glVertexArray*` DSA forms use, so the two
+  spellings can no longer drift.
+- Consolidating those bodies also fixed real validation gaps in the existing DSA
+  path (SPEC §10.3.2): `bindingindex` ≥ `MAX_VERTEX_ATTRIB_BINDINGS` (16),
+  `attribindex` ≥ `MAX_VERTEX_ATTRIBS` (16), negative `offset`/`stride` and
+  `stride` > `MAX_VERTEX_ATTRIB_STRIDE` (2048) now report `GL_INVALID_VALUE`
+  instead of being silently recorded; the multi-bind form now reports
+  `GL_INVALID_VALUE` for a negative `count`, `GL_INVALID_OPERATION` when
+  `first + count` exceeds the binding-point count, and validates each entry
+  separately (an invalid entry leaves only its own binding point unchanged).
+- Behavior change with a spec citation: `glVertexArrayVertexBuffers(…, buffers =
+  NULL, …)` used to report `GL_INVALID_VALUE`. SPEC §10.3.2 makes a null `buffers`
+  array legal — it resets each touched binding point to no buffer, offset 0 and
+  stride 16, ignoring `offsets`/`strides`. The existing assertion in
+  `dsa_vertex_array_test.cpp` was updated (with the citation) rather than deleted.
+- New `tests/unit/vertex_attrib_binding_test.cpp` (17 cases) covers the bound-VAO
+  happy paths, the no-VAO error, every limit, buffer detach, null-array reset,
+  per-binding partial application, the I/L formats never normalizing, the shared
+  DSA validation, and the public `gl_api` dispatch surface.
+- Validation: default **629/629** green; sanitizer (ASan/UBSan) build green.
+
 ## Recent Work (2026-08-29 — glBindTextures signature/semantics fix, this session)
 - `glBindTextures` had a non-spec signature: it took an extra `GLenum target` and
   bound every entry to that one target. The real GL 4.6 command (SPEC §8.1 /

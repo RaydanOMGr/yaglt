@@ -1058,6 +1058,52 @@ void glVertexArrayBindingDivisor(GLuint vaobj, GLuint bindingindex,
     g_current->vertexArrayBindingDivisor(vaobj, bindingindex, divisor);
 }
 
+// --- Separate attribute format on the bound VAO (SPEC §10.3.2/§10.3.4) ---
+
+void glBindVertexBuffer(GLuint bindingindex, GLuint buffer, GLintptr offset,
+                        GLsizei stride) {
+    if (g_current == nullptr) return;
+    g_current->bindVertexBuffer(bindingindex, buffer,
+                                static_cast<intptr_t>(offset), stride);
+}
+
+void glBindVertexBuffers(GLuint first, GLsizei count, const GLuint* buffers,
+                         const GLintptr* offsets, const GLsizei* strides) {
+    if (g_current == nullptr) return;
+    g_current->bindVertexBuffers(first, count, buffers,
+                                 reinterpret_cast<const intptr_t*>(offsets),
+                                 strides);
+}
+
+void glVertexAttribFormat(GLuint attribindex, GLint size, GLenum type,
+                          GLboolean normalized, GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribFormat(attribindex, size, type, normalized != 0,
+                                  relativeoffset);
+}
+
+void glVertexAttribIFormat(GLuint attribindex, GLint size, GLenum type,
+                           GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribIFormat(attribindex, size, type, relativeoffset);
+}
+
+void glVertexAttribLFormat(GLuint attribindex, GLint size, GLenum type,
+                           GLuint relativeoffset) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribLFormat(attribindex, size, type, relativeoffset);
+}
+
+void glVertexAttribBinding(GLuint attribindex, GLuint bindingindex) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribBinding(attribindex, bindingindex);
+}
+
+void glVertexBindingDivisor(GLuint bindingindex, GLuint divisor) {
+    if (g_current == nullptr) return;
+    g_current->vertexBindingDivisor(bindingindex, divisor);
+}
+
 // --- Transform feedback (SPEC §13.3) ---
 
 GLuint glGenTransformFeedback() {

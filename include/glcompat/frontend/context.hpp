@@ -651,6 +651,33 @@ public:
     void vertexArrayBindingDivisor(GLObjectName vao, uint32_t bindingindex,
                                    uint32_t divisor);
 
+    // Separate attribute format on the *bound* VAO (SPEC §10.3.1/§10.3.2/§10.3.4,
+    // ARB_vertex_attrib_binding). These are the non-DSA spellings of the
+    // vertexArray* calls above and share their implementation; the vertex array
+    // object is the one bound to GL_VERTEX_ARRAY_BINDING, so no VAO bound reports
+    // GL_INVALID_OPERATION. Validation follows the spec: `attribindex` >=
+    // MAX_VERTEX_ATTRIBS or `bindingindex` >= MAX_VERTEX_ATTRIB_BINDINGS ->
+    // GL_INVALID_VALUE; negative `offset`/`stride` or `stride` >
+    // MAX_VERTEX_ATTRIB_STRIDE -> GL_INVALID_VALUE. bindVertexBuffers validates
+    // per binding point: an invalid entry leaves that binding point unchanged and
+    // reports an error while the valid entries still apply; `count` < 0 ->
+    // GL_INVALID_VALUE and `first + count` past MAX_VERTEX_ATTRIB_BINDINGS ->
+    // GL_INVALID_OPERATION. A null `buffers` array resets the whole range to no
+    // buffer with the spec's default offset 0 / stride 16.
+    void bindVertexBuffer(uint32_t bindingindex, GLObjectName buffer,
+                          intptr_t offset, int32_t stride);
+    void bindVertexBuffers(uint32_t first, GLsizei count,
+                           const GLObjectName* buffers, const intptr_t* offsets,
+                           const int32_t* strides);
+    void vertexAttribFormat(uint32_t attribindex, int32_t size, uint32_t type,
+                            bool normalized, uint32_t relativeoffset);
+    void vertexAttribIFormat(uint32_t attribindex, int32_t size, uint32_t type,
+                             uint32_t relativeoffset);
+    void vertexAttribLFormat(uint32_t attribindex, int32_t size, uint32_t type,
+                             uint32_t relativeoffset);
+    void vertexAttribBinding(uint32_t attribindex, uint32_t bindingindex);
+    void vertexBindingDivisor(uint32_t bindingindex, uint32_t divisor);
+
     // --- Transform feedback (SPEC §13.3) ---
     // Capability-gated by TransformFeedback. gen/bind/delete manage the frontend
     // TF objects; begin/end/pause/resume drive capture and are validated (e.g.
@@ -1156,8 +1183,7 @@ private:
     // Shared body for glGetQueryObject* (SPEC §4): reads the cached result /
     // availability from the backend query resource into the requested width/sign.
     void getQueryObjectImpl(GLObjectName id, uint32_t pname, void* params, bool is64,
-                            bool isSigned);
-    // Shared body for glGetQueryBufferObject* (SPEC §4 / ARB_query_buffer_object):
+                            bool isSigned);    // Shared body for glGetQueryBufferObject* (SPEC §4 / ARB_query_buffer_object):
     // writes the cached query result/availability into a buffer object's CPU
     // mirror at `offset` (alignment + bounds checked) then uploads to the backend.
     void getQueryBufferObjectImpl(GLObjectName id, GLObjectName buffer, uint32_t pname,
@@ -1166,6 +1192,25 @@ private:
     // Object-label support (SPEC §22.2). objectHasType reports whether `name` is a
     // live object in the namespace given by `identifier`.
     bool objectHasType(uint32_t identifier, GLObjectName name) const;
+
+    // Shared bodies for the separate attribute-format commands (SPEC §10.3.2/
+    // §10.3.4). The DSA (`glVertexArray*`) and non-DSA (`glBindVertexBuffer* /
+    // glVertexAttrib*`) spellings differ only in how the vertex array object is
+    // selected, so both resolve a VAO and then call these.
+    void bindVertexBufferImpl(VertexArrayObject& vao, uint32_t bindingindex,
+                              GLObjectName buffer, intptr_t offset,
+                              int32_t stride);
+    void bindVertexBuffersImpl(VertexArrayObject& vao, uint32_t first,
+                               GLsizei count, const GLObjectName* buffers,
+                               const intptr_t* offsets, const int32_t* strides);
+    void vertexAttribBindingImpl(VertexArrayObject& vao, uint32_t attribindex,
+                                 uint32_t bindingindex);
+    void vertexBindingDivisorImpl(VertexArrayObject& vao, uint32_t bindingindex,
+                                  uint32_t divisor);
+    // Resolves the VAO bound to GL_VERTEX_ARRAY_BINDING for the non-DSA
+    // spellings; reports GL_INVALID_OPERATION and returns nullptr when none is
+    // bound (SPEC §10.3.1: those commands need a vertex array object).
+    VertexArrayObject* boundVertexArrayForEdit();
 
     // Backend program for the currently active program (nullptr when none / not
     // linked / no backend resource). Used by the uniform setters.
