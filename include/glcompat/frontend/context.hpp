@@ -988,6 +988,10 @@ public:
 
     GLObjectName createProgram();
     void attachShader(GLObjectName program, GLObjectName shader);
+    // Detach `shader` from `program` (SPEC §7.4 glDetachShader). Does not undo a
+    // successful link; removes the frontend association and forwards to the
+    // backend program. A non-program or non-shader name reports GL_INVALID_OPERATION.
+    void detachShader(GLObjectName program, GLObjectName shader);
     void linkProgram(GLObjectName program);
     // Set program parameters before/after linking (SPEC §7.3 / §7.4.2).
     // GL_PROGRAM_SEPARABLE must be set before linking (after link ->

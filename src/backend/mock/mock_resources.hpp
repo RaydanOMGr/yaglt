@@ -622,6 +622,10 @@ public:
     void attach(BackendShader& shader) override {
         if (auto* ms = dynamic_cast<MockShader*>(&shader)) attached.push_back(ms->id);
     }
+    void detach(BackendShader&) override {
+        // The frontend drives link() from its own attachedShaders list, so removing
+        // a shader there is sufficient; the mock program needs no native detach.
+    }
     bool link(std::string& log) override {
         if (attached.empty()) {
             log = "no shaders attached";

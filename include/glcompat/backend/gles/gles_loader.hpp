@@ -89,6 +89,7 @@ struct GLESLib {
 
     GLuint (*glCreateProgram)(void) = nullptr;
     void (*glAttachShader)(GLuint, GLuint) = nullptr;
+    void (*glDetachShader)(GLuint, GLuint) = nullptr;
     void (*glLinkProgram)(GLuint) = nullptr;
     void (*glGetProgramiv)(GLuint, GLenum, GLint*) = nullptr;
     void (*glGetProgramInfoLog)(GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;

@@ -623,6 +623,10 @@ struct GLESBackendProgram : BackendProgram {
         if (auto* gs = dynamic_cast<GLESBackendShader*>(&shader))
             lib->glAttachShader(handle, gs->handle);
     }
+    void detach(BackendShader& shader) override {
+        if (auto* gs = dynamic_cast<GLESBackendShader*>(&shader))
+            lib->glDetachShader(handle, gs->handle);
+    }
     bool link(std::string& log) override {
         if (!lib || !lib->driverLive() || handle == 0) {
             log = "GLES program not created";

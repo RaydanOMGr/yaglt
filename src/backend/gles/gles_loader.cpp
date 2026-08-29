@@ -90,6 +90,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glDeleteShader, "glDeleteShader");
     ok &= resolve(gles, glCreateProgram, "glCreateProgram");
     ok &= resolve(gles, glAttachShader, "glAttachShader");
+    ok &= resolve(gles, glDetachShader, "glDetachShader");
     ok &= resolve(gles, glLinkProgram, "glLinkProgram");
     ok &= resolve(gles, glGetProgramiv, "glGetProgramiv");
     ok &= resolve(gles, glGetProgramInfoLog, "glGetProgramInfoLog");

@@ -1481,10 +1481,15 @@ GLuint glCreateProgram() {
     return g_current->createProgram();
 }
 
-void glAttachShader(GLuint program, GLuint shader) {
-    if (g_current == nullptr) return;
-    g_current->attachShader(program, shader);
-}
+ void glAttachShader(GLuint program, GLuint shader) {
+     if (g_current == nullptr) return;
+     g_current->attachShader(program, shader);
+ }
+
+ void glDetachShader(GLuint program, GLuint shader) {
+     if (g_current == nullptr) return;
+     g_current->detachShader(program, shader);
+ }
 
 void glLinkProgram(GLuint program) {
     if (g_current == nullptr) return;

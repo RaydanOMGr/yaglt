@@ -310,6 +310,9 @@ public:
 
     // Attach a previously compiled backend shader to this program.
     virtual void attach(BackendShader& shader) = 0;
+    // Detach a previously attached backend shader (SPEC §7.4 glDetachShader).
+    // Does not undo a successful link; the native program keeps its executable.
+    virtual void detach(BackendShader& shader) {}
     // Link the attached shaders. Returns true on success; fills `log` on failure.
     virtual bool link(std::string& log) = 0;
     // Attribute location for `name` after linking (-1 if absent).

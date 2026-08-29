@@ -2562,3 +2562,21 @@ crashed agent, this session)
    (GLES e2e) 712/712. Coverage regenerated: 416/1052 (~39.5%) full, 378/570 (~66.3%) core
    (was 414/1052, 376/570). `coverage-core.md` §7 row updated.
 
+ 2026-08-29 (glDetachShader — SPEC §7.4)
+ - Implemented `glDetachShader` (the counterpart to `glAttachShader`). `BackendProgram` gained a
+   `detach(BackendShader&)` virtual (default no-op). `Context::detachShader` validates that both
+   `program` and `shader` are valid objects (a non-program / non-shader name -> `GL_INVALID_OPERATION`,
+   mirroring `attachShader`) and then removes the shader from `ProgramObject::attachedShaders` and
+   forwards to `backend->detach`. Per spec, detaching does not undo an already-successful link.
+ - `GLESBackendProgram::detach` forwards to `lib->glDetachShader` (resolved in `GLESLib`); the mock
+   no-ops (link is driven from the frontend's `attachedShaders` list, so removing the entry suffices).
+ - Public `gl_api` exposes `glDetachShader`. `glGetAttachedShaders` (already implemented) provides
+   clean test observability.
+ - Tests: new `tests/unit/detach_shader_test.cpp` (3 cases, registered in `tests/CMakeLists.txt`):
+   validation errors (invalid program / invalid shader -> `GL_INVALID_OPERATION`), removing the
+   association (`glGetAttachedShaders` count drops 2 -> 1 after detach), and detaching after a
+   successful link leaving `GL_LINK_STATUS` TRUE.
+ - Validation: all three configs green — `build` 703/703, `build_san` 703/703, `build_tx`
+   (GLES e2e) 715/715. Coverage regenerated: 417/1052 (~39.6%) full, 379/570 (~66.5%) core.
+   `coverage-core.md` §7 row updated (detach noted alongside attach).
+

@@ -82,6 +82,7 @@ add_executable(yaglt_tests
     unit/reflection_query_test.cpp
     unit/object_label_test.cpp
     unit/frag_data_location_test.cpp
+    unit/detach_shader_test.cpp
     unit/transform_feedback_varying_test.cpp
     unit/memory_barrier_test.cpp
     unit/program_interface_test.cpp

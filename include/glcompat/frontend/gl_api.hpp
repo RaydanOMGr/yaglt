@@ -500,7 +500,8 @@ void glDeleteShader(GLuint shader);
 GLboolean glIsShader(GLuint shader);
 
 GLuint glCreateProgram();
-void glAttachShader(GLuint program, GLuint shader);
+ void glAttachShader(GLuint program, GLuint shader);
+ void glDetachShader(GLuint program, GLuint shader);
 void glLinkProgram(GLuint program);
 void glProgramParameteri(GLuint program, GLenum pname, GLint value);
 void glGetProgramiv(GLuint program, GLenum pname, GLint* params);

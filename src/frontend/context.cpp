@@ -6055,6 +6055,25 @@ void Context::attachShader(GLObjectName program, GLObjectName shader) {
     p->attachedShaders.push_back(shader);
 }
 
+void Context::detachShader(GLObjectName program, GLObjectName shader) {
+    ProgramObject* p = getProgram(program);
+    ShaderObject* s = getShader(shader);
+    if (p == nullptr || s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // SPEC §7.4: detach does not undo an already-successful link, but it removes
+    // the frontend association so a subsequent link will not include the shader.
+    auto& attached = p->attachedShaders;
+    for (auto it = attached.begin(); it != attached.end();) {
+        if (*it == shader)
+            it = attached.erase(it);
+        else
+            ++it;
+    }
+    if (p->backend && s->backend) p->backend->detach(*s->backend);
+}
+
 void Context::linkProgram(GLObjectName program) {
     ProgramObject* p = getProgram(program);
     if (p == nullptr) {
