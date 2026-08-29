@@ -2,6 +2,8 @@ build/
 build_*/
 *.o
 *.a
+__pycache__/
+*.pyc
 cmake-build-*/
 .DS_Store
 .kilo/
