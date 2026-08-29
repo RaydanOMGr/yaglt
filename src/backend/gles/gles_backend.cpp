@@ -357,6 +357,27 @@ void GLESBackend::blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) {
         lib_->glBlendEquation(modeRGB); // fall back: single equation
 }
 
+void GLESBackend::blendFuncSeparatei(uint32_t buf, uint32_t srcRGB,
+                                     uint32_t dstRGB, uint32_t srcAlpha,
+                                     uint32_t dstAlpha) {
+    if (lib_->glBlendFuncSeparatei) {
+        lib_->glBlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
+    } else if (buf == 0 && lib_->glBlendFuncSeparate) {
+        lib_->glBlendFuncSeparate(srcRGB, dstRGB, srcAlpha, dstAlpha);
+    }
+    // Pre-3.2 / pre-DrawBuffersBlend drivers: per-buffer state for buf>0 is
+    // recorded by the frontend but cannot be applied natively (honest gap).
+}
+
+void GLESBackend::blendEquationSeparatei(uint32_t buf, uint32_t modeRGB,
+                                         uint32_t modeAlpha) {
+    if (lib_->glBlendEquationSeparatei) {
+        lib_->glBlendEquationSeparatei(buf, modeRGB, modeAlpha);
+    } else if (buf == 0 && lib_->glBlendEquationSeparate) {
+        lib_->glBlendEquationSeparate(modeRGB, modeAlpha);
+    }
+}
+
 void GLESBackend::blendColor(float r, float g, float b, float a) {
     if (lib_->glBlendColor) lib_->glBlendColor(r, g, b, a);
 }

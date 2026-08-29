@@ -127,6 +127,11 @@ struct GLESLib {
     void (*glBlendFuncSeparate)(GLenum, GLenum, GLenum, GLenum) = nullptr;
     void (*glBlendEquationSeparate)(GLenum, GLenum) = nullptr;
     void (*glBlendColor)(GLfloat, GLfloat, GLfloat, GLfloat) = nullptr;
+    // Indexed blending (SPEC §15.3 / §17.3.4, ARB_draw_buffers_blend, ES 3.2+).
+    void (*glBlendFunci)(GLuint, GLenum, GLenum) = nullptr;
+    void (*glBlendFuncSeparatei)(GLuint, GLenum, GLenum, GLenum, GLenum) = nullptr;
+    void (*glBlendEquationi)(GLuint, GLenum) = nullptr;
+    void (*glBlendEquationSeparatei)(GLuint, GLenum, GLenum) = nullptr;
     void (*glDepthFunc)(GLenum) = nullptr;
     void (*glDepthMask)(GLboolean) = nullptr;
     void (*glDepthRangef)(GLfloat, GLfloat) = nullptr;

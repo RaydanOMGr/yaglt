@@ -125,6 +125,12 @@ bool GLESLib::load() {
     resolve(gles, glBlendFuncSeparate, "glBlendFuncSeparate");
     resolve(gles, glBlendEquationSeparate, "glBlendEquationSeparate");
     resolve(gles, glBlendColor, "glBlendColor");
+    // Indexed blending (SPEC §15.3 / §17.3.4). Optional: ES 3.2+ / drivers with
+    // ARB_draw_buffers_blend; resolved defensively so older drivers stay usable.
+    resolve(gles, glBlendFunci, "glBlendFunci");
+    resolve(gles, glBlendFuncSeparatei, "glBlendFuncSeparatei");
+    resolve(gles, glBlendEquationi, "glBlendEquationi");
+    resolve(gles, glBlendEquationSeparatei, "glBlendEquationSeparatei");
     ok &= resolve(gles, glDepthFunc, "glDepthFunc");
     ok &= resolve(gles, glDepthMask, "glDepthMask");
     ok &= resolve(gles, glDepthRangef, "glDepthRangef");

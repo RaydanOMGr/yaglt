@@ -534,6 +534,16 @@ public:
     void setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
                            GLsizei height);
 
+    // Indexed blending (SPEC §15.3 / §17.3.4). `buf` selects the draw-buffer
+    // slot; `buf` >= MAX_DRAW_BUFFERS (8) → GL_INVALID_VALUE, invalid blend
+    // factors / equations → GL_INVALID_ENUM. Buffer 0 updates the same state as
+    // the non-indexed glBlendFunc / glBlendEquation setters.
+    void setBlendFunci(GLuint buf, GLenum src, GLenum dst);
+    void setBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB,
+                               GLenum srcAlpha, GLenum dstAlpha);
+    void setBlendEquationi(GLuint buf, GLenum mode);
+    void setBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+
     // --- Clear values + clear (SPEC §2.1) ---
     // glClearColor / glClearDepth record the per-context clear values in the
     // tracker and are pushed to the backend on the next state flush. glClear

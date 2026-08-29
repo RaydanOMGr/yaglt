@@ -32,6 +32,10 @@ public:
     // GL 4.6 core defines MAX_SAMPLE_MASK_WORDS = 2 (64 sample bits). The
     // frontend tracks this many mask words for glSampleMaski (SPEC §11.5).
     static constexpr uint32_t kMaxSampleMaskWords = 2;
+    // GL 4.6 core guarantees at least 8 draw buffers (MAX_DRAW_BUFFERS). The
+    // frontend tracks a fixed, generous table so per-buffer indices stay stable
+    // for indexed blending (SPEC §15.3 / §17.3.4).
+    static constexpr uint32_t kMaxDrawBuffers = 8;
 
     GLStateTracker();
 
@@ -70,6 +74,16 @@ public:
     bool setBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
     // glBlendColor sets the constant blend color (GL_CONSTANT_* factors).
     bool setBlendColor(float r, float g, float b, float a);
+
+    // --- Indexed blending (SPEC §15.3 / §17.3.4) ---
+    // Per-draw-buffer blend factors/equations. `buf` selects the draw-buffer
+    // slot; buffer 0 is the target of the non-indexed glBlendFunc /
+    // glBlendEquation setters. The caller validates `buf` < kMaxDrawBuffers
+    // (GL_INVALID_VALUE) before invoking these.
+    bool setBlendFuncSeparatei(uint32_t buf, GLenum srcRGB, GLenum dstRGB,
+                               GLenum srcAlpha, GLenum dstAlpha);
+    bool setBlendEquationSeparatei(uint32_t buf, GLenum modeRGB,
+                                   GLenum modeAlpha);
 
     // --- Depth ---
     bool setDepthFunc(GLenum func);
@@ -480,7 +494,12 @@ private:
     GLObjectName boundProgramPipelineApplied_ = 0;
     bool programPipelineDirty_ = false;
 
-    BlendState blend_, blendApplied_;
+    // Per-draw-buffer blend factors/equations. Index 0 mirrors the non-indexed
+    // glBlendFunc / glBlendEquation setters; apply() pushes buffer 0 through the
+    // non-indexed sink methods and buffers 1..n through the indexed variants so
+    // backends that only support single-buffer blend keep working (SPEC §15.3).
+    std::vector<BlendState> blendBuf_;
+    std::vector<BlendState> blendBufApplied_;
     BlendColorState blendColor_, blendColorApplied_;
     DepthState depth_, depthApplied_;
     DepthRangeState depthRange_, depthRangeApplied_;

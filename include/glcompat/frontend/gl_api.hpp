@@ -641,6 +641,16 @@ void glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha,
 void glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
 // Constant blend color used by the GL_CONSTANT_* blend factors (SPEC §17.3).
 void glBlendColor(GLfloat red, GLfloat green, GLfloat blue, GLfloat alpha);
+// Indexed (per-draw-buffer) blending (SPEC §15.3 / §17.3.4,
+// ARB_draw_buffers_blend). `buf` selects the draw-buffer slot; buffer 0 is
+// equivalent to the non-indexed glBlendFunc / glBlendEquation setters. `buf`
+// >= MAX_DRAW_BUFFERS (8) reports GL_INVALID_VALUE; invalid blend factors /
+// equations report GL_INVALID_ENUM.
+void glBlendFunci(GLuint buf, GLenum src, GLenum dst);
+void glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB,
+                          GLenum srcAlpha, GLenum dstAlpha);
+void glBlendEquationi(GLuint buf, GLenum mode);
+void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
 void glUseProgram(GLuint prog);
 
 // --- Program pipelines (SPEC §7.4) ---

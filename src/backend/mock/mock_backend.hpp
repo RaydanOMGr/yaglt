@@ -134,6 +134,13 @@ public:
     int blendColorCalls = 0;
     GLenum lastSrcRGB = 0, lastDstRGB = 0, lastSrcAlpha = 0, lastDstAlpha = 0;
     GLenum lastEqRGB = 0, lastEqAlpha = 0;
+    int blendFunciCalls = 0;
+    int blendEquationiCalls = 0;
+    uint32_t lastBlendFunciBuf = 0;
+    uint32_t lastBlendEquationiBuf = 0;
+    GLenum lastSrcRGBi = 0, lastDstRGBi = 0, lastSrcAlphai = 0,
+           lastDstAlphai = 0;
+    GLenum lastEqRGBi = 0, lastEqAlphai = 0;
     float lastBlendR = 0.0f, lastBlendG = 0.0f, lastBlendB = 0.0f,
           lastBlendA = 0.0f;
     int depthFuncCalls = 0;
@@ -258,6 +265,22 @@ public:
         ++blendEquationCalls;
         lastEqRGB = modeRGB;
         lastEqAlpha = modeAlpha;
+    }
+    void blendFuncSeparatei(uint32_t buf, uint32_t srcRGB, uint32_t dstRGB,
+                            uint32_t srcAlpha, uint32_t dstAlpha) override {
+        ++blendFunciCalls;
+        lastBlendFunciBuf = buf;
+        lastSrcRGBi = srcRGB;
+        lastDstRGBi = dstRGB;
+        lastSrcAlphai = srcAlpha;
+        lastDstAlphai = dstAlpha;
+    }
+    void blendEquationSeparatei(uint32_t buf, uint32_t modeRGB,
+                                uint32_t modeAlpha) override {
+        ++blendEquationiCalls;
+        lastBlendEquationiBuf = buf;
+        lastEqRGBi = modeRGB;
+        lastEqAlphai = modeAlpha;
     }
     void blendColor(float r, float g, float b, float a) override {
         ++blendColorCalls;

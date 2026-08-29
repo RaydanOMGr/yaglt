@@ -7482,6 +7482,99 @@ void Context::setClearColor(float r, float g, float b, float a) {
     state_.setClearColor(r, g, b, a);
 }
 
+namespace {
+
+bool isValidBlendFactor(GLenum f) {
+    switch (f) {
+    case 0x0000: // GL_ZERO
+    case 0x0001: // GL_ONE
+    case 0x0300: // GL_SRC_COLOR
+    case 0x0301: // GL_ONE_MINUS_SRC_COLOR
+    case 0x0306: // GL_DST_COLOR
+    case 0x0307: // GL_ONE_MINUS_DST_COLOR
+    case 0x0302: // GL_SRC_ALPHA
+    case 0x0303: // GL_ONE_MINUS_SRC_ALPHA
+    case 0x0304: // GL_DST_ALPHA
+    case 0x0305: // GL_ONE_MINUS_DST_ALPHA
+    case 0x8001: // GL_CONSTANT_COLOR
+    case 0x8002: // GL_ONE_MINUS_CONSTANT_COLOR
+    case 0x8003: // GL_CONSTANT_ALPHA
+    case 0x8004: // GL_ONE_MINUS_CONSTANT_ALPHA
+    case 0x0308: // GL_SRC_ALPHA_SATURATE
+    case 0x88F9: // GL_SRC1_COLOR
+    case 0x88FA: // GL_ONE_MINUS_SRC1_COLOR
+    case 0x8589: // GL_SRC1_ALPHA
+    case 0x88FB: // GL_ONE_MINUS_SRC1_ALPHA
+        return true;
+    }
+    return false;
+}
+
+bool isValidBlendEquation(GLenum m) {
+    switch (m) {
+    case 0x8006: // GL_FUNC_ADD
+    case 0x800A: // GL_FUNC_SUBTRACT
+    case 0x800B: // GL_FUNC_REVERSE_SUBTRACT
+    case 0x8007: // GL_MIN
+    case 0x8008: // GL_MAX
+        return true;
+    }
+    return false;
+}
+
+} // namespace
+
+void Context::setBlendFunci(GLuint buf, GLenum src, GLenum dst) {
+    if (buf >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isValidBlendFactor(src) || !isValidBlendFactor(dst)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setBlendFuncSeparatei(buf, src, dst, src, dst);
+}
+
+void Context::setBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB,
+                                    GLenum srcAlpha, GLenum dstAlpha) {
+    if (buf >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isValidBlendFactor(srcRGB) || !isValidBlendFactor(dstRGB) ||
+        !isValidBlendFactor(srcAlpha) || !isValidBlendFactor(dstAlpha)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setBlendFuncSeparatei(buf, srcRGB, dstRGB, srcAlpha, dstAlpha);
+}
+
+void Context::setBlendEquationi(GLuint buf, GLenum mode) {
+    if (buf >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isValidBlendEquation(mode)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setBlendEquationSeparatei(buf, mode, mode);
+}
+
+void Context::setBlendEquationSeparatei(GLuint buf, GLenum modeRGB,
+                                        GLenum modeAlpha) {
+    if (buf >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isValidBlendEquation(modeRGB) || !isValidBlendEquation(modeAlpha)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    state_.setBlendEquationSeparatei(buf, modeRGB, modeAlpha);
+}
+
 void Context::setClearDepth(double d) {
     state_.setClearDepth(d);
 }

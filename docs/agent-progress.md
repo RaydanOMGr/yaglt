@@ -3,6 +3,30 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — indexed blending, this session)
+- Added per-draw-buffer (indexed) blending (SPEC §15.3 / §17.3.4,
+  ARB_draw_buffers_blend). New frontend entry points `glBlendFunci`,
+  `glBlendFuncSeparatei`, `glBlendEquationi`, `glBlendEquationSeparatei`. The
+  tracker now keeps a `std::vector<BlendState> blendBuf_[kMaxDrawBuffers=8]`
+  (buffer 0 mirrors the non-indexed `glBlendFunc`/`glBlendEquation` setters);
+  `apply()` pushes buffer 0 through the existing single-buffer sink methods
+  (`blendFuncSeparate`/`blendEquationSeparate`) and buffers 1..n through the
+  new indexed sink methods `blendFuncSeparatei`/`blendEquationSeparatei`, so
+  backends without per-buffer blend keep working. `GLStateSink` gained the two
+  indexed virtuals; `GLESBackend` forwards to `glBlendFuncSeparatei`/
+  `glBlendEquationSeparatei` (resolved as optional `GLESLib` symbols, ES 3.2+,
+  with single-buffer fallback for buf 0), and the mock records each call.
+  `Context::setBlendFunci*` validate `buf` ≥ `MAX_DRAW_BUFFERS` (8) →
+  `GL_INVALID_VALUE` and blend factors / equations → `GL_INVALID_ENUM`
+  (helpers `isValidBlendFactor`/`isValidBlendEquation` in `context.cpp`). The
+  `gl*` shim is regenerated from `gl_api.hpp` and exports the new symbols. New
+  `tests/unit/indexed_blend_test.cpp` (7 cases) covers buffer-0 equivalence to
+  the non-indexed path, per-buffer indexed push + change-skipping, factor /
+  equation enum validation, out-of-range buffer, and the no-context safe
+  no-op. Default **673/673** → **680/680**, sanitizer **680/680**, translate
+  (Mesa) **passed** green. Coverage bumped in `docs/coverage-core.md`
+  (409/1052 full ≈ 38.9%; 372/570 core ≈ 65.3%).
+
 ## Recent Work (2026-08-29 — sampler parameter family completion, this session)
 - Completed the sampler-object parameter family (SPEC §8.2) to parity with the
   texture-parameter family. Previously only `glSamplerParameteri` /

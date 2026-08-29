@@ -34,9 +34,19 @@ public:
     virtual void bindProgramPipeline(uint32_t pipeline) = 0;
 
     virtual void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB,
-                                   uint32_t srcAlpha, uint32_t dstAlpha) = 0;
+                                    uint32_t srcAlpha, uint32_t dstAlpha) = 0;
     virtual void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) = 0;
     virtual void blendColor(float r, float g, float b, float a) = 0;
+
+    // Indexed blending (SPEC §15.3 / §17.3.4). `buf` selects the draw-buffer
+    // slot; buffer 0 is equivalent to the non-indexed blend setters. Backends
+    // without per-buffer blend (e.g. GLES pre-3.2) may fall back to the
+    // single-buffer call for buf == 0 and record the rest without applying it.
+    virtual void blendFuncSeparatei(uint32_t buf, uint32_t srcRGB,
+                                    uint32_t dstRGB, uint32_t srcAlpha,
+                                    uint32_t dstAlpha) = 0;
+    virtual void blendEquationSeparatei(uint32_t buf, uint32_t modeRGB,
+                                        uint32_t modeAlpha) = 0;
 
     virtual void depthFunc(uint32_t func) = 0;
     virtual void depthMask(bool enabled) = 0;

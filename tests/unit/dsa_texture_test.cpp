@@ -30,6 +30,8 @@ struct UnitRecordingSink : GLStateSink {
     void bindProgramPipeline(uint32_t) override {}
     void blendFuncSeparate(uint32_t, uint32_t, uint32_t, uint32_t) override {}
     void blendEquationSeparate(uint32_t, uint32_t) override {}
+    void blendFuncSeparatei(uint32_t, uint32_t, uint32_t, uint32_t, uint32_t) override {}
+    void blendEquationSeparatei(uint32_t, uint32_t, uint32_t) override {}
     void blendColor(float, float, float, float) override {}
     void depthFunc(GLenum) override {}
     void depthMask(bool) override {}

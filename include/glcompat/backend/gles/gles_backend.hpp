@@ -57,8 +57,12 @@ public:
     // objects); where that is missing it reports Unsupported honestly.
     void bindProgramPipeline(uint32_t pipeline) override;
     void blendFuncSeparate(uint32_t srcRGB, uint32_t dstRGB, uint32_t srcAlpha,
-                           uint32_t dstAlpha) override;
+                            uint32_t dstAlpha) override;
     void blendEquationSeparate(uint32_t modeRGB, uint32_t modeAlpha) override;
+    void blendFuncSeparatei(uint32_t buf, uint32_t srcRGB, uint32_t dstRGB,
+                            uint32_t srcAlpha, uint32_t dstAlpha) override;
+    void blendEquationSeparatei(uint32_t buf, uint32_t modeRGB,
+                                uint32_t modeAlpha) override;
     void blendColor(float r, float g, float b, float a) override;
     void depthFunc(uint32_t func) override;
     void depthMask(bool enabled) override;

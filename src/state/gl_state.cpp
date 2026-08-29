@@ -7,6 +7,8 @@ GLStateTracker::GLStateTracker() {
     texUnitsApplied_.resize(kMaxTextureUnits);
     samplerBound_.assign(kMaxTextureUnits, 0);
     samplerBoundApplied_.assign(kMaxTextureUnits, 0);
+    blendBuf_.assign(kMaxDrawBuffers, BlendState{});
+    blendBufApplied_.assign(kMaxDrawBuffers, BlendState{});
     // SPEC §17.3.7: dithering is enabled by default.
     capsCurrent_[0x0BD0 /* GL_DITHER */] = true;
     capsApplied_[0x0BD0 /* GL_DITHER */] = true;
@@ -80,37 +82,67 @@ bool GLStateTracker::bindProgramPipeline(GLObjectName pipeline) {
 }
 
 bool GLStateTracker::setBlendFunc(GLenum sfactor, GLenum dfactor) {
-    if (blend_.srcRGB == sfactor && blend_.dstRGB == dfactor &&
-        blend_.srcAlpha == sfactor && blend_.dstAlpha == dfactor)
+    BlendState& b = blendBuf_[0];
+    if (b.srcRGB == sfactor && b.dstRGB == dfactor &&
+        b.srcAlpha == sfactor && b.dstAlpha == dfactor)
         return false;
-    blend_.srcRGB = blend_.srcAlpha = sfactor;
-    blend_.dstRGB = blend_.dstAlpha = dfactor;
+    b.srcRGB = b.srcAlpha = sfactor;
+    b.dstRGB = b.dstAlpha = dfactor;
     return true;
 }
 
 bool GLStateTracker::setBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB,
                                           GLenum srcAlpha, GLenum dstAlpha) {
-    if (blend_.srcRGB == srcRGB && blend_.dstRGB == dstRGB &&
-        blend_.srcAlpha == srcAlpha && blend_.dstAlpha == dstAlpha)
+    BlendState& b = blendBuf_[0];
+    if (b.srcRGB == srcRGB && b.dstRGB == dstRGB &&
+        b.srcAlpha == srcAlpha && b.dstAlpha == dstAlpha)
         return false;
-    blend_.srcRGB = srcRGB;
-    blend_.dstRGB = dstRGB;
-    blend_.srcAlpha = srcAlpha;
-    blend_.dstAlpha = dstAlpha;
+    b.srcRGB = srcRGB;
+    b.dstRGB = dstRGB;
+    b.srcAlpha = srcAlpha;
+    b.dstAlpha = dstAlpha;
     return true;
 }
 
 bool GLStateTracker::setBlendEquation(GLenum mode) {
-    if (blend_.equationRGB == mode && blend_.equationAlpha == mode) return false;
-    blend_.equationRGB = blend_.equationAlpha = mode;
+    BlendState& b = blendBuf_[0];
+    if (b.equationRGB == mode && b.equationAlpha == mode) return false;
+    b.equationRGB = b.equationAlpha = mode;
     return true;
 }
 
 bool GLStateTracker::setBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha) {
-    if (blend_.equationRGB == modeRGB && blend_.equationAlpha == modeAlpha)
+    BlendState& b = blendBuf_[0];
+    if (b.equationRGB == modeRGB && b.equationAlpha == modeAlpha)
         return false;
-    blend_.equationRGB = modeRGB;
-    blend_.equationAlpha = modeAlpha;
+    b.equationRGB = modeRGB;
+    b.equationAlpha = modeAlpha;
+    return true;
+}
+
+bool GLStateTracker::setBlendFuncSeparatei(uint32_t buf, GLenum srcRGB,
+                                           GLenum dstRGB, GLenum srcAlpha,
+                                           GLenum dstAlpha) {
+    if (buf >= kMaxDrawBuffers) return false; // caller raised error
+    BlendState& b = blendBuf_[buf];
+    if (b.srcRGB == srcRGB && b.dstRGB == dstRGB &&
+        b.srcAlpha == srcAlpha && b.dstAlpha == dstAlpha)
+        return false;
+    b.srcRGB = srcRGB;
+    b.dstRGB = dstRGB;
+    b.srcAlpha = srcAlpha;
+    b.dstAlpha = dstAlpha;
+    return true;
+}
+
+bool GLStateTracker::setBlendEquationSeparatei(uint32_t buf, GLenum modeRGB,
+                                               GLenum modeAlpha) {
+    if (buf >= kMaxDrawBuffers) return false; // caller raised error
+    BlendState& b = blendBuf_[buf];
+    if (b.equationRGB == modeRGB && b.equationAlpha == modeAlpha)
+        return false;
+    b.equationRGB = modeRGB;
+    b.equationAlpha = modeAlpha;
     return true;
 }
 
@@ -677,11 +709,23 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
-    if (!blend_.equal(blendApplied_)) {
-        sink.blendFuncSeparate(blend_.srcRGB, blend_.dstRGB,
-                               blend_.srcAlpha, blend_.dstAlpha);
-        sink.blendEquationSeparate(blend_.equationRGB, blend_.equationAlpha);
-        blendApplied_ = blend_;
+    for (uint32_t i = 0; i < kMaxDrawBuffers; ++i) {
+        if (blendBuf_[i].equal(blendBufApplied_[i])) continue;
+        if (i == 0) {
+            // Buffer 0 is the non-indexed blend path: push through the single-
+            // buffer sink methods so backends without per-buffer blend stay
+            // compatible.
+            sink.blendFuncSeparate(blendBuf_[0].srcRGB, blendBuf_[0].dstRGB,
+                                   blendBuf_[0].srcAlpha, blendBuf_[0].dstAlpha);
+            sink.blendEquationSeparate(blendBuf_[0].equationRGB,
+                                       blendBuf_[0].equationAlpha);
+        } else {
+            sink.blendFuncSeparatei(i, blendBuf_[i].srcRGB, blendBuf_[i].dstRGB,
+                                    blendBuf_[i].srcAlpha, blendBuf_[i].dstAlpha);
+            sink.blendEquationSeparatei(i, blendBuf_[i].equationRGB,
+                                        blendBuf_[i].equationAlpha);
+        }
+        blendBufApplied_[i] = blendBuf_[i];
         ++applied;
     }
 
@@ -973,12 +1017,12 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = scissor_[0].x; out[1] = scissor_[0].y;
         out[2] = scissor_[0].width; out[3] = scissor_[0].height;
         return 4;
-    case 0x80C9: out[0] = static_cast<GLint>(blend_.srcRGB); return 1;   // BLEND_SRC_RGB
-    case 0x80CA: out[0] = static_cast<GLint>(blend_.dstRGB); return 1;   // BLEND_DST_RGB
-    case 0x80CB: out[0] = static_cast<GLint>(blend_.srcAlpha); return 1; // BLEND_SRC_ALPHA
-    case 0x80CC: out[0] = static_cast<GLint>(blend_.dstAlpha); return 1; // BLEND_DST_ALPHA
-    case 0x8009: out[0] = static_cast<GLint>(blend_.equationRGB); return 1;   // BLEND_EQUATION_RGB
-    case 0x883D: out[0] = static_cast<GLint>(blend_.equationAlpha); return 1; // BLEND_EQUATION_ALPHA
+    case 0x80C9: out[0] = static_cast<GLint>(blendBuf_[0].srcRGB); return 1;   // BLEND_SRC_RGB
+    case 0x80CA: out[0] = static_cast<GLint>(blendBuf_[0].dstRGB); return 1;   // BLEND_DST_RGB
+    case 0x80CB: out[0] = static_cast<GLint>(blendBuf_[0].srcAlpha); return 1; // BLEND_SRC_ALPHA
+    case 0x80CC: out[0] = static_cast<GLint>(blendBuf_[0].dstAlpha); return 1; // BLEND_DST_ALPHA
+    case 0x8009: out[0] = static_cast<GLint>(blendBuf_[0].equationRGB); return 1;   // BLEND_EQUATION_RGB
+    case 0x883D: out[0] = static_cast<GLint>(blendBuf_[0].equationAlpha); return 1; // BLEND_EQUATION_ALPHA
     case GL_DEPTH_WRITEMASK: out[0] = depth_.mask ? 1 : 0; return 1;
     case GL_DEPTH_FUNC: out[0] = static_cast<GLint>(depth_.func); return 1;
     case GL_CULL_FACE_MODE: out[0] = static_cast<GLint>(raster_.cull); return 1;
@@ -1189,8 +1233,8 @@ void GLStateTracker::reset() {
     boundProgramPipeline_ = 0;
     boundProgramPipelineApplied_ = 0;
     programPipelineDirty_ = false;
-    blend_ = BlendState{};
-    blendApplied_ = BlendState{};
+    blendBuf_.assign(kMaxDrawBuffers, BlendState{});
+    blendBufApplied_.assign(kMaxDrawBuffers, BlendState{});
     blendColor_ = BlendColorState{};
     blendColorApplied_ = BlendColorState{};
     depth_ = DepthState{};

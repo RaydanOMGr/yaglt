@@ -55,6 +55,7 @@ add_executable(yaglt_tests
     unit/viewport_scissor_test.cpp
     unit/clear_test.cpp
     unit/blend_test.cpp
+    unit/indexed_blend_test.cpp
     unit/stencil_test.cpp
     unit/compute_dispatch_test.cpp
     unit/compute_shader_object_test.cpp
