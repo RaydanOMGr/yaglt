@@ -35,6 +35,7 @@ struct UnitRecordingSink : GLStateSink {
     void depthFunc(GLenum) override {}
     void depthMask(bool) override {}
     void depthRange(double, double) override {}
+    void depthRangeIndexed(uint32_t, double, double) override {}
     void stencilFunc(GLenum, GLint, GLuint) override {}
     void stencilOp(GLenum, GLenum, GLenum) override {}
     void stencilMask(GLuint) override {}

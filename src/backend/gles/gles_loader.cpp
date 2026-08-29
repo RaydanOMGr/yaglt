@@ -134,6 +134,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glDepthFunc, "glDepthFunc");
     ok &= resolve(gles, glDepthMask, "glDepthMask");
     ok &= resolve(gles, glDepthRangef, "glDepthRangef");
+    ok &= resolve(gles, glDepthRangefIndexed, "glDepthRangefIndexed");
     ok &= resolve(gles, glStencilFunc, "glStencilFunc");
     ok &= resolve(gles, glStencilOp, "glStencilOp");
     ok &= resolve(gles, glStencilMask, "glStencilMask");

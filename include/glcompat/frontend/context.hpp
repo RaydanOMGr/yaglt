@@ -534,6 +534,19 @@ public:
     void setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
                            GLsizei height);
 
+    // Contiguous viewport/scissor arrays (SPEC §13.5.2). `first` + `count` must
+    // be <= MAX_VIEWPORTS (16), `count` > 0, and `v` non-null; otherwise
+    // GL_INVALID_VALUE. Each viewport is four floats (x, y, w, h); each scissor
+    // box is four ints. Negative width/height → GL_INVALID_VALUE.
+    void setViewportArrayv(GLuint first, GLsizei count, const GLfloat* v);
+    void setScissorArrayv(GLuint first, GLsizei count, const GLint* v);
+
+    // Per-viewport depth range (SPEC §13.5.2). `index` >= MAX_VIEWPORTS (16) →
+    // GL_INVALID_VALUE; glDepthRangeArrayv additionally requires `first`+`count`
+    // <= MAX_VIEWPORTS, `count` > 0, and `v` non-null (GL_INVALID_VALUE).
+    void setDepthRangeIndexed(GLuint index, GLdouble nearVal, GLdouble farVal);
+    void setDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble* v);
+
     // Indexed blending (SPEC §15.3 / §17.3.4). `buf` selects the draw-buffer
     // slot; `buf` >= MAX_DRAW_BUFFERS (8) → GL_INVALID_VALUE, invalid blend
     // factors / equations → GL_INVALID_ENUM. Buffer 0 updates the same state as

@@ -672,6 +672,8 @@ void glDepthFunc(GLenum func);
 void glDepthMask(bool flag);
 void glDepthRange(GLdouble nearVal, GLdouble farVal);
 void glDepthRangef(GLfloat nearVal, GLfloat farVal);
+void glDepthRangeIndexed(GLuint index, GLdouble nearVal, GLdouble farVal);
+void glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble* v);
 void glCullFace(GLenum mode);
 void glFrontFace(GLenum mode);
 
@@ -733,6 +735,8 @@ void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h
 void glViewportIndexedfv(GLuint index, const GLfloat* v);
 void glScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width, GLsizei height);
 void glScissorIndexedv(GLuint index, const GLint* v);
+void glViewportArrayv(GLuint first, GLsizei count, const GLfloat* v);
+void glScissorArrayv(GLuint first, GLsizei count, const GLint* v);
 
 // Clear values + clear (SPEC §2.1). glClearColor/glClearDepth record the
 // per-context clear values; glClear flushes tracked state then clears the bound

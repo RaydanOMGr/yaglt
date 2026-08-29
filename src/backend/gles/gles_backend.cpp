@@ -394,7 +394,15 @@ void GLESBackend::depthRange(double nearVal, double farVal) {
     if (lib_->glDepthRangef) {
         // GLES uses float depth range; promote double to float.
         lib_->glDepthRangef(static_cast<GLfloat>(nearVal),
-                           static_cast<GLfloat>(farVal));
+                            static_cast<GLfloat>(farVal));
+    }
+}
+
+void GLESBackend::depthRangeIndexed(uint32_t index, double nearVal,
+                                     double farVal) {
+    if (lib_->glDepthRangefIndexed) {
+        lib_->glDepthRangefIndexed(index, static_cast<GLfloat>(nearVal),
+                                   static_cast<GLfloat>(farVal));
     }
 }
 

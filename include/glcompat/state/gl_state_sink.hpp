@@ -52,6 +52,11 @@ public:
     virtual void depthMask(bool enabled) = 0;
     virtual void depthRange(double nearVal, double farVal) = 0;
 
+    // Per-viewport depth range (glDepthRangeIndexed, SPEC §13.5.2). `index`
+    // selects the viewport slot; index 0 mirrors `depthRange`.
+    virtual void depthRangeIndexed(uint32_t index, double nearVal,
+                                   double farVal) = 0;
+
     virtual void stencilFunc(uint32_t func, int32_t ref, uint32_t mask) = 0;
     virtual void stencilOp(uint32_t sfail, uint32_t dpfail, uint32_t dppass) = 0;
     virtual void stencilMask(uint32_t mask) = 0;

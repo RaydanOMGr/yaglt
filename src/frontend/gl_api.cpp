@@ -1997,6 +1997,16 @@ void glDepthRangef(GLfloat nearVal, GLfloat farVal) {
                                      static_cast<double>(farVal));
 }
 
+void glDepthRangeIndexed(GLuint index, GLdouble nearVal, GLdouble farVal) {
+    if (g_current == nullptr) return;
+    g_current->setDepthRangeIndexed(index, nearVal, farVal);
+}
+
+void glDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble* v) {
+    if (g_current == nullptr) return;
+    g_current->setDepthRangeArrayv(first, count, v);
+}
+
 void glCullFace(GLenum mode) {
     if (g_current == nullptr) return;
     g_current->state().setCullFace(mode);
@@ -2172,6 +2182,16 @@ void glScissorIndexedv(GLuint index, const GLint* v) {
         return;
     }
     g_current->setScissorIndexed(index, v[0], v[1], v[2], v[3]);
+}
+
+void glViewportArrayv(GLuint first, GLsizei count, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    g_current->setViewportArrayv(first, count, v);
+}
+
+void glScissorArrayv(GLuint first, GLsizei count, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->setScissorArrayv(first, count, v);
 }
 
 void glFlushState() {

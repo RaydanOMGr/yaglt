@@ -170,10 +170,16 @@ bool GLStateTracker::setDepthMask(bool enabled) {
 }
 
 bool GLStateTracker::setDepthRange(double nearVal, double farVal) {
-    if (depthRange_.nearVal == nearVal && depthRange_.farVal == farVal)
-        return false;
-    depthRange_.nearVal = nearVal;
-    depthRange_.farVal = farVal;
+    return setDepthRangeIndexed(0, nearVal, farVal);
+}
+
+bool GLStateTracker::setDepthRangeIndexed(uint32_t index, double nearVal,
+                                          double farVal) {
+    if (index >= kMaxViewports) return false; // caller raised error
+    DepthRangeState& d = depthRange_[index];
+    if (d.nearVal == nearVal && d.farVal == farVal) return false;
+    d.nearVal = nearVal;
+    d.farVal = farVal;
     return true;
 }
 
@@ -488,6 +494,31 @@ bool GLStateTracker::setScissorIndexed(GLuint index, GLint x, GLint y,
     return true;
 }
 
+bool GLStateTracker::setViewportIndexedv(uint32_t first, uint32_t count,
+                                         const GLfloat* v) {
+    if (v == nullptr) return false;
+    bool changed = false;
+    for (uint32_t i = 0; i < count; ++i) {
+        changed |= setViewportIndexed(first + i,
+                                      static_cast<GLint>(v[4 * i + 0]),
+                                      static_cast<GLint>(v[4 * i + 1]),
+                                      static_cast<GLsizei>(v[4 * i + 2]),
+                                      static_cast<GLsizei>(v[4 * i + 3]));
+    }
+    return changed;
+}
+
+bool GLStateTracker::setScissorIndexedv(uint32_t first, uint32_t count,
+                                        const GLint* v) {
+    if (v == nullptr) return false;
+    bool changed = false;
+    for (uint32_t i = 0; i < count; ++i) {
+        changed |= setScissorIndexed(first + i, v[4 * i + 0], v[4 * i + 1],
+                                     v[4 * i + 2], v[4 * i + 3]);
+    }
+    return changed;
+}
+
 bool GLStateTracker::setClearColor(float r, float g, float b, float a) {
     if (clearColor_.r == r && clearColor_.g == g && clearColor_.b == b &&
         clearColor_.a == a)
@@ -742,10 +773,16 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
-    if (!depthRange_.equal(depthRangeApplied_)) {
-        sink.depthRange(depthRange_.nearVal, depthRange_.farVal);
-        depthRangeApplied_ = depthRange_;
-        ++applied;
+    for (uint32_t i = 0; i < kMaxViewports; ++i) {
+        if (!depthRange_[i].equal(depthRangeApplied_[i])) {
+            if (i == 0)
+                sink.depthRange(depthRange_[i].nearVal, depthRange_[i].farVal);
+            else
+                sink.depthRangeIndexed(i, depthRange_[i].nearVal,
+                                       depthRange_[i].farVal);
+            depthRangeApplied_[i] = depthRange_[i];
+            ++applied;
+        }
     }
 
     // Stencil: push per-face. When both faces are equal and changed, a single
@@ -1114,8 +1151,8 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[0] = static_cast<GLfloat>(clearDepth_.depth);
         return 1;
     case 0x0B70: // GL_DEPTH_RANGE
-        out[0] = static_cast<GLfloat>(depthRange_.nearVal);
-        out[1] = static_cast<GLfloat>(depthRange_.farVal);
+        out[0] = static_cast<GLfloat>(depthRange_[0].nearVal);
+        out[1] = static_cast<GLfloat>(depthRange_[0].farVal);
         return 2;
     case 0x0B11: // GL_POINT_SIZE
         out[0] = rasterScalar_.pointSize; return 1;
@@ -1171,8 +1208,8 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[0] = clearDepth_.depth;
         return 1;
     case 0x0B70:
-        out[0] = depthRange_.nearVal;
-        out[1] = depthRange_.farVal;
+        out[0] = depthRange_[0].nearVal;
+        out[1] = depthRange_[0].farVal;
         return 2;
     case 0x0B11: // GL_POINT_SIZE
         out[0] = rasterScalar_.pointSize; return 1;
@@ -1239,8 +1276,10 @@ void GLStateTracker::reset() {
     blendColorApplied_ = BlendColorState{};
     depth_ = DepthState{};
     depthApplied_ = DepthState{};
-    depthRange_ = DepthRangeState{};
-    depthRangeApplied_ = DepthRangeState{};
+    for (uint32_t i = 0; i < kMaxViewports; ++i) {
+        depthRange_[i] = DepthRangeState{};
+        depthRangeApplied_[i] = DepthRangeState{};
+    }
     stencilFront_ = StencilFaceState{};
     stencilBack_ = StencilFaceState{};
     stencilFrontApplied_ = StencilFaceState{};

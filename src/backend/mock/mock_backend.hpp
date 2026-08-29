@@ -147,6 +147,9 @@ public:
     int depthMaskCalls = 0;
     int depthRangeCalls = 0;
     double lastDepthNear = 0.0, lastDepthFar = 1.0;
+    int depthRangeIndexedCalls = 0;
+    uint32_t lastDepthRangeIndexedIndex = 0;
+    double lastDepthNearIndexed = 0.0, lastDepthFarIndexed = 1.0;
     int stencilFuncCalls = 0;
     int stencilOpCalls = 0;
     int stencilMaskCalls = 0;
@@ -295,6 +298,12 @@ public:
         ++depthRangeCalls;
         lastDepthNear = n;
         lastDepthFar = f;
+    }
+    void depthRangeIndexed(uint32_t index, double n, double f) override {
+        ++depthRangeIndexedCalls;
+        lastDepthRangeIndexedIndex = index;
+        lastDepthNearIndexed = n;
+        lastDepthFarIndexed = f;
     }
     void stencilFunc(GLenum, GLint, GLuint) override { ++stencilFuncCalls; }
     void stencilOp(GLenum, GLenum, GLenum) override { ++stencilOpCalls; }

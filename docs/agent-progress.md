@@ -3,6 +3,28 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — indexed viewport/scissor/depth arrays, this session)
+- Added the indexed viewport/scissor/depth-array family (SPEC §13.5.2):
+  `glViewportArrayv`, `glScissorArrayv`, `glDepthRangeIndexed`,
+  `glDepthRangeArrayv`. The tracker now keeps depth range per viewport
+  (`DepthRangeState depthRange_[kMaxViewports=16]`); `apply()` pushes viewport 0
+  through the non-indexed `depthRange` sink and viewports 1..n through the new
+  `depthRangeIndexed` sink (mirroring the existing viewport/scissor split).
+  `setDepthRange` now delegates to `setDepthRangeIndexed(0, …)`. New tracker
+  helpers `setViewportIndexedv` / `setScissorIndexedv` unpack a packed array and
+  loop over per-slot setters. `GLStateSink` gained `depthRangeIndexed`; the mock
+  records it (with index + values) and the GLES backend forwards to
+  `glDepthRangefIndexed` (new optional `GLESLib` symbol, ES 3.0+). `Context`
+  validates `first`+`count` ≤ MAX_VIEWPORTS, `count` > 0, non-null array, and
+  per-element width/height ≥ 0 → `GL_INVALID_VALUE` (and index ≥ MAX_VIEWPORTS
+  for the single-index depth-range call). The `gl*` shim is regenerated from
+  `gl_api.hpp` and exports the four new symbols. New
+  `tests/unit/viewport_scissor_depth_array_test.cpp` (8 cases) covers contiguous
+  slot pushes, change-skipping, factor/range/negative-size validation, and the
+  per-viewport depth-range getter. Default **680/680** → **688/688**, sanitizer
+  **688/688**, translate (Mesa) **passed** green. Coverage bumped in
+  `docs/coverage-core.md` (413/1052 full ≈ 39.3%; 376/570 core ≈ 66.0%).
+
 ## Recent Work (2026-08-29 — indexed blending, this session)
 - Added per-draw-buffer (indexed) blending (SPEC §15.3 / §17.3.4,
   ARB_draw_buffers_blend). New frontend entry points `glBlendFunci`,

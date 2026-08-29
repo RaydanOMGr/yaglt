@@ -7478,6 +7478,63 @@ void Context::setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
     state_.setScissorIndexed(index, x, y, width, height);
 }
 
+void Context::setViewportArrayv(GLuint first, GLsizei count, const GLfloat* v) {
+    if (count <= 0 || first + static_cast<uint32_t>(count) >
+                          GLStateTracker::kMaxViewports ||
+        v == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (GLsizei i = 0; i < count; ++i) {
+        if (v[4 * i + 2] < 0.0f || v[4 * i + 3] < 0.0f) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+    }
+    state_.setViewportIndexedv(first, static_cast<uint32_t>(count), v);
+}
+
+void Context::setScissorArrayv(GLuint first, GLsizei count, const GLint* v) {
+    if (count <= 0 || first + static_cast<uint32_t>(count) >
+                          GLStateTracker::kMaxViewports ||
+        v == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (GLsizei i = 0; i < count; ++i) {
+        if (v[4 * i + 2] < 0 || v[4 * i + 3] < 0) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+    }
+    state_.setScissorIndexedv(first, static_cast<uint32_t>(count), v);
+}
+
+void Context::setDepthRangeIndexed(GLuint index, GLdouble nearVal,
+                                   GLdouble farVal) {
+    if (index >= GLStateTracker::kMaxViewports) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setDepthRangeIndexed(index, static_cast<double>(nearVal),
+                                static_cast<double>(farVal));
+}
+
+void Context::setDepthRangeArrayv(GLuint first, GLsizei count,
+                                  const GLdouble* v) {
+    if (count <= 0 || first + static_cast<uint32_t>(count) >
+                          GLStateTracker::kMaxViewports ||
+        v == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (GLsizei i = 0; i < count; ++i) {
+        state_.setDepthRangeIndexed(first + static_cast<uint32_t>(i),
+                                    static_cast<double>(v[2 * i]),
+                                    static_cast<double>(v[2 * i + 1]));
+    }
+}
+
 void Context::setClearColor(float r, float g, float b, float a) {
     state_.setClearColor(r, g, b, a);
 }

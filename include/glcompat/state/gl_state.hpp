@@ -89,6 +89,11 @@ public:
     bool setDepthFunc(GLenum func);
     bool setDepthMask(bool enabled);
     bool setDepthRange(double nearVal, double farVal);
+    // Per-viewport depth range (glDepthRangeIndexed / glDepthRangeArrayv,
+    // SPEC §13.5.2). `index` selects the viewport slot; index 0 is the target
+    // of the non-indexed `setDepthRange`. The caller validates `index` <
+    // kMaxViewports (GL_INVALID_VALUE) before invoking this.
+    bool setDepthRangeIndexed(uint32_t index, double nearVal, double farVal);
 
     // --- Stencil ---
     bool setStencilFunc(GLenum func, GLint ref, GLuint mask);
@@ -193,11 +198,21 @@ public:
     bool setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
     bool setViewportIndexed(GLuint index, GLint x, GLint y, GLsizei width,
                             GLsizei height);
+    // glViewportArrayv (SPEC §13.5.2): sets `count` contiguous viewports
+    // starting at `first` from a packed float array (4 floats per viewport).
+    // Returns true when any slot changed. The caller validates `first`+`count`
+    // <= kMaxViewports, `count` > 0 and `v` != nullptr (GL_INVALID_VALUE).
+    bool setViewportIndexedv(uint32_t first, uint32_t count, const GLfloat* v);
 
     // --- Scissor box (glScissor); the scissor test is GL_SCISSOR_TEST cap ---
     bool setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
     bool setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
-                          GLsizei height);
+                           GLsizei height);
+    // glScissorArrayv (SPEC §13.5.2): sets `count` contiguous scissor boxes
+    // starting at `first` from a packed int array (4 ints per box). Returns true
+    // when any slot changed. The caller validates `first`+`count` <=
+    // kMaxViewports, `count` > 0 and `v` != nullptr (GL_INVALID_VALUE).
+    bool setScissorIndexedv(uint32_t first, uint32_t count, const GLint* v);
 
     const ViewportState& viewport(uint32_t index) const {
         return viewport_[index < kMaxViewports ? index : 0];
@@ -502,7 +517,8 @@ private:
     std::vector<BlendState> blendBufApplied_;
     BlendColorState blendColor_, blendColorApplied_;
     DepthState depth_, depthApplied_;
-    DepthRangeState depthRange_, depthRangeApplied_;
+    DepthRangeState depthRange_[kMaxViewports] = {};
+    DepthRangeState depthRangeApplied_[kMaxViewports] = {};
     StencilFaceState stencilFront_, stencilBack_;
     StencilFaceState stencilFrontApplied_, stencilBackApplied_;
     RasterState raster_, rasterApplied_;
