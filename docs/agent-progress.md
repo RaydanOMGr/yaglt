@@ -3,6 +3,23 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — indexed viewport & scissor, this session)
+- Added indexed viewport/scissor (SPEC §10.3.1): `glViewportIndexedf`,
+  `glViewportIndexedfv`, `glScissorIndexed`, `glScissorIndexedv`. Refactored
+  `GLStateTracker` viewport/scissor from single slots to 16-slot arrays
+  (`kMaxViewports = 16`); the single `glViewport`/`glScissor` set slot 0 and the
+  push path forwards slot 0 via the existing `setViewport`/`setScissor` sink
+  (GLES 3.0-safe) and slots ≥1 via new `setViewportIndexed`/`setScissorIndexed`
+  sink methods. The GLES loader now resolves `glViewportIndexedf`/`glScissorIndexed`
+  (GLES 3.1) and the backend forwards them when present. `Context::setViewportIndexed`
+  / `setScissorIndexed` validate `width`/`height` < 0 → `GL_INVALID_VALUE` and
+  `index` ≥ 16 → `GL_INVALID_VALUE`. `getIntegeri_v`/`getFloati_v`/`getDoublei_v`
+  now answer `GL_VIEWPORT`/`GL_SCISSOR_BOX` per index. Mock backend records
+  indexed calls. New `tests/unit/viewport_indexed_test.cpp` (12 cases). Default
+  **601/601** and sanitizer (ASan) **601/601** green. Coverage bumped in
+  `docs/coverage-core.md` (349 `gl_api` entry points, 345/571 ≈ 60.4% declared;
+  ~66.9% core).
+
 ## Recent Work (2026-08-29 — clip control, this session)
 - Added `glClipControl` (SPEC §12.1): sets the clip-volume origin
   (`GL_LOWER_LEFT` / `GL_UPPER_LEFT`) and depth mode (`GL_NEGATIVE_ONE_TO_ONE` /

@@ -458,6 +458,19 @@ void GLESBackend::setScissor(int32_t x, int32_t y, int32_t w, int32_t h) {
     if (lib_->glScissor) lib_->glScissor(x, y, w, h);
 }
 
+void GLESBackend::setViewportIndexed(uint32_t index, int32_t x, int32_t y,
+                                     int32_t w, int32_t h) {
+    if (lib_->glViewportIndexedf)
+        lib_->glViewportIndexedf(index, static_cast<GLfloat>(x),
+                                 static_cast<GLfloat>(y), static_cast<GLfloat>(w),
+                                 static_cast<GLfloat>(h));
+}
+
+void GLESBackend::setScissorIndexed(uint32_t index, int32_t x, int32_t y,
+                                    int32_t w, int32_t h) {
+    if (lib_->glScissorIndexed) lib_->glScissorIndexed(index, x, y, w, h);
+}
+
 void GLESBackend::clearColor(float r, float g, float b, float a) {
     if (lib_->glClearColor) lib_->glClearColor(r, g, b, a);
 }

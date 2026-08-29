@@ -671,6 +671,10 @@ void glPixelStorei(GLenum pname, GLint param);
 // context's GLStateTracker and pushed to the backend on the next flush (SPEC §10).
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
 void glScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w, GLfloat h);
+void glViewportIndexedfv(GLuint index, const GLfloat* v);
+void glScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width, GLsizei height);
+void glScissorIndexedv(GLuint index, const GLint* v);
 
 // Clear values + clear (SPEC §2.1). glClearColor/glClearDepth record the
 // per-context clear values; glClear flushes tracked state then clears the bound

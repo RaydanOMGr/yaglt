@@ -1995,6 +1995,40 @@ void glScissor(GLint x, GLint y, GLsizei width, GLsizei height) {
     g_current->setScissor(x, y, width, height);
 }
 
+void glViewportIndexedf(GLuint index, GLfloat x, GLfloat y, GLfloat w,
+                        GLfloat h) {
+    if (g_current == nullptr) return;
+    g_current->setViewportIndexed(index, static_cast<GLint>(x),
+                                  static_cast<GLint>(y), static_cast<GLsizei>(w),
+                                  static_cast<GLsizei>(h));
+}
+
+void glViewportIndexedfv(GLuint index, const GLfloat* v) {
+    if (g_current == nullptr) return;
+    if (v == nullptr) {
+        g_current->setError(glcompat::GLError::InvalidValue);
+        return;
+    }
+    g_current->setViewportIndexed(
+        index, static_cast<GLint>(v[0]), static_cast<GLint>(v[1]),
+        static_cast<GLsizei>(v[2]), static_cast<GLsizei>(v[3]));
+}
+
+void glScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                      GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->setScissorIndexed(index, x, y, width, height);
+}
+
+void glScissorIndexedv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    if (v == nullptr) {
+        g_current->setError(glcompat::GLError::InvalidValue);
+        return;
+    }
+    g_current->setScissorIndexed(index, v[0], v[1], v[2], v[3]);
+}
+
 void glFlushState() {
     if (g_current == nullptr) return;
     g_current->flushState();

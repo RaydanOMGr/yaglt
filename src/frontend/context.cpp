@@ -5333,6 +5333,26 @@ void Context::getIntegeri_v(uint32_t pname, uint32_t index, int32_t* params) {
         params[0] = slot ? static_cast<int32_t>(slot->buffer) : 0;
         return;
     }
+    if (pname == GL_VIEWPORT || pname == GL_SCISSOR_BOX) {
+        if (index >= GLStateTracker::kMaxViewports) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (pname == GL_VIEWPORT) {
+            const auto& v = state_.viewport(index);
+            params[0] = v.x;
+            params[1] = v.y;
+            params[2] = v.width;
+            params[3] = v.height;
+        } else {
+            const auto& v = state_.scissor(index);
+            params[0] = v.x;
+            params[1] = v.y;
+            params[2] = v.width;
+            params[3] = v.height;
+        }
+        return;
+    }
     if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
         setError(GLError::InvalidEnum);
         return;
@@ -5369,6 +5389,26 @@ void Context::getFloati_v(uint32_t pname, uint32_t index, float* params) {
         setError(GLError::InvalidValue);
         return;
     }
+    if (pname == GL_VIEWPORT || pname == GL_SCISSOR_BOX) {
+        if (index >= GLStateTracker::kMaxViewports) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (pname == GL_VIEWPORT) {
+            const auto& v = state_.viewport(index);
+            params[0] = static_cast<float>(v.x);
+            params[1] = static_cast<float>(v.y);
+            params[2] = static_cast<float>(v.width);
+            params[3] = static_cast<float>(v.height);
+        } else {
+            const auto& v = state_.scissor(index);
+            params[0] = static_cast<float>(v.x);
+            params[1] = static_cast<float>(v.y);
+            params[2] = static_cast<float>(v.width);
+            params[3] = static_cast<float>(v.height);
+        }
+        return;
+    }
     if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
         setError(GLError::InvalidEnum);
         return;
@@ -5385,6 +5425,26 @@ void Context::getFloati_v(uint32_t pname, uint32_t index, float* params) {
 void Context::getDoublei_v(uint32_t pname, uint32_t index, double* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
+        return;
+    }
+    if (pname == GL_VIEWPORT || pname == GL_SCISSOR_BOX) {
+        if (index >= GLStateTracker::kMaxViewports) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (pname == GL_VIEWPORT) {
+            const auto& v = state_.viewport(index);
+            params[0] = static_cast<double>(v.x);
+            params[1] = static_cast<double>(v.y);
+            params[2] = static_cast<double>(v.width);
+            params[3] = static_cast<double>(v.height);
+        } else {
+            const auto& v = state_.scissor(index);
+            params[0] = static_cast<double>(v.x);
+            params[1] = static_cast<double>(v.y);
+            params[2] = static_cast<double>(v.width);
+            params[3] = static_cast<double>(v.height);
+        }
         return;
     }
     if (!isIndexableQueryCap(static_cast<GLenum>(pname))) {
@@ -6806,6 +6866,32 @@ void Context::setViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
 
 void Context::setScissor(GLint x, GLint y, GLsizei width, GLsizei height) {
     state_.setScissor(x, y, width, height);
+}
+
+void Context::setViewportIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                                  GLsizei height) {
+    if (width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (index >= GLStateTracker::kMaxViewports) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setViewportIndexed(index, x, y, width, height);
+}
+
+void Context::setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                                 GLsizei height) {
+    if (width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (index >= GLStateTracker::kMaxViewports) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setScissorIndexed(index, x, y, width, height);
 }
 
 void Context::setClearColor(float r, float g, float b, float a) {

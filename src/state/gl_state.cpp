@@ -421,26 +421,38 @@ bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
 }
 
 bool GLStateTracker::setViewport(GLint x, GLint y, GLsizei width,
-                                  GLsizei height) {
-    if (viewport_.x == x && viewport_.y == y && viewport_.width == width &&
-        viewport_.height == height)
+                                   GLsizei height) {
+    return setViewportIndexed(0, x, y, width, height);
+}
+
+bool GLStateTracker::setViewportIndexed(GLuint index, GLint x, GLint y,
+                                         GLsizei width, GLsizei height) {
+    if (index >= kMaxViewports) return false;
+    ViewportState& v = viewport_[index];
+    if (v.x == x && v.y == y && v.width == width && v.height == height)
         return false;
-    viewport_.x = x;
-    viewport_.y = y;
-    viewport_.width = width;
-    viewport_.height = height;
+    v.x = x;
+    v.y = y;
+    v.width = width;
+    v.height = height;
     return true;
 }
 
 bool GLStateTracker::setScissor(GLint x, GLint y, GLsizei width,
                                  GLsizei height) {
-    if (scissor_.x == x && scissor_.y == y && scissor_.width == width &&
-        scissor_.height == height)
+    return setScissorIndexed(0, x, y, width, height);
+}
+
+bool GLStateTracker::setScissorIndexed(GLuint index, GLint x, GLint y,
+                                        GLsizei width, GLsizei height) {
+    if (index >= kMaxViewports) return false;
+    ScissorBoxState& s = scissor_[index];
+    if (s.x == x && s.y == y && s.width == width && s.height == height)
         return false;
-    scissor_.x = x;
-    scissor_.y = y;
-    scissor_.width = width;
-    scissor_.height = height;
+    s.x = x;
+    s.y = y;
+    s.width = width;
+    s.height = height;
     return true;
 }
 
@@ -775,18 +787,27 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
-    if (!viewport_.equal(viewportApplied_)) {
-        sink.setViewport(viewport_.x, viewport_.y, viewport_.width,
-                         viewport_.height);
-        viewportApplied_ = viewport_;
-        ++applied;
-    }
-
-    if (!scissor_.equal(scissorApplied_)) {
-        sink.setScissor(scissor_.x, scissor_.y, scissor_.width,
-                        scissor_.height);
-        scissorApplied_ = scissor_;
-        ++applied;
+    for (uint32_t i = 0; i < kMaxViewports; ++i) {
+        if (!viewport_[i].equal(viewportApplied_[i])) {
+            if (i == 0)
+                sink.setViewport(viewport_[i].x, viewport_[i].y,
+                                 viewport_[i].width, viewport_[i].height);
+            else
+                sink.setViewportIndexed(i, viewport_[i].x, viewport_[i].y,
+                                        viewport_[i].width, viewport_[i].height);
+            viewportApplied_[i] = viewport_[i];
+            ++applied;
+        }
+        if (!scissor_[i].equal(scissorApplied_[i])) {
+            if (i == 0)
+                sink.setScissor(scissor_[i].x, scissor_[i].y, scissor_[i].width,
+                                scissor_[i].height);
+            else
+                sink.setScissorIndexed(i, scissor_[i].x, scissor_[i].y,
+                                       scissor_[i].width, scissor_[i].height);
+            scissorApplied_[i] = scissor_[i];
+            ++applied;
+        }
     }
 
     if (!clearColor_.equal(clearColorApplied_)) {
@@ -952,12 +973,12 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = capValue(capsCurrent_, p);
         return 1;
     case 0x0BA2: // GL_VIEWPORT
-        out[0] = viewport_.x; out[1] = viewport_.y;
-        out[2] = viewport_.width; out[3] = viewport_.height;
+        out[0] = viewport_[0].x; out[1] = viewport_[0].y;
+        out[2] = viewport_[0].width; out[3] = viewport_[0].height;
         return 4;
     case 0x0C10: // GL_SCISSOR_BOX
-        out[0] = scissor_.x; out[1] = scissor_.y;
-        out[2] = scissor_.width; out[3] = scissor_.height;
+        out[0] = scissor_[0].x; out[1] = scissor_[0].y;
+        out[2] = scissor_[0].width; out[3] = scissor_[0].height;
         return 4;
     case 0x80C9: out[0] = static_cast<GLint>(blend_.srcRGB); return 1;   // BLEND_SRC_RGB
     case 0x80CA: out[0] = static_cast<GLint>(blend_.dstRGB); return 1;   // BLEND_DST_RGB
@@ -1084,16 +1105,16 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[2] = blendColor_.b; out[3] = blendColor_.a;
         return 4;
     case 0x0BA2: // GL_VIEWPORT (cast int -> float)
-        out[0] = static_cast<GLfloat>(viewport_.x);
-        out[1] = static_cast<GLfloat>(viewport_.y);
-        out[2] = static_cast<GLfloat>(viewport_.width);
-        out[3] = static_cast<GLfloat>(viewport_.height);
+        out[0] = static_cast<GLfloat>(viewport_[0].x);
+        out[1] = static_cast<GLfloat>(viewport_[0].y);
+        out[2] = static_cast<GLfloat>(viewport_[0].width);
+        out[3] = static_cast<GLfloat>(viewport_[0].height);
         return 4;
     case 0x0C10: // GL_SCISSOR_BOX (cast)
-        out[0] = static_cast<GLfloat>(scissor_.x);
-        out[1] = static_cast<GLfloat>(scissor_.y);
-        out[2] = static_cast<GLfloat>(scissor_.width);
-        out[3] = static_cast<GLfloat>(scissor_.height);
+        out[0] = static_cast<GLfloat>(scissor_[0].x);
+        out[1] = static_cast<GLfloat>(scissor_[0].y);
+        out[2] = static_cast<GLfloat>(scissor_[0].width);
+        out[3] = static_cast<GLfloat>(scissor_[0].height);
         return 4;
     case GL_SAMPLE_COVERAGE_VALUE: // 0x80B9
         out[0] = sampleCoverage_.value; return 1;
@@ -1141,12 +1162,12 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[2] = blendColor_.b; out[3] = blendColor_.a;
         return 4;
     case 0x0BA2:
-        out[0] = viewport_.x; out[1] = viewport_.y;
-        out[2] = viewport_.width; out[3] = viewport_.height;
+        out[0] = viewport_[0].x; out[1] = viewport_[0].y;
+        out[2] = viewport_[0].width; out[3] = viewport_[0].height;
         return 4;
     case 0x0C10:
-        out[0] = scissor_.x; out[1] = scissor_.y;
-        out[2] = scissor_.width; out[3] = scissor_.height;
+        out[0] = scissor_[0].x; out[1] = scissor_[0].y;
+        out[2] = scissor_[0].width; out[3] = scissor_[0].height;
         return 4;
     }
     return 0;
@@ -1197,10 +1218,12 @@ void GLStateTracker::reset() {
     clipApplied_ = ClipControlState{};
     pixel_ = PixelStoreState{};
     pixelApplied_ = PixelStoreState{};
-    viewport_ = ViewportState{};
-    viewportApplied_ = ViewportState{};
-    scissor_ = ScissorBoxState{};
-    scissorApplied_ = ScissorBoxState{};
+    for (uint32_t i = 0; i < kMaxViewports; ++i) {
+        viewport_[i] = ViewportState{};
+        viewportApplied_[i] = ViewportState{};
+        scissor_[i] = ScissorBoxState{};
+        scissorApplied_[i] = ScissorBoxState{};
+    }
     clearColor_ = ClearColorState{};
     clearColorApplied_ = ClearColorState{};
     clearDepth_ = ClearDepthState{};

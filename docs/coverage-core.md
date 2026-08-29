@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-     signal.    A reproducible regen script counts 571 declared families, 345 `gl_api`
-     entry points, and 341 matched families.
+      signal. A reproducible regen script counts 571 declared families, 349 `gl_api`
+      entry points, and 345 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 341 | **~59.7%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 341 | **~66.1%** |
+| Full spec (compat + core) | 571 | 345 | **~60.4%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 345 | **~66.9%** |
 
 > Note: this document was regenerated on 2026-08-29 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-  All 341 matched families are real `gl_api` entry points with frontend semantics
-  and tests (mock path, most also against Mesa GLES). The 337 `gl_api` entry
+  All 345 matched families are real `gl_api` entry points with frontend semantics
+  and tests (mock path, most also against Mesa GLES). The 349 `gl_api` entry
   points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -81,7 +81,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` / `glPointParameteri` / `glPointParameterf` / `glPointParameteriv` / `glPointParameterfv` implemented (tracked scalar state, pushed only on change, GLES3-backed; point parameters are frontend-owned and recorded by GLES, SPEC §10.2). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words), `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query), and `glProvokingVertex` (SPEC §11: `GL_FIRST_VERTEX_CONVENTION` / `GL_LAST_VERTEX_CONVENTION` tracked, pushed on change, `GL_PROVOKING_VERTEX` query; invalid mode → `GL_INVALID_ENUM`; GLES records without a native call). |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct). **`glClipControl`** (SPEC §12.1, core — clip-volume origin `GL_LOWER_LEFT`/`GL_UPPER_LEFT` + depth mode `GL_NEGATIVE_ONE_TO_ONE`/`GL_ZERO_TO_ONE`) *is* implemented as tracked state, pushed to the backend only on change (SPEC §10); GLES records without a native call (honest for the desktop-only clip-volume state). |
 | §13 Transform feedback | 🟡 | object lifecycle (`glGenTransformFeedbacks`/`glCreateTransformFeedbacks`, DSA creation, §13.2.1) + begin/end/pause/resume + capability gate; forwards to backend. **Varying capture setup** (`glTransformFeedbackVaryings`, SPEC §13.3.1): records the captured varying names + `GL_INTERLEAVED_ATTRIBS`/`GL_SEPARATE_ATTRIBS` buffer mode on the program object, applies them to the backend program at the next link, and validates `count < 0` → `GL_INVALID_VALUE`, bad `bufferMode` → `GL_INVALID_ENUM`, call-after-link → `GL_INVALID_OPERATION`. **Varying-capture buffer bindings** (SPEC §13.2.1): `glTransformFeedbackBufferBase`/`glTransformFeedbackBufferRange` record per-binding-point buffer + offset + size on the target TF object (default object when none bound, or a named object via the `xfb` argument), validate out-of-range index → `GL_INVALID_VALUE`, ungenerated buffer/object → `GL_INVALID_OPERATION`, and push the `GL_TRANSFORM_FEEDBACK_BUFFER` base/range binding to the backend. `glBindBufferBase`/`glBindBufferRange` with `GL_TRANSFORM_FEEDBACK_BUFFER` route into the *active* TF object's bindings. The indexed query `glGetIntegeri_v`/`glGetInteger64i_v(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, index)` returns the active object's binding. `glGetProgramiv` answers `GL_TRANSFORM_FEEDBACK_BUFFER_MODE` and `GL_TRANSFORM_FEEDBACK_VARYINGS`. TF counter queries (`GL_PRIMITIVES_GENERATED` / `GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN`) are accepted by `glBeginQuery`/`glEndQuery` and restricted to `glBeginQueryIndexed`/`glEndQueryIndexed` (SPEC §4/§13). |
-| §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test, `glSampleCoverage`, `glMinSampleShading`, `glPolygonOffset` (all tracked, push-only-on-change) |
+| §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), `glViewportIndexedf`/`glViewportIndexedfv`/`glScissorIndexed`/`glScissorIndexedv` (SPEC §10.3.1, indexed viewport/scissor slots, tracked, pushed only on change), scissor test, `glSampleCoverage`, `glMinSampleShading`, `glPolygonOffset` (all tracked, push-only-on-change) |
 | §15/§16 (per-fragment ops / whole framebuffer) | 🟡 | `glClear`(+values), `glReadPixels`, color/depth clear, `glDrawBuffers`/`glReadBuffer` (tracked state, pushed on flush), `glBlitFramebuffer`+`glBlitNamedFramebuffer` (mask validated → `GL_INVALID_VALUE`, forwards after state flush/bind), `glInvalidateFramebuffer`/`glInvalidateSubFramebuffer`+`glInvalidateNamedFramebuffer*` (null-attachments / negative-dim `GL_INVALID_VALUE`, sub-rectangle form routed to backend), `glClearNamedFramebufferiv/uiv/fv/fi` (explicit clear values, DSA: no binding side effect) and the classic `glClearBufferiv`/`glClearBufferuiv`/`glClearBufferfv`/`glClearBufferfi` (clear a single buffer of the bound draw framebuffer; per-type clear value pushed via the state sink; `drawbuffer` selects the color attachment, depth/stencil clears apply to the single depth/stencil attachment — SPEC §9.3.1). `glClampColor` implemented (SPEC §15.2.3). `GL_FRAMEBUFFER_SRGB` (SPEC §15.1.1) and `GL_SAMPLE_ALPHA_TO_COVERAGE` (SPEC §15.3.1) implemented as tracked capabilities (off by default, push-only-on-change). |
 | §17 (fragment op details — alpha test, dither, logical op) | 🟡 | `glLogicOp` implemented (SPEC §17.3.4, capability-gated, push-only-on-change); `glColorMask` implemented (SPEC §17.3.6, tracked, push-only-on-change, `GL_COLOR_WRITEMASK` query); `glSampleCoverage` implemented (SPEC §17.3.6 multisample, tracked value+invert, push-only-on-change, `GL_SAMPLE_COVERAGE_VALUE`/`GL_SAMPLE_COVERAGE_INVERT` queries); `glEnable/glDisable(GL_DITHER)` implemented (SPEC §17.3.7, tracked capability, enabled by default, push-only-on-change, `GL_DITHER` query). `glStencilFuncSeparate`/`glStencilOpSeparate`/`glStencilMaskSeparate` (SPEC §17.3.3) track per-face state and push per-face only when a face differs, else a single combined push (SPEC §10); invalid face → `GL_INVALID_ENUM`. Alpha test removed-in-core |
 | §18 (pixels: ReadPixels done; Copy/DrawPixels removed-compat) | 🟡 | `glReadPixels` implemented; `glPixelStorei` implemented |
@@ -93,7 +93,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 
 ## The implemented frontend surface (gl_api entry points)
 
-    345 `gl*` entry points; 341 map to a spec command family (see Method). Listed
+    349 `gl*` entry points; 345 map to a spec command family (see Method). Listed
   alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
@@ -102,7 +102,7 @@ glBindFramebuffer, glBindProgramPipeline, glBindRenderbuffer, glBindSampler, glB
 glBindTextures, glBindTransformFeedback, glBindVertexArray, glBlendColor, glBlendEquation,
 glBlendEquationSeparate, glBlendFunc, glBlendFuncSeparate, glBlitFramebuffer, glBlitNamedFramebuffer,
 glBufferData, glBufferStorage, glBufferSubData, glClampColor, glClear, glClearBufferData, glClearBufferSubData,
-glClearBufferfi, glClearBufferfv, glClearBufferiv, glClearBufferuiv, glClearColor, glClearDepth, glClearDepthf, glClearNamedBufferData, glClearNamedBufferSubData, glClipControl,
+glClearBufferfi, glClearBufferfv, glClearBufferiv, glClearBufferuiv, glClearColor, glClearDepth, glClearDepthf, glClearNamedBufferData, glClearNamedBufferSubData, glClipControl, glViewportIndexedf, glViewportIndexedfv, glScissorIndexed, glScissorIndexedv,
 glClearNamedFramebufferfi, glClearNamedFramebufferfv, glClearNamedFramebufferiv, glClearNamedFramebufferuiv,
 glColorMask, glCompileShader, glCopyBufferSubData, glCopyTexImage1D, glCopyTexImage2D, glCreateFramebuffers, glCreateBuffers, glCreateProgramPipelines, glCreateQueries,
 glCreateRenderbuffers, glCreateSamplers, glCreateTextures, glCreateTransformFeedbacks, glCreateVertexArrays, glCullFace, glDeleteBuffers,
@@ -199,8 +199,8 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-  By the regenerated proxy (2026-08-29): **59.7% of the spec's declared command
-  prototypes** (341/571) and **~66.1% of the core profile** have a frontend entry
+  By the regenerated proxy (2026-08-29): **60.4% of the spec's declared command
+  prototypes** (345/571) and **~66.9% of the core profile** have a frontend entry
   point; true entry-point coverage against the real ~700-entry GL core API is
   roughly **48%**. This is materially more than the 2026-08-26 snapshot (then
   ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a

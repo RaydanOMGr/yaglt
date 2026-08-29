@@ -100,6 +100,10 @@ public:
     void pixelStorei(uint32_t pname, int32_t param) override;
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override;
     void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override;
+    void setViewportIndexed(uint32_t index, int32_t x, int32_t y, int32_t w,
+                            int32_t h) override;
+    void setScissorIndexed(uint32_t index, int32_t x, int32_t y, int32_t w,
+                           int32_t h) override;
     void clearColor(float r, float g, float b, float a) override;
     void clearDepth(double d) override;
     void drawBuffers(int32_t n, const uint32_t* bufs) override;

@@ -505,6 +505,14 @@ public:
     void setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
     void setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
 
+    // Indexed viewport/scissor (SPEC §10.3.1). `index` selects the
+    // viewport/scissor slot. `width`/`height` < 0 → GL_INVALID_VALUE; `index`
+    // >= MAX_VIEWPORTS (16) → GL_INVALID_VALUE.
+    void setViewportIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                            GLsizei height);
+    void setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                           GLsizei height);
+
     // --- Clear values + clear (SPEC §2.1) ---
     // glClearColor / glClearDepth record the per-context clear values in the
     // tracker and are pushed to the backend on the next state flush. glClear

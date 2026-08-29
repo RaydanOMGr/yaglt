@@ -117,6 +117,13 @@ public:
     virtual void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
     virtual void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) = 0;
 
+    // Indexed viewport/scissor (glViewportIndexedf/fv, glScissorIndexed/v,
+    // SPEC §10.3.1). `index` selects the viewport/scissor slot.
+    virtual void setViewportIndexed(uint32_t index, int32_t x, int32_t y,
+                                    int32_t w, int32_t h) = 0;
+    virtual void setScissorIndexed(uint32_t index, int32_t x, int32_t y,
+                                   int32_t w, int32_t h) = 0;
+
     // Clear values (glClearColor / glClearDepth, SPEC §2.1). These are GL state
     // pushed to the backend before a clear command so the driver clears with the
     // correct color/depth. Pushed only when the value changed (SPEC §10).

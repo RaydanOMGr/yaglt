@@ -181,6 +181,14 @@ public:
     int scissorCalls = 0;
     int32_t lastScissorX = 0, lastScissorY = 0;
     int32_t lastScissorW = 0, lastScissorH = 0;
+    int viewportIndexedCalls = 0;
+    uint32_t lastViewportIndexed = 0;
+    int32_t lastViewportIndexedX = 0, lastViewportIndexedY = 0;
+    int32_t lastViewportIndexedW = 0, lastViewportIndexedH = 0;
+    int scissorIndexedCalls = 0;
+    uint32_t lastScissorIndexed = 0;
+    int32_t lastScissorIndexedX = 0, lastScissorIndexedY = 0;
+    int32_t lastScissorIndexedW = 0, lastScissorIndexedH = 0;
 
     int clearColorCalls = 0;
     float lastClearR = 0.0f, lastClearG = 0.0f, lastClearB = 0.0f,
@@ -361,12 +369,30 @@ public:
         lastViewportW = w;
         lastViewportH = h;
     }
+    void setViewportIndexed(uint32_t index, int32_t x, int32_t y, int32_t w,
+                            int32_t h) override {
+        ++viewportIndexedCalls;
+        lastViewportIndexed = index;
+        lastViewportIndexedX = x;
+        lastViewportIndexedY = y;
+        lastViewportIndexedW = w;
+        lastViewportIndexedH = h;
+    }
     void setScissor(int32_t x, int32_t y, int32_t w, int32_t h) override {
         ++scissorCalls;
         lastScissorX = x;
         lastScissorY = y;
         lastScissorW = w;
         lastScissorH = h;
+    }
+    void setScissorIndexed(uint32_t index, int32_t x, int32_t y, int32_t w,
+                           int32_t h) override {
+        ++scissorIndexedCalls;
+        lastScissorIndexed = index;
+        lastScissorIndexedX = x;
+        lastScissorIndexedY = y;
+        lastScissorIndexedW = w;
+        lastScissorIndexedH = h;
     }
     void clearColor(float r, float g, float b, float a) override {
         ++clearColorCalls;

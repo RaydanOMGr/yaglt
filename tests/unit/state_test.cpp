@@ -63,6 +63,8 @@ struct RecordingSink : GLStateSink {
     void pixelStorei(GLenum, GLint) override { ++pixelCalls; }
     void setViewport(int32_t, int32_t, int32_t, int32_t) override {}
     void setScissor(int32_t, int32_t, int32_t, int32_t) override {}
+    void setViewportIndexed(uint32_t, int32_t, int32_t, int32_t, int32_t) override {}
+    void setScissorIndexed(uint32_t, int32_t, int32_t, int32_t, int32_t) override {}
     void clearColor(float, float, float, float) override {}
     void clearDepth(double) override {}
     void bindBufferBase(uint32_t, uint32_t, uint32_t) override {}

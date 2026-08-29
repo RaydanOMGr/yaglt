@@ -152,11 +152,45 @@ public:
     // --- Pixel store ---
     bool setPixelStorei(GLenum pname, GLint param);
 
-    // --- Viewport (glViewport) ---
+    // --- Viewport (glViewport, SPEC §10) ---
+    // Index 0 is the default viewport set by glViewport; indexed variants
+    // (glViewportIndexedf/fv, SPEC §10.3.1) set arbitrary viewports.
+    struct ViewportState {
+        GLint x = 0;
+        GLint y = 0;
+        GLsizei width = 0;
+        GLsizei height = 0;
+        bool equal(const ViewportState& o) const {
+            return x == o.x && y == o.y && width == o.width &&
+                   height == o.height;
+        }
+    };
+    struct ScissorBoxState {
+        GLint x = 0;
+        GLint y = 0;
+        GLsizei width = 0;
+        GLsizei height = 0;
+        bool equal(const ScissorBoxState& o) const {
+            return x == o.x && y == o.y && width == o.width &&
+                   height == o.height;
+        }
+    };
+    static constexpr uint32_t kMaxViewports = 16;
     bool setViewport(GLint x, GLint y, GLsizei width, GLsizei height);
+    bool setViewportIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                            GLsizei height);
 
     // --- Scissor box (glScissor); the scissor test is GL_SCISSOR_TEST cap ---
     bool setScissor(GLint x, GLint y, GLsizei width, GLsizei height);
+    bool setScissorIndexed(GLuint index, GLint x, GLint y, GLsizei width,
+                          GLsizei height);
+
+    const ViewportState& viewport(uint32_t index) const {
+        return viewport_[index < kMaxViewports ? index : 0];
+    }
+    const ScissorBoxState& scissor(uint32_t index) const {
+        return scissor_[index < kMaxViewports ? index : 0];
+    }
 
     // --- Clear values (glClearColor / glClearDepth, SPEC §2.1) ---
     bool setClearColor(float r, float g, float b, float a);
@@ -336,26 +370,6 @@ private:
             return unpackAlignment == o.unpackAlignment;
         }
     };
-    struct ViewportState {
-        GLint x = 0;
-        GLint y = 0;
-        GLsizei width = 0;
-        GLsizei height = 0;
-        bool equal(const ViewportState& o) const {
-            return x == o.x && y == o.y && width == o.width &&
-                   height == o.height;
-        }
-    };
-    struct ScissorBoxState {
-        GLint x = 0;
-        GLint y = 0;
-        GLsizei width = 0;
-        GLsizei height = 0;
-        bool equal(const ScissorBoxState& o) const {
-            return x == o.x && y == o.y && width == o.width &&
-                   height == o.height;
-        }
-    };
     struct ClearColorState {
         float r = 0.0f;
         float g = 0.0f;
@@ -482,8 +496,10 @@ private:
     };
     ClipControlState clip_, clipApplied_;
     PixelStoreState pixel_, pixelApplied_;
-    ViewportState viewport_, viewportApplied_;
-    ScissorBoxState scissor_, scissorApplied_;
+    ViewportState viewport_[kMaxViewports] = {};
+    ViewportState viewportApplied_[kMaxViewports] = {};
+    ScissorBoxState scissor_[kMaxViewports] = {};
+    ScissorBoxState scissorApplied_[kMaxViewports] = {};
     ClearColorState clearColor_, clearColorApplied_;
     ClearDepthState clearDepth_, clearDepthApplied_;
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
