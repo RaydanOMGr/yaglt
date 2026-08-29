@@ -100,11 +100,19 @@ void glInvalidateNamedBufferData(GLuint buffer);
 void glInvalidateNamedBufferSubData(GLuint buffer, GLintptr offset,
                                    GLsizeiptr length);
 
-// Indexed buffer bindings (SPEC §8). Capability-guarded in the frontend:
-// binding an unsupported target (e.g. SSBO on ES 3.0) yields GL_INVALID_OPERATION.
+// Indexed buffer bindings (SPEC §6.1.1). Capability-guarded in the frontend:
+// a target without indexed binding points yields GL_INVALID_ENUM and binding an
+// unsupported target (e.g. SSBO on ES 3.0) yields GL_INVALID_OPERATION. The
+// multi-bind forms (ARB_multi_bind) bind consecutive points and validate each
+// entry separately; a null `buffers` array resets the range.
 void glBindBufferBase(GLenum target, GLuint index, GLuint buffer);
 void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
                        GLintptr offset, GLsizeiptr size);
+void glBindBuffersBase(GLenum target, GLuint first, GLsizei count,
+                       const GLuint* buffers);
+void glBindBuffersRange(GLenum target, GLuint first, GLsizei count,
+                        const GLuint* buffers, const GLintptr* offsets,
+                        const GLsizeiptr* sizes);
 
 void glGenTextures(GLsizei n, GLuint* textures);
 void glBindTexture(GLenum target, GLuint texture);

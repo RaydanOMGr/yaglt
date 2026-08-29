@@ -222,6 +222,19 @@ void glBindBufferRange(GLenum target, GLuint index, GLuint buffer,
     g_current->bindBufferRange(target, index, buffer, offset, size);
 }
 
+void glBindBuffersBase(GLenum target, GLuint first, GLsizei count,
+                       const GLuint* buffers) {
+    if (g_current == nullptr) return;
+    g_current->bindBuffersBase(target, first, count, buffers);
+}
+
+void glBindBuffersRange(GLenum target, GLuint first, GLsizei count,
+                        const GLuint* buffers, const GLintptr* offsets,
+                        const GLsizeiptr* sizes) {
+    if (g_current == nullptr) return;
+    g_current->bindBuffersRange(target, first, count, buffers, offsets, sizes);
+}
+
 void glGenTextures(GLsizei n, GLuint* textures) {
     if (g_current == nullptr) return;
     g_current->genTextures(static_cast<uint32_t>(n), textures);

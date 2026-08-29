@@ -47,6 +47,7 @@ add_executable(yaglt_tests
     unit/transform_feedback_test.cpp
     unit/sampler_test.cpp
     unit/bind_samplers_test.cpp
+    unit/bind_buffers_multi_test.cpp
     unit/query_sync_test.cpp
     unit/buffer_completeness_test.cpp
     unit/buffer_parameter_i64_test.cpp

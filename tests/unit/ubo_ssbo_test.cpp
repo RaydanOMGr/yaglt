@@ -52,10 +52,14 @@ TEST_CASE("ubo_ssbo_bind_buffer_base_is_capability_guarded") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
 
-    // An unsupported / unknown indexed target must be reported honestly and
-    // must NOT reach the driver (no native call).
+    // An unknown indexed target must be reported honestly and must NOT reach the
+    // driver. SPEC §6.1.1: "An INVALID_ENUM error is generated if target is not
+    // one of the targets listed above" — a target that simply is not indexable
+    // is an enum error; GL_INVALID_OPERATION is reserved for a legal target the
+    // backend cannot support (covered by
+    // ubo_ssbo_unsupported_target_is_invalid_operation below).
     glBindBufferBase(GL_BOGUS_TARGET, 0, buf);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
     EXPECT_EQ(backend.bindBufferBaseCalls, 0);
 
     // bindBufferRange is guarded the same way and forwards otherwise.
@@ -64,8 +68,33 @@ TEST_CASE("ubo_ssbo_bind_buffer_base_is_capability_guarded") {
     EXPECT_EQ(backend.bindBufferRangeCalls, 1);
 
     glBindBufferRange(GL_BOGUS_TARGET, 0, buf, 0, 16);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
     EXPECT_EQ(backend.bindBufferRangeCalls, 1);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("ubo_ssbo_unsupported_target_is_invalid_operation") {
+    MockBackend backend;
+    // A target that *is* indexable but that the backend cannot provide must be
+    // reported as GL_INVALID_OPERATION (honest capability gap), not as an enum
+    // error, and must not reach the driver (SPEC §6.1.1).
+    backend.setCapability(Feature::ShaderStorageBufferObjects,
+                          FeatureSupport::Unsupported);
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint buf = 0;
+    glGenBuffers(1, &buf);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, buf);
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(backend.bindBufferBaseCalls, 0);
+
+    // GL_ATOMIC_COUNTER_BUFFER is indexable in GL 4.6 but has no capability in
+    // YAGLT yet, so it is reported as unsupported rather than silently ignored.
+    glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, buf);
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(backend.bindBufferBaseCalls, 0);
 
     setCurrentContext(nullptr);
 }

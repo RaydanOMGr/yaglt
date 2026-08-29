@@ -3,6 +3,36 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — multi-bind indexed buffers, this session)
+- Added `glBindBuffersBase` / `glBindBuffersRange` (SPEC §6.1.1 / `ARB_multi_bind`),
+  completing the multi-bind family that already had `glBindTextures` /
+  `glBindSamplers` / `glBindVertexBuffers`. All four indexed-buffer entry points
+  now share one validation/apply trio in `Context`
+  (`checkIndexedBufferTarget` / `checkIndexedBufferBinding` /
+  `applyIndexedBufferBinding`), with `bindBuffersImpl` as the multi-bind body, so
+  the single and multi forms cannot disagree.
+- Sharing the checks closed several spec gaps in the pre-existing single-bind path:
+  - a target that has no indexed binding points is now `GL_INVALID_ENUM` (was
+    `GL_INVALID_OPERATION`), while an *indexable* target the backend cannot provide
+    (SSBO on ES 3.0, `GL_ATOMIC_COUNTER_BUFFER` — no capability for it yet) stays
+    `GL_INVALID_OPERATION` with no native call, which is the honest capability gap;
+  - `index` beyond the 16 tracked binding points now reports `GL_INVALID_VALUE`
+    (previously unvalidated);
+  - `glBindBufferRange` now rejects a negative `offset` and a non-positive `size`
+    with a non-zero buffer (`GL_INVALID_VALUE`, previously unvalidated).
+- Multi-bind semantics follow the spec: negative `count` → `GL_INVALID_VALUE`,
+  `first + count` past the binding-point count → `GL_INVALID_OPERATION`, a null
+  `buffers` array resets the range to unbound (offsets/sizes ignored), and every
+  entry is validated separately so an invalid one leaves only its own binding point
+  unchanged while the valid entries still bind.
+- Tests: new `tests/unit/bind_buffers_multi_test.cpp` (12 cases) plus an added
+  `ubo_ssbo_unsupported_target_is_invalid_operation` case. The existing
+  `ubo_ssbo_bind_buffer_base_is_capability_guarded` expectations for a bogus target
+  were changed from `GL_INVALID_OPERATION` to `GL_INVALID_ENUM` with the SPEC
+  §6.1.1 citation in the test (spec: "An INVALID_ENUM error is generated if target
+  is not one of the targets listed above").
+- Validation: default **642/642** green; sanitizer (ASan/UBSan) build green.
+
 ## Recent Work (2026-08-29 — non-DSA separate attribute format, this session)
 - Implemented the classic (bound-VAO) half of `ARB_vertex_attrib_binding`, which
   was missing while only the DSA spellings existed: `glBindVertexBuffer`,

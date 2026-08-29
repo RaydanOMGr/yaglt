@@ -158,13 +158,28 @@ public:
                                       intptr_t length);
     BufferObject* getBuffer(GLObjectName name);
 
-    // --- Indexed buffer bindings (SPEC §8) ---
-    // Capability-guarded: binding a target the backend does not support
-    // (e.g. SSBO on ES 3.0, UBO on ES 2.0) reports GL_INVALID_OPERATION
-    // honestly instead of issuing an unsupported native call.
+    // --- Indexed buffer bindings (SPEC §6.1.1) ---
+    // Capability-guarded: a target without indexed binding points reports
+    // GL_INVALID_ENUM, and a legal target the backend does not support (e.g.
+    // SSBO on ES 3.0, UBO on ES 2.0) reports GL_INVALID_OPERATION honestly
+    // instead of issuing an unsupported native call. `index` beyond the tracked
+    // binding-point count and (for the range forms) a negative offset or a
+    // non-positive size with a non-zero buffer report GL_INVALID_VALUE.
     void bindBufferBase(uint32_t target, uint32_t index, GLObjectName buffer);
     void bindBufferRange(uint32_t target, uint32_t index, GLObjectName buffer,
                          intptr_t offset, intptr_t size);
+    // Multi-bind forms (`glBindBuffersBase`/`glBindBuffersRange`, SPEC §6.1.1 /
+    // ARB_multi_bind). Bind consecutive binding points [first, first+count).
+    // A null `buffers` array resets the whole range to unbound (offsets/sizes
+    // ignored). Negative `count` reports GL_INVALID_VALUE, `first + count` past
+    // the binding-point count reports GL_INVALID_OPERATION, and each entry is
+    // validated separately so an invalid one leaves only its own binding point
+    // unchanged while the rest still bind.
+    void bindBuffersBase(uint32_t target, uint32_t first, GLsizei count,
+                         const GLObjectName* buffers);
+    void bindBuffersRange(uint32_t target, uint32_t first, GLsizei count,
+                          const GLObjectName* buffers, const intptr_t* offsets,
+                          const intptr_t* sizes);
 
     // --- Textures ---
     GLObjectName genTexture();
@@ -1192,6 +1207,23 @@ private:
     // Object-label support (SPEC §22.2). objectHasType reports whether `name` is a
     // live object in the namespace given by `identifier`.
     bool objectHasType(uint32_t identifier, GLObjectName name) const;
+
+    // Shared validation/apply for the indexed buffer-binding commands
+    // (SPEC §6.1.1). checkIndexedBufferTarget classifies the target (enum vs
+    // honest capability gap), checkIndexedBufferBinding validates one binding
+    // point's parameters, and applyIndexedBufferBinding records the binding and
+    // pushes it to the backend. bindBuffersImpl is the multi-bind body shared by
+    // glBindBuffersBase / glBindBuffersRange.
+    GLError checkIndexedBufferTarget(uint32_t target) const;
+    GLError checkIndexedBufferBinding(uint32_t index, GLObjectName buffer,
+                                      intptr_t offset, intptr_t size,
+                                      bool range) const;
+    void applyIndexedBufferBinding(uint32_t target, uint32_t index,
+                                   GLObjectName buffer, intptr_t offset,
+                                   intptr_t size, bool range);
+    void bindBuffersImpl(uint32_t target, uint32_t first, GLsizei count,
+                         const GLObjectName* buffers, const intptr_t* offsets,
+                         const intptr_t* sizes, bool range);
 
     // Shared bodies for the separate attribute-format commands (SPEC §10.3.2/
     // §10.3.4). The DSA (`glVertexArray*`) and non-DSA (`glBindVertexBuffer* /

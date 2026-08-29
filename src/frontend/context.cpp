@@ -1011,6 +1011,27 @@ Feature bufferTargetFeature(uint32_t target) {
     }
 }
 
+// Targets that have an array of indexed binding points (SPEC §6.1.1). A target
+// outside this set is GL_INVALID_ENUM; one inside it that the backend cannot
+// support is reported as GL_INVALID_OPERATION (honest capability gap) via
+// bufferTargetFeature above.
+bool isIndexedBufferTarget(uint32_t target) {
+    switch (target) {
+    case GL_ATOMIC_COUNTER_BUFFER:
+    case GL_TRANSFORM_FEEDBACK_BUFFER:
+    case GL_UNIFORM_BUFFER:
+    case GL_SHADER_STORAGE_BUFFER:
+        return true;
+    default:
+        return false;
+    }
+}
+
+// Number of indexed binding points the frontend tracks per target (SPEC §6.7.1
+// requires at least 4; GL implementations expose far more). Used to validate
+// `index` / `first + count`.
+constexpr uint32_t kMaxIndexedBufferBindings = 16;
+
 // Sampler-object scalar parameters (SPEC §8.2, table 23.23). These are the
 // pnames accepted by glSamplerParameteri; non-scalar pnames (TEXTURE_BORDER_COLOR,
 // TEXTURE_SWIZZLE_RGBA) are rejected, matching the spec.
@@ -1033,55 +1054,138 @@ bool isValidSamplerParameter(uint32_t pname) {
 }
 } // namespace
 
-void Context::bindBufferBase(uint32_t target, uint32_t index,
-                             GLObjectName buffer) {
-    Feature f = bufferTargetFeature(target);
+GLError Context::checkIndexedBufferTarget(uint32_t target) const {
+    // SPEC §6.1.1: a target without indexed binding points is GL_INVALID_ENUM;
+    // a legal target the backend cannot provide is GL_INVALID_OPERATION.
+    if (!isIndexedBufferTarget(target)) return GLError::InvalidEnum;
+    const Feature f = bufferTargetFeature(target);
     if (f == Feature::FeatureCount ||
         !backend_.capabilities().isSupported(f)) {
-        setError(GLError::InvalidOperation);
-        return;
+        return GLError::InvalidOperation;
     }
-    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
-        setError(GLError::InvalidOperation);
-        return;
+    return GLError::NoError;
+}
+
+GLError Context::checkIndexedBufferBinding(uint32_t index, GLObjectName buffer,
+                                           intptr_t offset, intptr_t size,
+                                           bool range) const {
+    // SPEC §6.1.1 per-binding validation, shared by the single and multi-bind
+    // forms so both agree.
+    if (index >= kMaxIndexedBufferBindings) return GLError::InvalidValue;
+    if (buffer != 0 && buffers_.find(buffer) == buffers_.end())
+        return GLError::InvalidOperation; // ungenerated buffer name
+    if (range) {
+        if (offset < 0) return GLError::InvalidValue;
+        if (buffer != 0 && size <= 0) return GLError::InvalidValue;
     }
+    return GLError::NoError;
+}
+
+void Context::applyIndexedBufferBinding(uint32_t target, uint32_t index,
+                                        GLObjectName buffer, intptr_t offset,
+                                        intptr_t size, bool range) {
     if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
         if (TransformFeedbackObject::TfBufferBinding* slot =
                 activeTransformFeedbackBinding(index)) {
             slot->buffer = buffer;
-            slot->offset = 0;
-            slot->size = 0;
+            slot->offset = range ? offset : 0;
+            slot->size = range ? size : 0;
         }
     }
     if (GLStateSink* sink = backend_.stateSink()) {
-        sink->bindBufferBase(target, index, buffer);
+        if (range) {
+            sink->bindBufferRange(target, index, buffer, offset, size);
+        } else {
+            sink->bindBufferBase(target, index, buffer);
+        }
     }
+}
+
+void Context::bindBufferBase(uint32_t target, uint32_t index,
+                             GLObjectName buffer) {
+    GLError err = checkIndexedBufferTarget(target);
+    if (err == GLError::NoError)
+        err = checkIndexedBufferBinding(index, buffer, 0, 0, false);
+    if (err != GLError::NoError) {
+        setError(err);
+        return;
+    }
+    applyIndexedBufferBinding(target, index, buffer, 0, 0, false);
 }
 
 void Context::bindBufferRange(uint32_t target, uint32_t index,
                               GLObjectName buffer, intptr_t offset,
                               intptr_t size) {
-    Feature f = bufferTargetFeature(target);
-    if (f == Feature::FeatureCount ||
-        !backend_.capabilities().isSupported(f)) {
+    GLError err = checkIndexedBufferTarget(target);
+    if (err == GLError::NoError)
+        err = checkIndexedBufferBinding(index, buffer, offset, size, true);
+    if (err != GLError::NoError) {
+        setError(err);
+        return;
+    }
+    applyIndexedBufferBinding(target, index, buffer, offset, size, true);
+}
+
+void Context::bindBuffersImpl(uint32_t target, uint32_t first, GLsizei count,
+                              const GLObjectName* buffers,
+                              const intptr_t* offsets, const intptr_t* sizes,
+                              bool range) {
+    GLError err = checkIndexedBufferTarget(target);
+    if (err != GLError::NoError) {
+        setError(err);
+        return;
+    }
+    if (count < 0) {
+        setError(GLError::InvalidValue); // SPEC §6.1.1: count negative
+        return;
+    }
+    const uint32_t n = static_cast<uint32_t>(count);
+    if (first > kMaxIndexedBufferBindings ||
+        n > kMaxIndexedBufferBindings - first) {
+        // SPEC §6.1.1: first + count past the indexed binding point count is
+        // GL_INVALID_OPERATION.
         setError(GLError::InvalidOperation);
         return;
     }
-    if (buffer != 0 && buffers_.find(buffer) == buffers_.end()) {
-        setError(GLError::InvalidOperation);
+    // A null `buffers` array resets the whole range to the unbound state,
+    // ignoring offsets/sizes (SPEC §6.1.1).
+    if (buffers == nullptr) {
+        for (uint32_t i = 0; i < n; ++i)
+            applyIndexedBufferBinding(target, first + i, 0, 0, 0, range);
         return;
     }
-    if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
-        if (TransformFeedbackObject::TfBufferBinding* slot =
-                activeTransformFeedbackBinding(index)) {
-            slot->buffer = buffer;
-            slot->offset = offset;
-            slot->size = size;
+    if (range && (offsets == nullptr || sizes == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Values are checked separately per binding point: an invalid entry leaves
+    // that binding point unchanged and reports an error, while the valid entries
+    // are still bound (SPEC §6.1.1).
+    GLError firstError = GLError::NoError;
+    for (uint32_t i = 0; i < n; ++i) {
+        const intptr_t offset = range ? offsets[i] : 0;
+        const intptr_t size = range ? sizes[i] : 0;
+        const GLError e = checkIndexedBufferBinding(first + i, buffers[i],
+                                                    offset, size, range);
+        if (e != GLError::NoError) {
+            if (firstError == GLError::NoError) firstError = e;
+            continue;
         }
+        applyIndexedBufferBinding(target, first + i, buffers[i], offset, size,
+                                  range);
     }
-    if (GLStateSink* sink = backend_.stateSink()) {
-        sink->bindBufferRange(target, index, buffer, offset, size);
-    }
+    if (firstError != GLError::NoError) setError(firstError);
+}
+
+void Context::bindBuffersBase(uint32_t target, uint32_t first, GLsizei count,
+                              const GLObjectName* buffers) {
+    bindBuffersImpl(target, first, count, buffers, nullptr, nullptr, false);
+}
+
+void Context::bindBuffersRange(uint32_t target, uint32_t first, GLsizei count,
+                               const GLObjectName* buffers,
+                               const intptr_t* offsets, const intptr_t* sizes) {
+    bindBuffersImpl(target, first, count, buffers, offsets, sizes, true);
 }
 
 GLObjectName Context::genTexture() {
