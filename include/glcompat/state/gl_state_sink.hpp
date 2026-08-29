@@ -70,6 +70,12 @@ public:
     virtual void lineWidth(float width) = 0;
     virtual void polygonOffset(float factor, float units) = 0;
 
+    // Point parameters (SPEC §10.2, glPointParameter*). Pushed only when any
+    // field changed; backends without point-parameter support (e.g. GLES) record
+    // without a native call, matching the honest capability.
+    virtual void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
+                                 GLenum spriteCoordOrigin) = 0;
+
     // Polygon render mode (glPolygonMode, SPEC §11.1). `front`/`back` are the
     // GL_POINT/GL_LINE/GL_FILL modes pushed for the respective sides. Backends
     // without polygon-mode support (e.g. GLES) record but do not apply it.

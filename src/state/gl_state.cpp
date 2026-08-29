@@ -317,6 +317,46 @@ bool GLStateTracker::setPolygonOffset(float factor, float units) {
     return true;
 }
 
+bool GLStateTracker::setPointParameteri(GLenum pname, GLint param) {
+    switch (pname) {
+        case GL_POINT_SIZE_MIN:
+            pointParam_.sizeMin = static_cast<float>(param); break;
+        case GL_POINT_SIZE_MAX:
+            pointParam_.sizeMax = static_cast<float>(param); break;
+        case GL_POINT_FADE_THRESHOLD_SIZE:
+            pointParam_.fadeThreshold = static_cast<float>(param); break;
+        case GL_POINT_SPRITE_COORD_ORIGIN:
+            pointParam_.spriteCoordOrigin = static_cast<GLenum>(param); break;
+        default: return false;
+    }
+    return true;
+}
+
+bool GLStateTracker::setPointParameterf(GLenum pname, GLfloat param) {
+    switch (pname) {
+        case GL_POINT_SIZE_MIN:
+            pointParam_.sizeMin = param; break;
+        case GL_POINT_SIZE_MAX:
+            pointParam_.sizeMax = param; break;
+        case GL_POINT_FADE_THRESHOLD_SIZE:
+            pointParam_.fadeThreshold = param; break;
+        case GL_POINT_SPRITE_COORD_ORIGIN:
+            pointParam_.spriteCoordOrigin = static_cast<GLenum>(static_cast<int>(param)); break;
+        default: return false;
+    }
+    return true;
+}
+
+bool GLStateTracker::setPointParameteriv(GLenum pname, const GLint* params) {
+    if (params == nullptr) return false;
+    return setPointParameteri(pname, params[0]);
+}
+
+bool GLStateTracker::setPointParameterfv(GLenum pname, const GLfloat* params) {
+    if (params == nullptr) return false;
+    return setPointParameterf(pname, params[0]);
+}
+
 bool GLStateTracker::setPolygonMode(GLenum face, GLenum mode) {
     const bool front = (face == 0x0404 /* GL_FRONT */) ||
                        (face == 0x0408 /* GL_FRONT_AND_BACK */);
@@ -708,6 +748,14 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (!pointParam_.equal(pointParamApplied_)) {
+        sink.pointParameters(pointParam_.sizeMin, pointParam_.sizeMax,
+                             pointParam_.fadeThreshold,
+                             pointParam_.spriteCoordOrigin);
+        pointParamApplied_ = pointParam_;
+        ++applied;
+    }
+
     if (!pixel_.equal(pixelApplied_)) {
         sink.pixelStorei(0x0CF5 /* GL_UNPACK_ALIGNMENT */,
                          pixel_.unpackAlignment);
@@ -917,6 +965,14 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
         out[0] = static_cast<GLint>(rasterScalar_.polygonOffsetFactor); return 1;
     case GL_POLYGON_OFFSET_UNITS:
         out[0] = static_cast<GLint>(rasterScalar_.polygonOffsetUnits); return 1;
+    case GL_POINT_SIZE_MIN:
+        out[0] = static_cast<GLint>(pointParam_.sizeMin); return 1;
+    case GL_POINT_SIZE_MAX:
+        out[0] = static_cast<GLint>(pointParam_.sizeMax); return 1;
+    case GL_POINT_FADE_THRESHOLD_SIZE:
+        out[0] = static_cast<GLint>(pointParam_.fadeThreshold); return 1;
+    case GL_POINT_SPRITE_COORD_ORIGIN:
+        out[0] = static_cast<GLint>(pointParam_.spriteCoordOrigin); return 1;
     case GL_CURRENT_PROGRAM: out[0] = static_cast<GLint>(activeProgram_); return 1;
     case GL_ACTIVE_TEXTURE:
         out[0] = static_cast<GLint>(GL_TEXTURE0 + activeTextureUnit_); return 1;
@@ -995,6 +1051,14 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
         out[0] = rasterScalar_.polygonOffsetFactor; return 1;
     case 0x2A00: // GL_POLYGON_OFFSET_UNITS
         out[0] = rasterScalar_.polygonOffsetUnits; return 1;
+    case GL_POINT_SIZE_MIN:
+        out[0] = pointParam_.sizeMin; return 1;
+    case GL_POINT_SIZE_MAX:
+        out[0] = pointParam_.sizeMax; return 1;
+    case GL_POINT_FADE_THRESHOLD_SIZE:
+        out[0] = pointParam_.fadeThreshold; return 1;
+    case GL_POINT_SPRITE_COORD_ORIGIN:
+        out[0] = static_cast<GLfloat>(pointParam_.spriteCoordOrigin); return 1;
     case 0x8005: // GL_BLEND_COLOR
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -1040,6 +1104,14 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[0] = rasterScalar_.polygonOffsetFactor; return 1;
     case 0x2A00: // GL_POLYGON_OFFSET_UNITS
         out[0] = rasterScalar_.polygonOffsetUnits; return 1;
+    case GL_POINT_SIZE_MIN:
+        out[0] = pointParam_.sizeMin; return 1;
+    case GL_POINT_SIZE_MAX:
+        out[0] = pointParam_.sizeMax; return 1;
+    case GL_POINT_FADE_THRESHOLD_SIZE:
+        out[0] = pointParam_.fadeThreshold; return 1;
+    case GL_POINT_SPRITE_COORD_ORIGIN:
+        out[0] = static_cast<GLdouble>(pointParam_.spriteCoordOrigin); return 1;
     case 0x8005:
         out[0] = blendColor_.r; out[1] = blendColor_.g;
         out[2] = blendColor_.b; out[3] = blendColor_.a;
@@ -1095,6 +1167,8 @@ void GLStateTracker::reset() {
     rasterApplied_ = RasterState{};
     rasterScalar_ = RasterScalarState{};
     rasterScalarApplied_ = RasterScalarState{};
+    pointParam_ = PointParamState{};
+    pointParamApplied_ = PointParamState{};
     pixel_ = PixelStoreState{};
     pixelApplied_ = PixelStoreState{};
     viewport_ = ViewportState{};

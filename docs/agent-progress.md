@@ -3,6 +3,24 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — point parameters, this session)
+- Added the point-parameter commands (SPEC §10.2): `glPointParameteri` /
+  `glPointParameterf` / `glPointParameteriv` / `glPointParameterfv`. The four pnames
+  (`GL_POINT_SIZE_MIN` / `GL_POINT_SIZE_MAX` / `GL_POINT_FADE_THRESHOLD_SIZE` /
+  `GL_POINT_SPRITE_COORD_ORIGIN`) are frontend-owned scalar state in `GLStateTracker`
+  (new `PointParamState` + `setPointParameter*` setters + `pointParameters` sink
+  push applied only on change, SPEC §10). `Context` validates: an unknown pname →
+  `GL_INVALID_ENUM`; a negative `POINT_SIZE_MIN`/`MAX`/`FADE_THRESHOLD_SIZE` →
+  `GL_INVALID_VALUE`; a `POINT_SPRITE_COORD_ORIGIN` not `GL_LOWER_LEFT`/`GL_UPPER_LEFT`
+  → `GL_INVALID_ENUM`. `GLStateSink::pointParameters` is now implemented by the mock
+  and GLES backends and the three test sinks (GLES records without a native call,
+  honest for the desktop-only point-sprite state). The values answer
+  `glGetIntegerv`/`glGetFloatv`/`glGetDoublev`. New `tests/unit/point_parameter_test.cpp`
+  (8 cases). Default 573/573 green under sanitizer (ASan clean); the default mock
+  run hits the pre-existing flaky segfault at `getcompressedtexturesubimage_records`
+  (environmental, not from this change). Coverage bumped in `docs/coverage-core.md`
+  (337 `gl_api` entry points, 333/571 ≈ 58.3% declared; ~64.5% core).
+
 ## Recent Work (2026-08-29 — object-type predicates, this session)
 - Added the missing `glIs*` object-type predicates, completing the object-lifecycle
   introspection surface (gen/bind/delete already existed). New `Context::isBuffer` /

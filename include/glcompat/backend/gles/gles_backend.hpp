@@ -82,6 +82,11 @@ public:
     void pointSize(float size) override;
     void lineWidth(float width) override;
     void polygonOffset(float factor, float units) override;
+    // GLES has no point parameters (glPointParameter*); recorded but not
+    // forwarded to the driver (honest "Unsupported"), matching the desktop-only
+    // point-sprite state.
+    void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
+                         GLenum spriteCoordOrigin) override;
     // GLES has no polygon mode / sample mask / min sample shading; recorded but
     // not forwarded to the driver (honest "Unsupported").
     void polygonMode(uint32_t front, uint32_t back) override;

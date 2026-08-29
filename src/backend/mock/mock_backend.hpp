@@ -148,10 +148,15 @@ public:
     int pointSizeCalls = 0;
     int lineWidthCalls = 0;
     int polygonOffsetCalls = 0;
+    int pointParametersCalls = 0;
     float lastPointSize = 1.0f;
     float lastLineWidth = 1.0f;
     float lastPolygonOffsetFactor = 0.0f;
     float lastPolygonOffsetUnits = 0.0f;
+    float lastPointSizeMin = 0.0f;
+    float lastPointSizeMax = 1.0f;
+    float lastPointFadeThreshold = 0.0f;
+    GLenum lastSpriteCoordOrigin = 0x8CA2; // GL_UPPER_LEFT
     int polygonModeCalls = 0;
     uint32_t lastPolygonModeFront = 0x1B02; // GL_FILL
     uint32_t lastPolygonModeBack = 0x1B02;  // GL_FILL
@@ -326,6 +331,14 @@ public:
     void provokingVertex(uint32_t mode) override {
         ++provokingVertexCalls;
         lastProvokingVertexMode = mode;
+    }
+    void pointParameters(float sizeMin, float sizeMax, float fadeThreshold,
+                         GLenum spriteCoordOrigin) override {
+        ++pointParametersCalls;
+        lastPointSizeMin = sizeMin;
+        lastPointSizeMax = sizeMax;
+        lastPointFadeThreshold = fadeThreshold;
+        lastSpriteCoordOrigin = spriteCoordOrigin;
     }
     void clampColor(uint32_t target, uint32_t mode) override {
         ++clampColorCalls;

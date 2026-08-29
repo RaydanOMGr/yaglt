@@ -6857,6 +6857,54 @@ void Context::clampColor(GLenum target, GLenum mode) {
     state_.setClampColor(target, mode);
 }
 
+void Context::pointParameteri(GLenum pname, GLint param) {
+    switch (pname) {
+        case GL_POINT_SIZE_MIN:
+        case GL_POINT_SIZE_MAX:
+        case GL_POINT_FADE_THRESHOLD_SIZE:
+            if (param < 0) { setError(GLError::InvalidValue); return; }
+            break;
+        case GL_POINT_SPRITE_COORD_ORIGIN:
+            if (param != static_cast<GLint>(GL_LOWER_LEFT) &&
+                param != static_cast<GLint>(GL_UPPER_LEFT)) {
+                setError(GLError::InvalidEnum); return;
+            }
+            break;
+        default:
+            setError(GLError::InvalidEnum); return;
+    }
+    state_.setPointParameteri(pname, param);
+}
+
+void Context::pointParameterf(GLenum pname, GLfloat param) {
+    switch (pname) {
+        case GL_POINT_SIZE_MIN:
+        case GL_POINT_SIZE_MAX:
+        case GL_POINT_FADE_THRESHOLD_SIZE:
+            if (param < 0.0f) { setError(GLError::InvalidValue); return; }
+            break;
+        case GL_POINT_SPRITE_COORD_ORIGIN:
+            if (static_cast<GLenum>(static_cast<int>(param)) != GL_LOWER_LEFT &&
+                static_cast<GLenum>(static_cast<int>(param)) != GL_UPPER_LEFT) {
+                setError(GLError::InvalidEnum); return;
+            }
+            break;
+        default:
+            setError(GLError::InvalidEnum); return;
+    }
+    state_.setPointParameterf(pname, param);
+}
+
+void Context::pointParameteriv(GLenum pname, const GLint* params) {
+    if (params == nullptr) return;
+    pointParameteri(pname, params[0]);
+}
+
+void Context::pointParameterfv(GLenum pname, const GLfloat* params) {
+    if (params == nullptr) return;
+    pointParameterf(pname, params[0]);
+}
+
 void Context::blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1,
                              int32_t srcY1, int32_t dstX0, int32_t dstY0,
                              int32_t dstX1, int32_t dstY1, uint32_t mask,

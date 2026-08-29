@@ -536,6 +536,16 @@ public:
     // change (SPEC §10).
     void clampColor(GLenum target, GLenum mode);
 
+    // Point parameters (SPEC §10.2, glPointParameter{i,f,iv,fv}). Validates the
+    // pname (GL_INVALID_ENUM otherwise) and, for the size/fade params, a negative
+    // value (GL_INVALID_VALUE), then records the field in the tracker and pushes
+    // it to the backend on the next state flush (SPEC §10). POINT_SPRITE_COORD_
+    // ORIGIN must be GL_LOWER_LEFT / GL_UPPER_LEFT (else GL_INVALID_ENUM).
+    void pointParameteri(GLenum pname, GLint param);
+    void pointParameterf(GLenum pname, GLfloat param);
+    void pointParameteriv(GLenum pname, const GLint* params);
+    void pointParameterfv(GLenum pname, const GLfloat* params);
+
     // --- Whole-framebuffer copy / invalidate (SPEC §15 / §16) ---
     // glBlitFramebuffer copies a rectangle of the bound read framebuffer into the
     // bound draw framebuffer; an invalid mask (bits outside color/depth/stencil)

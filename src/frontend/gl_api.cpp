@@ -1856,6 +1856,26 @@ void glPolygonOffset(GLfloat factor, GLfloat units) {
                                         static_cast<float>(units));
 }
 
+void glPointParameteri(GLenum pname, GLint param) {
+    if (g_current == nullptr) return;
+    g_current->pointParameteri(pname, param);
+}
+
+void glPointParameterf(GLenum pname, GLfloat param) {
+    if (g_current == nullptr) return;
+    g_current->pointParameterf(pname, param);
+}
+
+void glPointParameteriv(GLenum pname, const GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->pointParameteriv(pname, params);
+}
+
+void glPointParameterfv(GLenum pname, const GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->pointParameterfv(pname, params);
+}
+
 void glPolygonMode(GLenum face, GLenum mode) {
     if (g_current == nullptr) return;
     g_current->polygonMode(face, mode);

@@ -616,6 +616,14 @@ void glPointSize(GLfloat size);
 void glLineWidth(GLfloat width);
 void glPolygonOffset(GLfloat factor, GLfloat units);
 
+// Point parameters (SPEC §10.2, glPointParameter*). pname validation and the
+// non-negative / sprite-origin checks live in Context; the frontend owns the
+// values and pushes them to the backend on the next state flush (SPEC §10).
+void glPointParameteri(GLenum pname, GLint param);
+void glPointParameterf(GLenum pname, GLfloat param);
+void glPointParameteriv(GLenum pname, const GLint* params);
+void glPointParameterfv(GLenum pname, const GLfloat* params);
+
 // Rasterization polygon mode (SPEC §11.1, glPolygonMode). Per-side render mode;
 // unsupported `face`/`mode` report GL_INVALID_ENUM honestly (the tracker rejects
 // them).

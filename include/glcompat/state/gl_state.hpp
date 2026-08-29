@@ -107,6 +107,19 @@ public:
     bool setLineWidth(float width);
     bool setPolygonOffset(float factor, float units);
 
+    // --- Point parameters (SPEC §10.2, glPointParameter{i,f,iv,fv}) ---
+    // The caller validates pname/value (GL_INVALID_ENUM / GL_INVALID_VALUE) and
+    // only invokes the matching setter. Each stores the field and returns true.
+    bool setPointParameteri(GLenum pname, GLint param);
+    bool setPointParameterf(GLenum pname, GLfloat param);
+    bool setPointParameteriv(GLenum pname, const GLint* params);
+    bool setPointParameterfv(GLenum pname, const GLfloat* params);
+    float pointSizeMin() const { return pointParam_.sizeMin; }
+    float pointSizeMax() const { return pointParam_.sizeMax; }
+    float pointFadeThreshold() const { return pointParam_.fadeThreshold; }
+    GLenum pointSpriteCoordOrigin() const { return pointParam_.spriteCoordOrigin; }
+
+
     // --- Rasterization polygon mode (SPEC §11.1, glPolygonMode) ---
     // `face` selects which side(s) the mode applies to (GL_FRONT, GL_BACK,
     // GL_FRONT_AND_BACK); `mode` is GL_POINT / GL_LINE / GL_FILL. Returns true
@@ -287,6 +300,20 @@ private:
                    polygonOffsetUnits == o.polygonOffsetUnits;
         }
     };
+    // Point parameters (SPEC §10.2, glPointParameter*). sizeMin/sizeMax/
+    // fadeThreshold are non-negative floats (GL default 0/1/0); spriteCoordOrigin
+    // is GL_UPPER_LEFT (GL default) or GL_LOWER_LEFT.
+    struct PointParamState {
+        float sizeMin = 0.0f;
+        float sizeMax = 1.0f;
+        float fadeThreshold = 0.0f;
+        GLenum spriteCoordOrigin = 0x8CA2; // GL_UPPER_LEFT (GL default)
+        bool equal(const PointParamState& o) const {
+            return sizeMin == o.sizeMin && sizeMax == o.sizeMax &&
+                   fadeThreshold == o.fadeThreshold &&
+                   spriteCoordOrigin == o.spriteCoordOrigin;
+        }
+    };
     // glPolygonMode (SPEC §11.1). Per-side render mode (GL_POINT/GL_LINE/GL_FILL).
     struct PolygonModeState {
         GLenum front = 0x1B02; // GL_FILL
@@ -435,6 +462,7 @@ private:
     StencilFaceState stencilFrontApplied_, stencilBackApplied_;
     RasterState raster_, rasterApplied_;
     RasterScalarState rasterScalar_, rasterScalarApplied_;
+    PointParamState pointParam_, pointParamApplied_;
     PixelStoreState pixel_, pixelApplied_;
     ViewportState viewport_, viewportApplied_;
     ScissorBoxState scissor_, scissorApplied_;

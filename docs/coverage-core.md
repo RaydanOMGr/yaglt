@@ -33,22 +33,22 @@ set (the real API has ~700+ entry points). Consequently the percentages below
 are an **optimistic proxy**: they measure how many of the spec's *declared
 command prototypes / families* have a frontend entry point, not the true entry-
 point count. The qualitative chapter breakdown (below) is the more reliable
-    signal.    A reproducible regen script counts 571 declared families, 333 `gl_api`
-    entry points, and 329 matched families.
+    signal.    A reproducible regen script counts 571 declared families, 337 `gl_api`
+    entry points, and 333 matched families.
 
 ## Headline numbers
 
 | Universe | Prototypes | With frontend entry point | Coverage |
 |----------|-----------:|--------------------------:|---------:|
-| Full spec (compat + core) | 571 | 329 | **~57.6%** |
-| Core profile only (~571 − ~55 removed commands) | ~516 | 329 | **~63.8%** |
+| Full spec (compat + core) | 571 | 333 | **~58.3%** |
+| Core profile only (~571 − ~55 removed commands) | ~516 | 333 | **~64.5%** |
 
 > Note: this document was regenerated on 2026-08-29 from `gl_api.hpp` vs the
 > spec universe. The per-area table below and `docs/agent-progress.md` are the
 > live sources of truth; the headline proxy is a coarse signal only.
 
-  All 329 matched families are real `gl_api` entry points with frontend semantics
-  and tests (mock path, most also against Mesa GLES). The 333 `gl_api` entry
+  All 333 matched families are real `gl_api` entry points with frontend semantics
+  and tests (mock path, most also against Mesa GLES). The 337 `gl_api` entry
   points include 4 that do not map to a spec *family* in the universe:
 `glFlushState` (internal helper, not a GL command), `glDeleteQuery` (singular of
 the `DeleteQueries` family), and `glInvalidateNamedBufferData`/
@@ -78,7 +78,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 | §8 Textures / samplers | 🟡 | gen/bind/delete, `glActiveTexture`, `glBindTexture` (per-unit), `glTexImage1D/2D/3D` (1D emulated as 2D height=1 on GLES), `glTexSubImage1D/2D/3D`, `glCopyTexImage1D/2D`, `glTexParameteri`/`f`/`fv`/`iv` (scalar + vector pnames), sampler objects (`glCreateSamplers`, §8.2), DSA texture bind (`glBindTextureUnit`/`glBindTextures`), texture-parameter queries (`glGetTexParameteriv`/`fv`), DSA storage (`CreateTextures`/`TextureStorage1D/2D/3D`), DSA sub-image (`TextureSubImage1D/2D/3D`), DSA level queries (`GetTextureLevelParameteriv`/`fv`) and classic target-based level queries (`GetTexLevelParameteriv`/`fv`), `GenerateTextureMipmap`, `GetTextureImage`, `TextureBuffer`/`TextureBufferRange`, integer texture params (`glTexParameterIiv`/`Iuiv` + `glTextureParameterIiv`/`Iuiv`), integer param queries (`glGetTexParameterIiv`/`Iuiv` + `glGetTextureParameterIiv`/`Iuiv`), classic `glGenerateMipmap`, texture invalidation (`glInvalidateTexImage`/`glInvalidateTexSubImage`), and **texture views** (`glTextureView`, SPEC §8.19: validates both objects exist and differ, source has immutable storage, target is valid, and the level range fits; records the view's derived base dimensions/levels and forwards to the backend; capability-gated by `TextureViews`, native on GLES 3.1, unsupported otherwise). Non-DSA `glTexStorage1D/2D/3D` + `glTexBuffer`/`glTexBufferRange` (§8.5/§8.9) and the multisample surface — `glTexStorage2DMultisample`/`glTexStorage3DMultisample`/`glTexImage2DMultisample`/`glTexImage3DMultisample` + DSA `glTextureStorage2DMultisample`/`glTextureStorage3DMultisample` — are now implemented with target/sample/dimension validation. Missing: `GetTexImage` multisample (cube/array/rectangle TexImage targets are supported where the backend allows; rectangle is an honest capability gap). Compressed image readback (`glGetCompressedTexImage` / `glGetCompressedTextureImage`, SPEC §8.11) is now implemented (honest no-op where the backend has no native read). Texture-sub-image readback (`glGetTextureSubImage` / `glGetCompressedTextureSubImage`, SPEC §8.11.4/§8.11.5) is now implemented (DSA; honest no-op where the backend has no native read). |
 | §9 (program/pipeline — folded into §7.4) | ✅ | program pipeline objects implemented (see §7 row); the pipeline stage→program mapping, active program, validation, and queries are frontend-owned and forwarded to the backend via `GLStateSink::bindProgramPipeline` |
 | §10 Vertex spec / draw | 🟡 | VAO gen/bind/delete, `glVertexAttribPointer`, enable/disable attrib, `glDrawArrays`/`glDrawElements` (+ instanced), **primitive restart** (`glPrimitiveRestartIndex` + `GL_PRIMITIVE_RESTART`, SPEC §10.4), **vertex attrib divisor** (`glVertexAttribDivisor`, capability-gated), **multi-draw** (`glMultiDrawArrays`/`glMultiDrawElements`), **`glDrawRangeElements`**, **`glDrawElementsBaseVertex`** (capability-gated, ES 3.2). **DSA vertex arrays** (`glCreateVertexArrays`, `glVertexArrayElementBuffer`, `glEnable/DisableVertexArrayAttrib`, `glVertexArrayVertexBuffer(s)`, `glVertexArrayAttribFormat/IFormat/LFormat`, `glVertexArrayAttribBinding`, `glVertexArrayBindingDivisor`, SPEC §10.3.1, replayed via the unified flush path) and DSA queries `glGetVertexArrayiv` / `glGetVertexArrayIndexediv` / `glGetVertexArrayIndexed64v` (SPEC §10.3.1).    **Generic vertex attribute values** (`glVertexAttrib1f..4f`/`*fv`, `glVertexAttribI4i`/`I4ui`/`I4iv`/`I4uiv`, `glGetVertexAttrib{fv,iv,dv,Iiv,Iuiv,Pointerv}` covering the full §10.4 pname set: CURRENT_VERTEX_ATTRIB plus the array state pnames ENABLED/SIZE/STRIDE/TYPE/NORMALIZED/INTEGER/DIVISOR/BUFFER_BINDING/POINTER) now implemented (SPEC §10.2/§10.4). Indirect draw implemented (SPEC §10). **Conditional rendering** (`glBeginConditionalRender`/`glEndConditionalRender`, SPEC §10.11) implemented: capability-gated by `ConditionalRendering`, validates the predicate query (generated, not active, allowed type) and `mode` (incl. `*_INVERTED` 4.6 variants), and forwards the region to the backend `GLStateSink` immediately. Missing: client array legacy (removed-in-core semantics) |
-| §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` implemented (tracked scalar state, pushed only on change, GLES3-backed). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words), `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query), and `glProvokingVertex` (SPEC §11: `GL_FIRST_VERTEX_CONVENTION` / `GL_LAST_VERTEX_CONVENTION` tracked, pushed on change, `GL_PROVOKING_VERTEX` query; invalid mode → `GL_INVALID_ENUM`; GLES records without a native call). |
+| §11 (rasterization — points/lines/polygons) | ✅ | `glPointSize` / `glLineWidth` / `glPolygonOffset` / `glPointParameteri` / `glPointParameterf` / `glPointParameteriv` / `glPointParameterfv` implemented (tracked scalar state, pushed only on change, GLES3-backed; point parameters are frontend-owned and recorded by GLES, SPEC §10.2). `glPolygonMode` implemented (front/back mode tracked; `GL_FILL` only on GLES — honest no-op backend override), `glSampleMaski` (per-word `GL_SAMPLE_MASK` state, push-only-changed-words), `glMinSampleShading` (multisample raster state, `GL_MIN_SAMPLE_SHADING` query), and `glProvokingVertex` (SPEC §11: `GL_FIRST_VERTEX_CONVENTION` / `GL_LAST_VERTEX_CONVENTION` tracked, pushed on change, `GL_PROVOKING_VERTEX` query; invalid mode → `GL_INVALID_ENUM`; GLES records without a native call). |
 | §12 (fixed-function vertex / matrix / lighting / texgen) | 🚫 | entirely removed-in-core; not implemented (correct) |
 | §13 Transform feedback | 🟡 | object lifecycle (`glGenTransformFeedbacks`/`glCreateTransformFeedbacks`, DSA creation, §13.2.1) + begin/end/pause/resume + capability gate; forwards to backend. **Varying capture setup** (`glTransformFeedbackVaryings`, SPEC §13.3.1): records the captured varying names + `GL_INTERLEAVED_ATTRIBS`/`GL_SEPARATE_ATTRIBS` buffer mode on the program object, applies them to the backend program at the next link, and validates `count < 0` → `GL_INVALID_VALUE`, bad `bufferMode` → `GL_INVALID_ENUM`, call-after-link → `GL_INVALID_OPERATION`. **Varying-capture buffer bindings** (SPEC §13.2.1): `glTransformFeedbackBufferBase`/`glTransformFeedbackBufferRange` record per-binding-point buffer + offset + size on the target TF object (default object when none bound, or a named object via the `xfb` argument), validate out-of-range index → `GL_INVALID_VALUE`, ungenerated buffer/object → `GL_INVALID_OPERATION`, and push the `GL_TRANSFORM_FEEDBACK_BUFFER` base/range binding to the backend. `glBindBufferBase`/`glBindBufferRange` with `GL_TRANSFORM_FEEDBACK_BUFFER` route into the *active* TF object's bindings. The indexed query `glGetIntegeri_v`/`glGetInteger64i_v(GL_TRANSFORM_FEEDBACK_BUFFER_BINDING, index)` returns the active object's binding. `glGetProgramiv` answers `GL_TRANSFORM_FEEDBACK_BUFFER_MODE` and `GL_TRANSFORM_FEEDBACK_VARYINGS`. TF counter queries (`GL_PRIMITIVES_GENERATED` / `GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN`) are accepted by `glBeginQuery`/`glEndQuery` and restricted to `glBeginQueryIndexed`/`glEndQueryIndexed` (SPEC §4/§13). |
 | §14 (rasterization per-fragment — depth/stencil/blend/scissor/viewport) | ✅ | `glDepthFunc/Mask/Range`, `glStencilFunc/Op/Mask`, `glBlendFunc(/Separate)`, `glBlendEquation(/Separate)`, `glBlendColor`, `glViewport`, `glScissor` (box), scissor test, `glSampleCoverage`, `glMinSampleShading`, `glPolygonOffset` (all tracked, push-only-on-change) |
@@ -134,7 +134,7 @@ glInvalidateBufferSubData, glInvalidateFramebuffer, glInvalidateNamedFramebuffer
  glLineWidth, glLinkProgram, glLogicOp, glMemoryBarrier, glMemoryBarrierByRegion, glMinSampleShading, glMultiDrawArrays, glMultiDrawElements,
 glNamedFramebufferParameteri, glNamedFramebufferRenderbuffer, glNamedFramebufferTexture,
 glNamedFramebufferTextureLayer, glNamedRenderbufferStorage, glNamedRenderbufferStorageMultisample,
-glObjectLabel, glObjectPtrLabel, glPauseTransformFeedback, glPixelStorei, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
+glObjectLabel, glObjectPtrLabel, glPauseTransformFeedback, glPixelStorei, glPointParameterf, glPointParameterfv, glPointParameteri, glPointParameteriv, glPointSize, glPolygonMode, glPolygonOffset, glPrimitiveRestartIndex,
  glProvokingVertex, glReadBuffer, glReadPixels, glRenderbufferStorage, glResumeTransformFeedback,
  glTransformFeedbackVaryings, glTransformFeedbackBufferBase, glTransformFeedbackBufferRange, glSampleCoverage, glSampleMaski, glShaderBinary, glShaderSource, glStencilFunc,
 glStencilFuncSeparate, glStencilMask, glStencilMaskSeparate, glStencilOp, glStencilOpSeparate, glTexBuffer,
@@ -199,14 +199,14 @@ framebuffer ops (blit/invalidate/clear), rasterization controls, and a broad set
 of draws (instanced, multi-draw, primitive restart, indirect, base-vertex) — all
 with dispatch, validation, and tests.
 
-  By the regenerated proxy (2026-08-29): **57.6% of the spec's declared command
-  prototypes** (329/571) and **~63.8% of the core profile** have a frontend entry
+  By the regenerated proxy (2026-08-29): **58.3% of the spec's declared command
+  prototypes** (333/571) and **~64.5% of the core profile** have a frontend entry
   point; true entry-point coverage against the real ~700-entry GL core API is
   roughly **48%**. This is materially more than the 2026-08-26 snapshot (then
- ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
- complete 4.6 core implementation**. The largest remaining gaps are the two
- unsupported shader stages (geometry/tessellation), a few texture
- targets, and broader specific `glGet*` coverage.
+  ~241/490 ≈ 49% declared, low-teens percent true), but YAGLT is **still not a
+  complete 4.6 core implementation**. The largest remaining gaps are the two
+  unsupported shader stages (geometry/tessellation), a few texture
+  targets, and broader specific `glGet*` coverage.
 
 Per project policy (`docs/feature-matrix.md`), the **compatibility profile**
 (deprecated fixed-function API) remains intentionally unimplemented and is gated
