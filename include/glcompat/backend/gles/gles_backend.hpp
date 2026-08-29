@@ -218,7 +218,10 @@ public:
     uint32_t getMultisampleSampleCount() override;
     void getMultisamplefv(uint32_t pname, uint32_t index, float* val) override;
 
-private:
+    // Driver-level string query, bypassing the frontend synthetic strings.
+    const char* getBackingGlString(uint32_t name) override;
+
+ private:
     GLESLibPtr lib_;
     LinuxCapabilities platform_;
     CapabilityTable caps_;

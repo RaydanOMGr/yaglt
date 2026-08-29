@@ -37,6 +37,21 @@ const GLubyte* glGetStringi(GLenum name, GLuint index) {
     return g_current->getStringi(name, index);
 }
 
+extern "C" const char* yagltGetBackingGlString(GLenum name) {
+    if (g_current == nullptr) return nullptr;
+    switch (name) {
+    case GL_VENDOR:
+    case GL_RENDERER:
+    case GL_VERSION:
+    case GL_SHADING_LANGUAGE_VERSION:
+        break;
+    default:
+        return nullptr;
+    }
+    return g_current->backend().getBackingGlString(
+        static_cast<uint32_t>(name));
+}
+
 void glGenBuffers(GLsizei n, GLuint* buffers) {
     if (g_current == nullptr) return;
     g_current->genBuffers(static_cast<uint32_t>(n), buffers);

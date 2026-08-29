@@ -65,6 +65,18 @@ public:
         return "MockBackend(" + platform_.describe() + ")";
     }
 
+    // Driver-level string query. The mock has no native driver, so it returns
+    // fixed placeholder strings keyed by the standard GL query names.
+    const char* getBackingGlString(uint32_t name) override {
+        switch (name) {
+        case GL_VENDOR: return "MockVendor";
+        case GL_RENDERER: return "MockRenderer";
+        case GL_VERSION: return "Mock 1.0";
+        case GL_SHADING_LANGUAGE_VERSION: return "Mock GLSL 1.0";
+        default: return nullptr;
+        }
+    }
+
     // --- GLStateSink recording (observable in tests) ---
     int enableCalls = 0;
     int disableCalls = 0;

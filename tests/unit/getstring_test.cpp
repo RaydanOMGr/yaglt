@@ -44,3 +44,32 @@ TEST_CASE("gl_getstring_no_context_returns_null") {
     glcompat::setCurrentContext(nullptr);
     EXPECT_EQ(glGetString(GL_VENDOR), nullptr);
 }
+
+TEST_CASE("yaglt_getbackingglstring_returns_driver_strings") {
+    auto backend = std::make_unique<MockBackend>();
+    backend->initialize();
+    Context ctx(*backend);
+    glcompat::setCurrentContext(&ctx);
+
+    EXPECT_EQ(std::string(yagltGetBackingGlString(GL_VENDOR)), "MockVendor");
+    EXPECT_EQ(std::string(yagltGetBackingGlString(GL_RENDERER)), "MockRenderer");
+    EXPECT_EQ(std::string(yagltGetBackingGlString(GL_VERSION)), "Mock 1.0");
+    EXPECT_EQ(std::string(yagltGetBackingGlString(GL_SHADING_LANGUAGE_VERSION)),
+              "Mock GLSL 1.0");
+    glcompat::setCurrentContext(nullptr);
+}
+
+TEST_CASE("yaglt_getbackingglstring_invalid_name_returns_null") {
+    auto backend = std::make_unique<MockBackend>();
+    backend->initialize();
+    Context ctx(*backend);
+    glcompat::setCurrentContext(&ctx);
+
+    EXPECT_EQ(yagltGetBackingGlString(0xDEAD), nullptr);
+    glcompat::setCurrentContext(nullptr);
+}
+
+TEST_CASE("yaglt_getbackingglstring_no_context_returns_null") {
+    glcompat::setCurrentContext(nullptr);
+    EXPECT_EQ(yagltGetBackingGlString(GL_VENDOR), nullptr);
+}

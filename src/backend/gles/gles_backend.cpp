@@ -157,6 +157,12 @@ void GLESBackend::queryVersion() {
     }
 }
 
+const char* GLESBackend::getBackingGlString(uint32_t name) {
+    if (!lib_ || !lib_->glGetString) return nullptr;
+    const GLubyte* s = lib_->glGetString(static_cast<GLenum>(name));
+    return s ? reinterpret_cast<const char*>(s) : nullptr;
+}
+
 bool GLESBackend::initialize() {
     if (initialized_) return true;
     if (!lib_->load()) return false;

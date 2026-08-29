@@ -152,6 +152,12 @@ public:
                                        int32_t height) = 0;
 
     virtual std::string describe() const = 0;
+
+    // Return a driver-level string (GL_VENDOR, GL_RENDERER, GL_VERSION or
+    // GL_SHADING_LANGUAGE_VERSION) straight from the backing native context,
+    // bypassing any frontend synthetic value. Returns nullptr when the backend
+    // has no native context or the name is unsupported by the driver.
+    virtual const char* getBackingGlString(uint32_t name) = 0;
 };
 
 } // namespace glcompat

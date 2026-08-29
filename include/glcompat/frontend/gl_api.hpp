@@ -31,6 +31,14 @@ const GLubyte* glGetString(GLenum name);
 // other names yield GL_INVALID_ENUM + nullptr.
 const GLubyte* glGetStringi(GLenum name, GLuint index);
 
+// Read one of the standard driver strings (GL_VENDOR, GL_RENDERER, GL_VERSION,
+// GL_SHADING_LANGUAGE_VERSION) directly from the backing native/GLES context,
+// bypassing the frontend's synthetic glGetString values. Returns the driver's
+// null-terminated string, or nullptr when there is no current context, the name
+// is not one of the four above, or the backend has no native context. C linkage
+// for a stable ABI.
+extern "C" const char* yagltGetBackingGlString(GLenum name);
+
 void glGenBuffers(GLsizei n, GLuint* buffers);
 void glCreateBuffers(GLsizei n, GLuint* buffers);
 void glBindBuffer(GLenum target, GLuint buffer);
