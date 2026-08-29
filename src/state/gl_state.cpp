@@ -619,6 +619,23 @@ bool GLStateTracker::clearSamplerBinding(GLObjectName name) {
     return changed;
 }
 
+bool GLStateTracker::setSamplerBindings(uint32_t first, uint32_t count,
+                                        const GLObjectName* names) {
+    if (first > kMaxTextureUnits || first + count > kMaxTextureUnits)
+        return false; // out of range
+    bool changed = false;
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t unit = first + i;
+        GLObjectName name = (names != nullptr) ? names[i] : 0;
+        if (samplerBound_[unit] != name) {
+            samplerBound_[unit] = name;
+            changed = true;
+        }
+    }
+    if (changed) samplerUnitsDirty_ = true;
+    return changed;
+}
+
 int GLStateTracker::apply(GLStateSink& sink) {
     int applied = 0;
 

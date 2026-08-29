@@ -4136,6 +4136,43 @@ void Context::bindSampler(uint32_t unit, GLObjectName sampler) {
     state_.setSamplerBinding(unit, sampler);
 }
 
+void Context::bindSamplers(uint32_t first, GLsizei count,
+                           const GLObjectName* samplers) {
+    if (!backend_.capabilities().isSupported(Feature::SamplerObjects)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (count < 0) {
+        setError(GLError::InvalidValue); // SPEC §8.2: count negative
+        return;
+    }
+    const uint32_t n = static_cast<uint32_t>(count);
+    const uint32_t maxUnits = state_.maxCombinedTextureUnits();
+    if (first > maxUnits || n > maxUnits - first) {
+        // SPEC §8.2: first + count greater than the number of texture image
+        // units is GL_INVALID_OPERATION (not GL_INVALID_VALUE).
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (n == 0) return;
+    // SPEC §8.2: each entry is validated separately. An invalid entry leaves
+    // that unit's binding unchanged and generates GL_INVALID_OPERATION, while
+    // valid entries in the same call are still applied.
+    std::vector<GLObjectName> resolved(n);
+    bool sawInvalid = false;
+    for (uint32_t i = 0; i < n; ++i) {
+        const GLObjectName name = (samplers != nullptr) ? samplers[i] : 0;
+        if (name != 0 && samplers_.find(name) == samplers_.end()) {
+            resolved[i] = state_.boundSamplerForUnit(first + i); // unchanged
+            sawInvalid = true;
+        } else {
+            resolved[i] = name;
+        }
+    }
+    state_.setSamplerBindings(first, n, resolved.data());
+    if (sawInvalid) setError(GLError::InvalidOperation);
+}
+
 GLObjectName Context::boundSampler(uint32_t unit) const {
     return state_.boundSamplerForUnit(unit);
 }

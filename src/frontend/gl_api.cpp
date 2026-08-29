@@ -1283,6 +1283,11 @@ void glBindSampler(GLuint unit, GLuint sampler) {
     g_current->bindSampler(unit, sampler);
 }
 
+void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
+    if (g_current == nullptr) return;
+    g_current->bindSamplers(first, count, samplers);
+}
+
 void glDeleteSampler(GLuint sampler) {
     if (g_current == nullptr) return;
     g_current->deleteSampler(sampler);

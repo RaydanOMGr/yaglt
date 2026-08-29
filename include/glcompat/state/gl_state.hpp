@@ -256,6 +256,16 @@ public:
     GLObjectName boundSamplerForUnit(uint32_t unit) const;
     bool clearSamplerBinding(GLObjectName name);
 
+    // Multi-bind samplers (`glBindSamplers`, SPEC §8.2 / ARB_multi_bind). Binds
+    // an array of samplers to consecutive units [first, first+count). `names`
+    // may be null (treated as all-zero, i.e. unbind every touched unit). Returns
+    // true when any unit's binding changed. Out-of-range bounds return false
+    // (the caller reports the GL error). The caller is responsible for per-unit
+    // name validation and passes the already resolved bindings, so entries it
+    // rejected must repeat the unit's current binding.
+    bool setSamplerBindings(uint32_t first, uint32_t count,
+                            const GLObjectName* names);
+
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
 

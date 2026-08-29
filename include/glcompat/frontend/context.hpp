@@ -739,6 +739,15 @@ public:
     void genSamplers(uint32_t n, GLObjectName* names);
     void createSamplers(uint32_t n, GLObjectName* names);
     void bindSampler(uint32_t unit, GLObjectName sampler);
+    // Multi-bind samplers (`glBindSamplers`, SPEC §8.2 / ARB_multi_bind). Binds
+    // `count` samplers from `samplers` to consecutive units starting at `first`.
+    // A null `samplers` array unbinds every touched unit. Capability-gated by
+    // SamplerObjects; negative `count` reports GL_INVALID_VALUE and
+    // `first + count` beyond MAX_COMBINED_TEXTURE_IMAGE_UNITS reports
+    // GL_INVALID_OPERATION. Entries are validated per unit: an ungenerated
+    // non-zero name leaves that unit unchanged and reports GL_INVALID_OPERATION
+    // while the remaining valid entries are still bound.
+    void bindSamplers(uint32_t first, GLsizei count, const GLObjectName* samplers);
     GLObjectName boundSampler(uint32_t unit) const;
     void deleteSampler(GLObjectName name);
     void deleteSamplers(uint32_t n, const GLObjectName* names);

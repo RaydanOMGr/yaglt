@@ -436,6 +436,7 @@ GLuint glGenSampler();
 void glGenSamplers(GLsizei n, GLuint* samplers);
 void glCreateSamplers(GLsizei n, GLuint* samplers);
 void glBindSampler(GLuint unit, GLuint sampler);
+void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers);
 void glDeleteSampler(GLuint sampler);
 void glDeleteSamplers(GLsizei n, const GLuint* samplers);
 GLboolean glIsSampler(GLuint sampler);

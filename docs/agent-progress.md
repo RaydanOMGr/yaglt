@@ -3,6 +3,27 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — multi-bind samplers, this session)
+- Added `glBindSamplers` (SPEC §8.2 / `ARB_multi_bind`), the multi-bind form of
+  `glBindSampler`. Restores and completes work a crashed session left uncommitted.
+  New `GLStateTracker::setSamplerBindings(first, count, names)` sets a consecutive
+  run of sampler-unit bindings in one pass and marks the sampler category dirty
+  only when a binding actually changed, so the existing `GLStateSink` flush pushes
+  one native `bindSampler` per *changed* unit (SPEC §10).
+  `Context::bindSamplers` follows the spec's error split exactly:
+  `count < 0` → `GL_INVALID_VALUE`; `first + count` greater than
+  `MAX_COMBINED_TEXTURE_IMAGE_UNITS` → `GL_INVALID_OPERATION` (not
+  `GL_INVALID_VALUE`); and entries are validated **per binding** — an ungenerated
+  non-zero name leaves that unit's binding unchanged and reports
+  `GL_INVALID_OPERATION` while the other valid entries in the same call are still
+  bound. A null `samplers` array unbinds every unit in the range. Capability-gated
+  by `Feature::SamplerObjects` (honest `GL_INVALID_OPERATION` when unsupported).
+- New `tests/unit/bind_samplers_test.cpp` (9 cases): consecutive binds, null-array
+  unbind, redundant-rebind suppression, negative count, range overflow,
+  zero-count-at-limit (legal), ungenerated name, partial application with a mixed
+  valid/invalid array, and the public `glBindSamplers` dispatch path.
+- Validation: default **610/610** green; sanitizer (ASan/UBSan) build green.
+
 ## Recent Work (2026-08-29 — indexed viewport & scissor, this session)
 - Added indexed viewport/scissor (SPEC §10.3.1): `glViewportIndexedf`,
   `glViewportIndexedfv`, `glScissorIndexed`, `glScissorIndexedv`. Refactored
