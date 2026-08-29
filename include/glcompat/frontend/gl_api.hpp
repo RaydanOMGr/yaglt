@@ -474,7 +474,14 @@ void glDeleteSampler(GLuint sampler);
 void glDeleteSamplers(GLsizei n, const GLuint* samplers);
 GLboolean glIsSampler(GLuint sampler);
 void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param);
+void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param);
+void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* params);
+void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint* params);
+void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint* params);
 void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint* params);
+void glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat* params);
+void glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint* params);
+void glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint* params);
 
 // --- Shaders / programs (SPEC §8) ---
 // glCreateShader / glCreateProgram return the new object name (0 on failure).

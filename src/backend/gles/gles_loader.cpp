@@ -260,6 +260,10 @@ bool GLESLib::load() {
     resolve(gles, glDeleteSamplers, "glDeleteSamplers");
     resolve(gles, glBindSampler, "glBindSampler");
     resolve(gles, glSamplerParameteri, "glSamplerParameteri");
+    resolve(gles, glSamplerParameterf, "glSamplerParameterf");
+    resolve(gles, glSamplerParameterfv, "glSamplerParameterfv");
+    resolve(gles, glSamplerParameterIiv, "glSamplerParameterIiv");
+    resolve(gles, glSamplerParameterIuiv, "glSamplerParameterIuiv");
     resolve(gles, glIsSampler, "glIsSampler");
 
     // Query objects (ES 3.0+); resolved optionally.

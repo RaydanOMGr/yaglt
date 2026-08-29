@@ -536,6 +536,34 @@ public:
         lastParamPname = pname;
         lastParam = param;
     }
+    int samplerParameterfCalls = 0;
+    float lastParamf = 0.0f;
+    void samplerParameterf(uint32_t pname, float param) override {
+        ++samplerParameterfCalls;
+        lastParamPname = pname;
+        lastParamf = param;
+    }
+    int samplerParameterfvCalls = 0;
+    std::vector<float> lastParamfv;
+    void samplerParameterfv(uint32_t pname, const float* params, int count) override {
+        ++samplerParameterfvCalls;
+        lastParamPname = pname;
+        if (params && count > 0) lastParamfv.assign(params, params + count);
+    }
+    int samplerParameterIivCalls = 0;
+    std::vector<int32_t> lastParamIiv;
+    void samplerParameterIiv(uint32_t pname, const int32_t* params) override {
+        ++samplerParameterIivCalls;
+        lastParamPname = pname;
+        if (params) lastParamIiv.assign(params, params + 1);
+    }
+    int samplerParameterIuivCalls = 0;
+    std::vector<uint32_t> lastParamIuiv;
+    void samplerParameterIuiv(uint32_t pname, const uint32_t* params) override {
+        ++samplerParameterIuivCalls;
+        lastParamPname = pname;
+        if (params) lastParamIuiv.assign(params, params + 1);
+    }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
 };
 class MockTransformFeedback : public BackendTransformFeedback {

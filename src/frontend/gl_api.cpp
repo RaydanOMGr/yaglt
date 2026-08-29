@@ -1375,6 +1375,41 @@ void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint* params) {
     g_current->getSamplerParameteriv(sampler, pname, params);
 }
 
+void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameterf(sampler, pname, param);
+}
+
+void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameterfv(sampler, pname, params, params ? 4 : 0);
+}
+
+void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameterIiv(sampler, pname, params);
+}
+
+void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameterIuiv(sampler, pname, params);
+}
+
+void glGetSamplerParameterfv(GLuint sampler, GLenum pname, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getSamplerParameterfv(sampler, pname, params);
+}
+
+void glGetSamplerParameterIiv(GLuint sampler, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getSamplerParameterIiv(sampler, pname, params);
+}
+
+void glGetSamplerParameterIuiv(GLuint sampler, GLenum pname, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getSamplerParameterIuiv(sampler, pname, params);
+}
+
 // --- Shaders / programs (SPEC §8) ---
 
 GLuint glCreateShader(GLenum stage) {

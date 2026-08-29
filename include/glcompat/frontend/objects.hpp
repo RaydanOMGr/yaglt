@@ -236,7 +236,9 @@ class SamplerObject {
 public:
     explicit SamplerObject(GLObjectName n) : name(n) {}
     GLObjectName name = 0;
-    std::unordered_map<uint32_t, int> params; // pname -> param
+    std::unordered_map<uint32_t, int> params;       // scalar int pname -> param
+    std::unordered_map<uint32_t, float> paramsf;     // scalar float pname -> param
+    std::unordered_map<uint32_t, std::vector<float>> paramsfv; // float vector (BORDER_COLOR)
     std::unique_ptr<BackendSampler> backend;
 };
 

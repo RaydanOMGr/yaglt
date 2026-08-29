@@ -210,6 +210,10 @@ constexpr GLenum GL_CLAMP_TO_EDGE = 0x812F;
 constexpr GLenum GL_CLAMP_TO_BORDER = 0x812D;
 constexpr GLenum GL_MIRROR_CLAMP_TO_EDGE = 0x8743;
 constexpr GLenum GL_TEXTURE_BORDER_COLOR = 0x1003;
+constexpr GLenum GL_TEXTURE_SWIZZLE_R = 0x8E42;
+constexpr GLenum GL_TEXTURE_SWIZZLE_G = 0x8E43;
+constexpr GLenum GL_TEXTURE_SWIZZLE_B = 0x8E44;
+constexpr GLenum GL_TEXTURE_SWIZZLE_A = 0x8E45;
 constexpr GLenum GL_TEXTURE_SWIZZLE_RGBA = 0x8E46;
 constexpr GLenum GL_MIRRORED_REPEAT = 0x8370;
 // Sampler-object LOD / compare parameters (SPEC §8.2).

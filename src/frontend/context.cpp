@@ -1029,9 +1029,9 @@ bool isIndexedBufferTarget(uint32_t target) {
 constexpr uint32_t kMaxIndexedBufferBindings = 16;
 
 // Sampler-object scalar parameters (SPEC §8.2, table 23.23). These are the
-// pnames accepted by glSamplerParameteri; non-scalar pnames (TEXTURE_BORDER_COLOR,
-// TEXTURE_SWIZZLE_RGBA) are rejected, matching the spec.
-bool isValidSamplerParameter(uint32_t pname) {
+// Per-type pname validation for sampler parameters (SPEC §8.2). Samplers accept
+// the same pname set as textures but the valid accessor type differs.
+bool isSamplerIntParam(uint32_t pname) {
     switch (pname) {
     case GL_TEXTURE_WRAP_S:
     case GL_TEXTURE_WRAP_T:
@@ -1040,6 +1040,17 @@ bool isValidSamplerParameter(uint32_t pname) {
     case GL_TEXTURE_MAG_FILTER:
     case GL_TEXTURE_COMPARE_MODE:
     case GL_TEXTURE_COMPARE_FUNC:
+    case GL_TEXTURE_SWIZZLE_R:
+    case GL_TEXTURE_SWIZZLE_G:
+    case GL_TEXTURE_SWIZZLE_B:
+    case GL_TEXTURE_SWIZZLE_A:
+        return true;
+    default:
+        return false;
+    }
+}
+bool isSamplerFloatParam(uint32_t pname) {
+    switch (pname) {
     case GL_TEXTURE_MIN_LOD:
     case GL_TEXTURE_MAX_LOD:
     case GL_TEXTURE_LOD_BIAS:
@@ -1047,6 +1058,9 @@ bool isValidSamplerParameter(uint32_t pname) {
     default:
         return false;
     }
+}
+bool isSamplerFloatVecParam(uint32_t pname) {
+    return pname == GL_TEXTURE_BORDER_COLOR; // vec4
 }
 } // namespace
 
@@ -4324,8 +4338,8 @@ void Context::samplerParameteri(GLObjectName sampler, uint32_t pname, int param)
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!isValidSamplerParameter(pname)) {
-        setError(GLError::InvalidEnum); // non-scalar / unknown pname
+    if (!isSamplerIntParam(pname)) {
+        setError(GLError::InvalidEnum); // non-int / unknown pname
         return;
     }
     s->params[pname] = param;
@@ -4343,12 +4357,154 @@ void Context::getSamplerParameteriv(GLObjectName sampler, uint32_t pname,
         setError(GLError::InvalidValue);
         return;
     }
-    if (!isValidSamplerParameter(pname)) {
+    if (!isSamplerIntParam(pname)) {
         setError(GLError::InvalidEnum);
         return;
     }
     auto it = s->params.find(pname);
     *params = (it != s->params.end()) ? it->second : 0;
+}
+
+void Context::samplerParameterf(GLObjectName sampler, uint32_t pname, float param) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isSamplerFloatParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    s->paramsf[pname] = param;
+    if (s->backend) s->backend->samplerParameterf(pname, param);
+}
+
+void Context::samplerParameterfv(GLObjectName sampler, uint32_t pname,
+                                 const float* params, int count) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isSamplerFloatVecParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    s->paramsfv[pname].assign(params, params + count);
+    if (s->backend) s->backend->samplerParameterfv(pname, params, count);
+}
+
+void Context::samplerParameterIiv(GLObjectName sampler, uint32_t pname,
+                                  const int32_t* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isSamplerIntParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    s->params[pname] = params[0];
+    if (s->backend) s->backend->samplerParameterIiv(pname, params);
+}
+
+void Context::samplerParameterIuiv(GLObjectName sampler, uint32_t pname,
+                                   const uint32_t* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isSamplerIntParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    s->params[pname] = static_cast<int>(params[0]);
+    if (s->backend) s->backend->samplerParameterIuiv(pname, params);
+}
+
+void Context::getSamplerParameterfv(GLObjectName sampler, uint32_t pname,
+                                    float* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isSamplerFloatParam(pname) && !isSamplerFloatVecParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    auto fi = s->paramsf.find(pname);
+    if (fi != s->paramsf.end()) {
+        *params = fi->second;
+        return;
+    }
+    auto fv = s->paramsfv.find(pname);
+    if (fv != s->paramsfv.end() && !fv->second.empty()) {
+        *params = fv->second[0];
+        return;
+    }
+    auto ii = s->params.find(pname);
+    if (ii != s->params.end()) {
+        *params = static_cast<float>(ii->second);
+        return;
+    }
+    *params = 0.0f; // GL default for an unset parameter
+}
+
+void Context::getSamplerParameterIiv(GLObjectName sampler, uint32_t pname,
+                                     int32_t* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isSamplerIntParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    auto it = s->params.find(pname);
+    *params = (it != s->params.end()) ? static_cast<int32_t>(it->second) : 0;
+}
+
+void Context::getSamplerParameterIuiv(GLObjectName sampler, uint32_t pname,
+                                      uint32_t* params) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isSamplerIntParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    auto it = s->params.find(pname);
+    *params = (it != s->params.end()) ? static_cast<uint32_t>(it->second) : 0u;
 }
 
 void Context::flushState() {

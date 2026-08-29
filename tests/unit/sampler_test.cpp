@@ -137,3 +137,133 @@ TEST_CASE("sampler_is_sampler_distinguishes_objects") {
     EXPECT_TRUE(ctx.isSampler(s));
     EXPECT_FALSE(ctx.isSampler(12345));
 }
+
+TEST_CASE("sampler_parameterf_scalar_float_query") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+
+    ctx.samplerParameterf(s, GL_TEXTURE_MIN_LOD, -2.0f);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* ms = dynamic_cast<MockSampler*>(ctx.getSampler(s)->backend.get());
+    EXPECT_EQ(ms->samplerParameterfCalls, 1);
+    EXPECT_EQ(ms->lastParamf, -2.0f);
+
+    float val = 0.0f;
+    ctx.getSamplerParameterfv(s, GL_TEXTURE_MIN_LOD, &val);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(val, -2.0f);
+}
+
+TEST_CASE("sampler_parameterf_invalid_pname_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    ctx.samplerParameterf(s, GL_TEXTURE_WRAP_S, 1.0f); // int pname -> float setter
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+
+    float val = -1.0f;
+    ctx.getSamplerParameterfv(s, GL_TEXTURE_WRAP_S, &val);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("sampler_parameterfv_border_color_query") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+
+    const float bc[4] = {0.1f, 0.2f, 0.3f, 0.4f};
+    ctx.samplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, bc, 4);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* ms = dynamic_cast<MockSampler*>(ctx.getSampler(s)->backend.get());
+    EXPECT_EQ(ms->samplerParameterfvCalls, 1);
+    EXPECT_EQ(ms->lastParamfv.size(), 4u);
+    EXPECT_EQ(ms->lastParamfv[3], 0.4f);
+
+    float val = 0.0f;
+    ctx.getSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, &val);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(val, 0.1f);
+}
+
+TEST_CASE("sampler_parameterfv_invalid_pname_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    const float bc[4] = {0, 0, 0, 0};
+    ctx.samplerParameterfv(s, GL_TEXTURE_MIN_LOD, bc, 4); // float-scalar pname
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("sampler_parameterfv_null_params_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    ctx.samplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, nullptr, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("sampler_parameterIiv_Iuiv_signed_unsigned_query") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+
+    const int32_t iv[1] = {static_cast<int32_t>(GL_CLAMP_TO_EDGE)};
+    ctx.samplerParameterIiv(s, GL_TEXTURE_WRAP_S, iv);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* ms = dynamic_cast<MockSampler*>(ctx.getSampler(s)->backend.get());
+    EXPECT_EQ(ms->samplerParameterIivCalls, 1);
+
+    const uint32_t uv[1] = {static_cast<uint32_t>(GL_CLAMP_TO_EDGE)};
+    ctx.samplerParameterIuiv(s, GL_TEXTURE_WRAP_T, uv);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ms->samplerParameterIuivCalls, 1);
+
+    int32_t ri = -1;
+    ctx.getSamplerParameterIiv(s, GL_TEXTURE_WRAP_S, &ri);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ri, static_cast<int32_t>(GL_CLAMP_TO_EDGE));
+
+    uint32_t ru = 0;
+    ctx.getSamplerParameterIuiv(s, GL_TEXTURE_WRAP_T, &ru);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(ru, static_cast<uint32_t>(GL_CLAMP_TO_EDGE));
+}
+
+TEST_CASE("sampler_parameterIiv_invalid_pname_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    const int32_t iv[1] = {0};
+    ctx.samplerParameterIiv(s, GL_TEXTURE_MIN_LOD, iv); // float pname -> Iiv
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("sampler_parameter_null_sampler_is_invalid_operation") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.samplerParameterf(9999, GL_TEXTURE_MIN_LOD, 0.0f);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("sampler_parameter_public_gl_api_surface") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+    GLObjectName s = ctx.genSampler();
+
+    glSamplerParameterf(s, GL_TEXTURE_MAX_LOD, 8.0f);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    const float bc[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, bc);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    float maxLod = -1.0f;
+    glGetSamplerParameterfv(s, GL_TEXTURE_MAX_LOD, &maxLod);
+    EXPECT_EQ(maxLod, 8.0f);
+
+    float b0 = -1.0f;
+    glGetSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, &b0);
+    EXPECT_EQ(b0, 1.0f);
+    setCurrentContext(nullptr);
+}

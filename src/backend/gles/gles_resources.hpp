@@ -475,6 +475,22 @@ struct GLESBackendSampler : BackendSampler {
         if (lib && lib->driverLive() && lib->glSamplerParameteri && handle)
             lib->glSamplerParameteri(handle, pname, param);
     }
+    void samplerParameterf(uint32_t pname, float param) override {
+        if (lib && lib->driverLive() && lib->glSamplerParameterf && handle)
+            lib->glSamplerParameterf(handle, pname, param);
+    }
+    void samplerParameterfv(uint32_t pname, const float* params, int count) override {
+        if (lib && lib->driverLive() && lib->glSamplerParameterfv && handle && params && count > 0)
+            lib->glSamplerParameterfv(handle, pname, params);
+    }
+    void samplerParameterIiv(uint32_t pname, const int32_t* params) override {
+        if (lib && lib->driverLive() && lib->glSamplerParameterIiv && handle && params)
+            lib->glSamplerParameterIiv(handle, pname, params);
+    }
+    void samplerParameterIuiv(uint32_t pname, const uint32_t* params) override {
+        if (lib && lib->driverLive() && lib->glSamplerParameterIuiv && handle && params)
+            lib->glSamplerParameterIuiv(handle, pname, params);
+    }
     uint32_t nativeId() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;

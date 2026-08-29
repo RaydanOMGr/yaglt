@@ -802,8 +802,20 @@ public:
     SamplerObject* getSampler(GLObjectName name);
     const SamplerObject* getSampler(GLObjectName name) const;
     void samplerParameteri(GLObjectName sampler, uint32_t pname, int param);
+    void samplerParameterf(GLObjectName sampler, uint32_t pname, float param);
+    void samplerParameterfv(GLObjectName sampler, uint32_t pname,
+                            const float* params, int count);
+    void samplerParameterIiv(GLObjectName sampler, uint32_t pname,
+                             const int32_t* params);
+    void samplerParameterIuiv(GLObjectName sampler, uint32_t pname,
+                              const uint32_t* params);
     void getSamplerParameteriv(GLObjectName sampler, uint32_t pname,
                                int32_t* params);
+    void getSamplerParameterfv(GLObjectName sampler, uint32_t pname, float* params);
+    void getSamplerParameterIiv(GLObjectName sampler, uint32_t pname,
+                                int32_t* params);
+    void getSamplerParameterIuiv(GLObjectName sampler, uint32_t pname,
+                                 uint32_t* params);
     bool isSampler(GLObjectName name) const;
     // Capability-guarded: ShaderObjects / ProgramObjects must be supported by the
     // backend or these report GL_INVALID_OPERATION honestly. The desktop->backend

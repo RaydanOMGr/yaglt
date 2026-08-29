@@ -3,6 +3,35 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — sampler parameter family completion, this session)
+- Completed the sampler-object parameter family (SPEC §8.2) to parity with the
+  texture-parameter family. Previously only `glSamplerParameteri` /
+  `glGetSamplerParameteriv` existed (the latter limited to scalar int pnames).
+  Added `glSamplerParameterf` / `glSamplerParameterfv` / `glSamplerParameterIiv`
+  / `glSamplerParameterIuiv` and the matching `glGetSamplerParameterfv` /
+  `glGetSamplerParameterIiv` / `glGetSamplerParameterIuiv`. SamplerObject now
+  also tracks `paramsf` (float scalar) and `paramsfv` (BORDER_COLOR vec4) so the
+  float queries return real values; the integer-vector accessors map onto the
+  scalar int pnames (samplers have no integer-vector pnames in core). Backend:
+  `BackendSampler` gained `samplerParameterf` / `samplerParameterfv` /
+  `samplerParameterIiv` / `samplerParameterIuiv` virtuals (default no-op);
+  `GLESBackendSampler` forwards to the driver loader entry points (resolved as
+  optional `GLESLib` symbols, ES 3.0+) and the mock records each call +
+  payload. `Context` validates per accessor type: `samplerParameteri` /
+  `samplerParameterIiv` / `samplerParameterIuiv` accept the int pnames
+  (WRAP_*/MIN/MAG_FILTER/COMPARE_*/SWIZZLE_R/G/B/A), `samplerParameterf` the
+  float pnames (MIN_LOD/MAX_LOD/LOD_BIAS), `samplerParameterfv` BORDER_COLOR
+  only; unknown/type-mismatched pname → `GL_INVALID_ENUM`, null params/zero
+  count → `GL_INVALID_VALUE`, ungenerated sampler → `GL_INVALID_OPERATION`. New
+  swizzle-component constants (GL_TEXTURE_SWIZZLE_R/G/B/A) added to
+  `gl_types.hpp`; the `gl*` shim is regenerated from `gl_api.hpp` and exports
+  the new symbols. New `tests/unit/sampler_test.cpp` cases (11) cover the f /
+  fv / Iiv / Iuiv happy paths + backend push, type-mismatch enum errors, null
+  params, and the public `gl_api` dispatch surface. Default **664/664** →
+  **673/673**, sanitizer **673/673**, translate (Mesa) **685/685** green.
+  Coverage bumped in `docs/coverage-core.md` (405/1052 full ≈ 38.5%; 368/570
+  core ≈ 64.6%).
+
 ## Recent Work (2026-08-29 — per-stage subroutine query, this session)
 - Added `glGetProgramStageiv` (SPEC §7.9) to complete the subroutine reflection
   surface. New `BackendProgram::getProgramStageiv` virtual (honest default
