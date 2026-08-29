@@ -7856,6 +7856,201 @@ void Context::clearTexSubImage(GLObjectName texture, int level, int x, int y, in
                              data);
 }
 
+namespace {
+
+// Valid non-proxy texture targets accepted by glCopyImageSubData (SPEC §8.21).
+// Excludes TEXTURE_BUFFER and the cubemap face selectors.
+bool isValidCopyTextureTarget(uint32_t t) {
+    switch (t) {
+        case GL_TEXTURE_1D:
+        case GL_TEXTURE_1D_ARRAY:
+        case GL_TEXTURE_2D:
+        case GL_TEXTURE_2D_ARRAY:
+        case GL_TEXTURE_2D_MULTISAMPLE:
+        case GL_TEXTURE_2D_MULTISAMPLE_ARRAY:
+        case GL_TEXTURE_3D:
+        case GL_TEXTURE_CUBE_MAP:
+        case GL_TEXTURE_CUBE_MAP_ARRAY:
+        case GL_TEXTURE_RECTANGLE:
+            return true;
+        default:
+            return false;
+    }
+}
+
+// Internal-format compatibility class for CopyImageSubData (SPEC §8.21 / table
+// 8.30). Formats sharing a class id are mutually compatible. 0 = unknown
+// (treated leniently by the caller). Only glcompat-defined enums are listed;
+// others fall through to the lenient path.
+int copyFormatClass(uint32_t f) {
+    switch (f) {
+        case GL_RGBA32F: case GL_RGBA32I: case GL_RGBA32UI: return 1;
+        case GL_RGBA16F: case GL_RGBA16I: case GL_RGBA16UI: return 2;
+        case GL_RGBA8: case GL_RGBA8I: case GL_RGBA8UI:
+        case GL_SRGB8_ALPHA8: return 3;
+        case GL_RG32F: case GL_RG32I: case GL_RG32UI: return 4;
+        case GL_RG16F: case GL_RG16I: case GL_RG16UI: return 5;
+        case GL_RG8: case GL_RG8I: case GL_RG8UI: return 6;
+        case GL_R32F: case GL_R32I: case GL_R32UI: return 7;
+        case GL_R16F: case GL_R16I: case GL_R16UI: return 8;
+        case GL_R8: case GL_R8I: case GL_R8UI: return 9;
+        case GL_DEPTH_COMPONENT32F: case GL_DEPTH_COMPONENT24:
+        case GL_DEPTH_COMPONENT16: return 10;
+        case GL_DEPTH24_STENCIL8: return 11;
+        default: return 0;
+    }
+}
+
+// Compressed<->uncompressed compatible rows (SPEC table 18.5). Only the
+// glcompat-defined members of each row are listed; others fall through.
+int copyCompatRow(uint32_t f) {
+    switch (f) {
+        case GL_RGBA32UI: case GL_RGBA32I: case GL_RGBA32F: return 1;
+        case GL_RGBA16F: case GL_RG32F: case GL_RGBA16UI: case GL_RG32UI:
+        case GL_RGBA16I: case GL_RG32I: return 2;
+        default: return 0;
+    }
+}
+
+bool formatsCompatible(uint32_t a, uint32_t b) {
+    if (a == b) return true;
+    int ra = copyCompatRow(a), rb = copyCompatRow(b);
+    if (ra != 0 && rb != 0 && ra == rb) return true;
+    int ca = copyFormatClass(a), cb = copyFormatClass(b);
+    if (ca != 0 && cb != 0) return ca == cb; // known classes: incompatible if diff
+    return true; // at least one unknown format: lenient (do not reject)
+}
+
+// Resolve the dimensions and internal format of a texture level. Returns true
+// (and fills the out params) when the level's dimensions are known.
+bool getTexLevelDims(const TextureObject* tex, int level, int* w, int* h,
+                     int* d, uint32_t* fmt) {
+    if (tex->immutableStorage && tex->storageLevels > 0) {
+        int shift = level < 31 ? level : 31;
+        *w = std::max(1, tex->storageBaseWidth >> shift);
+        *h = std::max(1, tex->storageBaseHeight >> shift);
+        *d = std::max(1, tex->storageBaseDepth >> shift);
+        *fmt = tex->storageInternalFormat;
+        return true;
+    }
+    if (!tex->images.empty() && level >= 0 &&
+        level < static_cast<int>(tex->images.size())) {
+        const auto& img = tex->images[level];
+        *w = img.width;
+        *h = img.height;
+        *d = img.depth;
+        *fmt = img.internalFormat;
+        return true;
+    }
+    return false;
+}
+
+} // namespace
+
+void Context::copyImageSubData(GLObjectName srcName, uint32_t srcTarget,
+                               int srcLevel, int srcX, int srcY, int srcZ,
+                               GLObjectName dstName, uint32_t dstTarget,
+                               int dstLevel, int dstX, int dstY, int dstZ,
+                               int srcWidth, int srcHeight, int srcDepth) {
+    // Resolve each side: object existence + target/type match (SPEC §8.21).
+    struct Side {
+        bool isRB = false;
+        TextureObject* tex = nullptr;
+        RenderbufferObject* rb = nullptr;
+        int w = 0, h = 0, d = 1;
+        uint32_t fmt = 0;
+        bool hasDims = false;
+    };
+    auto validateSide = [&](GLObjectName name, uint32_t target, Side& s,
+                            bool isSrc) -> GLError {
+        if (target == GL_RENDERBUFFER) {
+            s.isRB = true;
+            s.rb = getRenderbuffer(name);
+            if (s.rb) {
+                s.w = s.rb->width; s.h = s.rb->height; s.d = 1;
+                s.fmt = s.rb->internalFormat; s.hasDims = true;
+                return GLError::NoError;
+            }
+            if (getTexture(name)) return GLError::InvalidEnum; // wrong type
+            return GLError::InvalidValue;                     // name invalid
+        }
+        if (!isValidCopyTextureTarget(target)) return GLError::InvalidEnum;
+        s.isRB = false;
+        s.tex = getTexture(name);
+        if (s.tex) {
+            s.hasDims = getTexLevelDims(s.tex, isSrc ? srcLevel : dstLevel,
+                                        &s.w, &s.h, &s.d, &s.fmt);
+            return GLError::NoError;
+        }
+        if (getRenderbuffer(name)) return GLError::InvalidEnum; // wrong type
+        return GLError::InvalidValue;                          // name invalid
+    };
+
+    Side src, dst;
+    GLError e = validateSide(srcName, srcTarget, src, true);
+    if (e != GLError::NoError) { setError(e); return; }
+    e = validateSide(dstName, dstTarget, dst, false);
+    if (e != GLError::NoError) { setError(e); return; }
+
+    // Level range (INVALID_VALUE).
+    if (src.isRB) {
+        if (srcLevel != 0) { setError(GLError::InvalidValue); return; }
+    } else {
+        int maxLevels = src.tex->storageLevels;
+        if (maxLevels <= 0 && !src.tex->images.empty())
+            maxLevels = static_cast<int>(src.tex->images.size());
+        if (maxLevels <= 0) { setError(GLError::InvalidOperation); return; }
+        if (srcLevel < 0 || srcLevel >= maxLevels) {
+            setError(GLError::InvalidValue); return;
+        }
+    }
+    if (dst.isRB) {
+        if (dstLevel != 0) { setError(GLError::InvalidValue); return; }
+    } else {
+        int maxLevels = dst.tex->storageLevels;
+        if (maxLevels <= 0 && !dst.tex->images.empty())
+            maxLevels = static_cast<int>(dst.tex->images.size());
+        if (maxLevels <= 0) { setError(GLError::InvalidOperation); return; }
+        if (dstLevel < 0 || dstLevel >= maxLevels) {
+            setError(GLError::InvalidValue); return;
+        }
+    }
+
+    // Negative extents (INVALID_VALUE).
+    if (srcWidth < 0 || srcHeight < 0 || srcDepth < 0) {
+        setError(GLError::InvalidValue); return;
+    }
+
+    // Sub-region bounds (INVALID_VALUE). Renderbuffers are 2D, depth 1.
+    if (src.isRB && (srcZ != 0 || srcDepth != 1)) {
+        setError(GLError::InvalidValue); return;
+    }
+    if (dst.isRB && (dstZ != 0 || srcDepth != 1)) {
+        setError(GLError::InvalidValue); return;
+    }
+    if (src.hasDims) {
+        if (srcX + srcWidth > src.w || srcY + srcHeight > src.h ||
+            srcZ + srcDepth > src.d) {
+            setError(GLError::InvalidValue); return;
+        }
+    }
+    if (dst.hasDims) {
+        if (dstX + srcWidth > dst.w || dstY + srcHeight > dst.h ||
+            dstZ + srcDepth > dst.d) {
+            setError(GLError::InvalidValue); return;
+        }
+    }
+
+    // Internal-format compatibility (INVALID_OPERATION).
+    if (src.fmt != 0 && dst.fmt != 0 && !formatsCompatible(src.fmt, dst.fmt)) {
+        setError(GLError::InvalidOperation); return;
+    }
+
+    backend_.copyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ,
+                              dstName, dstTarget, dstLevel, dstX, dstY, dstZ,
+                              srcWidth, srcHeight, srcDepth);
+}
+
 
 namespace {
 // Valid draw buffer names (SPEC §15): GL_NONE, GL_BACK (default framebuffer), or

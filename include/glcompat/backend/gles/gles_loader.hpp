@@ -172,6 +172,11 @@ struct GLESLib {
     void (*glClearTexImage)(GLuint, GLint, GLenum, GLenum, const void*) = nullptr;
     void (*glClearTexSubImage)(GLuint, GLint, GLint, GLint, GLint, GLsizei,
                                GLsizei, GLsizei, GLenum, GLenum, const void*) = nullptr;
+    // Image-to-image copy (SPEC §8.21). Core in GLES 3.2; also exposed via
+    // GL_EXT_copy_image / GL_OES_copy_image. Resolved optionally.
+    void (*glCopyImageSubData)(GLuint, GLenum, GLint, GLint, GLint, GLint, GLuint,
+                               GLenum, GLint, GLint, GLint, GLint, GLsizei, GLsizei,
+                               GLsizei) = nullptr;
     void (*glFlush)(void) = nullptr;
     void (*glFinish)(void) = nullptr;
     void (*glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum,

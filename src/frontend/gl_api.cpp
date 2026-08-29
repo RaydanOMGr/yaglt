@@ -2404,6 +2404,17 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
                                height, depth, format, type, data);
 }
 
+void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel,
+                       GLint srcX, GLint srcY, GLint srcZ, GLuint dstName,
+                       GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY,
+                       GLint dstZ, GLsizei srcWidth, GLsizei srcHeight,
+                       GLsizei srcDepth) {
+    if (g_current == nullptr) return;
+    g_current->copyImageSubData(srcName, srcTarget, srcLevel, srcX, srcY, srcZ,
+                               dstName, dstTarget, dstLevel, dstX, dstY, dstZ,
+                               srcWidth, srcHeight, srcDepth);
+}
+
 void glDrawBuffers(GLsizei n, const GLenum* bufs) {
     if (g_current == nullptr) return;
     g_current->drawBuffers(static_cast<int32_t>(n), bufs);

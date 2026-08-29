@@ -2711,7 +2711,30 @@ crashed agent, this session)
   Public `gl_api` exposes both entry points. New
   `tests/unit/clear_tex_image_test.cpp` (5 cases) covering record/region,
   ungenerated/no-storage rejection, out-of-range level, and negative extent.
-  Validation: `build` 724/724, `build_san` 724/724, `build_tx` (GLES e2e)
-  736/736. Coverage regenerated: 436/1052 (~41.4%) full,
-  398/570 (~69.8%) core.
+   Validation: `build` 724/724, `build_san` 724/724, `build_tx` (GLES e2e)
+   736/736. Coverage regenerated: 436/1052 (~41.4%) full,
+   398/570 (~69.8%) core.
+
+- **glCopyImageSubData (SPEC §8.21)** — image-to-image texel copy. New
+   `IGraphicsBackend::copyImageSubData` virtual (frontend never touches native
+   API). `GLESBackend` resolves both frontend names via `nativeMap_` and forwards
+   to the optional `glCopyImageSubData` (ES 3.2+ / EXT_copy_image /
+   OES_copy_image) when present; otherwise honest no-op. `MockBackend` records
+   both sides' name/target/level/coords and the region. `Context::copyImageSubData`
+   validates targets (RENDERBUFFER or valid non-proxy texture target; excludes
+   TEXTURE_BUFFER and cubemap face selectors → `GL_INVALID_ENUM`), object
+   existence + target/type match (name invalid → `GL_INVALID_VALUE`; wrong-type
+   object → `GL_INVALID_ENUM`), level range (`GL_INVALID_VALUE`; renderbuffer
+   level must be 0), non-negative extents (`GL_INVALID_VALUE`), sub-region bounds
+   (`GL_INVALID_VALUE`, renderbuffers are depth-1), and internal-format
+   compatibility (`GL_INVALID_OPERATION`) via a class/compat-row table limited to
+   glcompat-defined enums (unknown formats fall through lenient, per the project's
+   "not exhaustive" validation convention). Public `gl_api` exposes the entry
+   point. New `tests/unit/copy_image_sub_data_test.cpp` (12 cases) covering
+   record, class-compatible formats, incompatible-format rejection, invalid
+   target, unknown name, type mismatch, out-of-range level, negative extent,
+   out-of-bounds region, renderbuffer level-zero rule, and renderbuffer→texture.
+   Validation: `build` 735/735, `build_san` 735/735, `build_tx` (GLES e2e)
+   747/747. Coverage regenerated: 437/1052 (~41.5%) full,
+   399/570 (~70.0%) core.
 

@@ -241,6 +241,12 @@ public:
     int lastClearTexSubImageX = 0, lastClearTexSubImageY = 0, lastClearTexSubImageZ = 0;
     int lastClearTexSubImageW = 0, lastClearTexSubImageH = 0, lastClearTexSubImageD = 0;
     uint32_t lastClearTexSubImageFormat = 0, lastClearTexSubImageType = 0;
+    int copyImageSubDataCalls = 0;
+    uint32_t lastCopySrcName = 0, lastCopySrcTarget = 0, lastCopyDstName = 0,
+             lastCopyDstTarget = 0;
+    int lastCopySrcLevel = 0, lastCopySrcX = 0, lastCopySrcY = 0, lastCopySrcZ = 0;
+    int lastCopyDstLevel = 0, lastCopyDstX = 0, lastCopyDstY = 0, lastCopyDstZ = 0;
+    int lastCopyWidth = 0, lastCopyHeight = 0, lastCopyDepth = 0;
     int flushCalls = 0;
     int finishCalls = 0;
     int readPixelsCalls = 0;
@@ -796,6 +802,29 @@ public:
         lastClearTexSubImageD = d;
         lastClearTexSubImageFormat = format;
         lastClearTexSubImageType = type;
+    }
+
+    void copyImageSubData(uint32_t srcName, uint32_t srcTarget, int srcLevel,
+                          int srcX, int srcY, int srcZ, uint32_t dstName,
+                          uint32_t dstTarget, int dstLevel, int dstX, int dstY,
+                          int dstZ, int srcWidth, int srcHeight,
+                          int srcDepth) override {
+        ++copyImageSubDataCalls;
+        lastCopySrcName = srcName;
+        lastCopySrcTarget = srcTarget;
+        lastCopySrcLevel = srcLevel;
+        lastCopySrcX = srcX;
+        lastCopySrcY = srcY;
+        lastCopySrcZ = srcZ;
+        lastCopyDstName = dstName;
+        lastCopyDstTarget = dstTarget;
+        lastCopyDstLevel = dstLevel;
+        lastCopyDstX = dstX;
+        lastCopyDstY = dstY;
+        lastCopyDstZ = dstZ;
+        lastCopyWidth = srcWidth;
+        lastCopyHeight = srcHeight;
+        lastCopyDepth = srcDepth;
     }
 
     // Color logic op (SPEC §17.3.4). Recorded so tests can assert it is pushed

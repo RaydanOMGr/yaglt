@@ -677,6 +677,21 @@ void GLESBackend::clearTexSubImage(uint32_t texture, int level, int x, int y, in
                                  data);
 }
 
+void GLESBackend::copyImageSubData(uint32_t srcName, uint32_t srcTarget,
+                                    int srcLevel, int srcX, int srcY, int srcZ,
+                                    uint32_t dstName, uint32_t dstTarget,
+                                    int dstLevel, int dstX, int dstY, int dstZ,
+                                    int srcWidth, int srcHeight, int srcDepth) {
+    auto sit = nativeMap_.find(srcName);
+    GLuint srcNative = sit != nativeMap_.end() ? sit->second : srcName;
+    auto dit = nativeMap_.find(dstName);
+    GLuint dstNative = dit != nativeMap_.end() ? dit->second : dstName;
+    if (lib_->glCopyImageSubData)
+        lib_->glCopyImageSubData(srcNative, srcTarget, srcLevel, srcX, srcY, srcZ,
+                                 dstNative, dstTarget, dstLevel, dstX, dstY, dstZ,
+                                 srcWidth, srcHeight, srcDepth);
+}
+
 void GLESBackend::flush() {
     if (lib_->glFlush) lib_->glFlush();
 }

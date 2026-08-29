@@ -586,6 +586,15 @@ public:
                          int w, int h, int d, uint32_t format, uint32_t type,
                          const void* data);
 
+    // --- Image-to-image copy (SPEC §8.21) ---
+    // Copy a texel sub-region between two image objects (textures or
+    // renderbuffers). Validates targets, object existence, level ranges,
+    // dimension signs, and sub-region bounds before forwarding to the backend.
+    void copyImageSubData(GLObjectName srcName, uint32_t srcTarget, int srcLevel,
+                         int srcX, int srcY, int srcZ, GLObjectName dstName,
+                         uint32_t dstTarget, int dstLevel, int dstX, int dstY,
+                         int dstZ, int srcWidth, int srcHeight, int srcDepth);
+
     // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
     // Select the draw buffers for the currently bound framebuffer (glDrawBuffers)
     // and its read buffer (glReadBuffer). Pushed to the backend at the next state

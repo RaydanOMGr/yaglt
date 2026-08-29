@@ -104,6 +104,7 @@ add_executable(yaglt_tests
     unit/point_parameter_test.cpp
     unit/clear_buffer_test.cpp
    unit/clear_tex_image_test.cpp
+    unit/copy_image_sub_data_test.cpp
     unit/clip_control_test.cpp
     unit/viewport_indexed_test.cpp
     backend/gles_backend_test.cpp

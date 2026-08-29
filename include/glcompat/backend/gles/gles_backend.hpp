@@ -204,8 +204,16 @@ public:
     void clearTexImage(uint32_t texture, int level, uint32_t format, uint32_t type,
                       const void* data) override;
     void clearTexSubImage(uint32_t texture, int level, int x, int y, int z, int w,
-                         int h, int d, uint32_t format, uint32_t type,
-                         const void* data) override;
+                          int h, int d, uint32_t format, uint32_t type,
+                          const void* data) override;
+
+    // Image-to-image copy (SPEC §8.21). Forwards to glCopyImageSubData with the
+    // resolved native ids (optional, ES 3.2+ / EXT_copy_image / OES_copy_image).
+    void copyImageSubData(uint32_t srcName, uint32_t srcTarget, int srcLevel,
+                         int srcX, int srcY, int srcZ, uint32_t dstName,
+                         uint32_t dstTarget, int dstLevel, int dstX, int dstY,
+                         int dstZ, int srcWidth, int srcHeight,
+                         int srcDepth) override;
 
     // Command stream flush / finish (SPEC §2.1).
     void flush() override;

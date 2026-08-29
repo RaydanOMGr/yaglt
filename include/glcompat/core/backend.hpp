@@ -102,6 +102,17 @@ public:
                                  int w, int h, int d, uint32_t format,
                                  uint32_t type, const void* data) = 0;
 
+    // Copy a sub-region of texels between two image objects (SPEC §8.21).
+    // `srcName`/`dstName` are frontend object names (texture or renderbuffer);
+    // the backend resolves each to the native driver id and issues
+    // glCopyImageSubData. The frontend validates targets, object existence,
+    // level ranges, dimension signs, and sub-region bounds.
+    virtual void copyImageSubData(uint32_t srcName, uint32_t srcTarget, int srcLevel,
+                                  int srcX, int srcY, int srcZ,
+                                  uint32_t dstName, uint32_t dstTarget, int dstLevel,
+                                  int dstX, int dstY, int dstZ,
+                                  int srcWidth, int srcHeight, int srcDepth) = 0;
+
     // Command stream flush / finish (SPEC §2.1). glFlush empties the GL command
     // buffer; glFinish blocks until all issued commands complete.
     virtual void flush() = 0;

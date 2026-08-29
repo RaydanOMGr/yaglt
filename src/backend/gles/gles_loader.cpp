@@ -177,6 +177,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glClear, "glClear");
     resolve(gles, glClearTexImage, "glClearTexImage");
     resolve(gles, glClearTexSubImage, "glClearTexSubImage");
+    resolve(gles, glCopyImageSubData, "glCopyImageSubData");
     ok &= resolve(gles, glFlush, "glFlush");
     ok &= resolve(gles, glFinish, "glFinish");
     ok &= resolve(gles, glReadPixels, "glReadPixels");

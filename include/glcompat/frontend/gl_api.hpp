@@ -793,6 +793,13 @@ void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffse
                        GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                        GLenum format, GLenum type, const void* data);
 
+// Copy a texel sub-region between two image objects (textures/renderbuffers).
+void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel,
+                       GLint srcX, GLint srcY, GLint srcZ, GLuint dstName,
+                       GLenum dstTarget, GLint dstLevel, GLint dstX, GLint dstY,
+                       GLint dstZ, GLsizei srcWidth, GLsizei srcHeight,
+                       GLsizei srcDepth);
+
 // Whole-framebuffer buffer selection (SPEC §15 / §16). glDrawBuffers selects the
 // draw buffers for the bound framebuffer; glReadBuffer selects its read buffer.
 void glDrawBuffers(GLsizei n, const GLenum* bufs);
