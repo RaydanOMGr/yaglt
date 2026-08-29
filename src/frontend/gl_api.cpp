@@ -2125,6 +2125,12 @@ void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha
     g_current->state().setColorMask(red != 0, green != 0, blue != 0, alpha != 0);
 }
 
+void glColorMaski(GLuint buf, GLboolean red, GLboolean green, GLboolean blue,
+                  GLboolean alpha) {
+    if (g_current == nullptr) return;
+    g_current->setColorMaski(buf, red, green, blue, alpha);
+}
+
 void glSampleCoverage(GLfloat value, GLboolean invert) {
     if (g_current == nullptr) return;
     g_current->state().setSampleCoverage(value, invert != 0);

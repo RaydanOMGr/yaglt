@@ -103,8 +103,12 @@ public:
     bool setStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
     bool setStencilMaskSeparate(GLenum face, GLuint mask);
 
-    // --- Color write mask (SPEC §17.3.6, glColorMask) ---
+    // --- Color write mask (SPEC §17.3.6, glColorMask / glColorMaski) ---
+    // The non-indexed `glColorMask` sets every draw buffer to the same mask; the
+    // indexed `glColorMaski` sets a single draw-buffer slot. Each channel is an
+    // independent boolean pushed only when the set of masked channels changes.
     bool setColorMask(bool r, bool g, bool b, bool a);
+    bool setColorMaski(uint32_t buf, bool r, bool g, bool b, bool a);
 
     // --- Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage) ---
     bool setSampleCoverage(float value, bool invert);
@@ -543,7 +547,12 @@ private:
     ClearDepthState clearDepth_, clearDepthApplied_;
     FramebufferBufferState fbBuffers_, fbBuffersApplied_;
     LogicOpState logicOp_, logicOpApplied_;
-    ColorMaskState colorMask_, colorMaskApplied_;
+    // Per-draw-buffer color write masks. Index 0 is the target of the
+    // non-indexed `glColorMask`; `apply()` pushes buffer 0 through the
+    // single-buffer `colorMask` sink and buffers 1..n through `colorMaski`, so
+    // backends without per-buffer color mask keep working (SPEC §15.3).
+    std::vector<ColorMaskState> colorMask_;
+    std::vector<ColorMaskState> colorMaskApplied_;
     SampleCoverageState sampleCoverage_, sampleCoverageApplied_;
     PrimitiveRestartState primitiveRestart_, primitiveRestartApplied_;
     PolygonModeState polygonMode_, polygonModeApplied_;

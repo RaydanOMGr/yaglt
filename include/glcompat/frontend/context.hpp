@@ -547,6 +547,12 @@ public:
     void setDepthRangeIndexed(GLuint index, GLdouble nearVal, GLdouble farVal);
     void setDepthRangeArrayv(GLuint first, GLsizei count, const GLdouble* v);
 
+    // Per-draw-buffer color write mask (SPEC §17.3.6, glColorMaski). `buf`
+    // selects the draw-buffer slot; `buf` >= MAX_DRAW_BUFFERS (8) →
+    // GL_INVALID_VALUE. The non-indexed glColorMask sets every draw buffer.
+    void setColorMaski(GLuint buf, GLboolean red, GLboolean green,
+                       GLboolean blue, GLboolean alpha);
+
     // Indexed blending (SPEC §15.3 / §17.3.4). `buf` selects the draw-buffer
     // slot; `buf` >= MAX_DRAW_BUFFERS (8) → GL_INVALID_VALUE, invalid blend
     // factors / equations → GL_INVALID_ENUM. Buffer 0 updates the same state as

@@ -72,6 +72,12 @@ public:
     // independent boolean pushed only when the set of masked channels changes.
     virtual void colorMask(bool r, bool g, bool b, bool a) = 0;
 
+    // Per-draw-buffer color write mask (glColorMaski, SPEC §17.3.6). `buf`
+    // selects the draw-buffer slot; buffer 0 is equivalent to the non-indexed
+    // `colorMask`. Backends without per-buffer color mask may fall back to the
+    // single-buffer call for buf == 0 and record the rest without applying it.
+    virtual void colorMaski(uint32_t buf, bool r, bool g, bool b, bool a) = 0;
+
     // Sample coverage (glSampleCoverage, SPEC §17.3.6 multisample). Pushed only
     // when the value or invert flag changes.
     virtual void sampleCoverage(float value, bool invert) = 0;

@@ -160,6 +160,10 @@ public:
     int colorMaskCalls = 0;
     bool lastColorMaskR = true, lastColorMaskG = true, lastColorMaskB = true,
          lastColorMaskA = true;
+    int colorMaskiCalls = 0;
+    uint32_t lastColorMaskiBuf = 0;
+    bool lastColorMaskiR = true, lastColorMaskiG = true, lastColorMaskiB = true,
+         lastColorMaskiA = true;
     int sampleCoverageCalls = 0;
     float lastSampleCoverageValue = 1.0f;
     bool lastSampleCoverageInvert = false;
@@ -326,6 +330,14 @@ public:
         lastColorMaskG = g;
         lastColorMaskB = b;
         lastColorMaskA = a;
+    }
+    void colorMaski(uint32_t buf, bool r, bool g, bool b, bool a) override {
+        ++colorMaskiCalls;
+        lastColorMaskiBuf = buf;
+        lastColorMaskiR = r;
+        lastColorMaskiG = g;
+        lastColorMaskiB = b;
+        lastColorMaskiA = a;
     }
     void sampleCoverage(float value, bool invert) override {
         ++sampleCoverageCalls;

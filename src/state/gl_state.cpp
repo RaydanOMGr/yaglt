@@ -9,6 +9,8 @@ GLStateTracker::GLStateTracker() {
     samplerBoundApplied_.assign(kMaxTextureUnits, 0);
     blendBuf_.assign(kMaxDrawBuffers, BlendState{});
     blendBufApplied_.assign(kMaxDrawBuffers, BlendState{});
+    colorMask_.assign(kMaxDrawBuffers, ColorMaskState{});
+    colorMaskApplied_.assign(kMaxDrawBuffers, ColorMaskState{});
     // SPEC §17.3.7: dithering is enabled by default.
     capsCurrent_[0x0BD0 /* GL_DITHER */] = true;
     capsApplied_[0x0BD0 /* GL_DITHER */] = true;
@@ -298,13 +300,29 @@ bool GLStateTracker::setStencilMaskSeparate(GLenum face, GLuint mask) {
 }
 
 bool GLStateTracker::setColorMask(bool r, bool g, bool b, bool a) {
-    if (colorMask_.r == r && colorMask_.g == g && colorMask_.b == b &&
-        colorMask_.a == a)
-        return false;
-    colorMask_.r = r;
-    colorMask_.g = g;
-    colorMask_.b = b;
-    colorMask_.a = a;
+    bool changed = false;
+    for (uint32_t i = 0; i < kMaxDrawBuffers; ++i) {
+        ColorMaskState& c = colorMask_[i];
+        if (c.r != r || c.g != g || c.b != b || c.a != a) {
+            c.r = r;
+            c.g = g;
+            c.b = b;
+            c.a = a;
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+bool GLStateTracker::setColorMaski(uint32_t buf, bool r, bool g, bool b,
+                                   bool a) {
+    if (buf >= kMaxDrawBuffers) return false; // caller raised error
+    ColorMaskState& c = colorMask_[buf];
+    if (c.r == r && c.g == g && c.b == b && c.a == a) return false;
+    c.r = r;
+    c.g = g;
+    c.b = b;
+    c.a = a;
     return true;
 }
 
@@ -913,9 +931,17 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
-    if (!colorMask_.equal(colorMaskApplied_)) {
-        sink.colorMask(colorMask_.r, colorMask_.g, colorMask_.b, colorMask_.a);
-        colorMaskApplied_ = colorMask_;
+    for (uint32_t i = 0; i < kMaxDrawBuffers; ++i) {
+        if (colorMask_[i].equal(colorMaskApplied_[i])) continue;
+        if (i == 0) {
+            // Buffer 0 is the non-indexed color-mask path.
+            sink.colorMask(colorMask_[0].r, colorMask_[0].g, colorMask_[0].b,
+                           colorMask_[0].a);
+        } else {
+            sink.colorMaski(i, colorMask_[i].r, colorMask_[i].g,
+                            colorMask_[i].b, colorMask_[i].a);
+        }
+        colorMaskApplied_[i] = colorMask_[i];
         ++applied;
     }
 
@@ -1103,8 +1129,8 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case 0x891C: // GL_CLAMP_READ_COLOR
         out[0] = static_cast<GLint>(clampColor_.readColor); return 1;
     case GL_COLOR_WRITEMASK:
-        out[0] = colorMask_.r ? 1 : 0; out[1] = colorMask_.g ? 1 : 0;
-        out[2] = colorMask_.b ? 1 : 0; out[3] = colorMask_.a ? 1 : 0;
+        out[0] = colorMask_[0].r ? 1 : 0; out[1] = colorMask_[0].g ? 1 : 0;
+        out[2] = colorMask_[0].b ? 1 : 0; out[3] = colorMask_[0].a ? 1 : 0;
         return 4;
     case 0x0B40: // GL_POLYGON_MODE (front, back)
         out[0] = static_cast<GLint>(polygonMode_.front);
@@ -1128,10 +1154,10 @@ int GLStateTracker::getBoolean(GLenum p, GLboolean* out) const {
         return 1;
     }
     if (p == GL_COLOR_WRITEMASK) {
-        out[0] = static_cast<GLboolean>(colorMask_.r ? 1 : 0);
-        out[1] = static_cast<GLboolean>(colorMask_.g ? 1 : 0);
-        out[2] = static_cast<GLboolean>(colorMask_.b ? 1 : 0);
-        out[3] = static_cast<GLboolean>(colorMask_.a ? 1 : 0);
+        out[0] = static_cast<GLboolean>(colorMask_[0].r ? 1 : 0);
+        out[1] = static_cast<GLboolean>(colorMask_[0].g ? 1 : 0);
+        out[2] = static_cast<GLboolean>(colorMask_[0].b ? 1 : 0);
+        out[3] = static_cast<GLboolean>(colorMask_[0].a ? 1 : 0);
         return 4;
     }
     if (p == GL_SAMPLE_COVERAGE_INVERT) {
@@ -1308,8 +1334,8 @@ void GLStateTracker::reset() {
     fbBuffersApplied_ = FramebufferBufferState{};
     logicOp_ = LogicOpState{};
     logicOpApplied_ = LogicOpState{};
-    colorMask_ = ColorMaskState{};
-    colorMaskApplied_ = ColorMaskState{};
+    colorMask_.assign(kMaxDrawBuffers, ColorMaskState{});
+    colorMaskApplied_.assign(kMaxDrawBuffers, ColorMaskState{});
     sampleCoverage_ = SampleCoverageState{};
     sampleCoverageApplied_ = SampleCoverageState{};
     polygonMode_ = PolygonModeState{};

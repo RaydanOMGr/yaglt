@@ -3,6 +3,25 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — per-draw-buffer color mask, this session)
+- Added per-draw-buffer color write mask `glColorMaski` (SPEC §17.3.6,
+  EXT_draw_buffers2). The tracker now keeps `std::vector<ColorMaskState>
+  colorMask_[kMaxDrawBuffers=8]` (previously a single `ColorMaskState`); the
+  non-indexed `glColorMask` now writes the same mask to **every** draw buffer
+  (GL-correct for the all-buffers semantics), and `glColorMaski` writes a single
+  slot. `apply()` pushes buffer 0 through the existing single-buffer `colorMask`
+  sink and buffers 1..n through the new `colorMaski` sink (backends without
+  per-buffer color mask keep working). `GLStateSink` gained `colorMaski`; the
+  mock records it (with buffer + channels) and the GLES backend forwards to
+  `glColorMaski` (new optional `GLESLib` symbol, ES 3.0+). `Context::
+  setColorMaski` validates `buf` ≥ MAX_DRAW_BUFFERS (8) → `GL_INVALID_VALUE`.
+  The `gl*` shim is regenerated from `gl_api.hpp` and exports `glColorMaski`.
+  New `tests/unit/colormaski_test.cpp` (6 cases) covers the indexed vs
+  non-indexed push split, per-buffer change-skipping, buffer-range validation,
+  and the `GL_COLOR_WRITEMASK` getter. Default **688/688** → **694/694**,
+  sanitizer **694/694**, translate (Mesa) **passed** green. Coverage bumped in
+  `docs/coverage-core.md` (414/1052 full ≈ 39.4%; 376/570 core ≈ 66.0%).
+
 ## Recent Work (2026-08-29 — indexed viewport/scissor/depth arrays, this session)
 - Added the indexed viewport/scissor/depth-array family (SPEC §13.5.2):
   `glViewportArrayv`, `glScissorArrayv`, `glDepthRangeIndexed`,

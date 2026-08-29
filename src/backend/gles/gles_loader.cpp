@@ -142,6 +142,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glStencilOpSeparate, "glStencilOpSeparate");
     ok &= resolve(gles, glStencilMaskSeparate, "glStencilMaskSeparate");
     ok &= resolve(gles, glColorMask, "glColorMask");
+    ok &= resolve(gles, glColorMaski, "glColorMaski");
     resolve(gles, glDispatchCompute, "glDispatchCompute");
     resolve(gles, glDispatchComputeIndirect, "glDispatchComputeIndirect");
     ok &= resolve(gles, glSampleCoverage, "glSampleCoverage");

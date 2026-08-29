@@ -717,6 +717,8 @@ void glStencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
 void glStencilOpSeparate(GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
 void glStencilMaskSeparate(GLenum face, GLuint mask);
 void glColorMask(GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha);
+void glColorMaski(GLuint buf, GLboolean red, GLboolean green, GLboolean blue,
+                  GLboolean alpha);
 void glSampleCoverage(GLfloat value, GLboolean invert);
 
 // Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex). Activation is via

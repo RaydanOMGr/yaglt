@@ -7535,6 +7535,16 @@ void Context::setDepthRangeArrayv(GLuint first, GLsizei count,
     }
 }
 
+void Context::setColorMaski(GLuint buf, GLboolean red, GLboolean green,
+                            GLboolean blue, GLboolean alpha) {
+    if (buf >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    state_.setColorMaski(buf, red != GL_FALSE, green != GL_FALSE,
+                         blue != GL_FALSE, alpha != GL_FALSE);
+}
+
 void Context::setClearColor(float r, float g, float b, float a) {
     state_.setClearColor(r, g, b, a);
 }

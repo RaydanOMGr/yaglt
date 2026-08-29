@@ -437,7 +437,13 @@ void GLESBackend::stencilMaskSeparate(GLenum face, GLuint mask) {
 void GLESBackend::colorMask(bool r, bool g, bool b, bool a) {
     if (lib_->glColorMask)
         lib_->glColorMask(r ? GL_TRUE : GL_FALSE, g ? GL_TRUE : GL_FALSE,
-                         b ? GL_TRUE : GL_FALSE, a ? GL_TRUE : GL_FALSE);
+                          b ? GL_TRUE : GL_FALSE, a ? GL_TRUE : GL_FALSE);
+}
+
+void GLESBackend::colorMaski(uint32_t buf, bool r, bool g, bool b, bool a) {
+    if (lib_->glColorMaski)
+        lib_->glColorMaski(buf, r ? GL_TRUE : GL_FALSE, g ? GL_TRUE : GL_FALSE,
+                           b ? GL_TRUE : GL_FALSE, a ? GL_TRUE : GL_FALSE);
 }
 
 void GLESBackend::sampleCoverage(float value, bool invert) {

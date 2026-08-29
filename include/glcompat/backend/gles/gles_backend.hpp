@@ -76,8 +76,9 @@ public:
     void stencilOpSeparate(uint32_t face, uint32_t sfail, uint32_t dpfail,
                            uint32_t dppass) override;
     void stencilMaskSeparate(uint32_t face, uint32_t mask) override;
-    // Color write mask (SPEC §17.3.6, glColorMask).
+    // Color write mask (SPEC §17.3.6, glColorMask / glColorMaski).
     void colorMask(bool r, bool g, bool b, bool a) override;
+    void colorMaski(uint32_t buf, bool r, bool g, bool b, bool a) override;
     // Sample coverage (SPEC §17.3.6 multisample, glSampleCoverage).
     void sampleCoverage(float value, bool invert) override;
     // Primitive restart index (SPEC §10.4, glPrimitiveRestartIndex).
