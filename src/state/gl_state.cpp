@@ -373,6 +373,18 @@ bool GLStateTracker::setPolygonOffset(float factor, float units) {
     return true;
 }
 
+bool GLStateTracker::setPolygonOffsetClamp(float factor, float units,
+                                           float clamp) {
+    if (rasterScalar_.polygonOffsetFactor == factor &&
+        rasterScalar_.polygonOffsetUnits == units &&
+        rasterScalar_.polygonOffsetClamp == clamp)
+        return false;
+    rasterScalar_.polygonOffsetFactor = factor;
+    rasterScalar_.polygonOffsetUnits = units;
+    rasterScalar_.polygonOffsetClamp = clamp;
+    return true;
+}
+
 bool GLStateTracker::setPointParameteri(GLenum pname, GLint param) {
     switch (pname) {
         case GL_POINT_SIZE_MIN:
@@ -857,9 +869,12 @@ int GLStateTracker::apply(GLStateSink& sink) {
         if (rasterScalar_.polygonOffsetFactor !=
                 rasterScalarApplied_.polygonOffsetFactor ||
             rasterScalar_.polygonOffsetUnits !=
-                rasterScalarApplied_.polygonOffsetUnits)
+                rasterScalarApplied_.polygonOffsetUnits ||
+            rasterScalar_.polygonOffsetClamp !=
+                rasterScalarApplied_.polygonOffsetClamp)
             sink.polygonOffset(rasterScalar_.polygonOffsetFactor,
-                               rasterScalar_.polygonOffsetUnits);
+                               rasterScalar_.polygonOffsetUnits,
+                               rasterScalar_.polygonOffsetClamp);
         rasterScalarApplied_ = rasterScalar_;
         ++applied;
     }

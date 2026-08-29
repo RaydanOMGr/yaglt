@@ -2051,6 +2051,13 @@ void glPolygonOffset(GLfloat factor, GLfloat units) {
                                         static_cast<float>(units));
 }
 
+void glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp) {
+    if (g_current == nullptr) return;
+    g_current->setPolygonOffsetClamp(static_cast<float>(factor),
+                                     static_cast<float>(units),
+                                     static_cast<float>(clamp));
+}
+
 void glPointParameteri(GLenum pname, GLint param) {
     if (g_current == nullptr) return;
     g_current->pointParameteri(pname, param);

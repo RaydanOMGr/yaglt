@@ -162,6 +162,7 @@ bool GLESLib::load() {
     resolve(gles, glHint, "glHint");
     ok &= resolve(gles, glLineWidth, "glLineWidth");
     ok &= resolve(gles, glPolygonOffset, "glPolygonOffset");
+    ok &= resolve(gles, glPolygonOffsetClamp, "glPolygonOffsetClamp");
     ok &= resolve(gles, glPixelStorei, "glPixelStorei");
     ok &= resolve(gles, glViewport, "glViewport");
     ok &= resolve(gles, glScissor, "glScissor");

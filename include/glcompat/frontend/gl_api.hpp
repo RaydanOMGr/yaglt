@@ -692,6 +692,7 @@ void glFrontFace(GLenum mode);
 void glPointSize(GLfloat size);
 void glLineWidth(GLfloat width);
 void glPolygonOffset(GLfloat factor, GLfloat units);
+void glPolygonOffsetClamp(GLfloat factor, GLfloat units, GLfloat clamp);
 
 // Point parameters (SPEC §10.2, glPointParameter*). pname validation and the
 // non-negative / sprite-origin checks live in Context; the frontend owns the

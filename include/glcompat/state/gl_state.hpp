@@ -129,6 +129,7 @@ public:
     bool setPointSize(float size);
     bool setLineWidth(float width);
     bool setPolygonOffset(float factor, float units);
+    bool setPolygonOffsetClamp(float factor, float units, float clamp);
 
     // --- Point parameters (SPEC §10.2, glPointParameter{i,f,iv,fv}) ---
     // The caller validates pname/value (GL_INVALID_ENUM / GL_INVALID_VALUE) and
@@ -374,10 +375,12 @@ private:
         float lineWidth = 1.0f;
         float polygonOffsetFactor = 0.0f;
         float polygonOffsetUnits = 0.0f;
+        float polygonOffsetClamp = 0.0f;
         bool equal(const RasterScalarState& o) const {
             return pointSize == o.pointSize && lineWidth == o.lineWidth &&
                    polygonOffsetFactor == o.polygonOffsetFactor &&
-                   polygonOffsetUnits == o.polygonOffsetUnits;
+                   polygonOffsetUnits == o.polygonOffsetUnits &&
+                   polygonOffsetClamp == o.polygonOffsetClamp;
         }
     };
     // Point parameters (SPEC §10.2, glPointParameter*). sizeMin/sizeMax/

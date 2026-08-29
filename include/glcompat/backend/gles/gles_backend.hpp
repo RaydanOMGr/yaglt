@@ -87,7 +87,7 @@ public:
     void frontFace(uint32_t mode) override;
     void pointSize(float size) override;
     void lineWidth(float width) override;
-    void polygonOffset(float factor, float units) override;
+    void polygonOffset(float factor, float units, float clamp) override;
     // GLES has no point parameters (glPointParameter*); recorded but not
     // forwarded to the driver (honest "Unsupported"), matching the desktop-only
     // point-sprite state.

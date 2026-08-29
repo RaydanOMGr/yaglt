@@ -2602,3 +2602,22 @@ crashed agent, this session)
    (GLES e2e) 720/720. Coverage regenerated: 418/1052 (~39.7%) full, 380/570 (~66.7%) core.
    `coverage-core.md` §7 row updated.
 
+ 2026-08-29 (glPolygonOffsetClamp — SPEC §11.1.3)
+ - Implemented `glPolygonOffsetClamp`. `RasterScalarState` gained `polygonOffsetClamp` (default 0),
+   folded into `equal()`; `setPolygonOffsetClamp(factor, units, clamp)` stores all three and reports
+   change only when any field differs. The `GLStateSink` `polygonOffset` signature was extended to
+   carry the clamp (single, honest push point for all raster scalar state). `GLESBackend::polygonOffset`
+   now calls `lib->glPolygonOffsetClamp` when present, else falls back to `lib->glPolygonOffset`
+   (clamp silently dropped on GLES < 3.1); `glPolygonOffsetClamp` resolved in `GLESLib`. Mock sink
+   records `lastPolygonOffsetClamp`.
+ - `Context::setPolygonOffsetClamp` + public `glPolygonOffsetClamp` dispatch wired through. Legacy
+   `glPolygonOffset` still updates only factor/units and leaves the clamp untouched (its default 0
+   matches `glPolygonOffsetClamp(f,u,0)`).
+ - Tests: new `tests/unit/polygon_offset_clamp_test.cpp` (2 cases, registered in `tests/CMakeLists.txt`):
+   clamp recorded/pushed + pushed only on change, and legacy `glPolygonOffset` leaving the clamp
+   unchanged (no spurious re-push, retained across a legacy factor/units change). The three mirror
+   test sinks (`state_test.cpp` / `texture_unit_test.cpp` / `dsa_texture_test.cpp`) gained the new
+   `polygonOffset(factor, units, clamp)` override.
+ - Validation: all three configs green — `build` 710/710, `build_san` 710/710, `build_tx`
+   (GLES e2e) 722/722. Coverage regenerated: 419/1052 (~39.8%) full, 381/570 (~66.8%) core.
+

@@ -472,8 +472,14 @@ void GLESBackend::lineWidth(float width) {
     if (lib_->glLineWidth) lib_->glLineWidth(width);
 }
 
-void GLESBackend::polygonOffset(float factor, float units) {
-    if (lib_->glPolygonOffset) lib_->glPolygonOffset(factor, units);
+void GLESBackend::polygonOffset(float factor, float units, float clamp) {
+    if (lib_->glPolygonOffsetClamp) {
+        lib_->glPolygonOffsetClamp(factor, units, clamp);
+    } else if (lib_->glPolygonOffset) {
+        // Fall back to the unclamped form; clamp is silently dropped on
+        // backends without glPolygonOffsetClamp (GLES < 3.1).
+        lib_->glPolygonOffset(factor, units);
+    }
 }
 
 // GLES has no polygon mode (glPolygonMode), sample mask (glSampleMaski), or

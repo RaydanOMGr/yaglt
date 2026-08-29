@@ -179,6 +179,7 @@ public:
     float lastLineWidth = 1.0f;
     float lastPolygonOffsetFactor = 0.0f;
     float lastPolygonOffsetUnits = 0.0f;
+    float lastPolygonOffsetClamp = 0.0f;
     float lastPointSizeMin = 0.0f;
     float lastPointSizeMax = 1.0f;
     float lastPointFadeThreshold = 0.0f;
@@ -378,10 +379,11 @@ public:
         ++lineWidthCalls;
         lastLineWidth = width;
     }
-    void polygonOffset(float factor, float units) override {
+    void polygonOffset(float factor, float units, float clamp) override {
         ++polygonOffsetCalls;
         lastPolygonOffsetFactor = factor;
         lastPolygonOffsetUnits = units;
+        lastPolygonOffsetClamp = clamp;
     }
     void polygonMode(uint32_t front, uint32_t back) override {
         ++polygonModeCalls;

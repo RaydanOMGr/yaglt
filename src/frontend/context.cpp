@@ -7722,6 +7722,10 @@ void Context::setClearStencil(int s) {
     state_.setClearStencil(s);
 }
 
+void Context::setPolygonOffsetClamp(float factor, float units, float clamp) {
+    state_.setPolygonOffsetClamp(factor, units, clamp);
+}
+
 void Context::clear(uint32_t mask) {
     // glClear accepts only the color/depth/stencil buffer bits; any other bit
     // is GL_INVALID_VALUE (SPEC §2.1).

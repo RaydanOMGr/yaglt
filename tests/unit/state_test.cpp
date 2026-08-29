@@ -56,7 +56,7 @@ struct RecordingSink : GLStateSink {
     void frontFace(GLenum) override { ++frontCalls; }
     void pointSize(float) override {}
     void lineWidth(float) override {}
-    void polygonOffset(float, float) override {}
+    void polygonOffset(float, float, float) override {}
     void polygonMode(uint32_t, uint32_t) override {}
     void sampleMaski(uint32_t, uint32_t) override {}
     void minSampleShading(float) override {}

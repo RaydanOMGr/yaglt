@@ -89,7 +89,7 @@ public:
     // the relevant one changed (the frontend compares each field individually).
     virtual void pointSize(float size) = 0;
     virtual void lineWidth(float width) = 0;
-    virtual void polygonOffset(float factor, float units) = 0;
+    virtual void polygonOffset(float factor, float units, float clamp) = 0;
 
     // Point parameters (SPEC §10.2, glPointParameter*). Pushed only when any
     // field changed; backends without point-parameter support (e.g. GLES) record

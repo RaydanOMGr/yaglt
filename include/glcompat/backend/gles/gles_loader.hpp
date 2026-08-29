@@ -156,6 +156,7 @@ struct GLESLib {
     void (*glHint)(GLenum, GLenum) = nullptr;
     void (*glLineWidth)(GLfloat) = nullptr;
     void (*glPolygonOffset)(GLfloat, GLfloat) = nullptr;
+    void (*glPolygonOffsetClamp)(GLfloat, GLfloat, GLfloat) = nullptr;
     void (*glPixelStorei)(GLenum, GLint) = nullptr;
     void (*glViewport)(GLint, GLint, GLsizei, GLsizei) = nullptr;
     void (*glScissor)(GLint, GLint, GLsizei, GLsizei) = nullptr;

@@ -572,6 +572,7 @@ public:
     void setClearColor(float r, float g, float b, float a);
     void setClearDepth(double d);
     void setClearStencil(int s);
+    void setPolygonOffsetClamp(float factor, float units, float clamp);
     void clear(uint32_t mask);
 
     // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
