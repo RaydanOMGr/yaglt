@@ -37,13 +37,19 @@ SPEC = os.path.join(ROOT, "OpenGL-4.6-Compatibility.md")
 API = os.path.join(ROOT, "include", "glcompat", "frontend", "gl_api.hpp")
 DOC = os.path.join(ROOT, "docs", "coverage-core.md")
 
-# Return types the spec uses for command prototypes.
+# Return types the spec uses for command prototypes. Pointers (`void *`,
+# `const ubyte *`, ...) are handled by the separator below, not here.
 RETURN_TYPES = (
-    r"void\s*\*|void|boolean|enum|int|uint|sizei|intptr|sizeiptr|int64|uint64|"
-    r"float|double|sync|handle|ubyte\s*\*|byte"
+    r"const\s+ubyte\s*\*|ubyte\s*\*|const\s+void\s*\*|void\s*\*|void|boolean|"
+    r"enum|int|uint|sizei|intptr|sizeiptr|int64|uint64|float|double|sync|handle|byte"
 )
+# A prototype is `<return> [ *] <Name> [{braces}] [ <lowercase suffix>] (`.
+# The lowercase suffix folds spec quirks such as `GetBooleani v` (real GL name
+# `GetBooleani_v`) into the command name.
 PROTO_RE = re.compile(
-    r"\b(?:" + RETURN_TYPES + r")\s+([A-Z][A-Za-z0-9_]*(?:\{[^}\n]*\}[A-Za-z0-9_]*)*)\s*\("
+    r"\b(?:" + RETURN_TYPES + r")(?:\s+\*?|\*)?"
+    r"([A-Z][A-Za-z0-9_]*(?:\{[^}\n]*\}[A-Za-z0-9_]*)*)"
+    r"(?:\s+([a-z]+))?\s*\("
 )
 
 # Compatibility-only commands removed in the core profile (spec appendix E.2.2),
@@ -98,7 +104,10 @@ def expand_braces(name):
 def spec_commands(text):
     names = set()
     for m in PROTO_RE.finditer(text):
-        for expanded in expand_braces(m.group(1)):
+        name = m.group(1)
+        if m.group(2):  # spec writes the vector suffix as a separate token
+            name += "_" + m.group(2)
+        for expanded in expand_braces(name):
             names.add(expanded)
     return names
 
