@@ -297,6 +297,17 @@ void GLESBackend::bindSampler(uint32_t unit, uint32_t sampler) {
     if (lib_->glBindSampler) lib_->glBindSampler(unit, native);
 }
 
+void GLESBackend::bindImageTexture(uint32_t unit, uint32_t texture, int level,
+                                   bool layered, int layer, uint32_t access,
+                                   uint32_t format) {
+    auto it = nativeMap_.find(texture);
+    GLuint native = it != nativeMap_.end() ? it->second : texture;
+    if (lib_->glBindImageTexture) {
+        lib_->glBindImageTexture(unit, native, level, layered, layer, access,
+                                 format);
+    }
+}
+
 void GLESBackend::enableVertexAttribArray(uint32_t index) {
     if (lib_->glEnableVertexAttribArray)
         lib_->glEnableVertexAttribArray(static_cast<GLuint>(index));

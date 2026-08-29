@@ -133,6 +133,11 @@ public:
     // native driver sampler id via the registered name map; `unit` is the
     // zero-based texture unit index.
     void bindSampler(uint32_t unit, uint32_t sampler) override;
+    // Image units (SPEC §8.22). Forwards to glBindImageTexture (ES 3.1+) after
+    // resolving the frontend texture name to the native id.
+    void bindImageTexture(uint32_t unit, uint32_t texture, int level,
+                          bool layered, int layer, uint32_t access,
+                          uint32_t format) override;
 
     // Vertex array + attribute setup (SPEC §2.1).
     void bindVertexArray(uint32_t vao) override;

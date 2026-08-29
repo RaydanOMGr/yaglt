@@ -1350,6 +1350,19 @@ void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers) {
     g_current->bindSamplers(first, count, samplers);
 }
 
+void glBindImageTexture(GLuint unit, GLuint texture, GLint level,
+                        GLboolean layered, GLint layer, GLenum access,
+                        GLenum format) {
+    if (g_current == nullptr) return;
+    g_current->bindImageTexture(unit, texture, level, layered, layer, access,
+                                format);
+}
+
+void glBindImageTextures(GLuint first, GLsizei count, const GLuint* textures) {
+    if (g_current == nullptr) return;
+    g_current->bindImageTextures(first, count, textures);
+}
+
 void glDeleteSampler(GLuint sampler) {
     if (g_current == nullptr) return;
     g_current->deleteSampler(sampler);

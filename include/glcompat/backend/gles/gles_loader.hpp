@@ -208,6 +208,8 @@ struct GLESLib {
     void (*glGenSamplers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteSamplers)(GLsizei, const GLuint*) = nullptr;
     void (*glBindSampler)(GLuint, GLuint) = nullptr;
+    void (*glBindImageTexture)(GLuint, GLuint, GLint, GLboolean, GLint, GLenum,
+                               GLenum) = nullptr;
     void (*glSamplerParameteri)(GLuint, GLenum, GLint) = nullptr;
     void (*glSamplerParameterf)(GLuint, GLenum, GLfloat) = nullptr;
     void (*glSamplerParameterfv)(GLuint, GLenum, const GLfloat*) = nullptr;

@@ -86,6 +86,8 @@ struct UnitRecordingSink : GLStateSink {
         binds.push_back({currentUnit, target, texture});
     }
     void bindSampler(uint32_t, uint32_t) override {}
+    void bindImageTexture(uint32_t, uint32_t, int, bool, int, uint32_t,
+                          uint32_t) override {}
     void vertexAttribDivisor(uint32_t, uint32_t) override {}
     void drawBuffers(int32_t, const uint32_t*) override {}
     void readBuffer(uint32_t) override {}

@@ -74,6 +74,7 @@ add_executable(yaglt_tests
     unit/rasterization_control_test.cpp
     unit/polygon_offset_clamp_test.cpp
     unit/patch_parameter_test.cpp
+    unit/bind_image_texture_test.cpp
     unit/program_resource_test.cpp
     unit/subroutine_test.cpp
     unit/active_uniform_attrib_test.cpp

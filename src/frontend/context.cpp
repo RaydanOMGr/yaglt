@@ -4314,6 +4314,85 @@ GLObjectName Context::boundSampler(uint32_t unit) const {
     return state_.boundSamplerForUnit(unit);
 }
 
+void Context::bindImageTexture(uint32_t unit, GLObjectName texture, GLint level,
+                               GLboolean layered, GLint layer, GLenum access,
+                               GLenum format) {
+    if (!backend_.capabilities().isSupported(Feature::ImageLoadStore)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (unit >= state_.maxImageUnits()) {
+        setError(GLError::InvalidValue); // unit out of range
+        return;
+    }
+    if (texture == 0) {
+        // Unbind: the other params are ignored (SPEC §8.22), so record the unit
+        // at its default binding rather than the caller's (possibly garbage)
+        // level/layer/access/format.
+        state_.setImageUnitBinding(unit, 0, 0, false, 0, GL_READ_ONLY,
+                                   GL_RGBA32F);
+        return;
+    }
+    if (level < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (layer < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (access != GL_READ_ONLY && access != GL_WRITE_ONLY &&
+        access != GL_READ_WRITE) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    // The exhaustive `format` validity check (every sized internal format)
+    // is intentionally not performed; the backend forwards it honestly.
+    state_.setImageUnitBinding(unit, texture, level, layered != 0, layer, access,
+                               format);
+}
+
+void Context::bindImageTextures(uint32_t first, GLsizei count,
+                                const GLObjectName* textures) {
+    if (!backend_.capabilities().isSupported(Feature::ImageLoadStore)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (count <= 0) return; // SPEC §8.22: count zero is silently ignored
+    const uint32_t n = static_cast<uint32_t>(count);
+    const uint32_t maxUnits = state_.maxImageUnits();
+    if (first > maxUnits || n > maxUnits - first) {
+        // SPEC §8.22: first + count greater than MAX_IMAGE_UNITS is
+        // GL_INVALID_VALUE (unlike samplers, which use INVALID_OPERATION).
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Each entry is validated separately: an ungenerated non-zero name leaves
+    // that unit unchanged and generates GL_INVALID_OPERATION, while the remaining
+    // valid entries are still applied.
+    std::vector<GLObjectName> resolved(n);
+    bool sawInvalid = false;
+    for (uint32_t i = 0; i < n; ++i) {
+        const GLObjectName name = (textures != nullptr) ? textures[i] : 0;
+        if (name != 0 && textures_.find(name) == textures_.end()) {
+            resolved[i] = state_.boundImageTextureForUnit(first + i);
+            sawInvalid = true;
+        } else {
+            resolved[i] = name;
+        }
+    }
+    state_.setImageUnitBindings(first, n, resolved.data());
+    if (sawInvalid) setError(GLError::InvalidOperation);
+}
+
+GLObjectName Context::boundImageTexture(uint32_t unit) const {
+    return state_.boundImageTextureForUnit(unit);
+}
+
 void Context::deleteSampler(GLObjectName name) {
     auto it = samplers_.find(name);
     if (it == samplers_.end()) return;

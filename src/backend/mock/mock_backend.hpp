@@ -611,6 +611,28 @@ public:
         lastBindSampler = sampler;
     }
 
+    // Records the last glBindImageTexture push (whole binding).
+    int bindImageTextureCalls = 0;
+    uint32_t lastBindImageTextureUnit = 0;
+    GLObjectName lastBindImageTexture = 0;
+    int lastBindImageTextureLevel = 0;
+    bool lastBindImageTextureLayered = false;
+    int lastBindImageTextureLayer = 0;
+    uint32_t lastBindImageTextureAccess = 0;
+    uint32_t lastBindImageTextureFormat = 0;
+    void bindImageTexture(uint32_t unit, uint32_t texture, int level,
+                          bool layered, int layer, uint32_t access,
+                          uint32_t format) override {
+        ++bindImageTextureCalls;
+        lastBindImageTextureUnit = unit;
+        lastBindImageTexture = texture;
+        lastBindImageTextureLevel = level;
+        lastBindImageTextureLayered = layered;
+        lastBindImageTextureLayer = layer;
+        lastBindImageTextureAccess = access;
+        lastBindImageTextureFormat = format;
+    }
+
     // --- Draw command recording (observable in tests) ---
     int drawArraysCalls = 0;
     int drawElementsCalls = 0;

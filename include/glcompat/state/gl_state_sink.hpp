@@ -138,6 +138,14 @@ public:
     // binding changes (SPEC §10).
     virtual void bindSampler(uint32_t unit, uint32_t sampler) = 0;
 
+    // Image units (SPEC §8.22 / §10.8.1, glBindImageTexture). Pushed whole
+    // (texture + level + layered + layer + access + format) only when the unit's
+    // binding changed. Backends resolve `texture` (frontend name) to the native
+    // id before calling the native glBindImageTexture.
+    virtual void bindImageTexture(uint32_t unit, uint32_t texture, int level,
+                                  bool layered, int layer, uint32_t access,
+                                  uint32_t format) = 0;
+
     virtual void pixelStorei(uint32_t pname, int32_t param) = 0;
 
     // Viewport (glViewport, SPEC §10) and scissor box (glScissor). The scissor

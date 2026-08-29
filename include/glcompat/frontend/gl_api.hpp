@@ -470,6 +470,10 @@ void glGenSamplers(GLsizei n, GLuint* samplers);
 void glCreateSamplers(GLsizei n, GLuint* samplers);
 void glBindSampler(GLuint unit, GLuint sampler);
 void glBindSamplers(GLuint first, GLsizei count, const GLuint* samplers);
+void glBindImageTexture(GLuint unit, GLuint texture, GLint level,
+                        GLboolean layered, GLint layer, GLenum access,
+                        GLenum format);
+void glBindImageTextures(GLuint first, GLsizei count, const GLuint* textures);
 void glDeleteSampler(GLuint sampler);
 void glDeleteSamplers(GLsizei n, const GLuint* samplers);
 GLboolean glIsSampler(GLuint sampler);

@@ -273,6 +273,9 @@ bool GLESLib::load() {
     resolve(gles, glGenSamplers, "glGenSamplers");
     resolve(gles, glDeleteSamplers, "glDeleteSamplers");
     resolve(gles, glBindSampler, "glBindSampler");
+    // glBindImageTexture is core in GLES 3.1; resolve it optionally so load()
+    // still succeeds on ES 3.0 drivers that omit it.
+    resolve(gles, glBindImageTexture, "glBindImageTexture");
     resolve(gles, glSamplerParameteri, "glSamplerParameteri");
     resolve(gles, glSamplerParameterf, "glSamplerParameterf");
     resolve(gles, glSamplerParameterfv, "glSamplerParameterfv");

@@ -836,6 +836,25 @@ public:
     // while the remaining valid entries are still bound.
     void bindSamplers(uint32_t first, GLsizei count, const GLObjectName* samplers);
     GLObjectName boundSampler(uint32_t unit) const;
+
+    // Image units (SPEC §8.22 / §10.8.1, glBindImageTexture). Binds `texture` to
+    // image unit `unit` (zero-based) with the given level/layered/layer/access/
+    // format, validated and pushed at flush time. An out-of-range `unit` reports
+    // GL_INVALID_VALUE; with a non-zero `texture`, a negative `level`/`layer`
+    // reports GL_INVALID_VALUE, an invalid `access` reports GL_INVALID_ENUM (the
+    // exhaustive `format` check is intentionally not performed). Binding 0 unbinds
+    // the unit (the other params are then ignored). Capability-gated by ShaderImageLoadStore.
+    void bindImageTexture(uint32_t unit, GLObjectName texture, GLint level,
+                          GLboolean layered, GLint layer, GLenum access,
+                          GLenum format);
+    // Multi-bind image units (`glBindImageTextures`, SPEC §8.22 / ARB_multi_bind).
+    // Binds `count` textures from `textures` to consecutive units starting at
+    // `first`, each with the spec's multi-bind defaults. `count == 0` is a silent
+    // no-op; a null `textures` array unbinds every touched unit; `first + count`
+    // beyond MAX_IMAGE_UNITS reports GL_INVALID_VALUE.
+    void bindImageTextures(uint32_t first, GLsizei count,
+                           const GLObjectName* textures);
+    GLObjectName boundImageTexture(uint32_t unit) const;
     void deleteSampler(GLObjectName name);
     void deleteSamplers(uint32_t n, const GLObjectName* names);
     SamplerObject* getSampler(GLObjectName name);

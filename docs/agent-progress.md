@@ -2649,5 +2649,35 @@ crashed agent, this session)
    invalid-pname `GL_INVALID_ENUM`, non-positive `GL_INVALID_VALUE`, and null-pointer
    ignore paths. Validation: all three configs green — `build` 712/712,
    `build_san` 712/712, `build_tx` (GLES e2e) 724/724. Coverage regenerated:
-   421/1052 (~40.0%) full, 383/570 (~67.2%) core.
+    421/1052 (~40.0%) full, 383/570 (~67.2%) core.
+
+## Recent Work (2026-08-29 — image units, this session)
+ - Added shader image-unit bindings `glBindImageTexture` + `glBindImageTextures`
+   (SPEC §8.22 / §10.8.1). New `ImageUnitBinding` in `GLStateTracker` tracks all
+   six fields (texture, level, layered, layer, access, format) so a changed unit
+   is re-pushed whole; `kMaxImageUnits = 8` (the GL 4.6 guaranteed minimum). New
+   `setImageUnitBinding` / `setImageUnitBindings` (multi-bind, spec defaults),
+   `boundImageTextureForUnit` accessor, and `maxImageUnits()`. `apply()` pushes
+   only the image units whose binding changed.
+ - `Context::bindImageTexture` is capability-gated by `Feature::ImageLoadStore`;
+   validates unit range (`GL_INVALID_VALUE`), and with a non-zero texture a
+   negative level/layer (`GL_INVALID_VALUE`), an invalid access (`GL_INVALID_ENUM`),
+   and an ungenerated name (`GL_INVALID_OPERATION`). Binding texture 0 unbinds the
+   unit and ignores the other params (recorded at the default binding). `Context::
+   bindImageTextures` is the multi-bind analog: `count == 0` is a silent no-op,
+   `first + count > MAX_IMAGE_UNITS` is `GL_INVALID_VALUE`, per-entry name
+   validation leaves an invalid unit unchanged and reports `GL_INVALID_OPERATION`.
+   Public `glBindImageTexture` / `glBindImageTextures` dispatch wired through.
+ - `GLStateSink` gained `bindImageTexture(unit, texture, level, layered, layer,
+   access, format)`; the mock records the last push (`lastBindImageTexture*` +
+   `bindImageTextureCalls`). `GLESBackend` resolves the frontend texture name to
+   the native id and forwards to `lib->glBindImageTexture` (resolved optionally;
+   core in GLES 3.1). The three mirror test sinks gained the override.
+ - Tests: new `tests/unit/bind_image_texture_test.cpp` (3 cases, registered in
+   `tests/CMakeLists.txt`) covering record-and-push, per-field change-skipping,
+   unbind-with-ignored-params, the unit/level/layer/access/name validation
+   errors, and the multi-bind push split / no-op / out-of-range paths. Validation:
+   all three configs green — `build` 715/715, `build_san` 715/715, `build_tx`
+   (GLES e2e) 727/727. Coverage regenerated: 423/1052 (~40.2%) full,
+   385/570 (~67.5%) core.
 

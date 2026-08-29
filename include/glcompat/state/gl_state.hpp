@@ -29,6 +29,9 @@ public:
     // guarantees at least this many; GLES guarantees far fewer but YAGLT tracks
     // a fixed, generous table so unit indices stay stable (SPEC §2.1).
     static constexpr uint32_t kMaxTextureUnits = 32;
+    // Image units (SPEC §8.22 / §10.8.1). GL 4.6 core guarantees at least
+    // MAX_IMAGE_UNITS = 8; the frontend tracks this many units (SPEC §2.1).
+    static constexpr uint32_t kMaxImageUnits = 8;
     // GL 4.6 core defines MAX_SAMPLE_MASK_WORDS = 2 (64 sample bits). The
     // frontend tracks this many mask words for glSampleMaski (SPEC §11.5).
     static constexpr uint32_t kMaxSampleMaskWords = 2;
@@ -283,6 +286,7 @@ public:
     // texture object is deleted). Returns true when a binding was changed.
     bool clearTextureBinding(GLObjectName name);
     uint32_t maxCombinedTextureUnits() const { return kMaxTextureUnits; }
+    uint32_t maxImageUnits() const { return kMaxImageUnits; }
 
     // --- Sampler objects (SPEC §8.2) ---
     // Bind sampler `name` to texture unit `unit`; returns true when the binding
@@ -302,6 +306,24 @@ public:
     // rejected must repeat the unit's current binding.
     bool setSamplerBindings(uint32_t first, uint32_t count,
                             const GLObjectName* names);
+
+    // --- Image units (SPEC §8.22 / §10.8.1, glBindImageTexture) ---
+    // Bind `texture` to image unit `unit` with the given level/layered/layer/
+    // access/format. Returns true when that unit's binding changed. An out-of-
+    // range `unit` returns false (the caller reports GL_INVALID_VALUE); binding
+    // 0 unbinds the unit (the other params are then ignored, per spec).
+    bool setImageUnitBinding(uint32_t unit, GLObjectName texture, GLint level,
+                             bool layered, GLint layer, GLenum access,
+                             GLenum format);
+    // Multi-bind image units (`glBindImageTextures`, SPEC §8.22 / ARB_multi_bind).
+    // Binds `names` to consecutive units [first, first+count), each with the
+    // spec's multi-bind defaults (level 0, layered FALSE, layer 0, READ_ONLY,
+    // RGBA32F). `names` may be null (treated as all-zero, i.e. unbind every
+    // touched unit). Returns true when any unit's binding changed. Out-of-range
+    // bounds return false (the caller reports GL_INVALID_VALUE).
+    bool setImageUnitBindings(uint32_t first, uint32_t count,
+                              const GLObjectName* names);
+    GLObjectName boundImageTextureForUnit(uint32_t unit) const;
 
     // Push only changed state to `sink`. Returns number of categories applied.
     int apply(GLStateSink& sink);
@@ -417,6 +439,23 @@ private:
             return patchVertices == o.patchVertices &&
                    patchOuterLevel == o.patchOuterLevel &&
                    patchInnerLevel == o.patchInnerLevel;
+        }
+    };
+    // Image unit binding (SPEC §8.22 / §10.8.1, glBindImageTexture). All six
+    // fields are tracked so a changed unit is re-pushed whole; `equal` enables
+    // cheap change detection. GL defaults: no texture, level 0, non-layered,
+    // layer 0, READ_ONLY, RGBA32F.
+    struct ImageUnitBinding {
+        GLObjectName texture = 0;
+        GLint level = 0;
+        bool layered = false;
+        GLint layer = 0;
+        GLenum access = 0x88B8; // GL_READ_ONLY
+        GLenum format = 0x8814; // GL_RGBA32F (spec default)
+        bool equal(const ImageUnitBinding& o) const {
+            return texture == o.texture && level == o.level &&
+                   layered == o.layered && layer == o.layer &&
+                   access == o.access && format == o.format;
         }
     };
     // glPolygonMode (SPEC §11.1). Per-side render mode (GL_POINT/GL_LINE/GL_FILL).
@@ -562,6 +601,9 @@ private:
     PointParamState pointParam_, pointParamApplied_;
     // glPatchParameter{i,fv} (SPEC §10.6). patchVertices / outer / inner levels.
     PatchParameterState patch_, patchApplied_;
+    // glBindImageTexture (SPEC §8.22). Per-image-unit binding record.
+    std::vector<ImageUnitBinding> imageUnit_, imageUnitApplied_;
+    bool imageUnitsDirty_ = false;
     // glClipControl (SPEC §12.1). origin/depth select the clip-volume origin and
     // depth range mapping; GL default GL_LOWER_LEFT + GL_NEGATIVE_ONE_TO_ONE.
     struct ClipControlState {

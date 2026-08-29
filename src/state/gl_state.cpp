@@ -7,6 +7,8 @@ GLStateTracker::GLStateTracker() {
     texUnitsApplied_.resize(kMaxTextureUnits);
     samplerBound_.assign(kMaxTextureUnits, 0);
     samplerBoundApplied_.assign(kMaxTextureUnits, 0);
+    imageUnit_.assign(kMaxImageUnits, ImageUnitBinding{});
+    imageUnitApplied_.assign(kMaxImageUnits, ImageUnitBinding{});
     blendBuf_.assign(kMaxDrawBuffers, BlendState{});
     blendBufApplied_.assign(kMaxDrawBuffers, BlendState{});
     colorMask_.assign(kMaxDrawBuffers, ColorMaskState{});
@@ -738,6 +740,52 @@ bool GLStateTracker::setSamplerBindings(uint32_t first, uint32_t count,
     return changed;
 }
 
+bool GLStateTracker::setImageUnitBinding(uint32_t unit, GLObjectName texture,
+                                         GLint level, bool layered, GLint layer,
+                                         GLenum access, GLenum format) {
+    if (unit >= kMaxImageUnits) return false; // out of range
+    ImageUnitBinding b;
+    b.texture = texture;
+    b.level = level;
+    b.layered = layered;
+    b.layer = layer;
+    b.access = access;
+    b.format = format;
+    if (imageUnit_[unit].equal(b)) return false;
+    imageUnit_[unit] = b;
+    imageUnitsDirty_ = true;
+    return true;
+}
+
+bool GLStateTracker::setImageUnitBindings(uint32_t first, uint32_t count,
+                                          const GLObjectName* names) {
+    if (first > kMaxImageUnits || first + count > kMaxImageUnits)
+        return false; // out of range
+    bool changed = false;
+    for (uint32_t i = 0; i < count; ++i) {
+        uint32_t unit = first + i;
+        GLObjectName name = (names != nullptr) ? names[i] : 0;
+        ImageUnitBinding b;
+        b.texture = name;
+        b.level = 0;
+        b.layered = false;
+        b.layer = 0;
+        b.access = GL_READ_ONLY;
+        b.format = GL_RGBA32F;
+        if (!imageUnit_[unit].equal(b)) {
+            imageUnit_[unit] = b;
+            changed = true;
+        }
+    }
+    if (changed) imageUnitsDirty_ = true;
+    return changed;
+}
+
+GLObjectName GLStateTracker::boundImageTextureForUnit(uint32_t unit) const {
+    if (unit >= imageUnit_.size()) return 0;
+    return imageUnit_[unit].texture;
+}
+
 int GLStateTracker::apply(GLStateSink& sink) {
     int applied = 0;
 
@@ -1108,6 +1156,19 @@ int GLStateTracker::apply(GLStateSink& sink) {
         ++applied;
     }
 
+    if (imageUnitsDirty_) {
+        for (uint32_t i = 0; i < kMaxImageUnits; ++i) {
+            const ImageUnitBinding& c = imageUnit_[i];
+            const ImageUnitBinding& a = imageUnitApplied_[i];
+            if (c.equal(a)) continue;
+            sink.bindImageTexture(i, c.texture, c.level, c.layered, c.layer,
+                                  c.access, c.format);
+        }
+        imageUnitApplied_ = imageUnit_;
+        imageUnitsDirty_ = false;
+        ++applied;
+    }
+
     return applied;
 }
 
@@ -1434,6 +1495,9 @@ void GLStateTracker::reset() {
     samplerBound_.assign(kMaxTextureUnits, 0);
     samplerBoundApplied_.assign(kMaxTextureUnits, 0);
     samplerUnitsDirty_ = false;
+    imageUnit_.assign(kMaxImageUnits, ImageUnitBinding{});
+    imageUnitApplied_.assign(kMaxImageUnits, ImageUnitBinding{});
+    imageUnitsDirty_ = false;
 }
 
 } // namespace glcompat
