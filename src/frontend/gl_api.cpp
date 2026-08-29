@@ -1670,10 +1670,17 @@ void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
     g_current->uniformSubroutinesuiv(shadertype, count, indices);
 }
 
-void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params) {
-    if (g_current == nullptr) return;
-    g_current->getUniformSubroutineuiv(shadertype, location, params);
-}
+ void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params) {
+     if (g_current == nullptr) return;
+     g_current->getUniformSubroutineuiv(shadertype, location, params);
+ }
+
+ void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname,
+                          GLint* values) {
+     if (g_current == nullptr) return;
+     g_current->getProgramStageiv(program, shadertype, pname, values);
+ }
+
 
 void glDeleteProgram(GLuint program) {
     if (g_current == nullptr) return;

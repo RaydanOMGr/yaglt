@@ -111,6 +111,7 @@ bool GLESLib::load() {
     resolve(gles, glGetActiveSubroutineName, "glGetActiveSubroutineName");
     resolve(gles, glUniformSubroutinesuiv, "glUniformSubroutinesuiv");
     resolve(gles, glGetUniformSubroutineuiv, "glGetUniformSubroutineuiv");
+    resolve(gles, glGetProgramStageiv, "glGetProgramStageiv");
     ok &= resolve(gles, glEnable, "glEnable");
     ok &= resolve(gles, glDisable, "glDisable");
     resolve(gles, glEnablei, "glEnablei");

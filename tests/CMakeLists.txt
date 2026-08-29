@@ -71,6 +71,7 @@ add_executable(yaglt_tests
     unit/program_resource_test.cpp
     unit/subroutine_test.cpp
     unit/active_uniform_attrib_test.cpp
+    unit/program_stage_test.cpp
     unit/primitive_restart_test.cpp
     unit/log_test.cpp
     unit/getstate_test.cpp

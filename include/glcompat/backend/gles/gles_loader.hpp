@@ -113,6 +113,7 @@ struct GLESLib {
     void (*glGetActiveSubroutineName)(GLuint, GLenum, GLuint, GLsizei, GLsizei*, GLchar*) = nullptr;
     void (*glUniformSubroutinesuiv)(GLenum, GLsizei, const GLuint*) = nullptr;
     void (*glGetUniformSubroutineuiv)(GLenum, GLint, GLuint*) = nullptr;
+    void (*glGetProgramStageiv)(GLuint, GLenum, GLenum, GLint*) = nullptr;
 
     // Pipeline state (SPEC §10): pushed by GLStateSink when the frontend
     // flushes tracked state to the driver.

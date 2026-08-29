@@ -776,12 +776,20 @@ struct GLESBackendProgram : BackendProgram {
                                     indices);
     }
     void getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
-                                uint32_t* params) const override {
+                                 uint32_t* params) const override {
         if (!lib || !lib->driverLive() || handle == 0 ||
             !lib->glGetUniformSubroutineuiv || params == nullptr)
             return;
         lib->glGetUniformSubroutineuiv(static_cast<GLenum>(shadertype), location,
                                       params);
+    }
+    void getProgramStageiv(uint32_t shadertype, uint32_t pname,
+                           int32_t* values) const override {
+        if (!lib || !lib->driverLive() || handle == 0 ||
+            !lib->glGetProgramStageiv || values == nullptr)
+            return;
+        lib->glGetProgramStageiv(handle, static_cast<GLenum>(shadertype),
+                                 static_cast<GLenum>(pname), values);
     }
     void uniform1f(int loc, float v0) override {
         if (loc < 0 || !lib || !lib->loaded || handle == 0) return;

@@ -497,6 +497,16 @@ public:
         (void)params;
     }
 
+    // Per-stage subroutine summary query (SPEC §7.9 glGetProgramStageiv). The
+    // default is honest for backends without introspection: every recognized
+    // pname reports 0 (no active subroutines / unknown limits).
+    virtual void getProgramStageiv(uint32_t shadertype, uint32_t pname,
+                                   int32_t* values) const {
+        (void)shadertype;
+        (void)pname;
+        if (values) *values = 0;
+    }
+
     virtual void uniformMatrix4fv(int loc, const float* m, int count,
                                  bool transpose) {}
 };

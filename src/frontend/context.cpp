@@ -5459,6 +5459,41 @@ void Context::getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
     bp->getUniformSubroutineuiv(shadertype, location, params);
 }
 
+void Context::getProgramStageiv(GLObjectName program, uint32_t shadertype,
+                                uint32_t pname, int32_t* values) {
+    if (!backend_.capabilities().isSupported(Feature::Subroutines)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isValidSubroutineStage(shadertype)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    switch (pname) {
+    case GL_ACTIVE_SUBROUTINES:
+    case GL_ACTIVE_SUBROUTINE_UNIFORMS:
+    case GL_ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS:
+    case GL_ACTIVE_SUBROUTINE_MAX_LENGTH:
+    case GL_ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH:
+    case GL_MAX_SUBROUTINES:
+    case GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS:
+        break;
+    default:
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (values == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    p->backend->getProgramStageiv(shadertype, pname, values);
+}
+
 void Context::getIntegerv(uint32_t pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);

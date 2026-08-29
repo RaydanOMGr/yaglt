@@ -929,6 +929,8 @@ public:
                               const uint32_t* indices);
     void getUniformSubroutineuiv(uint32_t shadertype, int32_t location,
                                  uint32_t* params);
+    void getProgramStageiv(GLObjectName program, uint32_t shadertype,
+                           uint32_t pname, int32_t* values);
 
     // Retrieve the info/debug log (SPEC §7.3 / §7.14). Copies up to bufSize-1
     // characters into `infoLog` (nul-terminated); `*length` receives the number

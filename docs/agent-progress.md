@@ -3,6 +3,29 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-29 — per-stage subroutine query, this session)
+- Added `glGetProgramStageiv` (SPEC §7.9) to complete the subroutine reflection
+  surface. New `BackendProgram::getProgramStageiv` virtual (honest default
+  returns 0 for every recognized pname — no introspection); the GLES backend
+  forwards to the driver `glGetProgramStageiv` (ES 3.1+, resolved optionally,
+  honest no-op otherwise) and the mock inherits the default. `Context::
+  getProgramStageiv` validates: `Subroutines` capability present (mock = Emulated,
+  so supported), `shadertype` is a valid subroutine stage (else
+  `GL_INVALID_OPERATION`), `pname` ∈ {ACTIVE_SUBROUTINES, ACTIVE_SUBROUTINE_
+  UNIFORMS, ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS, ACTIVE_SUBROUTINE_MAX_LENGTH,
+  ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH, MAX_SUBROUTINES, MAX_SUBROUTINE_UNIFORM_
+  LOCATIONS} (else `GL_INVALID_VALUE`), `params != nullptr` (else
+  `GL_INVALID_VALUE`), and the program is a linked program object (else
+  `GL_INVALID_OPERATION`). New `GL_MAX_SUBROUTINES` (0x8DE7) / `GL_MAX_SUBROUTINE_
+  UNIFORM_LOCATIONS` (0x8DE8) constants in `gl_types.hpp`; `glGetProgramStageiv`
+  declared in `gl_api.hpp`, dispatched in `gl_api.cpp`, and auto-exported by the
+  regenerated EGL shim. New `tests/unit/program_stage_test.cpp` (8 cases) covers
+  valid query (writes 0, no error), all seven pnames, invalid stage / pname /
+  null-params / unlinked-program / non-program-object validation, and the
+  no-context safe no-op. Default **656/656** → **664/664**, sanitizer **664/664**,
+  translate (Mesa) **676/676** green. Coverage bumped in `docs/coverage-core.md`
+  (398/1052 full ≈ 37.8%; 361/570 core ≈ 63.3%).
+
 ## Recent Work (2026-08-29 — active-uniform reflection completion, this session)
 - Added the classic program-introspection reflection entry points
   `glGetActiveUniformName` and `glGetActiveUniformsiv` (SPEC §7.3.1), completing

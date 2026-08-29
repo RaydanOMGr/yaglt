@@ -570,8 +570,10 @@ void glGetActiveSubroutineName(GLuint program, GLenum shadertype, GLuint index,
                                GLsizei bufSize, GLsizei* length, GLchar* name);
 void glUniformSubroutinesuiv(GLenum shadertype, GLsizei count,
                             const GLuint* indices);
-void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params);
-void glDeleteProgram(GLuint program);
+ void glGetUniformSubroutineuiv(GLenum shadertype, GLint location, GLuint* params);
+ void glGetProgramStageiv(GLuint program, GLenum shadertype, GLenum pname,
+                          GLint* values);
+ void glDeleteProgram(GLuint program);
 GLboolean glIsProgram(GLuint program);
 GLint glGetAttribLocation(GLuint program, const GLchar* name);
 GLint glGetFragDataLocation(GLuint program, const GLchar* name);
