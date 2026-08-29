@@ -5,8 +5,11 @@
 #include "glcompat/frontend/objects.hpp"
 #include "glcompat/state/gl_state.hpp"
 #include <cstdint>
+#include <deque>
+#include <map>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace glcompat {
 
@@ -16,7 +19,11 @@ namespace glcompat {
 // points will dispatch into (SPEC §2.1, §10, §11).
 class Context {
 public:
-    explicit Context(IGraphicsBackend& backend) : backend_(backend) {}
+    explicit Context(IGraphicsBackend& backend) : backend_(backend) {
+        for (auto& src : debugEnabled_)
+            for (auto& ty : src)
+                for (auto& sev : ty) sev = true;
+    }
 
     IGraphicsBackend& backend() { return backend_; }
 
@@ -1339,6 +1346,37 @@ public:
     void disableIndexed(uint32_t cap, uint32_t index);
     bool isEnabledIndexed(uint32_t cap, uint32_t index);
 
+    // ---- Debug messaging (SPEC §20.4) / debug groups (SPEC §20.5) ----
+    // Install a debug callback; `userParam` is forwarded to every invocation.
+    // Passing null disables callback invocation (messages are still filtered and
+    // logged for glGetDebugMessageLog).
+    void debugMessageCallback(GLDEBUGPROC callback, const void* userParam);
+    // Enable/disable message generation for the (source, type, severity) space.
+    // GL_DONT_CARE on any of source/type/severity acts as a wildcard. When `count`
+    // > 0, `ids` selects specific message ids within the matched (source, type)
+    // and `enabled` applies per-id, overriding the space-wide filter.
+    void debugMessageControl(GLenum source, GLenum type, GLenum severity,
+                             GLsizei count, const GLuint* ids, GLboolean enabled);
+    // Generate an application message (SPEC §20.4 glDebugMessageInsert). The
+    // message passes through the control filter; if enabled it is delivered to
+    // the callback (if installed) and appended to the retrievable log.
+    void debugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity,
+                            GLsizei length, const GLchar* buf);
+    // Retrieve and clear up to `count` logged messages (SPEC §20.4
+    // glGetDebugMessageLog). Returns the number of messages retrieved. Each entry
+    // is written to the parallel arrays; `messageLog` receives the concatenated
+    // NUL-terminated messages, with `lengths[i]` giving each length (excl. NUL).
+    GLuint getDebugMessageLog(GLuint count, GLsizei bufSize, GLenum* sources,
+                              GLenum* types, GLuint* ids, GLenum* severities,
+                              GLsizei* lengths, GLchar* messageLog);
+    // Push/pop a named debug group (SPEC §20.5). Push emits a PUSH_GROUP message;
+    // pop emits a POP_GROUP message and underflow sets GL_STACK_UNDERFLOW.
+    void pushDebugGroup(GLenum source, GLuint id, GLsizei length,
+                       const GLchar* message);
+    void popDebugGroup();
+    // Current debug group stack depth (0 when outside any group).
+    size_t debugGroupDepth() const { return debugGroups_.size(); }
+
 private:
     // Shared body for glGetQueryObject* (SPEC §4): reads the cached result /
     // availability from the backend query resource into the requested width/sign.
@@ -1474,6 +1512,40 @@ private:
     // | name); ptrLabels_ by the raw sync pointer.
     std::unordered_map<uint64_t, std::string> objectLabels_;
     std::unordered_map<const void*, std::string> ptrLabels_;
+
+    // ---- Debug messaging state (SPEC §20.4 / §20.5) ----
+    struct DebugMessage {
+        GLenum source;
+        GLenum type;
+        GLuint id;
+        GLenum severity;
+        std::string text;
+    };
+    GLDEBUGPROC debugCallback_ = nullptr;
+    const void* debugUserParam_ = nullptr;
+    // Space-wide enable filter indexed by (source, type, severity) using the
+    // fixed enum value set; default-constructed to "all enabled".
+    static constexpr int kDebugSources = 7;  // API..OTHER (DONT_CARE handled via index 6)
+    static constexpr int kDebugTypes = 10;   // ERROR..OTHER + PUSH/POP_GROUP
+    static constexpr int kDebugSeverities = 4; // HIGH..LOW + NOTIFICATION
+    bool debugEnabled_[7][10][4] = {};       // filled true in constructor
+    // Per-(source,type) per-id overrides; present key disables/enables that id.
+    std::map<std::pair<GLenum, GLenum>, std::map<GLuint, bool>> debugIdEnabled_;
+    // Ring of generated messages for glGetDebugMessageLog (FIFO).
+    std::deque<DebugMessage> debugLog_;
+    static constexpr size_t kDebugLogMax = 1024;
+    // Debug group stack: each entry records its (source, id, message).
+    std::vector<DebugMessage> debugGroups_;
+
+    // True when a message of the given (source, type, id, severity) passes the
+    // current control filter. Per-id rules (when present for source,type,id)
+    // override the space-wide table.
+    bool debugMessageEnabled(GLenum source, GLenum type, GLuint id,
+                             GLenum severity) const;
+    // Core emit path: filter, invoke callback, append to log. `length < 0` means
+    // `buf` is NUL-terminated (SPEC §20.4 allows -1).
+    void emitDebugMessage(GLenum source, GLenum type, GLuint id, GLenum severity,
+                         GLsizei length, const GLchar* buf);
 };
 
 } // namespace glcompat

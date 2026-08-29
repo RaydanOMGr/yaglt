@@ -320,6 +320,37 @@ constexpr GLenum GL_ELEMENT_ARRAY_BUFFER_BINDING = 0x8893;
 
 // Hint targets / modes (SPEC §21.1.1, glHint).
 constexpr GLenum GL_DONT_CARE = 0x1100;
+
+// Debug message namespaces (SPEC §20.4 / §20.5, KHR_debug).
+constexpr GLenum GL_DEBUG_OUTPUT = 0x92E0;
+constexpr GLenum GL_DEBUG_OUTPUT_SYNCHRONOUS = 0x8242;
+constexpr GLenum GL_DEBUG_SOURCE_API = 0x8246;
+constexpr GLenum GL_DEBUG_SOURCE_WINDOW_SYSTEM = 0x8247;
+constexpr GLenum GL_DEBUG_SOURCE_SHADER_COMPILER = 0x8248;
+constexpr GLenum GL_DEBUG_SOURCE_THIRD_PARTY = 0x8249;
+constexpr GLenum GL_DEBUG_SOURCE_APPLICATION = 0x824A;
+constexpr GLenum GL_DEBUG_SOURCE_OTHER = 0x824B;
+constexpr GLenum GL_DEBUG_TYPE_ERROR = 0x824C;
+constexpr GLenum GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR = 0x824D;
+constexpr GLenum GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR = 0x824E;
+constexpr GLenum GL_DEBUG_TYPE_PORTABILITY = 0x824F;
+constexpr GLenum GL_DEBUG_TYPE_PERFORMANCE = 0x8250;
+constexpr GLenum GL_DEBUG_TYPE_MARKER = 0x8268;
+constexpr GLenum GL_DEBUG_TYPE_PUSH_GROUP = 0x8269;
+constexpr GLenum GL_DEBUG_TYPE_POP_GROUP = 0x826A;
+constexpr GLenum GL_DEBUG_TYPE_OTHER = 0x8251;
+constexpr GLenum GL_DEBUG_SEVERITY_HIGH = 0x9146;
+constexpr GLenum GL_DEBUG_SEVERITY_MEDIUM = 0x9147;
+constexpr GLenum GL_DEBUG_SEVERITY_LOW = 0x9148;
+constexpr GLenum GL_DEBUG_SEVERITY_NOTIFICATION = 0x826B;
+constexpr GLenum GL_STACK_UNDERFLOW = 0x0504;
+constexpr GLenum GL_STACK_OVERFLOW = 0x0503;
+
+// Debug callback (SPEC §20.4 glDebugMessageCallback). Invoked synchronously for
+// each generated debug message that passes the current control filter.
+using GLDEBUGPROC = void (*)(GLenum source, GLenum type, GLuint id,
+                             GLenum severity, GLsizei length,
+                             const GLchar* message, const void* userParam);
 constexpr GLenum GL_FASTEST = 0x1101;
 constexpr GLenum GL_NICEST = 0x1102;
 constexpr GLenum GL_PERSPECTIVE_CORRECTION_HINT = 0x0C50;

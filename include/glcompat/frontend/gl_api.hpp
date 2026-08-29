@@ -954,8 +954,24 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
   void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect);
   void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect);
 
-  void glDispatchCompute(GLuint x, GLuint y, GLuint z);
-  void glDispatchComputeIndirect(const GLvoid* indirect);
+   void glDispatchCompute(GLuint x, GLuint y, GLuint z);
+   void glDispatchComputeIndirect(const GLvoid* indirect);
+
+// Debug messaging (SPEC §20.4) and debug groups (SPEC §20.5, KHR_debug).
+// glDebugMessageCallback installs the delivery callback; glDebugMessageControl
+// filters the (source, type, severity) space; glDebugMessageInsert generates an
+// application message; glGetDebugMessageLog drains the retrievable log; the
+// push/pop group pair delimits nested debug scopes.
+void glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam);
+void glDebugMessageControl(GLenum source, GLenum type, GLenum severity,
+                           GLsizei count, const GLuint* ids, GLboolean enabled);
+void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity,
+                          GLsizei length, const GLchar* buf);
+GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum* sources,
+                            GLenum* types, GLuint* ids, GLenum* severities,
+                            GLsizei* lengths, GLchar* messageLog);
+void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar* message);
+void glPopDebugGroup();
 
 
 

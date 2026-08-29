@@ -6206,6 +6206,193 @@ bool Context::isEnabledIndexed(uint32_t cap, uint32_t index) {
 }
 
 namespace {
+
+// Map KHR_debug enums to compact filter indices. Returns -1 for GL_DONT_CARE
+// (wildcard) and -2 for an out-of-range / invalid enum.
+int debugSourceIndex(GLenum e) {
+    switch (e) {
+        case GL_DEBUG_SOURCE_API: return 0;
+        case GL_DEBUG_SOURCE_WINDOW_SYSTEM: return 1;
+        case GL_DEBUG_SOURCE_SHADER_COMPILER: return 2;
+        case GL_DEBUG_SOURCE_THIRD_PARTY: return 3;
+        case GL_DEBUG_SOURCE_APPLICATION: return 4;
+        case GL_DEBUG_SOURCE_OTHER: return 5;
+        case GL_DONT_CARE: return -1;
+        default: return -2;
+    }
+}
+int debugTypeIndex(GLenum e) {
+    switch (e) {
+        case GL_DEBUG_TYPE_ERROR: return 0;
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: return 1;
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR: return 2;
+        case GL_DEBUG_TYPE_PORTABILITY: return 3;
+        case GL_DEBUG_TYPE_PERFORMANCE: return 4;
+        case GL_DEBUG_TYPE_MARKER: return 5;
+        case GL_DEBUG_TYPE_PUSH_GROUP: return 6;
+        case GL_DEBUG_TYPE_POP_GROUP: return 7;
+        case GL_DEBUG_TYPE_OTHER: return 8;
+        case GL_DONT_CARE: return -1;
+        default: return -2;
+    }
+}
+int debugSeverityIndex(GLenum e) {
+    switch (e) {
+        case GL_DEBUG_SEVERITY_HIGH: return 0;
+        case GL_DEBUG_SEVERITY_MEDIUM: return 1;
+        case GL_DEBUG_SEVERITY_LOW: return 2;
+        case GL_DEBUG_SEVERITY_NOTIFICATION: return 3;
+        case GL_DONT_CARE: return -1;
+        default: return -2;
+    }
+}
+
+} // namespace
+
+void Context::debugMessageCallback(GLDEBUGPROC callback, const void* userParam) {
+    debugCallback_ = callback;
+    debugUserParam_ = userParam;
+}
+
+bool Context::debugMessageEnabled(GLenum source, GLenum type, GLuint id,
+                                  GLenum severity) const {
+    // Per-id overrides take precedence; DONT_CARE dimensions collapse to a
+    // wildcard key so a control rule set with a wildcard still matches.
+    static const GLenum DC = GL_DONT_CARE;
+    const std::pair<GLenum, GLenum> keys[] = {
+        {source, type}, {DC, type}, {source, DC}, {DC, DC}};
+    for (const auto& k : keys) {
+        auto st = debugIdEnabled_.find(k);
+        if (st != debugIdEnabled_.end()) {
+            auto it = st->second.find(id);
+            if (it != st->second.end()) return it->second;
+        }
+    }
+    int si = debugSourceIndex(source);
+    int ti = debugTypeIndex(type);
+    int ei = debugSeverityIndex(severity);
+    if (si < 0 || ti < 0 || ei < 0) return true; // wildcard/unknown => default on
+    return debugEnabled_[si][ti][ei];
+}
+
+void Context::debugMessageControl(GLenum source, GLenum type, GLenum severity,
+                                  GLsizei count, const GLuint* ids,
+                                  GLboolean enabled) {
+    if (count < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    int si = debugSourceIndex(source);
+    int ti = debugTypeIndex(type);
+    int ei = debugSeverityIndex(severity);
+    if (si == -2 || ti == -2 || ei == -2) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (count > 0) {
+        // Per-id rules within the matched (source, type).
+        for (GLsizei i = 0; i < count; ++i)
+            debugIdEnabled_[{source, type}][ids[i]] = (enabled != 0);
+        return;
+    }
+    // Space-wide: expand any DONT_CARE dimension to its full range and apply.
+    for (int s = (si == -1 ? 0 : si); s <= (si == -1 ? 5 : si); ++s)
+        for (int t = (ti == -1 ? 0 : ti); t <= (ti == -1 ? 8 : ti); ++t)
+            for (int e = (ei == -1 ? 0 : ei); e <= (ei == -1 ? 3 : ei); ++e)
+                debugEnabled_[s][t][e] = (enabled != 0);
+}
+
+void Context::emitDebugMessage(GLenum source, GLenum type, GLuint id,
+                               GLenum severity, GLsizei length,
+                               const GLchar* buf) {
+    if (!debugMessageEnabled(source, type, id, severity)) return;
+    std::string text = (length < 0 && buf != nullptr)
+                           ? std::string(buf)
+                           : std::string(buf, length > 0 ? static_cast<size_t>(length) : 0);
+    if (debugCallback_) {
+        debugCallback_(source, type, id, severity,
+                       static_cast<GLsizei>(text.size()), text.c_str(),
+                       debugUserParam_);
+    }
+    if (debugLog_.size() >= kDebugLogMax) debugLog_.pop_front();
+    debugLog_.push_back({source, type, id, severity, text});
+}
+
+void Context::debugMessageInsert(GLenum source, GLenum type, GLuint id,
+                                 GLenum severity, GLsizei length,
+                                 const GLchar* buf) {
+    // SPEC §20.4: insert source must be APPLICATION or THIRD_PARTY.
+    if (source != GL_DEBUG_SOURCE_APPLICATION &&
+        source != GL_DEBUG_SOURCE_THIRD_PARTY) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (buf == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    emitDebugMessage(source, type, id, severity, length, buf);
+}
+
+GLuint Context::getDebugMessageLog(GLuint count, GLsizei bufSize, GLenum* sources,
+                                   GLenum* types, GLuint* ids, GLenum* severities,
+                                   GLsizei* lengths, GLchar* messageLog) {
+    GLuint retrieved = 0;
+    size_t pos = 0;
+    for (GLuint i = 0; i < count && !debugLog_.empty(); ++i) {
+        const DebugMessage& m = debugLog_.front();
+        if (sources) sources[i] = m.source;
+        if (types) types[i] = m.type;
+        if (ids) ids[i] = m.id;
+        if (severities) severities[i] = m.severity;
+        GLsizei len = static_cast<GLsizei>(m.text.size());
+        if (lengths) lengths[i] = len;
+        if (messageLog != nullptr && bufSize > 0) {
+            for (GLsizei c = 0; c < len && pos + 1 < static_cast<size_t>(bufSize); ++c)
+                messageLog[pos++] = m.text[c];
+            messageLog[pos++] = '\0';
+        }
+        debugLog_.pop_front();
+        ++retrieved;
+    }
+    return retrieved;
+}
+
+void Context::pushDebugGroup(GLenum source, GLuint id, GLsizei length,
+                            const GLchar* message) {
+    if (source != GL_DEBUG_SOURCE_APPLICATION &&
+        source != GL_DEBUG_SOURCE_THIRD_PARTY &&
+        source != GL_DEBUG_SOURCE_OTHER) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (message == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    std::string text = (length < 0)
+                           ? std::string(message)
+                           : std::string(message, length > 0 ? static_cast<size_t>(length) : 0);
+    debugGroups_.push_back(
+        {source, GL_DEBUG_TYPE_PUSH_GROUP, id, GL_DEBUG_SEVERITY_NOTIFICATION, text});
+    emitDebugMessage(source, GL_DEBUG_TYPE_PUSH_GROUP, id,
+                     GL_DEBUG_SEVERITY_NOTIFICATION,
+                     static_cast<GLsizei>(text.size()), text.c_str());
+}
+
+void Context::popDebugGroup() {
+    if (debugGroups_.empty()) {
+        setError(GLError::StackUnderflow);
+        return;
+    }
+    DebugMessage top = debugGroups_.back();
+    debugGroups_.pop_back();
+    emitDebugMessage(top.source, GL_DEBUG_TYPE_POP_GROUP, top.id,
+                     GL_DEBUG_SEVERITY_NOTIFICATION,
+                     static_cast<GLsizei>(top.text.size()), top.text.c_str());
+}
+
+namespace {
 // Copy `log` into `out` (up to bufSize-1 chars, nul-terminated). Sets *length to
 // the number of characters written, excluding the nul. Honors bufSize==0.
 void copyInfoLog(const std::string& log, uint32_t bufSize, int32_t* length,

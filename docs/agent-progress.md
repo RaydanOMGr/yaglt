@@ -2802,3 +2802,21 @@ crashed agent, this session)
    compile status, unknown-object rejection, and the public-dispatch path. Coverage
    regenerated: 442/1052 (~42.0%) full, 404/570 (~70.9%) core. Validation: `build`
    754/754, `build_san` 754/754, `build_tx` (GLES e2e) 766/766.
+
+- **glDebugMessage* / debug groups (SPEC §20.4 / §20.5, KHR_debug)** — adds the
+   frontend debug-messaging subsystem. `Context` owns a callback (`GLDEBUGPROC`),
+   a (source,type,severity) enable filter (default all-on, with per-id overrides),
+   a retrievable message log, and a debug-group stack. Added `debugMessageCallback`,
+   `debugMessageControl`, `debugMessageInsert`, `getDebugMessageLog`,
+   `pushDebugGroup`/`popDebugGroup`, plus private `debugMessageEnabled`/
+   `emitDebugMessage`. `emitDebugMessage` filters, invokes the callback, and appends
+   to the log; `getDebugMessageLog` drains the FIFO into the parallel arrays and a
+   concatenated NUL-terminated `messageLog`. `popDebugGroup` on an empty stack sets
+   `GL_STACK_UNDERFLOW` (new `GLError::StackUnderflow`; `GL_STACK_OVERFLOW` reserved;
+   both mapped in `gl_api` `mapError`). `gl_api` exposes all six entry points (C shim
+   regenerated at build). Debug constants + `GLDEBUGPROC` typedef added to
+   `gl_types.hpp`. New `tests/unit/debug_message_test.cpp` (5 cases) covering
+   callback delivery + log retrieval, control-based silencing, invalid-insert-source
+   rejection, push/pop stack depth + group messages, and the public-dispatch path.
+   Coverage regenerated: 448/1052 (~42.6%) full, 408/570 (~71.6%) core. Validation:
+   `build` 759/759, `build_san` 759/759, `build_tx` (GLES e2e) 771/771.

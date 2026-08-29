@@ -14,6 +14,8 @@ GLenum mapError(GLError e) {
     case GLError::InvalidName: return GL_INVALID_OPERATION;
     case GLError::OutOfMemory: return GL_INVALID_OPERATION;
     case GLError::NoCurrentContext: return GL_INVALID_OPERATION;
+    case GLError::StackUnderflow: return GL_STACK_UNDERFLOW;
+    case GLError::StackOverflow: return GL_STACK_OVERFLOW;
     }
     return GL_NO_ERROR;
 }
@@ -2711,5 +2713,39 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
       g_current->dispatchComputeIndirect(reinterpret_cast<uintptr_t>(indirect));
   }
 
+  void glDebugMessageCallback(GLDEBUGPROC callback, const void* userParam) {
+      if (g_current == nullptr) return;
+      g_current->debugMessageCallback(callback, userParam);
+  }
+
+  void glDebugMessageControl(GLenum source, GLenum type, GLenum severity,
+                            GLsizei count, const GLuint* ids, GLboolean enabled) {
+      if (g_current == nullptr) return;
+      g_current->debugMessageControl(source, type, severity, count, ids, enabled);
+  }
+
+  void glDebugMessageInsert(GLenum source, GLenum type, GLuint id, GLenum severity,
+                           GLsizei length, const GLchar* buf) {
+      if (g_current == nullptr) return;
+      g_current->debugMessageInsert(source, type, id, severity, length, buf);
+  }
+
+  GLuint glGetDebugMessageLog(GLuint count, GLsizei bufSize, GLenum* sources,
+                             GLenum* types, GLuint* ids, GLenum* severities,
+                             GLsizei* lengths, GLchar* messageLog) {
+      if (g_current == nullptr) return 0;
+      return g_current->getDebugMessageLog(count, bufSize, sources, types, ids,
+                                          severities, lengths, messageLog);
+  }
+
+  void glPushDebugGroup(GLenum source, GLuint id, GLsizei length, const GLchar* message) {
+      if (g_current == nullptr) return;
+      g_current->pushDebugGroup(source, id, length, message);
+  }
+
+  void glPopDebugGroup() {
+      if (g_current == nullptr) return;
+      g_current->popDebugGroup();
+  }
 
  } // namespace glcompat
