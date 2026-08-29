@@ -199,6 +199,14 @@ public:
     // clear with the current values.
     void clear(uint32_t mask) override;
 
+    // Texture clearing (SPEC §8.10). DSA; forwards to glClearTexImage /
+    // glClearTexSubImage with the resolved native id (optional, ES 3.0+).
+    void clearTexImage(uint32_t texture, int level, uint32_t format, uint32_t type,
+                      const void* data) override;
+    void clearTexSubImage(uint32_t texture, int level, int x, int y, int z, int w,
+                         int h, int d, uint32_t format, uint32_t type,
+                         const void* data) override;
+
     // Command stream flush / finish (SPEC §2.1).
     void flush() override;
     void finish() override;

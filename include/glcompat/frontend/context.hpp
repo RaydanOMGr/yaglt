@@ -575,6 +575,17 @@ public:
     void setPolygonOffsetClamp(float factor, float units, float clamp);
     void clear(uint32_t mask);
 
+    // --- Texture clearing (SPEC §8.10) ---
+    // DSA texture clears. The texture must exist and have storage
+    // (GL_INVALID_OPERATION otherwise); `level` must be within [0, levels)
+    // (GL_INVALID_VALUE). `format`/`type` are forwarded honestly. `data` is
+    // normally null. glClearTexSubImage additionally validates the region.
+    void clearTexImage(GLObjectName texture, int level, uint32_t format,
+                      uint32_t type, const void* data);
+    void clearTexSubImage(GLObjectName texture, int level, int x, int y, int z,
+                         int w, int h, int d, uint32_t format, uint32_t type,
+                         const void* data);
+
     // --- Whole-framebuffer buffer selection (SPEC §15 / §16) ---
     // Select the draw buffers for the currently bound framebuffer (glDrawBuffers)
     // and its read buffer (glReadBuffer). Pushed to the backend at the next state

@@ -659,6 +659,24 @@ void GLESBackend::clear(uint32_t mask) {
     if (lib_->glClear) lib_->glClear(mask);
 }
 
+void GLESBackend::clearTexImage(uint32_t texture, int level, uint32_t format,
+                               uint32_t type, const void* data) {
+    auto it = nativeMap_.find(texture);
+    GLuint native = it != nativeMap_.end() ? it->second : texture;
+    if (lib_->glClearTexImage)
+        lib_->glClearTexImage(native, level, format, type, data);
+}
+
+void GLESBackend::clearTexSubImage(uint32_t texture, int level, int x, int y, int z,
+                                  int w, int h, int d, uint32_t format,
+                                  uint32_t type, const void* data) {
+    auto it = nativeMap_.find(texture);
+    GLuint native = it != nativeMap_.end() ? it->second : texture;
+    if (lib_->glClearTexSubImage)
+        lib_->glClearTexSubImage(native, level, x, y, z, w, h, d, format, type,
+                                 data);
+}
+
 void GLESBackend::flush() {
     if (lib_->glFlush) lib_->glFlush();
 }

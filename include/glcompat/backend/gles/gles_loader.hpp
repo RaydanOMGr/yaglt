@@ -167,6 +167,11 @@ struct GLESLib {
     void (*glClearDepthf)(GLfloat) = nullptr;
     void (*glClearStencil)(GLint) = nullptr;
     void (*glClear)(GLbitfield) = nullptr;
+    // Texture clearing (SPEC §8.10). DSA; ES 3.0+. Resolved optionally so load()
+    // still succeeds on a driver that lacks them (capability reports unsupported).
+    void (*glClearTexImage)(GLuint, GLint, GLenum, GLenum, const void*) = nullptr;
+    void (*glClearTexSubImage)(GLuint, GLint, GLint, GLint, GLint, GLsizei,
+                               GLsizei, GLsizei, GLenum, GLenum, const void*) = nullptr;
     void (*glFlush)(void) = nullptr;
     void (*glFinish)(void) = nullptr;
     void (*glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum,

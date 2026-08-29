@@ -231,6 +231,16 @@ public:
     int lastClearStencil = 0;
     int clearCalls = 0;
     uint32_t lastClearMask = 0;
+    int clearTexImageCalls = 0;
+    uint32_t lastClearTexImageName = 0;
+    int lastClearTexImageLevel = 0;
+    uint32_t lastClearTexImageFormat = 0, lastClearTexImageType = 0;
+    int clearTexSubImageCalls = 0;
+    uint32_t lastClearTexSubImageName = 0;
+    int lastClearTexSubImageLevel = 0;
+    int lastClearTexSubImageX = 0, lastClearTexSubImageY = 0, lastClearTexSubImageZ = 0;
+    int lastClearTexSubImageW = 0, lastClearTexSubImageH = 0, lastClearTexSubImageD = 0;
+    uint32_t lastClearTexSubImageFormat = 0, lastClearTexSubImageType = 0;
     int flushCalls = 0;
     int finishCalls = 0;
     int readPixelsCalls = 0;
@@ -761,6 +771,31 @@ public:
     void clear(uint32_t mask) override {
         ++clearCalls;
         lastClearMask = mask;
+    }
+
+    void clearTexImage(uint32_t texture, int level, uint32_t format, uint32_t type,
+                      const void* data) override {
+        ++clearTexImageCalls;
+        lastClearTexImageName = texture;
+        lastClearTexImageLevel = level;
+        lastClearTexImageFormat = format;
+        lastClearTexImageType = type;
+    }
+
+    void clearTexSubImage(uint32_t texture, int level, int x, int y, int z, int w,
+                         int h, int d, uint32_t format, uint32_t type,
+                         const void* data) override {
+        ++clearTexSubImageCalls;
+        lastClearTexSubImageName = texture;
+        lastClearTexSubImageLevel = level;
+        lastClearTexSubImageX = x;
+        lastClearTexSubImageY = y;
+        lastClearTexSubImageZ = z;
+        lastClearTexSubImageW = w;
+        lastClearTexSubImageH = h;
+        lastClearTexSubImageD = d;
+        lastClearTexSubImageFormat = format;
+        lastClearTexSubImageType = type;
     }
 
     // Color logic op (SPEC §17.3.4). Recorded so tests can assert it is pushed

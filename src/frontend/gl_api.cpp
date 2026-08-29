@@ -2390,6 +2390,20 @@ void glClear(GLuint mask) {
     g_current->clear(mask);
 }
 
+void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                    const void* data) {
+    if (g_current == nullptr) return;
+    g_current->clearTexImage(texture, level, format, type, data);
+}
+
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                       GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                       GLenum format, GLenum type, const void* data) {
+    if (g_current == nullptr) return;
+    g_current->clearTexSubImage(texture, level, xoffset, yoffset, zoffset, width,
+                               height, depth, format, type, data);
+}
+
 void glDrawBuffers(GLsizei n, const GLenum* bufs) {
     if (g_current == nullptr) return;
     g_current->drawBuffers(static_cast<int32_t>(n), bufs);

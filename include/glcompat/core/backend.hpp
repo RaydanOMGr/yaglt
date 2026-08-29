@@ -92,6 +92,16 @@ public:
     // backend issues the native clear with the current clear values.
     virtual void clear(uint32_t mask) = 0;
 
+    // Texture clearing (SPEC §8.10). DSA-style: operates on the named texture
+    // directly without a bind. The frontend validates that the texture exists and
+    // has storage; the backend resolves the frontend name to the native driver id
+    // and issues glClearTexImage / glClearTexSubImage. `data` is normally null.
+    virtual void clearTexImage(uint32_t texture, int level, uint32_t format,
+                              uint32_t type, const void* data) = 0;
+    virtual void clearTexSubImage(uint32_t texture, int level, int x, int y, int z,
+                                 int w, int h, int d, uint32_t format,
+                                 uint32_t type, const void* data) = 0;
+
     // Command stream flush / finish (SPEC §2.1). glFlush empties the GL command
     // buffer; glFinish blocks until all issued commands complete.
     virtual void flush() = 0;

@@ -2697,3 +2697,21 @@ crashed agent, this session)
     `build_tx` (GLES e2e) 731/731. Coverage regenerated: 434/1052
     (~41.3%) full, 396/570 (~69.5%) core.
 
+- **glClearTexImage / glClearTexSubImage (SPEC §8.10)** — DSA texture clears.
+  New `IGraphicsBackend::clearTexImage` / `clearTexSubImage` virtuals (so the
+  frontend never touches a native API). `GLESBackend` resolves the frontend
+  texture name to the native id via `nativeMap_` and forwards to the optional
+  `glClearTexImage` / `glClearTexSubImage` (ES 3.0+) when present; otherwise it
+  is an honest no-op. `MockBackend` records the name/level/format/type and the
+  sub-image region. `Context::clearTexImage/SubImage` validate that the texture
+  exists and has storage (`GL_INVALID_OPERATION`), that `level` is within
+  `[0, storageLevels)` (`GL_INVALID_VALUE`), and that the sub-image extent is
+  non-negative (`GL_INVALID_VALUE`); `format`/`type` are forwarded honestly (no
+  exhaustive combination check, matching the project's validation convention).
+  Public `gl_api` exposes both entry points. New
+  `tests/unit/clear_tex_image_test.cpp` (5 cases) covering record/region,
+  ungenerated/no-storage rejection, out-of-range level, and negative extent.
+  Validation: `build` 724/724, `build_san` 724/724, `build_tx` (GLES e2e)
+  736/736. Coverage regenerated: 436/1052 (~41.4%) full,
+  398/570 (~69.8%) core.
+

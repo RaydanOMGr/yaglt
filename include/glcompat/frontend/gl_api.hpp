@@ -785,6 +785,14 @@ void glClearDepthf(GLfloat depth);
 void glClearStencil(GLint s);
 void glClear(GLuint mask);
 
+// --- Texture clearing (SPEC §8.10) ---
+// DSA clears of a named texture / sub-region. `data` is normally null.
+void glClearTexImage(GLuint texture, GLint level, GLenum format, GLenum type,
+                    const void* data);
+void glClearTexSubImage(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+                       GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
+                       GLenum format, GLenum type, const void* data);
+
 // Whole-framebuffer buffer selection (SPEC §15 / §16). glDrawBuffers selects the
 // draw buffers for the bound framebuffer; glReadBuffer selects its read buffer.
 void glDrawBuffers(GLsizei n, const GLenum* bufs);

@@ -7820,6 +7820,43 @@ void Context::clear(uint32_t mask) {
     backend_.clear(mask);
 }
 
+void Context::clearTexImage(GLObjectName texture, int level, uint32_t format,
+                           uint32_t type, const void* data) {
+    TextureObject* tex = getTexture(texture);
+    if (tex == nullptr || tex->storageLevels <= 0) {
+        setError(GLError::InvalidOperation); // not a texture / no storage
+        return;
+    }
+    if (level < 0 || level >= tex->storageLevels) {
+        setError(GLError::InvalidValue); // level out of range
+        return;
+    }
+    // The format/type legality (every internal-format-legal combination) is not
+    // exhaustively checked; the backend forwards them honestly.
+    backend_.clearTexImage(texture, level, format, type, data);
+}
+
+void Context::clearTexSubImage(GLObjectName texture, int level, int x, int y, int z,
+                              int w, int h, int d, uint32_t format, uint32_t type,
+                              const void* data) {
+    TextureObject* tex = getTexture(texture);
+    if (tex == nullptr || tex->storageLevels <= 0) {
+        setError(GLError::InvalidOperation); // not a texture / no storage
+        return;
+    }
+    if (level < 0 || level >= tex->storageLevels) {
+        setError(GLError::InvalidValue); // level out of range
+        return;
+    }
+    if (w < 0 || h < 0 || d < 0) {
+        setError(GLError::InvalidValue); // negative extent
+        return;
+    }
+    backend_.clearTexSubImage(texture, level, x, y, z, w, h, d, format, type,
+                             data);
+}
+
+
 namespace {
 // Valid draw buffer names (SPEC §15): GL_NONE, GL_BACK (default framebuffer), or
 // GL_COLOR_ATTACHMENTi (user framebuffers).
