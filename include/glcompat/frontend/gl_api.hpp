@@ -594,6 +594,14 @@ void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize
                                    GLchar* name);
  void glBindAttribLocation(GLuint program, GLuint index, const GLchar* name);
 
+ // Bind a user-defined fragment shader output to a fragment color number (SPEC
+ // §7.3.7 / §15.1.2 glBindFragDataLocation /
+ // glBindFragDataLocationIndexed). The indexed form also sets the dual-source
+ // index (0 or 1).
+ void glBindFragDataLocation(GLuint program, GLuint colorNumber, const GLchar* name);
+ void glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber,
+                                    GLuint index, const GLchar* name);
+
  // Specify the transform-feedback varyings captured for `program` (SPEC §13.3.1).
  void glTransformFeedbackVaryings(GLuint program, GLsizei count,
                                   const GLchar* const* varyings, GLenum bufferMode);

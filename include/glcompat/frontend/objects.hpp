@@ -325,6 +325,11 @@ public:
     // Generic attribute bindings requested via glBindAttribLocation before link.
     // name -> index; applied to the backend program at the next link (SPEC §7.3.7).
     std::map<std::string, int> attribBindings;
+    // Fragment-output bindings requested via glBindFragDataLocation /
+    // glBindFragDataLocationIndexed before link (SPEC §7.3.7 / §15.1.2).
+    // name -> (colorNumber, dualSourceIndex); applied at the next link.
+    std::map<std::string, int> fragDataBindings;
+    std::map<std::string, int> fragDataIndexBindings;
     // Transform-feedback varying names requested via glTransformFeedbackVaryings
     // before link, plus the chosen buffer mode. Applied to the backend program at
     // the next link (SPEC §13.3.1).

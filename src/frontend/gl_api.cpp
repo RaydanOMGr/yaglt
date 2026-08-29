@@ -1757,6 +1757,19 @@ void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize
      g_current->bindAttribLocation(program, index, name ? name : "");
  }
 
+ void glBindFragDataLocation(GLuint program, GLuint colorNumber,
+                             const GLchar* name) {
+     if (g_current == nullptr) return;
+     g_current->bindFragDataLocation(program, colorNumber, name ? name : "");
+ }
+
+ void glBindFragDataLocationIndexed(GLuint program, GLuint colorNumber,
+                                    GLuint index, const GLchar* name) {
+     if (g_current == nullptr) return;
+     g_current->bindFragDataLocationIndexed(program, colorNumber, index,
+                                            name ? name : "");
+ }
+
  void glTransformFeedbackVaryings(GLuint program, GLsizei count,
                                   const GLchar* const* varyings, GLenum bufferMode) {
      if (g_current == nullptr) return;

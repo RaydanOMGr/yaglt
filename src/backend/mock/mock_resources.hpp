@@ -675,6 +675,14 @@ public:
     std::vector<MockTfVarying> tfVaryings;
     std::map<std::string, int> fragDataLocations;
     std::map<std::string, int> fragDataIndices;
+    // Records a glBindFragDataLocation / glBindFragDataLocationIndexed request
+    // (SPEC §7.3.7 / §15.1.2). Observable in tests; consumed by getFragData-
+    // Location / getFragDataIndex after link.
+    void bindFragDataLocation(const std::string& name, int colorNumber,
+                              int index) override {
+        fragDataLocations[name] = colorNumber;
+        fragDataIndices[name] = index;
+    }
     // Records a glBindAttribLocation request (SPEC §7.3.7). Observable in tests.
     void bindAttribLocation(const std::string& name, int index) override {
         boundAttribLocations[name] = index;

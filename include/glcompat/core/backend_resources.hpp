@@ -321,6 +321,16 @@ public:
     // GLES, which has no direct equivalent).
     virtual int getFragDataLocation(const std::string& name) const { return -1; }
     virtual int getFragDataIndex(const std::string& name) const { return -1; }
+    // Fragment-output location / dual-source index binding (SPEC §7.3.7 /
+    // §15.1.2 glBindFragDataLocation / glBindFragDataLocationIndexed). Called
+    // before link(); takes effect on the subsequent link. Backends without a
+    // direct equivalent (e.g. GLES) record honestly or no-op.
+    virtual void bindFragDataLocation(const std::string& name, int colorNumber,
+                                      int index) {
+        (void)name;
+        (void)colorNumber;
+        (void)index;
+    }
     // Transform-feedback varying reflection (SPEC §13.3.1 glGetTransformFeedback-
     // Varying). Writes the varying's `name` (trimmed to bufSize-1), `size`, and
     // `type` for `index`, and the name length (excl. nul) into `*length`. Returns

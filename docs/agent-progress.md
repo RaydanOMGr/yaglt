@@ -2529,10 +2529,36 @@ crashed agent, this session)
   unbound texture -> `GL_INVALID_OPERATION`.
 - Validation: default `build` green (511/511 framework cases); `build_san`
   (ASan/UBSan) green.
-- Docs: `feature-matrix.md` gained a "Texture image read-back (robustness)" row;
-  `coverage-core.md` is regenerated separately from `SPEC.md`.
-- Touched files: `gl_api.hpp`, `gl_api.cpp`, `context.hpp`, `context.cpp`,
-  `backend_resources.hpp`, `mock_resources.hpp`, `gles_resources.hpp`,
-  `gles_loader.hpp`, `gles_loader.cpp`, `tests/.../tex_image_robustness_test.cpp`,
-  `tests/CMakeLists.txt`, `docs/feature-matrix.md`.
+ - Docs: `feature-matrix.md` gained a "Texture image read-back (robustness)" row;
+   `coverage-core.md` is regenerated separately from `SPEC.md`.
+ - Touched files: `gl_api.hpp`, `gl_api.cpp`, `context.hpp`, `context.cpp`,
+   `backend_resources.hpp`, `mock_resources.hpp`, `gles_resources.hpp`,
+   `gles_loader.hpp`, `gles_loader.cpp`, `tests/.../tex_image_robustness_test.cpp`,
+   `tests/CMakeLists.txt`, `docs/feature-matrix.md`.
+
+ 2026-08-29 (fragment-output location binding — glBindFragDataLocation / glBindFragDataLocationIndexed, SPEC §7.3.7 / §15.1.2)
+ - Implemented the fragment-output counterpart to `glBindAttribLocation`. `BackendProgram`
+   gained a `bindFragDataLocation(name, colorNumber, index)` virtual (default no-op).
+   `ProgramObject` gained `fragDataBindings` (name→colorNumber) and `fragDataIndexBindings`
+   (name→dual-source index) maps. `Context::bindFragDataLocationIndexed` records the request
+   (replayed onto the backend program immediately before `link` in `linkProgram`, so it takes
+   effect on the next link per spec) and validates: a shader-object name -> `GL_INVALID_OPERATION`;
+   an invalid (non-program/non-shader) name -> `GL_INVALID_VALUE`; `index > 1` or
+   `colorNumber >= GLStateTracker::kMaxDrawBuffers` -> `GL_INVALID_VALUE`; a `gl_`-prefixed name
+   -> `GL_INVALID_OPERATION`. `glBindFragDataLocation` delegates to the indexed form with index 0.
+ - The mock's pre-existing `fragDataLocations`/`fragDataIndices` maps are now populated by the
+   new `bindFragDataLocation` override, so `glGetFragDataLocation`/`glGetFragDataIndex` observe
+   the bound values after link. `GLESBackendProgram` no-ops the binding (core GLES has no
+   equivalent; only the optional GL_EXT_blend_func_extended), matching its `getFragDataLocation`
+   returning -1.
+ - Public `gl_api` exposes both entry points; `glGetFragDataLocation`/`glGetFragDataIndex`
+   already existed. The egl_shim export list is generated from `gl_api.hpp` at build time, so the
+   new symbols are exported automatically.
+ - Tests: extended `tests/unit/frag_data_location_test.cpp` (6 new cases, now 9 total):
+   validation errors, recording on the `ProgramObject`, no effect before link, pre-link binding
+   applied to the backend and visible via `glGetFragDataLocation`, indexed dual-source index via
+   `glGetFragDataIndex`, and re-bind-then-relink changing the color number.
+ - Validation: all three configs green — `build` 700/700, `build_san` 700/700, `build_tx`
+   (GLES e2e) 712/712. Coverage regenerated: 416/1052 (~39.5%) full, 378/570 (~66.3%) core
+   (was 414/1052, 376/570). `coverage-core.md` §7 row updated.
 

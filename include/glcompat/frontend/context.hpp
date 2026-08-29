@@ -1025,7 +1025,19 @@ public:
     // program; applied to the backend at the next linkProgram. An unknown program
     // reports GL_INVALID_OPERATION honestly.
     void bindAttribLocation(GLObjectName program, uint32_t index,
-                           const std::string& name);
+                            const std::string& name);
+    // Bind a user-defined fragment shader output variable name to a fragment color
+    // number (and dual-source index for the indexed form) before linking (SPEC
+    // §7.3.7 / §15.1.2 glBindFragDataLocation / glBindFragDataLocationIndexed).
+    // Recorded on the program; applied to the backend at the next linkProgram.
+    // Validation (mirrors the spec): a shader-object name -> GL_INVALID_OPERATION;
+    // a name that is neither a program nor shader -> GL_INVALID_VALUE; index > 1 ->
+    // GL_INVALID_VALUE; colorNumber >= GLStateTracker::kMaxDrawBuffers ->
+    // GL_INVALID_VALUE; a name with the reserved "gl_" prefix -> GL_INVALID_OPERATION.
+    void bindFragDataLocation(GLObjectName program, uint32_t colorNumber,
+                             const std::string& name);
+    void bindFragDataLocationIndexed(GLObjectName program, uint32_t colorNumber,
+                                     uint32_t index, const std::string& name);
     // Specify the transform-feedback varyings captured when this program is the
     // active program of a transform-feedback begin (SPEC §13.3.1
     // glTransformFeedbackVaryings). Must be set before linking (after link ->

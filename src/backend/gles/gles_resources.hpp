@@ -651,6 +651,16 @@ struct GLESBackendProgram : BackendProgram {
             lib->glBindAttribLocation(handle, static_cast<GLuint>(index),
                                      name.c_str());
     }
+    // Fragment-output location binding (SPEC §7.3.7 / §15.1.2). Core GLES has no
+    // direct equivalent (only GL_EXT_blend_func_extended, which is optional and
+    // not wired here), so this is an honest no-op; getFragDataLocation likewise
+    // returns -1 for GLES.
+    void bindFragDataLocation(const std::string& name, int colorNumber,
+                              int index) override {
+        (void)name;
+        (void)colorNumber;
+        (void)index;
+    }
     void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
         if (lib && lib->driverLive() && handle != 0 && lib->glUniformBlockBinding)
             lib->glUniformBlockBinding(handle, blockIndex, blockBinding);

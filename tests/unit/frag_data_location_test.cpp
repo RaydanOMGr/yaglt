@@ -90,3 +90,141 @@ TEST_CASE("getfragdatalocation_validation") {
 
     setCurrentContext(nullptr);
 }
+
+namespace {
+// Simple linked program for exercising the bind path (mock compiles any
+// non-empty source and links once a shader is attached).
+GLuint makeBindProgram() {
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, std::string("void main(){}"));
+    glCompileShader(vs);
+    GLuint prog = glCreateProgram();
+    glAttachShader(prog, vs);
+    glLinkProgram(prog);
+    return prog;
+}
+} // namespace
+
+TEST_CASE("bindfragdatalocation_validation") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // A shader-object name must report GL_INVALID_OPERATION (SPEC §15.1.2).
+    GLuint sh = glCreateShader(GL_FRAGMENT_SHADER);
+    glBindFragDataLocation(sh, 0, "outColor");
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+
+    // An unknown (ungenerated) name must report GL_INVALID_VALUE.
+    glBindFragDataLocation(9999, 0, "outColor");
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    // A reserved "gl_" prefix reports GL_INVALID_OPERATION.
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocation(prog, 0, "gl_FragColor");
+    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+
+    // colorNumber >= MAX_DRAW_BUFFERS (8) reports GL_INVALID_VALUE.
+    glBindFragDataLocation(prog, 8, "outColor");
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    // The indexed form rejects index > 1 with GL_INVALID_VALUE.
+    glBindFragDataLocationIndexed(prog, 0, 2, "outColor");
+    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("bindfragdatalocation_records_on_program_object") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocation(prog, 3, "outColor");
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+
+    ProgramObject* p = ctx.getProgram(prog);
+    EXPECT_NE(p, nullptr);
+    if (p == nullptr) return;
+    auto it = p->fragDataBindings.find("outColor");
+    EXPECT_NE(it, p->fragDataBindings.end());
+    if (it != p->fragDataBindings.end()) EXPECT_EQ(it->second, 3);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("bindfragdatalocation_no_effect_before_link") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // Bind AFTER link: the binding is only consulted at the next link
+    // (SPEC §7.3.7), so getFragDataLocation still reports an unknown output.
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocation(prog, 2, "outColor");
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(glGetFragDataLocation(prog, "outColor"), -1);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("bindfragdatalocation_applied_before_link_to_backend") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    // Bind BEFORE link, then link: the backend program records the binding and
+    // getFragDataLocation returns the bound color number (SPEC §7.3.7).
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocation(prog, 4, "outColor");
+    glLinkProgram(prog);
+    EXPECT_EQ(glGetProgramiv(prog, GL_LINK_STATUS), GL_TRUE);
+    EXPECT_EQ(glGetFragDataLocation(prog, "outColor"), 4);
+
+    MockProgram* mp =
+        dynamic_cast<MockProgram*>(ctx.getProgram(prog)->backend.get());
+    EXPECT_NE(mp, nullptr);
+    if (mp == nullptr) return;
+    auto it = mp->fragDataLocations.find("outColor");
+    EXPECT_NE(it, mp->fragDataLocations.end());
+    if (it != mp->fragDataLocations.end()) EXPECT_EQ(it->second, 4);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("bindfragdatalocationindexed_sets_dual_source_index") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocationIndexed(prog, 0, 1, "outColor");
+    glLinkProgram(prog);
+    EXPECT_EQ(glGetProgramiv(prog, GL_LINK_STATUS), GL_TRUE);
+
+    // Non-indexed bind is equivalent to index 0 for the color number.
+    EXPECT_EQ(glGetFragDataLocation(prog, "outColor"), 0);
+    // The indexed form records the dual-source index for getFragDataIndex.
+    EXPECT_EQ(glGetFragDataIndex(prog, "outColor"), 1);
+
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("bindfragdatalocation_rebind_after_relink") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLuint prog = makeBindProgram();
+    glBindFragDataLocation(prog, 1, "outColor");
+    glLinkProgram(prog);
+    EXPECT_EQ(glGetFragDataLocation(prog, "outColor"), 1);
+
+    // Re-bind and re-link: the new color number takes effect.
+    glBindFragDataLocation(prog, 6, "outColor");
+    glLinkProgram(prog);
+    EXPECT_EQ(glGetFragDataLocation(prog, "outColor"), 6);
+
+    setCurrentContext(nullptr);
+}

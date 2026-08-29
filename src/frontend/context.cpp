@@ -6070,6 +6070,14 @@ void Context::linkProgram(GLObjectName program) {
     for (const auto& b : p->attribBindings) {
         if (p->backend) p->backend->bindAttribLocation(b.first, b.second);
     }
+    // Apply any pre-link fragment-output bindings (SPEC §7.3.7 / §15.1.2
+    // glBindFragDataLocation / glBindFragDataLocationIndexed).
+    for (const auto& b : p->fragDataBindings) {
+        int idx = 0;
+        auto it = p->fragDataIndexBindings.find(b.first);
+        if (it != p->fragDataIndexBindings.end()) idx = it->second;
+        if (p->backend) p->backend->bindFragDataLocation(b.first, b.second, idx);
+    }
     // Apply any pre-link transform-feedback varying capture setup (SPEC §13.3.1
     // glTransformFeedbackVaryings).
     if (p->backend && !p->tfVaryings.empty()) {
@@ -6266,6 +6274,44 @@ void Context::bindAttribLocation(GLObjectName program, uint32_t index,
     // Record the binding; it is applied to the backend program at the next link
     // (SPEC §7.3.7: bindAttribLocation only takes effect on subsequent link).
     p->attribBindings[name] = static_cast<int>(index);
+}
+
+void Context::bindFragDataLocationIndexed(GLObjectName program,
+                                          uint32_t colorNumber, uint32_t index,
+                                          const std::string& name) {
+    // SPEC §15.1.2: a shader-object name reports GL_INVALID_OPERATION; a name that
+    // is neither a program nor shader (e.g. 0 / ungenerated) reports
+    // GL_INVALID_VALUE.
+    if (getShader(program) != nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (index > 1) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (colorNumber >= GLStateTracker::kMaxDrawBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!name.empty() && name.rfind("gl_", 0) == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Recorded frontend-side; applied to the backend program at the next link
+    // (SPEC §7.3.7: bindFragDataLocation* only takes effect on subsequent link).
+    p->fragDataBindings[name] = static_cast<int>(colorNumber);
+    p->fragDataIndexBindings[name] = static_cast<int>(index);
+}
+
+void Context::bindFragDataLocation(GLObjectName program, uint32_t colorNumber,
+                                   const std::string& name) {
+    bindFragDataLocationIndexed(program, colorNumber, 0, name);
 }
 
 void Context::transformFeedbackVaryings(GLObjectName program, GLsizei count,
