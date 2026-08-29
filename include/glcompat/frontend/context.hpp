@@ -443,6 +443,10 @@ public:
                               uint32_t texTarget, GLObjectName texture, int level);
     void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
                                  uint32_t rbTarget, GLObjectName renderbuffer);
+    void framebufferTexture(uint32_t target, uint32_t attachment,
+                            GLObjectName texture, int level);
+    void framebufferTextureLayer(uint32_t target, uint32_t attachment,
+                                 GLObjectName texture, int level, int layer);
     // Returns a GL_FRAMEBUFFER_* status code. Combines the structural check with
     // the backend resource's driver-level checkStatus().
     uint32_t checkFramebufferStatus(uint32_t target);

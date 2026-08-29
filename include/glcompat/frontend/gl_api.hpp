@@ -323,6 +323,10 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
                            GLuint texture, GLint level);
 void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
                                GLuint renderbuffer);
+void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture,
+                          GLint level);
+void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
+                               GLint level, GLint layer);
 GLenum glCheckFramebufferStatus(GLenum target);
 
 // Direct State Access framebuffer surface (SPEC §9.2). glCreateFramebuffers

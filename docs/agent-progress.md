@@ -2756,3 +2756,21 @@ crashed agent, this session)
    742/742, `build_san` 742/742, `build_tx` (GLES e2e) 754/754. Coverage
    regenerated: 438/1052 (~41.6%) full, 400/570 (~70.2%) core.
 
+
+- **glFramebufferTexture / glFramebufferTextureLayer (SPEC §9.2)** — classic
+   (bound-framebuffer) counterparts of the existing DSA `glNamedFramebufferTexture`
+   / `glNamedFramebufferTextureLayer`. Added `Context::framebufferTexture(target,
+   attachment, texture, level)` and `Context::framebufferTextureLayer(target,
+   attachment, texture, level, layer)`, which resolve the bound framebuffer via
+   `boundFramebuffer_`, validate a bound FBO (`GL_INVALID_OPERATION` when the
+   default framebuffer is bound) and texture existence (`GL_INVALID_OPERATION` for
+   an unknown name), record the attachment, and forward to the backend
+   `framebufferTexture2D` / `framebufferTextureLayer` ops (mirroring the DSA path).
+   `glFramebufferTexture2D` / `glFramebufferRenderbuffer` already existed; these two
+   close the classic framebuffer-attachment gap. Public `gl_api` now exposes
+   `glFramebufferTexture` and `glFramebufferTextureLayer`. New
+   `tests/unit/framebuffer_attach_test.cpp` (6 cases) covering valid classic record,
+   layer record, no-FBO-bound rejection, and unknown-texture rejection for both
+   entry points, plus texture-0 detach. Coverage regenerated: 440/1052 (~41.8%)
+   full, 402/570 (~70.5%) core. Validation: `build` 748/748,
+   `build_san` 742/742, `build_tx` (GLES e2e) 754/754.

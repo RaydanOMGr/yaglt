@@ -857,6 +857,18 @@ void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget
     g_current->framebufferRenderbuffer(target, attachment, rbTarget, renderbuffer);
 }
 
+void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture,
+                          GLint level) {
+    if (g_current == nullptr) return;
+    g_current->framebufferTexture(target, attachment, texture, level);
+}
+
+void glFramebufferTextureLayer(GLenum target, GLenum attachment, GLuint texture,
+                               GLint level, GLint layer) {
+    if (g_current == nullptr) return;
+    g_current->framebufferTextureLayer(target, attachment, texture, level, layer);
+}
+
 GLenum glCheckFramebufferStatus(GLenum target) {
     if (g_current == nullptr) return GL_FRAMEBUFFER_COMPLETE;
     return g_current->checkFramebufferStatus(target);
