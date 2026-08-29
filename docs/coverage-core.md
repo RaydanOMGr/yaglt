@@ -93,7 +93,7 @@ pattern); loading a binary marks the program linked / the shader compiled. |
 
 ## The implemented frontend surface (gl_api entry points)
 
-    333 `gl*` entry points; 329 map to a spec command family (see Method). Listed
+    337 `gl*` entry points; 333 map to a spec command family (see Method). Listed
   alphabetically:
 
 glActiveShaderProgram, glActiveTexture, glAttachShader, glBeginQuery, glBeginQueryIndexed,
