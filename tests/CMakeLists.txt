@@ -74,6 +74,7 @@ add_executable(yaglt_tests
     unit/readpixels_test.cpp
     unit/readn_pixels_test.cpp
     unit/texture_barrier_test.cpp
+    unit/named_framebuffer_draw_buffer_test.cpp
     unit/logicop_blit_invalidate_test.cpp
     unit/colormask_test.cpp
     unit/samplecoverage_test.cpp

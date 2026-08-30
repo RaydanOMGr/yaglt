@@ -443,6 +443,12 @@ void glClearNamedFramebufferfv(GLuint framebuffer, GLenum buffer, GLint drawbuff
 void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuffer,
                                GLfloat depth, GLint stencil);
 
+// DSA draw/read-buffer selection (SPEC §9.3.1).
+void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf);
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n,
+                                   const GLenum* bufs);
+void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum buf);
+
 void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value);
 void glClearBufferuiv(GLenum buffer, GLint drawbuffer, const GLuint* value);
 void glClearBufferfv(GLenum buffer, GLint drawbuffer, const GLfloat* value);

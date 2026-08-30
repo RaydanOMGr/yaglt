@@ -619,6 +619,19 @@ public:
     void clearNamedFramebufferfi(GLObjectName framebuffer, uint32_t buffer,
                                  int drawbuffer, float depth, int stencil);
 
+    // DSA draw/read-buffer selection (SPEC §9.3.1, glNamedFramebufferDrawBuffer /
+    // glNamedFramebufferDrawBuffers / glNamedFramebufferReadBuffer). Capability-
+    // gated by DirectStateAccess. The named framebuffer is bound to the driver,
+    // its draw/read buffer selection is applied through the existing bound-FBO
+    // backend virtuals, and the tracked framebuffer binding is restored (DSA: no
+    // side effect). An unknown `name` (incl. 0) -> GL_INVALID_OPERATION; an
+    // invalid buffer token -> GL_INVALID_ENUM; a negative `n` or a null `bufs`
+    // with `n > 0` -> GL_INVALID_VALUE.
+    void namedFramebufferDrawBuffer(GLObjectName framebuffer, uint32_t buf);
+    void namedFramebufferDrawBuffers(GLObjectName framebuffer, int32_t n,
+                                     const uint32_t* bufs);
+    void namedFramebufferReadBuffer(GLObjectName framebuffer, uint32_t buf);
+
     // --- Bound-framebuffer clears (SPEC §9.3.1 / §15.2.3) ---
     // Clear a single buffer of the *currently bound* draw framebuffer (classic
     // glClearBuffer*). Per-type clear values are pushed to the backend via the

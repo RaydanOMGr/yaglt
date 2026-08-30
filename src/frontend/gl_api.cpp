@@ -1197,6 +1197,22 @@ void glClearNamedFramebufferfi(GLuint framebuffer, GLenum buffer, GLint drawbuff
                                        stencil);
 }
 
+void glNamedFramebufferDrawBuffer(GLuint framebuffer, GLenum buf) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferDrawBuffer(framebuffer, buf);
+}
+
+void glNamedFramebufferDrawBuffers(GLuint framebuffer, GLsizei n,
+                                   const GLenum* bufs) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferDrawBuffers(framebuffer, n, bufs);
+}
+
+void glNamedFramebufferReadBuffer(GLuint framebuffer, GLenum buf) {
+    if (g_current == nullptr) return;
+    g_current->namedFramebufferReadBuffer(framebuffer, buf);
+}
+
 void glClearBufferiv(GLenum buffer, GLint drawbuffer, const GLint* value) {
     if (g_current == nullptr) return;
     g_current->clearBufferiv(buffer, drawbuffer, value);

@@ -3194,3 +3194,29 @@ crashed agent, this session)
      (SPEC §10.9.2)" row.
    - Validation: all three configs green — `build` 858/858, `build_san`
      (ASan/UBSan clean) 858/858, `build_tx` (GLES e2e under Mesa softpipe) 870/870.
+
+## Recent Work (2026-08-30 — DSA framebuffer draw/read-buffer selection, §9.3.1)
+
+ - **glNamedFramebufferDrawBuffer / glNamedFramebufferDrawBuffers /
+   glNamedFramebufferReadBuffer (SPEC §9.3.1)** — closes the DSA named-FBO
+   draw/read-buffer gap (core GL 4.5). All three are capability-gated by
+   `DirectStateAccess`; an unknown `name` (incl. 0) → `GL_INVALID_OPERATION`, an
+   invalid buffer token → `GL_INVALID_ENUM`, a negative `n` / null `bufs` with
+   `n > 0` → `GL_INVALID_VALUE`. The frontend composes the existing
+   bind-named-then-restore DSA FBO pattern (same as `glBlitNamedFramebuffer`):
+   `backend_.bindFramebuffer(target, namedFramebufferNativeId(...))`, apply via
+   the bound-FBO `GLStateSink::drawBuffers`/`readBuffer`, then `bindFramebuffer(
+   boundFramebuffer_)` (no side effect). No new backend virtuals were needed —
+   the draw/read-buffer selection already lives on `GLStateSink`.
+   - `include/glcompat/frontend/context.hpp` + `src/frontend/context.cpp`: three
+   `Context` methods (defined after the `isValidDrawBuffer`/`isValidReadBuffer`
+   anonymous-namespace helpers so they are in scope).
+   - `include/glcompat/frontend/gl_api.hpp` + `src/frontend/gl_api.cpp`: public
+   `glNamedFramebufferDrawBuffer(s)` / `glNamedFramebufferReadBuffer` dispatch
+   (null-context guard).
+   - `tests/unit/named_framebuffer_draw_buffer_test.cpp` (new, 6 cases: single
+   forward, multi forward, arg validation, read-buffer valid tokens, read-buffer
+   invalid token, ungenerated name rejected) + registered in `tests/CMakeLists.txt`.
+   - `docs/feature-matrix.md` §9.3.1 gains a row. Coverage regenerated.
+   - Validation: `build` 864/864, `build_san` (ASan/UBSan clean) 864/864,
+     `build_tx` (GLES e2e under Mesa softpipe) 876/876.

@@ -9405,6 +9405,58 @@ bool isValidReadBuffer(GLenum buf) {
 }
 } // namespace
 
+void Context::namedFramebufferDrawBuffer(GLObjectName framebuffer, uint32_t buf) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (!isValidDrawBuffer(static_cast<GLenum>(buf))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    // Bind the named FBO, apply the selection through the bound-FBO state sink,
+    // then restore the tracked binding (DSA: no side effect).
+    backend_.bindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                             namedFramebufferNativeId(*this, framebuffer));
+    if (GLStateSink* sink = backend_.stateSink()) sink->drawBuffers(1, &buf);
+    bindFramebuffer(boundFramebuffer_);
+}
+
+void Context::namedFramebufferDrawBuffers(GLObjectName framebuffer, int32_t n,
+                                          const uint32_t* bufs) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (n < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (n > 0 && bufs == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (int32_t i = 0; i < n; ++i) {
+        if (!isValidDrawBuffer(static_cast<GLenum>(bufs[i]))) {
+            setError(GLError::InvalidEnum);
+            return;
+        }
+    }
+    backend_.bindFramebuffer(GL_DRAW_FRAMEBUFFER,
+                             namedFramebufferNativeId(*this, framebuffer));
+    if (GLStateSink* sink = backend_.stateSink()) sink->drawBuffers(n, bufs);
+    bindFramebuffer(boundFramebuffer_);
+}
+
+void Context::namedFramebufferReadBuffer(GLObjectName framebuffer, uint32_t buf) {
+    FramebufferObject* fbo = dsaFramebuffer(*this, framebuffer);
+    if (fbo == nullptr) return;
+    if (!isValidReadBuffer(static_cast<GLenum>(buf))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    backend_.bindFramebuffer(GL_READ_FRAMEBUFFER,
+                             namedFramebufferNativeId(*this, framebuffer));
+    if (GLStateSink* sink = backend_.stateSink()) sink->readBuffer(buf);
+    bindFramebuffer(boundFramebuffer_);
+}
+
 void Context::drawBuffers(int32_t n, const GLenum* bufs) {
     if (n <= 0) {
         setError(GLError::InvalidValue);
