@@ -41,6 +41,7 @@ using glcompat::GLubyte;
 using glcompat::GLuint64;
 using glcompat::GLint64;
 using glcompat::GLsync;
+using glcompat::GLDEBUGPROC;
 """
 
 FOOTER = ""
