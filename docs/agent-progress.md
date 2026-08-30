@@ -3,6 +3,23 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — timestamp query counter §4.2.1, this session)
+- Added `glQueryCounter` (SPEC §4.2.1): records a timestamp into a query object once
+  all prior GL commands have completed. `BackendQuery` gained a `queryCounter(uint32_t
+  target)` virtual (default no-op); the mock records the call + target in `queryCounterCalls`
+  / `lastCounterTarget`, and the GLES backend forwards to the newly-resolved optional
+  `GLESLib::glQueryCounter` symbol. `Context::queryCounter` is capability-gated by
+  `Queries`, validates `target == GL_TIMESTAMP` (`GL_INVALID_ENUM`), a generated query id
+  (`GL_INVALID_OPERATION`), and a non-active query (`GL_INVALID_OPERATION`), then sets the
+  query's target and forwards to the backend. `glQueryCounter` declared in `gl_api.hpp` and
+  dispatched in `gl_api.cpp`; `MockResourceFactory` gained a `lastCreatedQuery` test hook
+  (mirroring `lastCreatedProgram`).
+- New `tests/unit/query_counter_test.cpp` (5 cases: records the timestamp via the backend,
+  bad target → `GL_INVALID_ENUM`, ungenerated id → `GL_INVALID_OPERATION`, active query →
+  `GL_INVALID_OPERATION`, public dispatch surface). Default suite 810 → 815 green;
+  `build_san` (ASan/UBSan) 815/815 green; `build_tx` (GLES/translate) compiles. Coverage
+  regenerated: core 84.4% → 84.6% (482/570), full 49.6% → 49.7% (523/1052).
+
 ## Recent Work (2026-08-30 — shader-storage-block binding §7.6.2, this session)
 - Added `glShaderStorageBlockBinding` (SPEC §7.6.2), the exact analog of the
   already-implemented `glUniformBlockBinding`. `BackendProgram` gained a

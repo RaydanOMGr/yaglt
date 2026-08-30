@@ -46,6 +46,7 @@ public:
     std::unique_ptr<BackendQuery> createQuery() override {
         auto r = std::make_unique<MockQuery>();
         r->id = ++counter_;
+        lastCreatedQuery = r.get();
         return r;
     }
     std::unique_ptr<BackendShader> createShader(uint32_t) override {
@@ -62,6 +63,9 @@ public:
     // Test helper: the most recently created MockProgram (nullptr before any
     // program is created). Lets tests configure/observe program state directly.
     MockProgram* lastCreatedProgram = nullptr;
+    // Test helper: the most recently created MockQuery (nullptr before any query
+    // is created). Lets tests configure/observe query state directly.
+    MockQuery* lastCreatedQuery = nullptr;
 
 private:
     int counter_ = 0;

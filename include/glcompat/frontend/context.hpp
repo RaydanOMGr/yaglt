@@ -812,6 +812,10 @@ public:
     void endQuery(uint32_t target);
     void beginQueryIndexed(uint32_t target, uint32_t index, GLObjectName id);
     void endQueryIndexed(uint32_t target, uint32_t index);
+    // Record a timestamp query that resolves once all prior GL commands have
+    // completed (SPEC §4.2.1 glQueryCounter). `target` must be GL_TIMESTAMP; the
+    // query must be a generated, non-active query object.
+    void queryCounter(GLObjectName id, uint32_t target);
     QueryObject* getQuery(GLObjectName name);
     const QueryObject* getQuery(GLObjectName name) const;
     // Query parameter queries (SPEC §4 / §19, glGetQueryiv / glGetQueryObject*).

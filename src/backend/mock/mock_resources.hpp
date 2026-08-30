@@ -587,12 +587,15 @@ class MockQuery : public BackendQuery {
 public:
     int id = 0;
     int beginCalls = 0, endCalls = 0;
+    int queryCounterCalls = 0;
     uint32_t lastBeginTarget = 0;
+    uint32_t lastCounterTarget = 0;
     // Test-injected result so getQueryObject* can be exercised deterministically.
     int64_t resultValue = 0;
     bool hasResult = false;
     void begin(uint32_t target) override { ++beginCalls; lastBeginTarget = target; }
     void end() override { ++endCalls; }
+    void queryCounter(uint32_t target) override { ++queryCounterCalls; lastCounterTarget = target; }
     void queryResult(int64_t* value, bool* available) override {
         *value = resultValue;
         *available = hasResult;

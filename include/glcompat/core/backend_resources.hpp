@@ -270,6 +270,10 @@ public:
     virtual ~BackendQuery() = default;
     virtual void begin(uint32_t target) {}
     virtual void end() {}
+    // Record a timestamp query when all prior GL commands have completed
+    // (SPEC §4.2.1 glQueryCounter, target == GL_TIMESTAMP). Default no-op so
+    // backends opt in; the GLES backend forwards to the driver, the mock records it.
+    virtual void queryCounter(uint32_t target) { (void)target; }
     virtual void queryResult(int64_t* value, bool* available) {
         *value = 0;
         *available = false;

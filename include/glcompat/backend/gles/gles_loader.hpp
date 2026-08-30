@@ -203,6 +203,7 @@ struct GLESLib {
     GLboolean (*glIsQuery)(GLuint) = nullptr;
     void (*glBeginQuery)(GLenum, GLuint) = nullptr;
     void (*glEndQuery)(GLenum) = nullptr;
+    void (*glQueryCounter)(GLuint, GLenum) = nullptr;
     void (*glGetQueryiv)(GLenum, GLenum, GLint*) = nullptr;
     void (*glGetQueryObjectiv)(GLuint, GLenum, GLint*) = nullptr;
     void (*glGetQueryObjectuiv)(GLuint, GLenum, GLuint*) = nullptr;

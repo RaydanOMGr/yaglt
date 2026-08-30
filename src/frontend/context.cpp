@@ -4068,6 +4068,29 @@ void Context::endQueryIndexed(uint32_t target, uint32_t /*index*/) {
     endQuery(target);
 }
 
+void Context::queryCounter(GLObjectName id, uint32_t target) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (target != GL_TIMESTAMP) {
+        setError(GLError::InvalidEnum); // only GL_TIMESTAMP is valid
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // ungenerated id
+        return;
+    }
+    if (q->active) {
+        setError(GLError::InvalidOperation); // query already active
+        return;
+    }
+    q->target = GL_TIMESTAMP;
+    if (q->backend) q->backend->queryCounter(GL_TIMESTAMP);
+}
+
+
 QueryObject* Context::getQuery(GLObjectName name) {
     auto it = queries_.find(name);
     return it == queries_.end() ? nullptr : it->second.get();

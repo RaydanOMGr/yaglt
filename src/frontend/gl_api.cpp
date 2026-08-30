@@ -1265,6 +1265,11 @@ void glEndQueryIndexed(GLenum target, GLuint index) {
     g_current->endQueryIndexed(target, index);
 }
 
+void glQueryCounter(GLuint id, GLenum target) {
+    if (g_current == nullptr) return;
+    g_current->queryCounter(id, target);
+}
+
 void glGetQueryiv(GLenum target, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getQueryiv(target, pname, params);

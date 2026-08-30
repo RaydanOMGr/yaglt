@@ -306,6 +306,7 @@ bool GLESLib::load() {
     resolve(gles, glIsQuery, "glIsQuery");
     resolve(gles, glBeginQuery, "glBeginQuery");
     resolve(gles, glEndQuery, "glEndQuery");
+    resolve(gles, glQueryCounter, "glQueryCounter");
     resolve(gles, glGetQueryiv, "glGetQueryiv");
     resolve(gles, glGetQueryObjectiv, "glGetQueryObjectiv");
     resolve(gles, glGetQueryObjectuiv, "glGetQueryObjectuiv");

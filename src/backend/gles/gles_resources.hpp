@@ -549,6 +549,10 @@ struct GLESBackendQuery : BackendQuery {
         if (lib && lib->driverLive() && lib->glEndQuery)
             lib->glEndQuery(activeTarget); // target must match begin
     }
+    void queryCounter(uint32_t target) override {
+        if (lib && lib->driverLive() && lib->glQueryCounter && handle)
+            lib->glQueryCounter(handle, target);
+    }
     void queryResult(int64_t* value, bool* available) override {
         *value = 0;
         *available = false;
