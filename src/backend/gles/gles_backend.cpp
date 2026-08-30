@@ -605,14 +605,38 @@ void GLESBackend::multiDrawArrays(uint32_t mode, const int32_t* firsts,
 }
 
 void GLESBackend::multiDrawElements(uint32_t mode, const int32_t* counts,
-                                    uint32_t type, const intptr_t* indices,
-                                    int32_t drawcount) {
+                                     uint32_t type, const intptr_t* indices,
+                                     int32_t drawcount) {
     if (lib_->glMultiDrawElements) {
         // Reinterpret the frontend intptr_t* as the native const void* const*.
         lib_->glMultiDrawElements(
             mode, counts, type,
             reinterpret_cast<const void* const*>(indices),
             static_cast<GLsizei>(drawcount));
+    }
+}
+
+void GLESBackend::multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                             const int32_t* counts,
+                                             const int32_t* instanceCounts,
+                                             const uint32_t* baseInstances,
+                                             int32_t drawcount) {
+    if (lib_->glMultiDrawArraysBaseInstance) {
+        lib_->glMultiDrawArraysBaseInstance(
+            mode, firsts, counts, instanceCounts, baseInstances,
+            static_cast<GLsizei>(drawcount));
+    }
+}
+
+void GLESBackend::multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                               uint32_t type, const intptr_t* indices,
+                                               const uint32_t* baseInstances,
+                                               int32_t drawcount) {
+    if (lib_->glMultiDrawElementsBaseInstance) {
+        lib_->glMultiDrawElementsBaseInstance(
+            mode, counts, type,
+            reinterpret_cast<const void* const*>(indices),
+            static_cast<GLsizei>(drawcount), baseInstances);
     }
 }
 

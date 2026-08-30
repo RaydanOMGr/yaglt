@@ -798,6 +798,37 @@ public:
         (void)counts;
         (void)indices;
     }
+    // --- Multi-draw with per-draw base instance (SPEC §10, GL 4.6) ---
+    int multiDrawArraysBaseInstanceCalls = 0;
+    int multiDrawElementsBaseInstanceCalls = 0;
+    uint32_t lastMultiDrawBaseInstance = 0;
+    void multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                     const int32_t* counts,
+                                     const int32_t* instanceCounts,
+                                     const uint32_t* baseInstances,
+                                     int32_t drawcount) override {
+        ++multiDrawArraysBaseInstanceCalls;
+        lastDrawMode = mode;
+        lastMultiDrawCount = drawcount;
+        (void)firsts;
+        (void)counts;
+        (void)instanceCounts;
+        if (baseInstances && drawcount > 0)
+            lastMultiDrawBaseInstance = baseInstances[0];
+    }
+    void multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                       uint32_t type, const intptr_t* indices,
+                                       const uint32_t* baseInstances,
+                                       int32_t drawcount) override {
+        ++multiDrawElementsBaseInstanceCalls;
+        lastDrawMode = mode;
+        lastDrawType = type;
+        lastMultiDrawCount = drawcount;
+        (void)counts;
+        (void)indices;
+        if (baseInstances && drawcount > 0)
+            lastMultiDrawBaseInstance = baseInstances[0];
+    }
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                            int32_t count, uint32_t type,
                            intptr_t indices) override {

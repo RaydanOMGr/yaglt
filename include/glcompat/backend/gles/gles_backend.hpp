@@ -181,6 +181,15 @@ public:
                         const int32_t* counts, int32_t drawcount) override;
     void multiDrawElements(uint32_t mode, const int32_t* counts, uint32_t type,
                           const intptr_t* indices, int32_t drawcount) override;
+    void multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                    const int32_t* counts,
+                                    const int32_t* instanceCounts,
+                                    const uint32_t* baseInstances,
+                                    int32_t drawcount) override;
+    void multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                      uint32_t type, const intptr_t* indices,
+                                      const uint32_t* baseInstances,
+                                      int32_t drawcount) override;
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                           int32_t count, uint32_t type, intptr_t indices) override;
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,

@@ -12,6 +12,7 @@ add_executable(yaglt_tests
     unit/ubo_ssbo_test.cpp
     unit/draw_test.cpp
     unit/draw_expansion_test.cpp
+    unit/multi_draw_base_instance_test.cpp
     unit/shader_program_test.cpp
     unit/bind_attrib_location_test.cpp
     unit/transform_feedback_varyings_test.cpp

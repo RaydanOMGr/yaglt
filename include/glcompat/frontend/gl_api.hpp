@@ -1060,6 +1060,14 @@ void glMultiDrawArrays(GLenum mode, const GLint* firsts, const GLint* counts,
                        GLsizei drawcount);
 void glMultiDrawElements(GLenum mode, const GLint* counts, GLenum type,
                          const GLvoid* const* indices, GLsizei drawcount);
+void glMultiDrawArraysBaseInstance(GLenum mode, const GLint* firsts,
+                                  const GLsizei* counts,
+                                  const GLsizei* instanceCounts,
+                                  const GLuint* baseInstances, GLsizei drawcount);
+void glMultiDrawElementsBaseInstance(GLenum mode, const GLsizei* counts,
+                                    GLenum type, const GLvoid* const* indices,
+                                    GLsizei drawcount,
+                                    const GLuint* baseInstances);
 void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
                          GLenum type, const GLvoid* indices);
  void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,

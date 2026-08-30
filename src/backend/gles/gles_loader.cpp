@@ -268,6 +268,8 @@ bool GLESLib::load() {
     // Draw expansion (SPEC §10): solved optionally (ES 3.0+ / ES 3.2).
     resolve(gles, glMultiDrawArrays, "glMultiDrawArrays");
     resolve(gles, glMultiDrawElements, "glMultiDrawElements");
+    resolve(gles, glMultiDrawArraysBaseInstance, "glMultiDrawArraysBaseInstance");
+    resolve(gles, glMultiDrawElementsBaseInstance, "glMultiDrawElementsBaseInstance");
     resolve(gles, glDrawRangeElements, "glDrawRangeElements");
     resolve(gles, glDrawElementsBaseVertex, "glDrawElementsBaseVertex");
     // Base-instance draws (SPEC §10, ES 3.2+); resolved optionally.

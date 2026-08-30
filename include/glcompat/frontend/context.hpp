@@ -1310,6 +1310,20 @@ public:
                          const int32_t* counts, int32_t drawcount);
     void multiDrawElements(uint32_t mode, const int32_t* counts, uint32_t type,
                           const intptr_t* indices, int32_t drawcount);
+    // Multi-draw with per-draw instance counts and a per-draw base instance
+    // (SPEC §10, GL 4.6). Require Feature::MultiDraw and Feature::BaseInstance (else
+    // GL_INVALID_OPERATION), a non-negative `drawcount` (else GL_INVALID_VALUE), and
+    // an active program (else GL_INVALID_OPERATION); flush tracked state, then issue
+    // the backend draw. `instanceCounts` may be null (every draw is a single instance).
+    void multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                     const int32_t* counts,
+                                     const int32_t* instanceCounts,
+                                     const uint32_t* baseInstances,
+                                     int32_t drawcount);
+    void multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                      uint32_t type, const intptr_t* indices,
+                                      const uint32_t* baseInstances,
+                                      int32_t drawcount);
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                            int32_t count, uint32_t type, intptr_t indices);
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,

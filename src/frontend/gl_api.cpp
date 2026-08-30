@@ -3039,7 +3039,26 @@ void glMultiDrawElements(GLenum mode, const GLint* counts, GLenum type,
     if (g_current == nullptr) return;
     g_current->multiDrawElements(mode, counts, type,
                                 reinterpret_cast<const intptr_t*>(indices),
-                                drawcount);
+                                 drawcount);
+}
+
+void glMultiDrawArraysBaseInstance(GLenum mode, const GLint* firsts,
+                                  const GLsizei* counts,
+                                  const GLsizei* instanceCounts,
+                                  const GLuint* baseInstances, GLsizei drawcount) {
+    if (g_current == nullptr) return;
+    g_current->multiDrawArraysBaseInstance(
+        mode, firsts, counts, instanceCounts, baseInstances, drawcount);
+}
+
+void glMultiDrawElementsBaseInstance(GLenum mode, const GLsizei* counts,
+                                    GLenum type, const GLvoid* const* indices,
+                                    GLsizei drawcount,
+                                    const GLuint* baseInstances) {
+    if (g_current == nullptr) return;
+    g_current->multiDrawElementsBaseInstance(
+        mode, counts, type, reinterpret_cast<const intptr_t*>(indices),
+        baseInstances, drawcount);
 }
 
 void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,

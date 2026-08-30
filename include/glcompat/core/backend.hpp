@@ -64,8 +64,23 @@ public:
     virtual void multiDrawArrays(uint32_t mode, const int32_t* firsts,
                                  const int32_t* counts, int32_t drawcount) = 0;
     virtual void multiDrawElements(uint32_t mode, const int32_t* counts,
-                                   uint32_t type, const intptr_t* indices,
-                                   int32_t drawcount) = 0;
+                                    uint32_t type, const intptr_t* indices,
+                                    int32_t drawcount) = 0;
+    // Multi-draw with per-draw instance counts and a per-draw base instance
+    // (SPEC §10, GL 4.6). The frontend requires Feature::MultiDraw and
+    // Feature::BaseInstance and an active program before calling; `instanceCounts`
+    // may be null (every draw is a single instance). `baseInstances[i]` offsets the
+    // per-instance attribute index for draw i (the native glMultiDraw*BaseInstance
+    // entry points, ES 3.2+).
+    virtual void multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                             const int32_t* counts,
+                                             const int32_t* instanceCounts,
+                                             const uint32_t* baseInstances,
+                                             int32_t drawcount) = 0;
+    virtual void multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                              uint32_t type, const intptr_t* indices,
+                                              const uint32_t* baseInstances,
+                                              int32_t drawcount) = 0;
     virtual void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                    int32_t count, uint32_t type,
                                    intptr_t indices) = 0;

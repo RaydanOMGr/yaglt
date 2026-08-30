@@ -5087,6 +5087,57 @@ void Context::multiDrawElements(uint32_t mode, const int32_t* counts,
     backend_.multiDrawElements(mode, counts, type, indices, drawcount);
 }
 
+void Context::multiDrawArraysBaseInstance(uint32_t mode, const int32_t* firsts,
+                                         const int32_t* counts,
+                                         const int32_t* instanceCounts,
+                                         const uint32_t* baseInstances,
+                                         int32_t drawcount) {
+    if (!backend_.capabilities().isSupported(Feature::MultiDraw)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!backend_.capabilities().isSupported(Feature::BaseInstance)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (drawcount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.multiDrawArraysBaseInstance(mode, firsts, counts, instanceCounts,
+                                        baseInstances, drawcount);
+}
+
+void Context::multiDrawElementsBaseInstance(uint32_t mode, const int32_t* counts,
+                                           uint32_t type, const intptr_t* indices,
+                                           const uint32_t* baseInstances,
+                                           int32_t drawcount) {
+    if (!backend_.capabilities().isSupported(Feature::MultiDraw)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!backend_.capabilities().isSupported(Feature::BaseInstance)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (drawcount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.activeProgram() == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    flushState();
+    backend_.multiDrawElementsBaseInstance(mode, counts, type, indices,
+                                          baseInstances, drawcount);
+}
+
 void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                 int32_t count, uint32_t type, intptr_t indices) {
     if (!backend_.capabilities().isSupported(Feature::DrawRangeElements)) {

@@ -350,6 +350,12 @@ struct GLESLib {
     void (*glMultiDrawArrays)(GLenum, const GLint*, const GLsizei*, GLsizei) = nullptr;
     void (*glMultiDrawElements)(GLenum, const GLsizei*, GLenum, const void* const*,
                                 GLsizei) = nullptr;
+    void (*glMultiDrawArraysBaseInstance)(GLenum, const GLint*, const GLsizei*,
+                                          const GLsizei*, const GLuint*,
+                                          GLsizei) = nullptr;
+    void (*glMultiDrawElementsBaseInstance)(GLenum, const GLsizei*, GLenum,
+                                           const void* const*, GLsizei,
+                                           const GLuint*) = nullptr;
     void (*glDrawRangeElements)(GLenum, GLuint, GLuint, GLsizei, GLenum,
                                 const void*) = nullptr;
     void (*glDrawElementsBaseVertex)(GLenum, GLsizei, GLenum, const void*,
