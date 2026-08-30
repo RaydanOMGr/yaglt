@@ -432,14 +432,84 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x
                               static_cast<int>(width), border);
 }
 
-void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
-                      GLint y, GLsizei width, GLsizei height, GLint border) {
+ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                       GLint y, GLsizei width, GLsizei height, GLint border) {
     if (g_current == nullptr) return;
     g_current->copyTexImage2D(target, level,
                               static_cast<uint32_t>(internalFormat), x, y,
                               static_cast<int>(width), static_cast<int>(height),
                               border);
 }
+
+void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLint border, GLsizei imageSize,
+                           const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexImage1D(target, level,
+                                    static_cast<uint32_t>(internalFormat),
+                                    static_cast<int>(width), border,
+                                    static_cast<int>(imageSize), data);
+}
+
+void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLsizei height, GLint border,
+                           GLsizei imageSize, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexImage2D(target, level,
+                                    static_cast<uint32_t>(internalFormat),
+                                    static_cast<int>(width), static_cast<int>(height),
+                                    border, static_cast<int>(imageSize), data);
+}
+
+void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                           GLsizei imageSize, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexImage3D(target, level,
+                                   static_cast<uint32_t>(internalFormat),
+                                   static_cast<int>(width), static_cast<int>(height),
+                                   static_cast<int>(depth), border,
+                                   static_cast<int>(imageSize), data);
+}
+
+void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset,
+                              GLsizei width, GLenum format, GLsizei imageSize,
+                              const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexSubImage1D(target, level, static_cast<int>(xoffset),
+                                      static_cast<int>(width),
+                                      static_cast<uint32_t>(format),
+                                      static_cast<int>(imageSize), data);
+}
+
+void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLsizei width, GLsizei height,
+                              GLenum format, GLsizei imageSize,
+                              const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexSubImage2D(target, level, static_cast<int>(xoffset),
+                                      static_cast<int>(yoffset),
+                                      static_cast<int>(width),
+                                      static_cast<int>(height),
+                                      static_cast<uint32_t>(format),
+                                      static_cast<int>(imageSize), data);
+}
+
+void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLint zoffset, GLsizei width,
+                              GLsizei height, GLsizei depth, GLenum format,
+                              GLsizei imageSize, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTexSubImage3D(target, level, static_cast<int>(xoffset),
+                                      static_cast<int>(yoffset),
+                                      static_cast<int>(zoffset),
+                                      static_cast<int>(width),
+                                      static_cast<int>(height),
+                                      static_cast<int>(depth),
+                                      static_cast<uint32_t>(format),
+                                      static_cast<int>(imageSize), data);
+}
+
 
 void glGetTexParameteriv(GLenum target, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
@@ -541,7 +611,7 @@ void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
                                  static_cast<uint32_t>(type), pixels);
 }
 
-void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
                          GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                          GLenum format, GLenum type, const GLvoid* pixels) {
     if (g_current == nullptr) return;
@@ -551,6 +621,45 @@ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffs
                                  static_cast<uint32_t>(format),
                                  static_cast<uint32_t>(type), pixels);
 }
+
+void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
+                                  GLsizei width, GLenum format, GLsizei imageSize,
+                                  const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTextureSubImage1D(texture, level, static_cast<int>(xoffset),
+                                          static_cast<int>(width),
+                                          static_cast<uint32_t>(format),
+                                          static_cast<int>(imageSize), data);
+}
+
+void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
+                                  GLint yoffset, GLsizei width, GLsizei height,
+                                  GLenum format, GLsizei imageSize,
+                                  const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTextureSubImage2D(texture, level, static_cast<int>(xoffset),
+                                          static_cast<int>(yoffset),
+                                          static_cast<int>(width),
+                                          static_cast<int>(height),
+                                          static_cast<uint32_t>(format),
+                                          static_cast<int>(imageSize), data);
+}
+
+void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                                  GLint yoffset, GLint zoffset, GLsizei width,
+                                  GLsizei height, GLsizei depth, GLenum format,
+                                  GLsizei imageSize, const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->compressedTextureSubImage3D(texture, level, static_cast<int>(xoffset),
+                                          static_cast<int>(yoffset),
+                                          static_cast<int>(zoffset),
+                                          static_cast<int>(width),
+                                          static_cast<int>(height),
+                                          static_cast<int>(depth),
+                                          static_cast<uint32_t>(format),
+                                          static_cast<int>(imageSize), data);
+}
+
 
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
     if (g_current == nullptr) return;

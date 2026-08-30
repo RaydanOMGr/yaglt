@@ -200,10 +200,31 @@ void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
                      GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                      GLenum format, GLenum type, const GLvoid* pixels);
 // Define a texture image by copying from the framebuffer (SPEC §8.5 CopyTexImage*D).
-void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x,
-                      GLint y, GLsizei width, GLint border);
-void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
-                      GLint y, GLsizei width, GLsizei height, GLint border);
+ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                       GLint y, GLsizei width, GLint border);
+ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                       GLint y, GLsizei width, GLsizei height, GLint border);
+// Compressed texture image upload (SPEC §8.6 glCompressedTexImage*D).
+void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLint border, GLsizei imageSize,
+                           const GLvoid* data);
+void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLsizei height, GLint border,
+                           GLsizei imageSize, const GLvoid* data);
+void glCompressedTexImage3D(GLenum target, GLint level, GLenum internalFormat,
+                           GLsizei width, GLsizei height, GLsizei depth, GLint border,
+                           GLsizei imageSize, const GLvoid* data);
+// Compressed texture sub-image upload (SPEC §8.6 glCompressedTexSubImage*D).
+void glCompressedTexSubImage1D(GLenum target, GLint level, GLint xoffset,
+                              GLsizei width, GLenum format, GLsizei imageSize,
+                              const GLvoid* data);
+void glCompressedTexSubImage2D(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLsizei width, GLsizei height,
+                              GLenum format, GLsizei imageSize, const GLvoid* data);
+void glCompressedTexSubImage3D(GLenum target, GLint level, GLint xoffset,
+                              GLint yoffset, GLint zoffset, GLsizei width,
+                              GLsizei height, GLsizei depth, GLenum format,
+                              GLsizei imageSize, const GLvoid* data);
 // Texture parameter queries (SPEC §8.1). glGetTexParameteriv reads the bound
 // texture for `target`; glGetTextureParameteriv is the DSA variant for an
 // explicit texture object (capability-gated by DirectStateAccess).
@@ -241,9 +262,21 @@ void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei wid
 void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
                          GLsizei width, GLsizei height, GLenum format, GLenum type,
                          const GLvoid* pixels);
-void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
+ void glTextureSubImage3D(GLuint texture, GLint level, GLint xoffset, GLint yoffset,
                          GLint zoffset, GLsizei width, GLsizei height, GLsizei depth,
                          GLenum format, GLenum type, const GLvoid* pixels);
+// Compressed DSA sub-image upload (SPEC §8.6 glCompressedTextureSubImage*D).
+void glCompressedTextureSubImage1D(GLuint texture, GLint level, GLint xoffset,
+                                  GLsizei width, GLenum format, GLsizei imageSize,
+                                  const GLvoid* data);
+void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
+                                  GLint yoffset, GLsizei width, GLsizei height,
+                                  GLenum format, GLsizei imageSize,
+                                  const GLvoid* data);
+void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                                  GLint yoffset, GLint zoffset, GLsizei width,
+                                  GLsizei height, GLsizei depth, GLenum format,
+                                  GLsizei imageSize, const GLvoid* data);
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
 void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param);
 void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* params,

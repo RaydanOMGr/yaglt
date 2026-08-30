@@ -356,6 +356,79 @@ public:
         lastCopyInternalFormat = internalFormat; lastCopyX = x; lastCopyY = y;
         lastCopyWidth = width; lastCopyHeight = height; lastCopyBorder = border;
     }
+    int compressedTexImage1DCalls = 0, compressedTexImage2DCalls = 0,
+        compressedTexImage3DCalls = 0;
+    int compressedTexSubImage1DCalls = 0, compressedTexSubImage2DCalls = 0,
+        compressedTexSubImage3DCalls = 0;
+    uint32_t lastCompressedTarget = 0, lastCompressedInternalFormat = 0,
+             lastCompressedFormat = 0;
+    int lastCompressedLevel = 0;
+    int lastCompressedXoffset = 0, lastCompressedYoffset = 0,
+        lastCompressedZoffset = 0;
+    int lastCompressedWidth = 0, lastCompressedHeight = 0,
+        lastCompressedDepth = 0, lastCompressedBorder = 0,
+        lastCompressedImageSize = 0;
+    void compressedTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                              int width, int border, int imageSize,
+                              const void* data) override {
+        ++compressedTexImage1DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedInternalFormat = internalFormat; lastCompressedWidth = width;
+        lastCompressedBorder = border; lastCompressedImageSize = imageSize;
+        (void)data;
+    }
+    void compressedTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                              int width, int height, int border, int imageSize,
+                              const void* data) override {
+        ++compressedTexImage2DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedInternalFormat = internalFormat; lastCompressedWidth = width;
+        lastCompressedHeight = height; lastCompressedBorder = border;
+        lastCompressedImageSize = imageSize;
+        (void)data;
+    }
+    void compressedTexImage3D(uint32_t target, int level, uint32_t internalFormat,
+                              int width, int height, int depth, int border,
+                              int imageSize, const void* data) override {
+        ++compressedTexImage3DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedInternalFormat = internalFormat; lastCompressedWidth = width;
+        lastCompressedHeight = height; lastCompressedDepth = depth;
+        lastCompressedBorder = border; lastCompressedImageSize = imageSize;
+        (void)data;
+    }
+    void compressedTexSubImage1D(uint32_t target, int level, int xoffset, int width,
+                                 uint32_t format, int imageSize,
+                                 const void* data) override {
+        ++compressedTexSubImage1DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedXoffset = xoffset; lastCompressedWidth = width;
+        lastCompressedFormat = format; lastCompressedImageSize = imageSize;
+        (void)data;
+    }
+    void compressedTexSubImage2D(uint32_t target, int level, int xoffset,
+                                 int yoffset, int width, int height,
+                                 uint32_t format, int imageSize,
+                                 const void* data) override {
+        ++compressedTexSubImage2DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedXoffset = xoffset; lastCompressedYoffset = yoffset;
+        lastCompressedWidth = width; lastCompressedHeight = height;
+        lastCompressedFormat = format; lastCompressedImageSize = imageSize;
+        (void)data;
+    }
+    void compressedTexSubImage3D(uint32_t target, int level, int xoffset,
+                                 int yoffset, int zoffset, int width, int height,
+                                 int depth, uint32_t format, int imageSize,
+                                 const void* data) override {
+        ++compressedTexSubImage3DCalls;
+        lastCompressedTarget = target; lastCompressedLevel = level;
+        lastCompressedXoffset = xoffset; lastCompressedYoffset = yoffset;
+        lastCompressedZoffset = zoffset; lastCompressedWidth = width;
+        lastCompressedHeight = height; lastCompressedDepth = depth;
+        lastCompressedFormat = format; lastCompressedImageSize = imageSize;
+        (void)data;
+    }
     int storage1DCalls = 0, storage2DCalls = 0, storage3DCalls = 0;
     int generateMipmapCalls = 0;
     int textureBufferCalls = 0, textureBufferRangeCalls = 0;

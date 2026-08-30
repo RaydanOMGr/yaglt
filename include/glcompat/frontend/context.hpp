@@ -320,6 +320,32 @@ public:
                         int x, int y, int width, int border);
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int height, int border);
+    // Compressed texture image upload (SPEC §8.6 glCompressedTexImage*D). Require a
+    // bound texture (else GL_INVALID_OPERATION). Rectangular/proxy targets report
+    // GL_INVALID_ENUM; a non-zero border or negative level/dimension/imageSize
+    // reports GL_INVALID_VALUE. The compressed data is recorded as the level's image
+    // so level-parameter queries stay consistent; the backend forwards the native
+    // compressed upload when present.
+    void compressedTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int border, int imageSize, const void* data);
+    void compressedTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int height, int border, int imageSize,
+                             const void* data);
+    void compressedTexImage3D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int height, int depth, int border,
+                             int imageSize, const void* data);
+    // Compressed texture sub-image upload (SPEC §8.6 glCompressedTexSubImage*D).
+    // Require a bound texture (else GL_INVALID_OPERATION) and a previously allocated
+    // `level` (else GL_INVALID_OPERATION). Non-negative level/offset/dimension/
+    // imageSize are required (else GL_INVALID_VALUE).
+    void compressedTexSubImage1D(uint32_t target, int level, int xoffset, int width,
+                                uint32_t format, int imageSize, const void* data);
+    void compressedTexSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                                int width, int height, uint32_t format,
+                                int imageSize, const void* data);
+    void compressedTexSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                                int zoffset, int width, int height, int depth,
+                                uint32_t format, int imageSize, const void* data);
     // Texture parameter queries (SPEC §8.1). getTexParameteriv reads the
     // currently bound texture for `target`; getTextureParameteriv is the DSA
     // variant that reads an explicit texture object (capability-gated by
@@ -359,6 +385,21 @@ public:
     void textureSubImage3D(GLObjectName texture, int level, int xoffset, int yoffset,
                            int zoffset, int width, int height, int depth,
                            uint32_t format, uint32_t type, const void* data);
+    // Compressed DSA sub-image upload (SPEC §8.6 glCompressedTextureSubImage*D).
+    // Capability-gated by DirectStateAccess (Emulated); require a generated texture
+    // (else GL_INVALID_OPERATION) and a previously allocated `level` (else
+    // GL_INVALID_OPERATION). Non-negative level/offset/dimension/imageSize are
+    // required (else GL_INVALID_VALUE).
+    void compressedTextureSubImage1D(GLObjectName texture, int level, int xoffset,
+                                   int width, uint32_t format, int imageSize,
+                                   const void* data);
+    void compressedTextureSubImage2D(GLObjectName texture, int level, int xoffset,
+                                   int yoffset, int width, int height,
+                                   uint32_t format, int imageSize, const void* data);
+    void compressedTextureSubImage3D(GLObjectName texture, int level, int xoffset,
+                                   int yoffset, int zoffset, int width, int height,
+                                   int depth, uint32_t format, int imageSize,
+                                   const void* data);
     void textureParameteri(GLObjectName texture, uint32_t pname, int param);
     void textureParameterf(GLObjectName texture, uint32_t pname, float param);
     void textureParameterfv(GLObjectName texture, uint32_t pname, const float* params,

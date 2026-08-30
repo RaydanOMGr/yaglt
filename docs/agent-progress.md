@@ -3072,4 +3072,28 @@ crashed agent, this session)
     public dispatch surface. `docs/feature-matrix.md` §6 verification list now cites the
     new test. Coverage regenerated: 532/1052 (~50.6%) full, 491/570 (~86.1%) core.
     Validation: `build`, `build_san` (ASan/UBSan clean), `build_tx` (GLES e2e) all
-    green with the new test.
+     green with the new test.
+
+ - **Compressed texture image upload (SPEC §8.6)** — fills a genuine core gap (only
+   the read-back half of compressed textures was implemented before). Added the full
+   upload family: `glCompressedTexImage1D/2D/3D` (non-DSA, operate on the texture
+   bound to `target`), `glCompressedTexSubImage1D/2D/3D`, and the DSA
+   `glCompressedTextureSubImage1D/2D/3D`. Frontend validation: no texture bound →
+   `GL_INVALID_OPERATION`; `GL_TEXTURE_RECTANGLE` target → `GL_INVALID_ENUM`
+   (compressed rectangle formats unsupported); non-zero `border` or negative
+   level/dimension/`imageSize` → `GL_INVALID_VALUE`; a sub-upload requires a
+   previously allocated `level` (`findLevel` for mutable storage, immutable-storage
+   check for DSA) else `GL_INVALID_OPERATION`. The compressed image is recorded as the
+   level's metadata so `glGetTextureLevelParameter*` stays consistent. Backend: new
+   `BackendTexture` virtuals (default no-op) implemented by `MockTexture` (records
+   each call + last params) and `GLESBackendTexture` (forwards to the core
+   `glCompressedTexImage*D` / `glCompressedTexSubImage*D` entry points, resolved
+   optionally in `gles_loader`). The C shim exports regenerate from `gl_api.hpp`
+   automatically (`gen_gl_exports.py`, now 554 wrappers). New
+   `tests/unit/compressed_tex_image_test.cpp` (9 cases) covering record + param
+   passthrough for the 2D/3D/classic+DSA-sub variants, the no-bound-texture /
+   rectangle-target / non-zero-border / negative-dimension rejections, and the DSA
+   sub-upload rejection of an unallocated level. `docs/feature-matrix.md` §8 gains a
+   "Compressed texture image upload" row; coverage regenerated to 541/1052 (~51.4%)
+   full, 500/570 (~87.7%) core. Validation: `build` 843/843, `build_san`
+   (ASan/UBSan clean) green with the new test.

@@ -273,6 +273,62 @@ struct GLESBackendTexture : BackendTexture {
         lib->glCopyTexImage2D(target, level, glesSizedInternalFormat(internalFormat),
                               x, y, width, height, border);
     }
+    void compressedTexImage1D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int border, int imageSize,
+                             const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glCompressedTexImage2D(GL_TEXTURE_2D, level,
+                                    internalFormat, static_cast<GLsizei>(width), 1,
+                                    border, static_cast<GLsizei>(imageSize), data);
+    }
+    void compressedTexImage2D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int height, int border, int imageSize,
+                             const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCompressedTexImage2D(target, level, internalFormat,
+                                    static_cast<GLsizei>(width),
+                                    static_cast<GLsizei>(height), border,
+                                    static_cast<GLsizei>(imageSize), data);
+    }
+    void compressedTexImage3D(uint32_t target, int level, uint32_t internalFormat,
+                             int width, int height, int depth, int border,
+                             int imageSize, const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexImage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCompressedTexImage3D(target, level, internalFormat,
+                                    static_cast<GLsizei>(width),
+                                    static_cast<GLsizei>(height),
+                                    static_cast<GLsizei>(depth), border,
+                                    static_cast<GLsizei>(imageSize), data);
+    }
+    void compressedTexSubImage1D(uint32_t target, int level, int xoffset, int width,
+                                uint32_t format, int imageSize,
+                                const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glCompressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, width, 1,
+                                       format, static_cast<GLsizei>(imageSize), data);
+    }
+    void compressedTexSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                                int width, int height, uint32_t format, int imageSize,
+                                const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCompressedTexSubImage2D(target, level, xoffset, yoffset, width, height,
+                                       format, static_cast<GLsizei>(imageSize), data);
+    }
+    void compressedTexSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                                int zoffset, int width, int height, int depth,
+                                uint32_t format, int imageSize,
+                                const void* data) override {
+        if (!lib || !lib->driverLive() || !lib->glCompressedTexSubImage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCompressedTexSubImage3D(target, level, xoffset, yoffset, zoffset,
+                                       width, height, depth, format,
+                                       static_cast<GLsizei>(imageSize), data);
+    }
     void storage1D(uint32_t target, int levels, uint32_t internalFormat,
                    int width) override {
         // OpenGL ES has no 1D textures; the call is a no-op on this backend.

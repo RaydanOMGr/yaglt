@@ -134,6 +134,34 @@ public:
     virtual void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
                                int zoffset, int width, int height, int depth,
                                uint32_t format, uint32_t type, const void* data) {}
+    // Upload compressed texture storage (SPEC §8.6 glCompressedTexImage*D).
+    // `border` must be 0 (the frontend validates this). `imageSize` is the
+    // compressed data size in bytes; `data` may be null. Backends with native
+    // compressed storage forward the call to the driver; the default is a no-op.
+    virtual void compressedTexImage1D(uint32_t target, int level,
+                                      uint32_t internalFormat, int width, int border,
+                                      int imageSize, const void* data) {}
+    virtual void compressedTexImage2D(uint32_t target, int level,
+                                      uint32_t internalFormat, int width, int height,
+                                      int border, int imageSize, const void* data) {}
+    virtual void compressedTexImage3D(uint32_t target, int level,
+                                      uint32_t internalFormat, int width, int height,
+                                      int depth, int border, int imageSize,
+                                      const void* data) {}
+    // Upload a compressed sub-region of an existing texture level (SPEC §8.6
+    // glCompressedTexSubImage*D). The frontend validates bounds and that the
+    // level was allocated; backends with native storage forward the call.
+    virtual void compressedTexSubImage1D(uint32_t target, int level, int xoffset,
+                                         int width, uint32_t format, int imageSize,
+                                         const void* data) {}
+    virtual void compressedTexSubImage2D(uint32_t target, int level, int xoffset,
+                                         int yoffset, int width, int height,
+                                         uint32_t format, int imageSize,
+                                         const void* data) {}
+    virtual void compressedTexSubImage3D(uint32_t target, int level, int xoffset,
+                                         int yoffset, int zoffset, int width,
+                                         int height, int depth, uint32_t format,
+                                         int imageSize, const void* data) {}
     // Define a texture image by copying from the framebuffer (SPEC §8.5
     // CopyTexImage*D). The backend uses the currently bound read framebuffer.
     virtual void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,

@@ -211,6 +211,13 @@ bool GLESLib::load() {
     resolve(gles, glTexSubImage3D, "glTexSubImage3D");
     resolve(gles, glCopyTexImage1D, "glCopyTexImage1D");
     resolve(gles, glCopyTexImage2D, "glCopyTexImage2D");
+    // Compressed texture upload (SPEC §8.6, GLES 3.0 core).
+    resolve(gles, glCompressedTexImage1D, "glCompressedTexImage1D");
+    resolve(gles, glCompressedTexImage2D, "glCompressedTexImage2D");
+    resolve(gles, glCompressedTexImage3D, "glCompressedTexImage3D");
+    resolve(gles, glCompressedTexSubImage1D, "glCompressedTexSubImage1D");
+    resolve(gles, glCompressedTexSubImage2D, "glCompressedTexSubImage2D");
+    resolve(gles, glCompressedTexSubImage3D, "glCompressedTexSubImage3D");
     // Immutable texture storage + DSA helpers (GL 4.2/4.5). Resolved optionally so
     // load() still succeeds on drivers that lack them.
     resolve(gles, glTexStorage1D, "glTexStorage1D");

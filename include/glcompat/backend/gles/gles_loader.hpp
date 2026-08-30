@@ -261,6 +261,23 @@ struct GLESLib {
     void (*glCopyTexImage2D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei,
                               GLint) = nullptr;
 
+    // Compressed texture upload (SPEC §8.6, GLES 3.0 core). Resolved optionally
+    // so load() still succeeds on drivers that lack them; the frontend validates
+    // and the backend forwards the call when present.
+    void (*glCompressedTexImage1D)(GLenum, GLint, GLenum, GLsizei, GLint, GLsizei,
+                                   const void*) = nullptr;
+    void (*glCompressedTexImage2D)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLint,
+                                   GLsizei, const void*) = nullptr;
+    void (*glCompressedTexImage3D)(GLenum, GLint, GLenum, GLsizei, GLsizei, GLsizei,
+                                   GLint, GLsizei, const void*) = nullptr;
+    void (*glCompressedTexSubImage1D)(GLenum, GLint, GLint, GLsizei, GLenum, GLsizei,
+                                      const void*) = nullptr;
+    void (*glCompressedTexSubImage2D)(GLenum, GLint, GLint, GLint, GLsizei, GLsizei,
+                                      GLenum, GLsizei, const void*) = nullptr;
+    void (*glCompressedTexSubImage3D)(GLenum, GLint, GLint, GLint, GLint, GLsizei,
+                                      GLsizei, GLsizei, GLenum, GLsizei,
+                                      const void*) = nullptr;
+
     // Immutable texture storage + DSA helpers (SPEC §8.1, GL 4.2/4.5). Resolved
     // optionally so load() still succeeds on drivers that lack them (the
     // capability system reports immutable storage unsupported when absent).

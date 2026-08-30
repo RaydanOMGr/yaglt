@@ -1673,6 +1673,277 @@ void Context::texImage3D(uint32_t target, int level, uint32_t internalFormat,
     }
 }
 
+// Forward declarations (defined later in this file, inside an anonymous
+// namespace, so these match their internal-linkage definitions).
+namespace {
+const TextureObject::Image* findLevel(const TextureObject* tex, int level);
+TextureObject* dsaTexture(Context& ctx, GLObjectName name);
+}
+
+// SPEC §8.6: compressed rectangle targets are unsupported. (The proxy variants are
+// also rejected by real drivers; the core token used here is the one YAGLT exposes.)
+static bool compressedTargetValid(uint32_t target) {
+    return target != GL_TEXTURE_RECTANGLE;
+}
+
+void Context::compressedTexImage1D(uint32_t target, int level,
+                                  uint32_t internalFormat, int width, int border,
+                                  int imageSize, const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!compressedTargetValid(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (border != 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (level < 0 || width < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = 1;
+    img.depth = 0;
+    img.format = internalFormat;
+    img.hasData = (data != nullptr);
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    updateMutableTextureStorage(tex);
+    if (tex->backend)
+        tex->backend->compressedTexImage1D(target, level, internalFormat, width,
+                                           border, imageSize, data);
+}
+
+void Context::compressedTexImage2D(uint32_t target, int level,
+                                  uint32_t internalFormat, int width, int height,
+                                  int border, int imageSize, const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!compressedTargetValid(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (border != 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (level < 0 || width < 0 || height < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = height;
+    img.depth = 0;
+    img.format = internalFormat;
+    img.hasData = (data != nullptr);
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    updateMutableTextureStorage(tex);
+    if (tex->backend)
+        tex->backend->compressedTexImage2D(target, level, internalFormat, width,
+                                           height, border, imageSize, data);
+}
+
+void Context::compressedTexImage3D(uint32_t target, int level,
+                                  uint32_t internalFormat, int width, int height,
+                                  int depth, int border, int imageSize,
+                                  const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!compressedTargetValid(target)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (border != 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (level < 0 || width < 0 || height < 0 || depth < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    TextureObject::Image img;
+    img.level = level;
+    img.internalFormat = internalFormat;
+    img.width = width;
+    img.height = height;
+    img.depth = depth;
+    img.format = internalFormat;
+    img.hasData = (data != nullptr);
+    bool replaced = false;
+    for (auto& e : tex->images) {
+        if (e.level == level) { e = img; replaced = true; break; }
+    }
+    if (!replaced) tex->images.push_back(img);
+    tex->storageSet = true;
+    updateMutableTextureStorage(tex);
+    if (tex->backend)
+        tex->backend->compressedTexImage3D(target, level, internalFormat, width,
+                                           height, depth, border, imageSize, data);
+}
+
+void Context::compressedTexSubImage1D(uint32_t target, int level, int xoffset,
+                                     int width, uint32_t format, int imageSize,
+                                     const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || width < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    if (tex->backend)
+        tex->backend->compressedTexSubImage1D(target, level, xoffset, width, format,
+                                             imageSize, data);
+}
+
+void Context::compressedTexSubImage2D(uint32_t target, int level, int xoffset,
+                                     int yoffset, int width, int height,
+                                     uint32_t format, int imageSize,
+                                     const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0 ||
+        imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    if (tex->backend)
+        tex->backend->compressedTexSubImage2D(target, level, xoffset, yoffset, width,
+                                             height, format, imageSize, data);
+}
+
+void Context::compressedTexSubImage3D(uint32_t target, int level, int xoffset,
+                                     int yoffset, int zoffset, int width, int height,
+                                     int depth, uint32_t format, int imageSize,
+                                     const void* data) {
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || width < 0 ||
+        height < 0 || depth < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation); // no storage allocated
+        return;
+    }
+    tex->target = normalizeTextureTarget(target);
+    if (tex->backend)
+        tex->backend->compressedTexSubImage3D(target, level, xoffset, yoffset,
+                                             zoffset, width, height, depth, format,
+                                             imageSize, data);
+}
+
+void Context::compressedTextureSubImage1D(GLObjectName texture, int level,
+                                         int xoffset, int width, uint32_t format,
+                                         int imageSize, const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || width < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    tex->target = GL_TEXTURE_1D;
+    if (tex->backend)
+        tex->backend->compressedTexSubImage1D(GL_TEXTURE_1D, level, xoffset, width,
+                                             format, imageSize, data);
+}
+
+void Context::compressedTextureSubImage2D(GLObjectName texture, int level,
+                                         int xoffset, int yoffset, int width,
+                                         int height, uint32_t format, int imageSize,
+                                         const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0 ||
+        imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    tex->target = GL_TEXTURE_2D;
+    if (tex->backend)
+        tex->backend->compressedTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset,
+                                             width, height, format, imageSize, data);
+}
+
+void Context::compressedTextureSubImage3D(GLObjectName texture, int level,
+                                         int xoffset, int yoffset, int zoffset,
+                                         int width, int height, int depth,
+                                         uint32_t format, int imageSize,
+                                         const void* data) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || width < 0 ||
+        height < 0 || depth < 0 || imageSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tex->immutableStorage && findLevel(tex, level) == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    tex->target = GL_TEXTURE_3D;
+    if (tex->backend)
+        tex->backend->compressedTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset,
+                                             zoffset, width, height, depth, format,
+                                             imageSize, data);
+}
+
 void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
     TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
     if (tex == nullptr) {
