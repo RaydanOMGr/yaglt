@@ -2724,10 +2724,23 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
      g_current->drawArraysIndirect(mode, indirect);
  }
 
-   void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
-       if (g_current == nullptr) return;
-       g_current->drawElementsIndirect(mode, type, indirect);
-   }
+    void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
+        if (g_current == nullptr) return;
+        g_current->drawElementsIndirect(mode, type, indirect);
+    }
+
+    void glMultiDrawArraysIndirect(GLenum mode, const GLvoid* indirect,
+                                  GLsizei drawcount, GLsizei stride) {
+        if (g_current == nullptr) return;
+        g_current->multiDrawArraysIndirect(mode, indirect, drawcount, stride);
+    }
+
+    void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect,
+                                    GLsizei drawcount, GLsizei stride) {
+        if (g_current == nullptr) return;
+        g_current->multiDrawElementsIndirect(mode, type, indirect, drawcount, stride);
+    }
+
 
    void glDrawTransformFeedback(GLenum mode, GLuint id) {
        if (g_current == nullptr) return;

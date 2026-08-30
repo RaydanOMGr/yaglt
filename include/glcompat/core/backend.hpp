@@ -94,6 +94,16 @@ public:
     virtual void drawArraysIndirect(uint32_t mode, const void* indirect) = 0;
     virtual void drawElementsIndirect(uint32_t mode, uint32_t type,
                                       const void* indirect) = 0;
+    // Multi-draw indirect (SPEC §10, ARB_multi_draw_indirect). Issues `drawcount`
+    // indirect draw commands from a bound GL_DRAW_INDIRECT_BUFFER at `indirect`
+    // (byte offset); `stride` is the per-command spacing in bytes (0 = tightly
+    // packed). The frontend checks Feature::IndirectDrawing, an active program, and
+    // the bound indirect buffer before calling.
+    virtual void multiDrawArraysIndirect(uint32_t mode, const void* indirect,
+                                         int32_t drawcount, int32_t stride) = 0;
+    virtual void multiDrawElementsIndirect(uint32_t mode, uint32_t type,
+                                           const void* indirect, int32_t drawcount,
+                                           int32_t stride) = 0;
     // Transform-feedback draws (SPEC §13.3.3). `tfId` is the native transform-
     // feedback object handle (0 when none); `count` is the captured vertex count
     // resolved by the frontend via BackendTransformFeedback::getCapturedVertexCount.

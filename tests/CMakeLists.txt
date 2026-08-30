@@ -112,6 +112,7 @@ add_executable(yaglt_tests
     unit/debug_message_test.cpp
     unit/draw_transform_feedback_test.cpp
     unit/draw_base_instance_test.cpp
+    unit/multi_draw_indirect_test.cpp
     unit/clip_control_test.cpp
     unit/viewport_indexed_test.cpp
     backend/gles_backend_test.cpp

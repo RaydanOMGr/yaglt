@@ -964,8 +964,18 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
  // Indirect draw (SPEC §10). Requires an indirect buffer bound to
  // GL_DRAW_INDIRECT_BUFFER and an active program; capability-gated by
  // IndirectDrawing. `indirect` is the byte offset into that bound buffer.
-   void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect);
-   void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect);
+    void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect);
+    void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect);
+
+    // Multi-draw indirect (SPEC §10, ARB_multi_draw_indirect). Same preconditions as
+    // the single indirect draws; issues `drawcount` indirect commands from the bound
+    // GL_DRAW_INDIRECT_BUFFER at `indirect`, each `stride` bytes apart (stride 0 = tightly
+    // packed). Capability-gated by IndirectDrawing.
+    void glMultiDrawArraysIndirect(GLenum mode, const GLvoid* indirect,
+                                  GLsizei drawcount, GLsizei stride);
+    void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect,
+                                    GLsizei drawcount, GLsizei stride);
+
 
    // Transform-feedback draws (SPEC §13.3.3). Draw the captured vertex count of
    // the transform-feedback object `id` (stream variants draw a specific stream).

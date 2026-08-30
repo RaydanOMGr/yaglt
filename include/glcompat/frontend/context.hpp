@@ -1274,6 +1274,14 @@ public:
     // then issues the native indirect draw.
     void drawArraysIndirect(uint32_t mode, const void* offset);
     void drawElementsIndirect(uint32_t mode, uint32_t type, const void* offset);
+    // Multi-draw indirect (SPEC §10, ARB_multi_draw_indirect). Same preconditions as
+    // the single indirect draws; issues `drawcount` indirect commands from the bound
+    // GL_DRAW_INDIRECT_BUFFER at `offset`, each `stride` bytes apart (stride 0 = tightly
+    // packed). Requires Feature::IndirectDrawing + an active program + the indirect buffer.
+    void multiDrawArraysIndirect(uint32_t mode, const void* offset, int32_t drawcount,
+                                int32_t stride);
+    void multiDrawElementsIndirect(uint32_t mode, uint32_t type, const void* offset,
+                                 int32_t drawcount, int32_t stride);
 
     // Transform-feedback draws (SPEC §13.3.3). Draw `id`'s captured vertex count
     // (resolved from the object's backend via getCapturedVertexCount). Requires an

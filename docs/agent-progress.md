@@ -2859,3 +2859,18 @@ crashed agent, this session)
     requirement, and a legal `baseinstance == 0`. Coverage regenerated: 455/1052 (~43.3%)
     full, 415/570 (~72.8%) core. Validation: `build` 770/770, `build_san` 770/770,
     `build_tx` (GLES e2e) 782/782.
+
+ - **glMultiDraw*Indirect family (SPEC §10, ARB_multi_draw_indirect)** — issues
+    `drawcount` indirect commands from a bound GL_DRAW_INDIRECT_BUFFER. Added two
+    backend draw virtuals (`multiDrawArraysIndirect`, `multiDrawElementsIndirect`)
+    taking mode/type/offset/drawcount/stride; the mock records `lastDrawIndirectCount`
+    + `lastDrawIndirectStride`, and the GLES backend forwards to the native
+    `glMultiDraw*Indirect` entry points (resolved optionally in `gles_loader`). `Context`
+    gates each on `Feature::IndirectDrawing`, an active program, and a bound
+    GL_DRAW_INDIRECT_BUFFER (else `GL_INVALID_OPERATION`), flushes state, then issues
+    the backend draw. `gl_api` exposes both entry points (C shim regenerated at build).
+    New `tests/unit/multi_draw_indirect_test.cpp` (5 cases) covering count/stride/offset
+    passthrough for each variant, the indirect-buffer requirement, the active-program
+    requirement, and a legal `stride == 0`. Coverage regenerated: 457/1052 (~43.4%)
+    full, 417/570 (~73.2%) core. Validation: `build` 775/775, `build_san` 775/775,
+    `build_tx` (GLES e2e) 787/787.

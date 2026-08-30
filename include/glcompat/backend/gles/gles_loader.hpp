@@ -344,6 +344,11 @@ struct GLESLib {
     // IndirectDrawing unsupported instead of failing the whole backend init).
     void (*glDrawArraysIndirect)(GLenum, const void*) = nullptr;
     void (*glDrawElementsIndirect)(GLenum, GLenum, const void*) = nullptr;
+    // Multi-draw indirect (SPEC §10, ARB_multi_draw_indirect, ES 3.1+). Resolved
+    // optionally so load() still succeeds on a driver that lacks them.
+    void (*glMultiDrawArraysIndirect)(GLenum, const void*, GLsizei, GLsizei) = nullptr;
+    void (*glMultiDrawElementsIndirect)(GLenum, GLenum, const void*, GLsizei,
+                                       GLsizei) = nullptr;
     // Transform-feedback draws (SPEC §13.3.3, ES 3.2+). Resolved optionally so
     // load() still succeeds on a driver that lacks them.
     void (*glDrawTransformFeedback)(GLenum, GLuint) = nullptr;

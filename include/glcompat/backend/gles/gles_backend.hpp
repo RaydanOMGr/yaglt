@@ -199,6 +199,11 @@ public:
     void drawArraysIndirect(uint32_t mode, const void* indirect) override;
     void drawElementsIndirect(uint32_t mode, uint32_t type,
                               const void* indirect) override;
+    // Multi-draw indirect (SPEC §10, ES 3.1+; forwarded when the driver supports them).
+    void multiDrawArraysIndirect(uint32_t mode, const void* indirect,
+                                int32_t drawcount, int32_t stride) override;
+    void multiDrawElementsIndirect(uint32_t mode, uint32_t type, const void* indirect,
+                                  int32_t drawcount, int32_t stride) override;
 
     // Transform-feedback draws (SPEC §13.3.3). The driver uses the captured vertex
     // count of the given object, so `count`/`primcount` are forwarded only for

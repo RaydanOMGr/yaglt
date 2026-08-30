@@ -4974,6 +4974,43 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
         backend_.drawElementsIndirect(mode, type, offset);
     }
 
+    void Context::multiDrawArraysIndirect(uint32_t mode, const void* offset,
+                                        int32_t drawcount, int32_t stride) {
+        if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        flushState();
+        backend_.multiDrawArraysIndirect(mode, offset, drawcount, stride);
+    }
+
+    void Context::multiDrawElementsIndirect(uint32_t mode, uint32_t type,
+                                           const void* offset, int32_t drawcount,
+                                           int32_t stride) {
+        if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        flushState();
+        backend_.multiDrawElementsIndirect(mode, type, offset, drawcount, stride);
+    }
+
     // Resolve the transform-feedback object referenced by a draw call. `id == 0`
     // denotes the currently bound object; any other `id` must name an existing
     // transform-feedback object. Returns nullptr (and leaves no error) when there

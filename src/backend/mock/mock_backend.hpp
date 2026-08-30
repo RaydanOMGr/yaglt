@@ -819,6 +819,10 @@ public:
     // (the mock has no driver; the frontend validates the indirect buffer / program).
     int drawArraysIndirectCalls = 0;
     int drawElementsIndirectCalls = 0;
+    int multiDrawArraysIndirectCalls = 0;
+    int multiDrawElementsIndirectCalls = 0;
+    int32_t lastDrawIndirectCount = 0;
+    int32_t lastDrawIndirectStride = 0;
     const void* lastIndirect = nullptr;
     void drawArraysIndirect(uint32_t mode, const void* indirect) override {
         ++drawArraysIndirectCalls;
@@ -831,6 +835,23 @@ public:
         lastDrawMode = mode;
         lastDrawType = type;
         lastIndirect = indirect;
+    }
+    void multiDrawArraysIndirect(uint32_t mode, const void* indirect,
+                                int32_t drawcount, int32_t stride) override {
+        ++multiDrawArraysIndirectCalls;
+        lastDrawMode = mode;
+        lastIndirect = indirect;
+        lastDrawIndirectCount = drawcount;
+        lastDrawIndirectStride = stride;
+    }
+    void multiDrawElementsIndirect(uint32_t mode, uint32_t type, const void* indirect,
+                                 int32_t drawcount, int32_t stride) override {
+        ++multiDrawElementsIndirectCalls;
+        lastDrawMode = mode;
+        lastDrawType = type;
+        lastIndirect = indirect;
+        lastDrawIndirectCount = drawcount;
+        lastDrawIndirectStride = stride;
     }
 
     // Compute dispatch (SPEC §7.4). Recorded so tests can assert the call is
