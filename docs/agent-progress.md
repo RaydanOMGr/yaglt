@@ -2976,3 +2976,18 @@ crashed agent, this session)
     requirement, and a legal `stride == 0`. Coverage regenerated: 457/1052 (~43.4%)
     full, 417/570 (~73.2%) core. Validation: `build` 775/775, `build_san` 775/775,
     `build_tx` (GLES e2e) 787/787.
+
+ - **glQueryCounter (SPEC §4.2.1, timestamp query)** — emits a timestamp query.
+    Added `glQueryCounter` symbol to `GLESLib` (optional, `gles_loader`), a
+    `BackendQuery::queryCounter(uint32_t target)` virtual (default no-op; mock records
+    `queryCounterCalls`/`lastCounterTarget`; GLES forwards to the driver), and
+    `Context::queryCounter(GLObjectName, uint32_t)` gated by `Feature::Queries`,
+    requiring `target == GL_TIMESTAMP` (`GL_INVALID_ENUM` otherwise), a generated id
+    (`GL_INVALID_OPERATION`), and a non-active query (`GL_INVALID_OPERATION`), then
+    assigns `target = GL_TIMESTAMP` and forwards. `gl_api` exposes the C entry point (shim
+    regenerated at build). `MockFactory` gained a `lastCreatedQuery` hook for white-box
+    testing. New `tests/unit/query_counter_test.cpp` (5 cases) covering timestamp
+    recording, illegal target, ungenerated id, active-query rejection, and the public
+    dispatch surface. Coverage regenerated: 523/1052 (~49.7%) full, 482/570 (~84.6%) core.
+    Validation: `build` 815/815, `build_san` 815/815 (ASan/UBSan clean), `build_tx` (GLES
+    e2e) compiles.
