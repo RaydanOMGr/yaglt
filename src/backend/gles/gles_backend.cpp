@@ -810,12 +810,16 @@ void GLESBackend::readPixels(int32_t x, int32_t y, int32_t width, int32_t height
 }
 
 void GLESBackend::readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
-                              uint32_t format, uint32_t type, int32_t bufSize,
-                              void* pixels) {
+                               uint32_t format, uint32_t type, int32_t bufSize,
+                               void* pixels) {
     if (lib_->glReadnPixels)
         lib_->glReadnPixels(x, y, width, height, format, type, bufSize, pixels);
     else if (lib_->glReadPixels)
         lib_->glReadPixels(x, y, width, height, format, type, pixels);
+}
+
+void GLESBackend::textureBarrier() {
+    if (lib_->glTextureBarrierNV) lib_->glTextureBarrierNV();
 }
 
 void GLESBackend::logicOp(uint32_t mode) {

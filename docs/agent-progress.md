@@ -3164,3 +3164,33 @@ crashed agent, this session)
    "Compressed texture image upload" row; coverage regenerated to 541/1052 (~51.4%)
    full, 500/570 (~87.7%) core. Validation: `build` 843/843, `build_san`
    (ASan/UBSan clean) green with the new test.
+
+## Recent Work (2026-08-30 — texture barrier, GL 4.5 core gap)
+
+ - **glTextureBarrier (SPEC §10.9.2)** — closes the last remaining GL 4.5 core
+   entry-point gap in `gl_api.hpp` (the others — `glReadnPixels`,
+   `glGetGraphicsResetStatus`, `glGetnUniform*` — were already present). It is an
+   error-free void call that orders later texture reads after earlier draws that
+   wrote the same texture within the context.
+   - `include/glcompat/core/backend.hpp`: new virtual `textureBarrier()` (default
+     no-op — a backend without a separate draw-to-texture read/write domain needs
+     no ordering).
+   - `src/backend/mock/mock_backend.hpp`: `textureBarrierCalls` counter + override
+     (records the call for observability).
+   - `include/glcompat/backend/gles/gles_loader.hpp` + `src/backend/gles/gles_loader.cpp`:
+     optional `glTextureBarrierNV` (the `GL_NV_texture_barrier` ES spelling).
+   - `include/glcompat/backend/gles/gles_backend.hpp` + `gles_backend.cpp`:
+     `textureBarrier()` calls `glTextureBarrierNV` when resolved, else no-ops
+     (core never raises an error).
+   - `include/glcompat/frontend/context.hpp` + `context.cpp`: `Context::textureBarrier()`
+     flushes tracked state then forwards to the backend.
+   - `include/glcompat/frontend/gl_api.hpp` + `gl_api.cpp`: public `glTextureBarrier`
+     dispatch (null-context guard).
+   - `tests/unit/texture_barrier_test.cpp` (new, 2 cases: forwards after flush,
+     null-context no-op) + registered in `tests/CMakeLists.txt`.
+   - The e2e shim regenerates `glTextureBarrier` from `gl_api.hpp` via the CMake
+     `gen_gl_exports` step (no source-tree copy needed).
+   - `docs/feature-matrix.md` §OpenGL-facing support gains a "Texture barrier
+     (SPEC §10.9.2)" row.
+   - Validation: all three configs green — `build` 858/858, `build_san`
+     (ASan/UBSan clean) 858/858, `build_tx` (GLES e2e under Mesa softpipe) 870/870.

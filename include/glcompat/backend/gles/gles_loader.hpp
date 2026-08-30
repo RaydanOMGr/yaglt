@@ -196,7 +196,11 @@ struct GLESLib {
     void (*glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum,
                          void*) = nullptr;
     void (*glReadnPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei,
-                          void*) = nullptr;
+                           void*) = nullptr;
+    // Texture barrier (SPEC §10.9.2). Core in GL 4.5; not a standard ES entry
+    // point. GL_NV_texture_barrier exposes it as glTextureBarrierNV, resolved
+    // optionally so load() still succeeds on drivers without the extension.
+    void (*glTextureBarrierNV)(void) = nullptr;
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 

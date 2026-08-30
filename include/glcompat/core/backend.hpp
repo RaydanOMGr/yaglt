@@ -199,6 +199,15 @@ public:
         readPixels(x, y, width, height, format, type, pixels);
     }
 
+    // Texture barrier (SPEC §10.9.2). `glTextureBarrier` guarantees that a
+    // subsequent texturing operation that reads from a texture written by an
+    // earlier draw in the same context observes the written data. It has no
+    // parameters and never raises an error. The default is a no-op: a backend
+    // without a separate draw-to-texture read/write domain needs no ordering
+    // (the mock records the call for observability). Backends with a native
+    // barrier override it (GLES only exposes this via GL_NV_texture_barrier).
+    virtual void textureBarrier() {}
+
     // Internal format queries (SPEC §22.3, glGetInternalformativ /
     // glGetInternalformati64v). The frontend validates the call (null params ->
     // INVALID_VALUE, negative bufSize -> INVALID_VALUE, unknown pname ->

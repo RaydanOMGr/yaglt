@@ -1042,6 +1042,9 @@ void glGetInteger64i_v(GLenum pname, GLuint index, GLint64* params);
 // Current graphics-reset status (SPEC §22.5). This frontend always reports
 // GL_NO_ERROR.
 GLenum glGetGraphicsResetStatus(void);
+// Texture barrier (SPEC §10.9.2). Error-free; orders later texture reads after
+// earlier draws that wrote the same texture within this context.
+void glTextureBarrier(void);
 GLboolean glIsEnabled(GLenum cap);
 GLboolean glIsEnabledi(GLenum cap, GLuint index);
 

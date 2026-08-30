@@ -2884,6 +2884,11 @@ GLenum glGetGraphicsResetStatus(void) {
     return g_current->getGraphicsResetStatus();
 }
 
+void glTextureBarrier(void) {
+    if (g_current == nullptr) return;
+    g_current->textureBarrier();
+}
+
 GLboolean glIsEnabled(GLenum cap) {
     if (g_current == nullptr) return 0;
     return g_current->isEnabled(cap) ? 1 : 0;

@@ -807,6 +807,10 @@ public:
     void readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                      uint32_t format, uint32_t type, int32_t bufSize, void* pixels);
 
+    // Texture barrier (SPEC §10.9.2). Error-free void call; flushes tracked
+    // state then forwards to the backend.
+    void textureBarrier();
+
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
     // backend immediately (it affects subsequent texture/image uploads, SPEC §8.4).

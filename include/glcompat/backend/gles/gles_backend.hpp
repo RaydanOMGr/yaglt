@@ -264,6 +264,11 @@ public:
     void readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                      uint32_t format, uint32_t type, int32_t bufSize,
                      void* pixels) override;
+    // Texture barrier (SPEC §10.9.2). Calls glTextureBarrierNV when the driver
+    // exposes GL_NV_texture_barrier; otherwise a no-op (the core call never
+    // raises an error, and a backend without a separate draw-to-texture
+    // read/write domain needs no ordering).
+    void textureBarrier() override;
 
     // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer).
     void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1, int32_t srcY1,

@@ -9648,6 +9648,14 @@ void Context::readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
     backend_.readnPixels(x, y, width, height, format, type, bufSize, pixels);
 }
 
+void Context::textureBarrier() {
+    // No parameters, no error conditions (SPEC §10.9.2). Flush tracked state so
+    // any prior draw is ordered before subsequent texture reads, then ask the
+    // backend to emit the barrier.
+    flushState();
+    backend_.textureBarrier();
+}
+
 // --- Uniforms (SPEC §8) ---
 
 BackendProgram* Context::activeBackendProgram() {

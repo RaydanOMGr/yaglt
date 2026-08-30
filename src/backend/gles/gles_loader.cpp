@@ -195,6 +195,9 @@ bool GLESLib::load() {
     // point; resolve it optionally so load() still succeeds on ES drivers that
     // omit it, and GLESBackend::readnPixels falls back to glReadPixels.
     resolve(gles, glReadnPixels, "glReadnPixels");
+    // glTextureBarrierNV (GL_NV_texture_barrier) is the ES spelling of
+    // glTextureBarrier; resolve optionally.
+    resolve(gles, glTextureBarrierNV, "glTextureBarrierNV");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glUniformBlockBinding, "glUniformBlockBinding");
