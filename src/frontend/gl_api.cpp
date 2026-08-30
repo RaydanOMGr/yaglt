@@ -441,6 +441,27 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x
                               border);
 }
 
+void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x,
+                        GLint y, GLsizei width) {
+    if (g_current == nullptr) return;
+    g_current->copyTexSubImage1D(target, level, xoffset, x, y,
+                                static_cast<int>(width));
+}
+
+void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                        GLint x, GLint y, GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->copyTexSubImage2D(target, level, xoffset, yoffset, x, y,
+                                static_cast<int>(width), static_cast<int>(height));
+}
+
+void glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                        GLint zoffset, GLint x, GLint y, GLsizei width,
+                        GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->copyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y,
+                                static_cast<int>(width), static_cast<int>(height));
+}
 void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalFormat,
                            GLsizei width, GLint border, GLsizei imageSize,
                            const GLvoid* data) {
@@ -657,11 +678,37 @@ void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
                                           static_cast<int>(height),
                                           static_cast<int>(depth),
                                           static_cast<uint32_t>(format),
-                                          static_cast<int>(imageSize), data);
+                                           static_cast<int>(imageSize), data);
+}
+
+void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x,
+                            GLint y, GLsizei width) {
+    if (g_current == nullptr) return;
+    g_current->copyTextureSubImage1D(texture, level, xoffset, x, y,
+                                    static_cast<int>(width));
+}
+
+void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
+                            GLint yoffset, GLint x, GLint y, GLsizei width,
+                            GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->copyTextureSubImage2D(texture, level, xoffset, yoffset, x, y,
+                                    static_cast<int>(width),
+                                    static_cast<int>(height));
+}
+
+void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                            GLint yoffset, GLint zoffset, GLint x, GLint y,
+                            GLsizei width, GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->copyTextureSubImage3D(texture, level, xoffset, yoffset, zoffset, x, y,
+                                    static_cast<int>(width),
+                                    static_cast<int>(height));
 }
 
 
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param) {
+
     if (g_current == nullptr) return;
     g_current->textureParameteri(texture, pname, static_cast<int>(param));
 }

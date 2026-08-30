@@ -273,6 +273,27 @@ struct GLESBackendTexture : BackendTexture {
         lib->glCopyTexImage2D(target, level, glesSizedInternalFormat(internalFormat),
                               x, y, width, height, border);
     }
+    void copyTexSubImage1D(uint32_t target, int level, int xoffset, int x, int y,
+                           int width) override {
+        if (!lib || !lib->driverLive() || !lib->glCopyTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D, handle);
+        lib->glCopyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, 0, x, y, width, 1);
+    }
+    void copyTexSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                           int x, int y, int width, int height) override {
+        if (!lib || !lib->driverLive() || !lib->glCopyTexSubImage2D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width,
+                                height);
+    }
+    void copyTexSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                           int zoffset, int x, int y, int width,
+                           int height) override {
+        if (!lib || !lib->driverLive() || !lib->glCopyTexSubImage3D) return;
+        if (lib->glBindTexture) lib->glBindTexture(target, handle);
+        lib->glCopyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x, y,
+                                width, height);
+    }
     void compressedTexImage1D(uint32_t target, int level, uint32_t internalFormat,
                              int width, int border, int imageSize,
                              const void* data) override {

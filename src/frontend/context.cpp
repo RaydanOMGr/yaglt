@@ -1944,6 +1944,50 @@ void Context::compressedTextureSubImage3D(GLObjectName texture, int level,
                                              imageSize, data);
 }
 
+void Context::copyTextureSubImage1D(GLObjectName texture, int level, int xoffset,
+                                    int x, int y, int width) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || width < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_1D;
+    if (tex->backend)
+        tex->backend->copyTexSubImage1D(GL_TEXTURE_1D, level, xoffset, x, y, width);
+}
+
+void Context::copyTextureSubImage2D(GLObjectName texture, int level, int xoffset,
+                                    int yoffset, int x, int y, int width,
+                                    int height) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_2D;
+    if (tex->backend)
+        tex->backend->copyTexSubImage2D(GL_TEXTURE_2D, level, xoffset, yoffset, x, y,
+                                       width, height);
+}
+
+void Context::copyTextureSubImage3D(GLObjectName texture, int level, int xoffset,
+                                    int yoffset, int zoffset, int x, int y,
+                                    int width, int height) {
+    TextureObject* tex = dsaTexture(*this, texture);
+    if (tex == nullptr) return;
+    if (level < 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || width < 0 ||
+        height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = GL_TEXTURE_3D;
+    if (tex->backend)
+        tex->backend->copyTexSubImage3D(GL_TEXTURE_3D, level, xoffset, yoffset,
+                                       zoffset, x, y, width, height);
+}
+
 void Context::texParameteri(uint32_t target, uint32_t pname, int param) {
     TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
     if (tex == nullptr) {
@@ -2282,6 +2326,70 @@ void Context::copyTexImage2D(uint32_t target, int level, uint32_t internalFormat
     tex->target = target;
     if (tex->backend) tex->backend->copyTexImage2D(target, level, internalFormat,
                                                   x, y, width, height, border);
+}
+
+void Context::copyTexSubImage1D(uint32_t target, int level, int xoffset, int x,
+                                int y, int width) {
+    if (target != GL_TEXTURE_1D) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || width < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    if (tex->backend)
+        tex->backend->copyTexSubImage1D(target, level, xoffset, x, y, width);
+}
+
+void Context::copyTexSubImage2D(uint32_t target, int level, int xoffset,
+                                int yoffset, int x, int y, int width, int height) {
+    if (target != GL_TEXTURE_2D) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || yoffset < 0 || width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    if (tex->backend)
+        tex->backend->copyTexSubImage2D(target, level, xoffset, yoffset, x, y,
+                                       width, height);
+}
+
+void Context::copyTexSubImage3D(uint32_t target, int level, int xoffset,
+                                int yoffset, int zoffset, int x, int y, int width,
+                                int height) {
+    if (target != GL_TEXTURE_3D) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    TextureObject* tex = getTexture(state_.boundTextureForTarget(target));
+    if (tex == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (level < 0 || xoffset < 0 || yoffset < 0 || zoffset < 0 || width < 0 ||
+        height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    tex->target = target;
+    if (tex->backend)
+        tex->backend->copyTexSubImage3D(target, level, xoffset, yoffset, zoffset, x,
+                                       y, width, height);
 }
 
 void Context::getTextureParameteriv(GLObjectName texture, GLenum pname,

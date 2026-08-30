@@ -202,8 +202,17 @@ void glTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
 // Define a texture image by copying from the framebuffer (SPEC §8.5 CopyTexImage*D).
  void glCopyTexImage1D(GLenum target, GLint level, GLenum internalFormat, GLint x,
                        GLint y, GLsizei width, GLint border);
- void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
-                       GLint y, GLsizei width, GLsizei height, GLint border);
+  void glCopyTexImage2D(GLenum target, GLint level, GLenum internalFormat, GLint x,
+                        GLint y, GLsizei width, GLsizei height, GLint border);
+ // Copy texture sub-image from the framebuffer (SPEC §8.5 glCopyTexSubImage*D).
+ void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x,
+                         GLint y, GLsizei width);
+ void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                         GLint x, GLint y, GLsizei width, GLsizei height);
+ void glCopyTexSubImage3D(GLenum target, GLint level, GLint xoffset, GLint yoffset,
+                         GLint zoffset, GLint x, GLint y, GLsizei width,
+                         GLsizei height);
+
 // Compressed texture image upload (SPEC §8.6 glCompressedTexImage*D).
 void glCompressedTexImage1D(GLenum target, GLint level, GLenum internalFormat,
                            GLsizei width, GLint border, GLsizei imageSize,
@@ -273,10 +282,20 @@ void glCompressedTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
                                   GLint yoffset, GLsizei width, GLsizei height,
                                   GLenum format, GLsizei imageSize,
                                   const GLvoid* data);
-void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
-                                  GLint yoffset, GLint zoffset, GLsizei width,
-                                  GLsizei height, GLsizei depth, GLenum format,
-                                  GLsizei imageSize, const GLvoid* data);
+ void glCompressedTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                                   GLint yoffset, GLint zoffset, GLsizei width,
+                                   GLsizei height, GLsizei depth, GLenum format,
+                                   GLsizei imageSize, const GLvoid* data);
+ // Copy DSA texture sub-image from the framebuffer (SPEC §8.5 glCopyTextureSubImage*D).
+ void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x,
+                             GLint y, GLsizei width);
+ void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset,
+                             GLint yoffset, GLint x, GLint y, GLsizei width,
+                             GLsizei height);
+ void glCopyTextureSubImage3D(GLuint texture, GLint level, GLint xoffset,
+                             GLint yoffset, GLint zoffset, GLint x, GLint y,
+                             GLsizei width, GLsizei height);
+
 void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
 void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param);
 void glTextureParameterfv(GLuint texture, GLenum pname, const GLfloat* params,

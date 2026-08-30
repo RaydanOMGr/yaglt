@@ -319,7 +319,20 @@ public:
     void copyTexImage1D(uint32_t target, int level, uint32_t internalFormat,
                         int x, int y, int width, int border);
     void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
-                        int x, int y, int width, int height, int border);
+                         int x, int y, int width, int height, int border);
+    // Define a texture sub-region by copying from the framebuffer (SPEC §8.5
+    // glCopyTexSubImage*D). Require a bound texture of the matching 1D/2D/3D
+    // target (else GL_INVALID_OPERATION); only the 1D/2D/3D targets are valid
+    // (rectangle is an honest GL_INVALID_ENUM capability gap). A negative level or
+    // offset, or a non-positive width/height, reports GL_INVALID_VALUE. The backend
+    // reads from the currently bound read framebuffer.
+    void copyTexSubImage1D(uint32_t target, int level, int xoffset, int x, int y,
+                           int width);
+    void copyTexSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                           int x, int y, int width, int height);
+    void copyTexSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                           int zoffset, int x, int y, int width, int height);
+
     // Compressed texture image upload (SPEC §8.6 glCompressedTexImage*D). Require a
     // bound texture (else GL_INVALID_OPERATION). Rectangular/proxy targets report
     // GL_INVALID_ENUM; a non-zero border or negative level/dimension/imageSize
@@ -397,9 +410,21 @@ public:
                                    int yoffset, int width, int height,
                                    uint32_t format, int imageSize, const void* data);
     void compressedTextureSubImage3D(GLObjectName texture, int level, int xoffset,
-                                   int yoffset, int zoffset, int width, int height,
-                                   int depth, uint32_t format, int imageSize,
-                                   const void* data);
+                                    int yoffset, int zoffset, int width, int height,
+                                    int depth, uint32_t format, int imageSize,
+                                    const void* data);
+    // Define a named texture sub-region by copying from the framebuffer (SPEC §8.5
+    // glCopyTextureSubImage*D, DSA). Capability-gated by DirectStateAccess; an
+    // ungenerated name reports GL_INVALID_OPERATION. A negative level or offset, or
+    // a non-positive width/height, reports GL_INVALID_VALUE.
+    void copyTextureSubImage1D(GLObjectName texture, int level, int xoffset, int x,
+                               int y, int width);
+    void copyTextureSubImage2D(GLObjectName texture, int level, int xoffset,
+                               int yoffset, int x, int y, int width, int height);
+    void copyTextureSubImage3D(GLObjectName texture, int level, int xoffset,
+                               int yoffset, int zoffset, int x, int y, int width,
+                               int height);
+
     void textureParameteri(GLObjectName texture, uint32_t pname, int param);
     void textureParameterf(GLObjectName texture, uint32_t pname, float param);
     void textureParameterfv(GLObjectName texture, uint32_t pname, const float* params,

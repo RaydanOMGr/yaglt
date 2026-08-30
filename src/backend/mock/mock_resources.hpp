@@ -313,9 +313,14 @@ public:
     uint32_t lastSubFormat = 0, lastSubType = 0;
     int copyTexImage1DCalls = 0;
     int copyTexImage2DCalls = 0;
+    int copyTexSubImage1DCalls = 0, copyTexSubImage2DCalls = 0,
+        copyTexSubImage3DCalls = 0;
     uint32_t lastCopyInternalFormat = 0;
     int lastCopyX = 0, lastCopyY = 0;
     int lastCopyWidth = 0, lastCopyHeight = 0, lastCopyBorder = 0;
+    int lastCopySubXoffset = 0, lastCopySubYoffset = 0, lastCopySubZoffset = 0;
+    int lastCopySubX = 0, lastCopySubY = 0, lastCopySubWidth = 0,
+        lastCopySubHeight = 0;
     void texSubImage1D(uint32_t target, int level, int xoffset, int width,
                        uint32_t format, uint32_t type, const void* data) override {
         ++texSubImage1DCalls;
@@ -355,6 +360,30 @@ public:
         lastSubTarget = target; lastSubLevel = level;
         lastCopyInternalFormat = internalFormat; lastCopyX = x; lastCopyY = y;
         lastCopyWidth = width; lastCopyHeight = height; lastCopyBorder = border;
+    }
+    void copyTexSubImage1D(uint32_t target, int level, int xoffset, int x, int y,
+                           int width) override {
+        ++copyTexSubImage1DCalls;
+        lastSubTarget = target; lastSubLevel = level;
+        lastCopySubXoffset = xoffset; lastCopySubX = x; lastCopySubY = y;
+        lastCopySubWidth = width;
+    }
+    void copyTexSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
+                           int x, int y, int width, int height) override {
+        ++copyTexSubImage2DCalls;
+        lastSubTarget = target; lastSubLevel = level;
+        lastCopySubXoffset = xoffset; lastCopySubYoffset = yoffset;
+        lastCopySubX = x; lastCopySubY = y;
+        lastCopySubWidth = width; lastCopySubHeight = height;
+    }
+    void copyTexSubImage3D(uint32_t target, int level, int xoffset, int yoffset,
+                           int zoffset, int x, int y, int width,
+                           int height) override {
+        ++copyTexSubImage3DCalls;
+        lastSubTarget = target; lastSubLevel = level;
+        lastCopySubXoffset = xoffset; lastCopySubYoffset = yoffset;
+        lastCopySubZoffset = zoffset; lastCopySubX = x; lastCopySubY = y;
+        lastCopySubWidth = width; lastCopySubHeight = height;
     }
     int compressedTexImage1DCalls = 0, compressedTexImage2DCalls = 0,
         compressedTexImage3DCalls = 0;

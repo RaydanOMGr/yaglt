@@ -211,6 +211,8 @@ bool GLESLib::load() {
     resolve(gles, glTexSubImage3D, "glTexSubImage3D");
     resolve(gles, glCopyTexImage1D, "glCopyTexImage1D");
     resolve(gles, glCopyTexImage2D, "glCopyTexImage2D");
+    resolve(gles, glCopyTexSubImage2D, "glCopyTexSubImage2D");
+    resolve(gles, glCopyTexSubImage3D, "glCopyTexSubImage3D");
     // Compressed texture upload (SPEC §8.6, GLES 3.0 core).
     resolve(gles, glCompressedTexImage1D, "glCompressedTexImage1D");
     resolve(gles, glCompressedTexImage2D, "glCompressedTexImage2D");

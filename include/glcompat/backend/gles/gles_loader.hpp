@@ -260,6 +260,10 @@ struct GLESLib {
                               GLint) = nullptr;
     void (*glCopyTexImage2D)(GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei,
                               GLint) = nullptr;
+    void (*glCopyTexSubImage2D)(GLenum, GLint, GLint, GLint, GLint, GLint, GLsizei,
+                                GLsizei) = nullptr;
+    void (*glCopyTexSubImage3D)(GLenum, GLint, GLint, GLint, GLint, GLint, GLint,
+                                GLsizei, GLsizei) = nullptr;
 
     // Compressed texture upload (SPEC §8.6, GLES 3.0 core). Resolved optionally
     // so load() still succeeds on drivers that lack them; the frontend validates

@@ -3,6 +3,28 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — copy texture sub-image §8.5, this session)
+
+- Implemented the copy-texture-sub-image family (SPEC §8.5), defining a texture
+  sub-region by reading from the currently bound read framebuffer. New core entry
+  points `glCopyTexSubImage1D/2D/3D` (classic, target-based) plus the DSA
+  `glCopyTextureSubImage1D/2D/3D` (by texture name). `BackendTexture` gained three
+  virtuals `copyTexSubImage1D/2D/3D` (default no-op). The mock records every call
+  (`copyTexSubImage{1,2,3}DCalls`, `lastCopySub*`); the GLES backend forwards to
+  `glCopyTexSubImage2D`/`glCopyTexSubImage3D` (both resolved as optional `GLESLib`
+  symbols, ES 3.0+), folding the 1D form into a 2D copy of height 1 (GLES has no
+  1D copy). `Context::copyTexSubImage{1,2,3}D` / `copyTextureSubImage{1,2,3}D`
+  validate an unknown/non-1D/2D/3D target → `GL_INVALID_ENUM` (`GL_TEXTURE_RECTANGLE`
+  is an honest capability gap), a missing bound texture / ungenerated DSA name →
+  `GL_INVALID_OPERATION`, and a negative level or offset / non-positive
+  width/height → `GL_INVALID_VALUE`. `gl_api` declares and dispatches all six; the
+  `gl*` shim regenerates from `gl_api.hpp`. New `tests/unit/copy_tex_sub_image_test.cpp`
+  (10 cases: classic + DSA 1D/2D/3D record, no-bound-texture error, rectangle-target
+  enum error, negative-offset / negative-width value errors, DSA ungenerated-name
+  error). Default **843/843** → **853/853**, sanitizer (ASan/UBSan) **853/853** green.
+  Coverage regenerated: core 87.7% → 88.8% (506/570), full 51.4% → 52.0% (547/1052).
+  `docs/feature-matrix.md` adds the "Copy texture sub-image (SPEC §8.5)" row.
+
 ## Recent Work (2026-08-30 — compressed texture image upload §8.6, this session)
 
 - Implemented the full compressed texture image upload family (SPEC §8.6), which
@@ -547,7 +569,7 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 87.7% (500/570)
+Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 88.8% (506/570)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §8/§6/§10 surface)
 Last updated: 2026-08-30
 Known major blockers:

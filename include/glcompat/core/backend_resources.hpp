@@ -168,6 +168,18 @@ public:
                                 int x, int y, int width, int border) {}
     virtual void copyTexImage2D(uint32_t target, int level, uint32_t internalFormat,
                                  int x, int y, int width, int height, int border) {}
+    // Define a sub-region of a texture level by copying from the framebuffer
+    // (SPEC §8.5 CopyTexSubImage*D). The backend uses the currently bound read
+    // framebuffer. GLES has no 1D copy, so the 1D form is folded to a 2D copy
+    // with height 1.
+    virtual void copyTexSubImage1D(uint32_t target, int level, int xoffset, int x,
+                                   int y, int width) {}
+    virtual void copyTexSubImage2D(uint32_t target, int level, int xoffset,
+                                   int yoffset, int x, int y, int width,
+                                   int height) {}
+    virtual void copyTexSubImage3D(uint32_t target, int level, int xoffset,
+                                   int yoffset, int zoffset, int x, int y,
+                                   int width, int height) {}
     // Allocate immutable storage for one texture level (SPEC §2.1 / §8.1,
     // glTextureStorage*D DSA). `levels` is the total mip levels; width/height/
     // depth the level-0 dimensions. GLES has no 1D textures so storage1D is a
