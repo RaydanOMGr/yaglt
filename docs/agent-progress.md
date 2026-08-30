@@ -3057,3 +3057,19 @@ crashed agent, this session)
     dispatch surface. Coverage regenerated: 523/1052 (~49.7%) full, 482/570 (~84.6%) core.
     Validation: `build` 815/815, `build_san` 815/815 (ASan/UBSan clean), `build_tx` (GLES
     e2e) compiles.
+
+ - **glCopyNamedBufferSubData (SPEC §6, DSA buffer copy)** — completes the DSA
+    buffer family. `Context::copyNamedBufferSubData` (declared at `context.hpp:100`)
+    mirrors the target-based `copyBufferSubData` template at `context.cpp:302`:
+    validates an ungenerated read/write name (`GL_INVALID_OPERATION`), an
+    out-of-bounds region (`GL_INVALID_VALUE`), memcpy's the frontend CPU mirror from
+    source to destination, then pushes the written region to the destination backend
+    via `namedBufferSubData`. Public C dispatch `glCopyNamedBufferSubData` already in
+    `gl_api.cpp:125` and `gl_api.hpp:65` (shim auto-regenerated at build). New
+    `tests/unit/named_buffer_copy_test.cpp` (4 cases): in-bounds round-trip verifying
+    the destination backend `namedBufferSubData` recording, ungenerated read/write name
+    errors, out-of-bounds (read/write/negative-offset/negative-size) errors, and the
+    public dispatch surface. `docs/feature-matrix.md` §6 verification list now cites the
+    new test. Coverage regenerated: 532/1052 (~50.6%) full, 491/570 (~86.1%) core.
+    Validation: `build`, `build_san` (ASan/UBSan clean), `build_tx` (GLES e2e) all
+    green with the new test.
