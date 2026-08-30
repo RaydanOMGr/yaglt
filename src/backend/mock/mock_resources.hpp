@@ -809,11 +809,21 @@ public:
     int uniform1iCalls = 0, uniform2iCalls = 0, uniform3iCalls = 0,
         uniform4iCalls = 0;
     int uniform1fvCalls = 0, uniform1ivCalls = 0, uniformMatrix4fvCalls = 0;
+    int uniform2fvCalls = 0, uniform3fvCalls = 0, uniform4fvCalls = 0;
+    int uniform2ivCalls = 0, uniform3ivCalls = 0, uniform4ivCalls = 0;
+    int uniformMatrix2fvCalls = 0, uniformMatrix3fvCalls = 0;
+    int uniform1dCalls = 0, uniform2dCalls = 0, uniform3dCalls = 0, uniform4dCalls = 0;
+    int uniform1dvCalls = 0, uniform2dvCalls = 0, uniform3dvCalls = 0, uniform4dvCalls = 0;
+    int uniformMatrix2dvCalls = 0, uniformMatrix3dvCalls = 0, uniformMatrix4dvCalls = 0;
+    int uniform1uiCalls = 0, uniform2uiCalls = 0, uniform3uiCalls = 0, uniform4uiCalls = 0;
+    int uniform1uivCalls = 0, uniform2uivCalls = 0, uniform3uivCalls = 0, uniform4uivCalls = 0;
     mutable int getUniformfvCalls = 0, getUniformivCalls = 0, getUniformuivCalls = 0,
         getUniformdvCalls = 0;
     int lastUniformLoc = -1;
     float lastF0 = 0, lastF1 = 0, lastF2 = 0, lastF3 = 0;
     int lastI0 = 0, lastI1 = 0, lastI2 = 0, lastI3 = 0;
+    double lastD0 = 0, lastD1 = 0, lastD2 = 0, lastD3 = 0;
+    uint32_t lastU0 = 0, lastU1 = 0, lastU2 = 0, lastU3 = 0;
     int lastUniformCount = 0;
     bool lastTranspose = false;
     // Mirrors of the most recently written uniform values, keyed by location, so
@@ -821,6 +831,7 @@ public:
     std::unordered_map<int, std::vector<float>> uniformFloatStore;
     std::unordered_map<int, std::vector<int32_t>> uniformIntStore;
     std::unordered_map<int, std::vector<uint32_t>> uniformUintStore;
+    std::unordered_map<int, std::vector<double>> uniformDoubleStore;
     void uniform1f(int loc, float v0) override {
         ++uniform1fCalls; lastUniformLoc = loc; lastF0 = v0;
         uniformFloatStore[loc] = {v0};
@@ -876,6 +887,121 @@ public:
             uniformFloatStore[loc].assign(m, m + 16 * count);
         }
     }
+    void uniform2fv(int loc, const float* v, int count) override {
+        ++uniform2fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastF0 = v[0]; uniformFloatStore[loc].assign(v, v + 2 * count); }
+    }
+    void uniform3fv(int loc, const float* v, int count) override {
+        ++uniform3fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastF0 = v[0]; uniformFloatStore[loc].assign(v, v + 3 * count); }
+    }
+    void uniform4fv(int loc, const float* v, int count) override {
+        ++uniform4fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastF0 = v[0]; uniformFloatStore[loc].assign(v, v + 4 * count); }
+    }
+    void uniform2iv(int loc, const int* v, int count) override {
+        ++uniform2ivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastI0 = v[0]; uniformIntStore[loc].assign(v, v + 2 * count); }
+    }
+    void uniform3iv(int loc, const int* v, int count) override {
+        ++uniform3ivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastI0 = v[0]; uniformIntStore[loc].assign(v, v + 3 * count); }
+    }
+    void uniform4iv(int loc, const int* v, int count) override {
+        ++uniform4ivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastI0 = v[0]; uniformIntStore[loc].assign(v, v + 4 * count); }
+    }
+    void uniformMatrix2fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix2fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 4 * count);
+    }
+    void uniformMatrix3fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix3fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 9 * count);
+    }
+    void uniform1d(int loc, double v0) override {
+        ++uniform1dCalls; lastUniformLoc = loc; lastD0 = v0;
+        uniformDoubleStore[loc] = {v0};
+    }
+    void uniform2d(int loc, double v0, double v1) override {
+        ++uniform2dCalls; lastUniformLoc = loc; lastD0 = v0; lastD1 = v1;
+        uniformDoubleStore[loc] = {v0, v1};
+    }
+    void uniform3d(int loc, double v0, double v1, double v2) override {
+        ++uniform3dCalls; lastUniformLoc = loc; lastD0 = v0; lastD1 = v1; lastD2 = v2;
+        uniformDoubleStore[loc] = {v0, v1, v2};
+    }
+    void uniform4d(int loc, double v0, double v1, double v2, double v3) override {
+        ++uniform4dCalls; lastUniformLoc = loc; lastD0 = v0; lastD1 = v1;
+        lastD2 = v2; lastD3 = v3;
+        uniformDoubleStore[loc] = {v0, v1, v2, v3};
+    }
+    void uniform1dv(int loc, const double* v, int count) override {
+        ++uniform1dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastD0 = v[0]; uniformDoubleStore[loc].assign(v, v + count); }
+    }
+    void uniform2dv(int loc, const double* v, int count) override {
+        ++uniform2dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastD0 = v[0]; uniformDoubleStore[loc].assign(v, v + 2 * count); }
+    }
+    void uniform3dv(int loc, const double* v, int count) override {
+        ++uniform3dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastD0 = v[0]; uniformDoubleStore[loc].assign(v, v + 3 * count); }
+    }
+    void uniform4dv(int loc, const double* v, int count) override {
+        ++uniform4dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastD0 = v[0]; uniformDoubleStore[loc].assign(v, v + 4 * count); }
+    }
+    void uniformMatrix2dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix2dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 4 * count);
+    }
+    void uniformMatrix3dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix3dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 9 * count);
+    }
+    void uniformMatrix4dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix4dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 16 * count);
+    }
+    void uniform1ui(int loc, uint32_t v0) override {
+        ++uniform1uiCalls; lastUniformLoc = loc; lastU0 = v0;
+        uniformUintStore[loc] = {v0};
+    }
+    void uniform2ui(int loc, uint32_t v0, uint32_t v1) override {
+        ++uniform2uiCalls; lastUniformLoc = loc; lastU0 = v0; lastU1 = v1;
+        uniformUintStore[loc] = {v0, v1};
+    }
+    void uniform3ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2) override {
+        ++uniform3uiCalls; lastUniformLoc = loc; lastU0 = v0; lastU1 = v1; lastU2 = v2;
+        uniformUintStore[loc] = {v0, v1, v2};
+    }
+    void uniform4ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3) override {
+        ++uniform4uiCalls; lastUniformLoc = loc; lastU0 = v0; lastU1 = v1;
+        lastU2 = v2; lastU3 = v3;
+        uniformUintStore[loc] = {v0, v1, v2, v3};
+    }
+    void uniform1uiv(int loc, const uint32_t* v, int count) override {
+        ++uniform1uivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastU0 = v[0]; uniformUintStore[loc].assign(v, v + count); }
+    }
+    void uniform2uiv(int loc, const uint32_t* v, int count) override {
+        ++uniform2uivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastU0 = v[0]; uniformUintStore[loc].assign(v, v + 2 * count); }
+    }
+    void uniform3uiv(int loc, const uint32_t* v, int count) override {
+        ++uniform3uivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastU0 = v[0]; uniformUintStore[loc].assign(v, v + 3 * count); }
+    }
+    void uniform4uiv(int loc, const uint32_t* v, int count) override {
+        ++uniform4uivCalls; lastUniformLoc = loc; lastUniformCount = count;
+        if (v && count > 0) { lastU0 = v[0]; uniformUintStore[loc].assign(v, v + 4 * count); }
+    }
     void getUniformfv(int32_t location, float* params) const override {
         ++getUniformfvCalls;
         auto it = uniformFloatStore.find(location);
@@ -899,9 +1025,15 @@ public:
     }
     void getUniformdv(int32_t location, double* params) const override {
         ++getUniformdvCalls;
-        auto it = uniformFloatStore.find(location);
-        if (it != uniformFloatStore.end() && params) {
-            for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+        auto it = uniformDoubleStore.find(location);
+        if (it != uniformDoubleStore.end()) {
+            if (params)
+                for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+            return;
+        }
+        auto fit = uniformFloatStore.find(location);
+        if (fit != uniformFloatStore.end() && params) {
+            for (size_t i = 0; i < fit->second.size(); ++i) params[i] = fit->second[i];
         }
     }
 

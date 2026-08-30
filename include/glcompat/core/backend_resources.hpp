@@ -433,6 +433,38 @@ public:
     virtual void uniform4i(int loc, int v0, int v1, int v2, int v3) {}
     virtual void uniform1fv(int loc, const float* v, int count) {}
     virtual void uniform1iv(int loc, const int* v, int count) {}
+    // Double-precision uniform setters (SPEC §8). ES has no double uniforms, so
+    // backends without desktop double support implement these as no-ops; the
+    // frontend still validates and the mock records them.
+    virtual void uniform1d(int loc, double v0) {}
+    virtual void uniform2d(int loc, double v0, double v1) {}
+    virtual void uniform3d(int loc, double v0, double v1, double v2) {}
+    virtual void uniform4d(int loc, double v0, double v1, double v2, double v3) {}
+    virtual void uniform1dv(int loc, const double* v, int count) {}
+    virtual void uniform2dv(int loc, const double* v, int count) {}
+    virtual void uniform3dv(int loc, const double* v, int count) {}
+    virtual void uniform4dv(int loc, const double* v, int count) {}
+    // Unsigned-integer uniform setters (SPEC §8). Native in GLES 3.0+.
+    virtual void uniform1ui(int loc, uint32_t v0) {}
+    virtual void uniform2ui(int loc, uint32_t v0, uint32_t v1) {}
+    virtual void uniform3ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2) {}
+    virtual void uniform4ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3) {}
+    virtual void uniform1uiv(int loc, const uint32_t* v, int count) {}
+    virtual void uniform2uiv(int loc, const uint32_t* v, int count) {}
+    virtual void uniform3uiv(int loc, const uint32_t* v, int count) {}
+    virtual void uniform4uiv(int loc, const uint32_t* v, int count) {}
+    // Remaining vector setters (SPEC §8) for the active program.
+    virtual void uniform2fv(int loc, const float* v, int count) {}
+    virtual void uniform3fv(int loc, const float* v, int count) {}
+    virtual void uniform4fv(int loc, const float* v, int count) {}
+    virtual void uniform2iv(int loc, const int* v, int count) {}
+    virtual void uniform3iv(int loc, const int* v, int count) {}
+    virtual void uniform4iv(int loc, const int* v, int count) {}
+    virtual void uniformMatrix2fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix3fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix2dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix3dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix4dv(int loc, const double* m, int count, bool transpose) {}
     // Active object counts after linking (SPEC §7.3 / §7.14). Backends with
     // introspection override these; the default (0) is honest for backends that
     // do not yet expose program reflection.

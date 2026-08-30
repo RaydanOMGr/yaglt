@@ -3,6 +3,31 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — uniform setter variant expansion §8, this session)
+- Expanded the uniform setter surface (SPEC §8) to cover every `glUniform*` /
+  `glProgramUniform*` spelling the frontend was missing: double-precision
+  (`1d`–`4d`, `1dv`–`4dv`, `Matrix{2,3,4}dv`), unsigned-integer (`1ui`–`4ui`,
+  `1uiv`–`4uiv`), and the remaining vector/matrix spellings (`2fv`–`4fv`,
+  `2iv`–`4iv`, `Matrix2fv`/`Matrix3fv`). Added ~62 public `gl*` entry points
+  (active + explicit-program variants); `Context` gained the matching
+  `uniform*` / `programUniform*` methods (active-program setters use
+  `activeBackendProgram`, explicit-program setters use `backendProgramFor`,
+  both with the standard `-1` location silent no-op and null/count guards).
+- `BackendProgram` gained the new virtuals (default no-op). The mock records
+  every variant into dedicated counters and mirrors values into
+  `uniformFloatStore` / `uniformIntStore` / `uniformUintStore` /
+  `uniformDoubleStore`; `getUniformdv` now prefers the double store (falling
+  back to the float store) so double readback round-trips. The GLES backend
+  forwards the native-capable f/i/ui/vector/`Matrix2-3fv` spellings to the
+  driver (new `GLESLib` symbols resolved optionally) and implements the double
+  variants as honest no-ops (GLSL ES has no double uniforms).
+- New `tests/unit/uniform_variant_test.cpp` (6 cases: double scalar record +
+  round-trip, double vector record, unsigned record + round-trip, vector/matrix
+  record, explicit-program variants reaching the backend without `glUseProgram`,
+  explicit-program error on unlinked program). Default suite 800 → 806 green.
+- Coverage regenerated: core 74.7% → 84.2% (480/570), full 44.4% → 49.5%
+  (521/1052). Both `build` and `build_tx` compile.
+
 ## Recent Work (2026-08-30 — uniform value readback §7.9, this session)
 - Implemented uniform value queries (SPEC §7.9): `glGetUniformfv`/`glGetUniformiv`/
   `glGetUniformuiv`/`glGetUniformdv` plus the robust bounds-checked `glGetnUniform{f,i,ui,d}v`

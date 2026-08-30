@@ -654,10 +654,42 @@ void glUniform1i(GLint location, GLint v0);
 void glUniform2i(GLint location, GLint v0, GLint v1);
 void glUniform3i(GLint location, GLint v0, GLint v1, GLint v2);
 void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-void glUniform1fv(GLint location, GLsizei count, const GLfloat* value);
-void glUniform1iv(GLint location, GLsizei count, const GLint* value);
-void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
-                       const GLfloat* value);
+ void glUniform1fv(GLint location, GLsizei count, const GLfloat* value);
+ void glUniform1iv(GLint location, GLsizei count, const GLint* value);
+ void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLfloat* value);
+ void glUniform2fv(GLint location, GLsizei count, const GLfloat* value);
+ void glUniform3fv(GLint location, GLsizei count, const GLfloat* value);
+ void glUniform4fv(GLint location, GLsizei count, const GLfloat* value);
+ void glUniform2iv(GLint location, GLsizei count, const GLint* value);
+ void glUniform3iv(GLint location, GLsizei count, const GLint* value);
+ void glUniform4iv(GLint location, GLsizei count, const GLint* value);
+ void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniform1d(GLint location, GLdouble v0);
+ void glUniform2d(GLint location, GLdouble v0, GLdouble v1);
+ void glUniform3d(GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
+ void glUniform4d(GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
+ void glUniform1dv(GLint location, GLsizei count, const GLdouble* value);
+ void glUniform2dv(GLint location, GLsizei count, const GLdouble* value);
+ void glUniform3dv(GLint location, GLsizei count, const GLdouble* value);
+ void glUniform4dv(GLint location, GLsizei count, const GLdouble* value);
+ void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniform1ui(GLint location, GLuint v0);
+ void glUniform2ui(GLint location, GLuint v0, GLuint v1);
+ void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2);
+ void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+ void glUniform1uiv(GLint location, GLsizei count, const GLuint* value);
+ void glUniform2uiv(GLint location, GLsizei count, const GLuint* value);
+ void glUniform3uiv(GLint location, GLsizei count, const GLuint* value);
+ void glUniform4uiv(GLint location, GLsizei count, const GLuint* value);
 
 // --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
 // Like glUniform* but target an explicit program; the program must be a
@@ -671,9 +703,36 @@ void glProgramUniform1i(GLuint program, GLint location, GLint v0);
 void glProgramUniform2i(GLuint program, GLint location, GLint v0, GLint v1);
 void glProgramUniform3i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2);
 void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
-void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
-void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint* value);
-void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniform1fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+ void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GLint* value);
+ void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+ void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+ void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat* value);
+ void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint* value);
+ void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint* value);
+ void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint* value);
+ void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniform1d(GLuint program, GLint location, GLdouble v0);
+ void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1);
+ void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2);
+ void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3);
+ void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble* value);
+ void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble* value);
+ void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble* value);
+ void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble* value);
+ void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniform1ui(GLuint program, GLint location, GLuint v0);
+ void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1);
+ void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);
+ void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3);
+ void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint* value);
+ void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint* value);
+ void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint* value);
+ void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint* value);
 
 // --- Vertex attributes (SPEC §2.1) ---
 void glEnableVertexAttribArray(GLuint index);

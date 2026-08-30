@@ -9046,6 +9046,169 @@ void Context::uniformMatrix4fv(int loc, const float* m, int count, bool transpos
     bp->uniformMatrix4fv(loc, m, count, transpose);
 }
 
+void Context::uniform2fv(int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2fv(loc, v, count);
+}
+void Context::uniform3fv(int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3fv(loc, v, count);
+}
+void Context::uniform4fv(int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4fv(loc, v, count);
+}
+void Context::uniform2iv(int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2iv(loc, v, count);
+}
+void Context::uniform3iv(int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3iv(loc, v, count);
+}
+void Context::uniform4iv(int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4iv(loc, v, count);
+}
+void Context::uniformMatrix2fv(int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix2fv(loc, m, count, transpose);
+}
+void Context::uniformMatrix3fv(int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix3fv(loc, m, count, transpose);
+}
+void Context::uniform1d(int loc, double v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1d(loc, v0);
+}
+void Context::uniform2d(int loc, double v0, double v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2d(loc, v0, v1);
+}
+void Context::uniform3d(int loc, double v0, double v1, double v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3d(loc, v0, v1, v2);
+}
+void Context::uniform4d(int loc, double v0, double v1, double v2, double v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4d(loc, v0, v1, v2, v3);
+}
+void Context::uniform1dv(int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1dv(loc, v, count);
+}
+void Context::uniform2dv(int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2dv(loc, v, count);
+}
+void Context::uniform3dv(int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3dv(loc, v, count);
+}
+void Context::uniform4dv(int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4dv(loc, v, count);
+}
+void Context::uniformMatrix2dv(int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix2dv(loc, m, count, transpose);
+}
+void Context::uniformMatrix3dv(int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix3dv(loc, m, count, transpose);
+}
+void Context::uniformMatrix4dv(int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniformMatrix4dv(loc, m, count, transpose);
+}
+void Context::uniform1ui(int loc, uint32_t v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1ui(loc, v0);
+}
+void Context::uniform2ui(int loc, uint32_t v0, uint32_t v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2ui(loc, v0, v1);
+}
+void Context::uniform3ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3ui(loc, v0, v1, v2);
+}
+void Context::uniform4ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4ui(loc, v0, v1, v2, v3);
+}
+void Context::uniform1uiv(int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform1uiv(loc, v, count);
+}
+void Context::uniform2uiv(int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform2uiv(loc, v, count);
+}
+void Context::uniform3uiv(int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform3uiv(loc, v, count);
+}
+void Context::uniform4uiv(int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = activeBackendProgram();
+    if (bp == nullptr) { setError(GLError::InvalidOperation); return; }
+    bp->uniform4uiv(loc, v, count);
+}
+
 // --- Program uniform value queries (SPEC §7.9) ---
 
 void Context::getUniformfv(GLObjectName program, int loc, float* params) {
@@ -9194,6 +9357,169 @@ void Context::programUniformMatrix4fv(GLObjectName program, int loc, const float
     BackendProgram* bp = backendProgramFor(program);
     if (bp == nullptr) return;
     bp->uniformMatrix4fv(loc, m, count, transpose);
+}
+
+void Context::programUniform2fv(GLObjectName program, int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2fv(loc, v, count);
+}
+void Context::programUniform3fv(GLObjectName program, int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3fv(loc, v, count);
+}
+void Context::programUniform4fv(GLObjectName program, int loc, const float* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4fv(loc, v, count);
+}
+void Context::programUniform2iv(GLObjectName program, int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2iv(loc, v, count);
+}
+void Context::programUniform3iv(GLObjectName program, int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3iv(loc, v, count);
+}
+void Context::programUniform4iv(GLObjectName program, int loc, const int* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4iv(loc, v, count);
+}
+void Context::programUniformMatrix2fv(GLObjectName program, int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniformMatrix2fv(loc, m, count, transpose);
+}
+void Context::programUniformMatrix3fv(GLObjectName program, int loc, const float* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniformMatrix3fv(loc, m, count, transpose);
+}
+void Context::programUniform1d(GLObjectName program, int loc, double v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1d(loc, v0);
+}
+void Context::programUniform2d(GLObjectName program, int loc, double v0, double v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2d(loc, v0, v1);
+}
+void Context::programUniform3d(GLObjectName program, int loc, double v0, double v1, double v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3d(loc, v0, v1, v2);
+}
+void Context::programUniform4d(GLObjectName program, int loc, double v0, double v1, double v2, double v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4d(loc, v0, v1, v2, v3);
+}
+void Context::programUniform1dv(GLObjectName program, int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1dv(loc, v, count);
+}
+void Context::programUniform2dv(GLObjectName program, int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2dv(loc, v, count);
+}
+void Context::programUniform3dv(GLObjectName program, int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3dv(loc, v, count);
+}
+void Context::programUniform4dv(GLObjectName program, int loc, const double* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4dv(loc, v, count);
+}
+void Context::programUniformMatrix2dv(GLObjectName program, int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniformMatrix2dv(loc, m, count, transpose);
+}
+void Context::programUniformMatrix3dv(GLObjectName program, int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniformMatrix3dv(loc, m, count, transpose);
+}
+void Context::programUniformMatrix4dv(GLObjectName program, int loc, const double* m, int count, bool transpose) {
+    if (loc < 0 || m == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniformMatrix4dv(loc, m, count, transpose);
+}
+void Context::programUniform1ui(GLObjectName program, int loc, uint32_t v0) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1ui(loc, v0);
+}
+void Context::programUniform2ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2ui(loc, v0, v1);
+}
+void Context::programUniform3ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1, uint32_t v2) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3ui(loc, v0, v1, v2);
+}
+void Context::programUniform4ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3) {
+    if (loc < 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4ui(loc, v0, v1, v2, v3);
+}
+void Context::programUniform1uiv(GLObjectName program, int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform1uiv(loc, v, count);
+}
+void Context::programUniform2uiv(GLObjectName program, int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform2uiv(loc, v, count);
+}
+void Context::programUniform3uiv(GLObjectName program, int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform3uiv(loc, v, count);
+}
+void Context::programUniform4uiv(GLObjectName program, int loc, const uint32_t* v, int count) {
+    if (loc < 0 || v == nullptr || count <= 0) return;
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->uniform4uiv(loc, v, count);
 }
 
 // --- Object labels (SPEC §22.2) ---

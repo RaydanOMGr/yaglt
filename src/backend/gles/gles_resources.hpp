@@ -877,6 +877,105 @@ struct GLESBackendProgram : BackendProgram {
         bind();
         lib->glUniformMatrix4fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
     }
+    void uniform2fv(int loc, const float* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform2fv(loc, count, v);
+    }
+    void uniform3fv(int loc, const float* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform3fv(loc, count, v);
+    }
+    void uniform4fv(int loc, const float* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform4fv(loc, count, v);
+    }
+    void uniform2iv(int loc, const int* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform2iv(loc, count, v);
+    }
+    void uniform3iv(int loc, const int* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform3iv(loc, count, v);
+    }
+    void uniform4iv(int loc, const int* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0) return;
+        bind();
+        lib->glUniform4iv(loc, count, v);
+    }
+    void uniform1ui(int loc, uint32_t v0) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !lib->glUniform1ui) return;
+        bind();
+        lib->glUniform1ui(loc, v0);
+    }
+    void uniform2ui(int loc, uint32_t v0, uint32_t v1) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !lib->glUniform2ui) return;
+        bind();
+        lib->glUniform2ui(loc, v0, v1);
+    }
+    void uniform3ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !lib->glUniform3ui) return;
+        bind();
+        lib->glUniform3ui(loc, v0, v1, v2);
+    }
+    void uniform4ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !lib->glUniform4ui) return;
+        bind();
+        lib->glUniform4ui(loc, v0, v1, v2, v3);
+    }
+    void uniform1uiv(int loc, const uint32_t* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0
+            || !lib->glUniform1uiv) return;
+        bind();
+        lib->glUniform1uiv(loc, count, v);
+    }
+    void uniform2uiv(int loc, const uint32_t* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0
+            || !lib->glUniform2uiv) return;
+        bind();
+        lib->glUniform2uiv(loc, count, v);
+    }
+    void uniform3uiv(int loc, const uint32_t* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0
+            || !lib->glUniform3uiv) return;
+        bind();
+        lib->glUniform3uiv(loc, count, v);
+    }
+    void uniform4uiv(int loc, const uint32_t* v, int count) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !v || count <= 0
+            || !lib->glUniform4uiv) return;
+        bind();
+        lib->glUniform4uiv(loc, count, v);
+    }
+    void uniformMatrix2fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix2fv) return;
+        bind();
+        lib->glUniformMatrix2fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix3fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix3fv) return;
+        bind();
+        lib->glUniformMatrix3fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    // Double-precision uniform setters: GLSL ES has no double uniforms, so these
+    // are honest no-ops on the GLES backend.
+    void uniform1d(int, double) override {}
+    void uniform2d(int, double, double) override {}
+    void uniform3d(int, double, double, double) override {}
+    void uniform4d(int, double, double, double, double) override {}
+    void uniform1dv(int, const double*, int) override {}
+    void uniform2dv(int, const double*, int) override {}
+    void uniform3dv(int, const double*, int) override {}
+    void uniform4dv(int, const double*, int) override {}
+    void uniformMatrix2dv(int, const double*, int, bool) override {}
+    void uniformMatrix3dv(int, const double*, int, bool) override {}
+    void uniformMatrix4dv(int, const double*, int, bool) override {}
     void getUniformfv(int32_t location, float* params) const override {
         if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
         lib->glGetUniformfv(handle, location, params);

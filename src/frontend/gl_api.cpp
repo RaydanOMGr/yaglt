@@ -1890,6 +1890,125 @@ void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
                                transpose != 0);
 }
 
+void glUniform2fv(GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform2fv(location, value, static_cast<int>(count));
+}
+void glUniform3fv(GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform3fv(location, value, static_cast<int>(count));
+}
+void glUniform4fv(GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform4fv(location, value, static_cast<int>(count));
+}
+void glUniform2iv(GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform2iv(location, value, static_cast<int>(count));
+}
+void glUniform3iv(GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform3iv(location, value, static_cast<int>(count));
+}
+void glUniform4iv(GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform4iv(location, value, static_cast<int>(count));
+}
+void glUniformMatrix2fv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix2fv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+void glUniformMatrix3fv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix3fv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+void glUniform1d(GLint location, GLdouble v0) {
+    if (g_current == nullptr) return;
+    g_current->uniform1d(location, v0);
+}
+void glUniform2d(GLint location, GLdouble v0, GLdouble v1) {
+    if (g_current == nullptr) return;
+    g_current->uniform2d(location, v0, v1);
+}
+void glUniform3d(GLint location, GLdouble v0, GLdouble v1, GLdouble v2) {
+    if (g_current == nullptr) return;
+    g_current->uniform3d(location, v0, v1, v2);
+}
+void glUniform4d(GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3) {
+    if (g_current == nullptr) return;
+    g_current->uniform4d(location, v0, v1, v2, v3);
+}
+void glUniform1dv(GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform1dv(location, value, static_cast<int>(count));
+}
+void glUniform2dv(GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform2dv(location, value, static_cast<int>(count));
+}
+void glUniform3dv(GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform3dv(location, value, static_cast<int>(count));
+}
+void glUniform4dv(GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform4dv(location, value, static_cast<int>(count));
+}
+void glUniformMatrix2dv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix2dv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+void glUniformMatrix3dv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix3dv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose,
+                        const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->uniformMatrix4dv(location, value, static_cast<int>(count),
+                               transpose != 0);
+}
+void glUniform1ui(GLint location, GLuint v0) {
+    if (g_current == nullptr) return;
+    g_current->uniform1ui(location, v0);
+}
+void glUniform2ui(GLint location, GLuint v0, GLuint v1) {
+    if (g_current == nullptr) return;
+    g_current->uniform2ui(location, v0, v1);
+}
+void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2) {
+    if (g_current == nullptr) return;
+    g_current->uniform3ui(location, v0, v1, v2);
+}
+void glUniform4ui(GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) {
+    if (g_current == nullptr) return;
+    g_current->uniform4ui(location, v0, v1, v2, v3);
+}
+void glUniform1uiv(GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform1uiv(location, value, static_cast<int>(count));
+}
+void glUniform2uiv(GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform2uiv(location, value, static_cast<int>(count));
+}
+void glUniform3uiv(GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform3uiv(location, value, static_cast<int>(count));
+}
+void glUniform4uiv(GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->uniform4uiv(location, value, static_cast<int>(count));
+}
+
 // --- Program uniform value queries (SPEC §7.9) ---
 
 void glGetUniformfv(GLuint program, GLint location, GLfloat* params) {
@@ -1970,6 +2089,115 @@ void glProgramUniform1iv(GLuint program, GLint location, GLsizei count, const GL
 void glProgramUniformMatrix4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
     if (g_current == nullptr) return;
     g_current->programUniformMatrix4fv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+
+void glProgramUniform2fv(GLuint program, GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2fv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform3fv(GLuint program, GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3fv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform4fv(GLuint program, GLint location, GLsizei count, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4fv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform2iv(GLuint program, GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2iv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform3iv(GLuint program, GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3iv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform4iv(GLuint program, GLint location, GLsizei count, const GLint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4iv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniformMatrix2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix2fv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+void glProgramUniformMatrix3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix3fv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+void glProgramUniform1d(GLuint program, GLint location, GLdouble v0) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1d(program, location, v0);
+}
+void glProgramUniform2d(GLuint program, GLint location, GLdouble v0, GLdouble v1) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2d(program, location, v0, v1);
+}
+void glProgramUniform3d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3d(program, location, v0, v1, v2);
+}
+void glProgramUniform4d(GLuint program, GLint location, GLdouble v0, GLdouble v1, GLdouble v2, GLdouble v3) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4d(program, location, v0, v1, v2, v3);
+}
+void glProgramUniform1dv(GLuint program, GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1dv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform2dv(GLuint program, GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2dv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform3dv(GLuint program, GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3dv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform4dv(GLuint program, GLint location, GLsizei count, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4dv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix2dv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix3dv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniformMatrix4dv(program, location, value, static_cast<int>(count), transpose != 0);
+}
+void glProgramUniform1ui(GLuint program, GLint location, GLuint v0) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1ui(program, location, v0);
+}
+void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2ui(program, location, v0, v1);
+}
+void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3ui(program, location, v0, v1, v2);
+}
+void glProgramUniform4ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2, GLuint v3) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4ui(program, location, v0, v1, v2, v3);
+}
+void glProgramUniform1uiv(GLuint program, GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform1uiv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform2uiv(GLuint program, GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform2uiv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform3uiv(GLuint program, GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform3uiv(program, location, value, static_cast<int>(count));
+}
+void glProgramUniform4uiv(GLuint program, GLint location, GLsizei count, const GLuint* value) {
+    if (g_current == nullptr) return;
+    g_current->programUniform4uiv(program, location, value, static_cast<int>(count));
 }
 
 // --- Vertex attributes (SPEC §2.1) ---

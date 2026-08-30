@@ -1326,6 +1326,37 @@ public:
     void uniform1fv(int loc, const float* v, int count);
     void uniform1iv(int loc, const int* v, int count);
     void uniformMatrix4fv(int loc, const float* m, int count, bool transpose);
+    // Double-precision uniform setters (SPEC §8). ES backends implement these as
+    // no-ops (GLSL ES has no double uniforms); the frontend still validates.
+    void uniform1d(int loc, double v0);
+    void uniform2d(int loc, double v0, double v1);
+    void uniform3d(int loc, double v0, double v1, double v2);
+    void uniform4d(int loc, double v0, double v1, double v2, double v3);
+    void uniform1dv(int loc, const double* v, int count);
+    void uniform2dv(int loc, const double* v, int count);
+    void uniform3dv(int loc, const double* v, int count);
+    void uniform4dv(int loc, const double* v, int count);
+    // Unsigned-integer uniform setters (SPEC §8).
+    void uniform1ui(int loc, uint32_t v0);
+    void uniform2ui(int loc, uint32_t v0, uint32_t v1);
+    void uniform3ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2);
+    void uniform4ui(int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3);
+    void uniform1uiv(int loc, const uint32_t* v, int count);
+    void uniform2uiv(int loc, const uint32_t* v, int count);
+    void uniform3uiv(int loc, const uint32_t* v, int count);
+    void uniform4uiv(int loc, const uint32_t* v, int count);
+    // Remaining vector setters (SPEC §8).
+    void uniform2fv(int loc, const float* v, int count);
+    void uniform3fv(int loc, const float* v, int count);
+    void uniform4fv(int loc, const float* v, int count);
+    void uniform2iv(int loc, const int* v, int count);
+    void uniform3iv(int loc, const int* v, int count);
+    void uniform4iv(int loc, const int* v, int count);
+    void uniformMatrix2fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix3fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix2dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix3dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix4dv(int loc, const double* m, int count, bool transpose);
 
     // --- Program uniform value queries (SPEC §7.9 glGetUniform{f,i,ui,d}v) ---
     // Read back a uniform value from a successfully linked program. The program
@@ -1359,6 +1390,33 @@ public:
     void programUniform1fv(GLObjectName program, int loc, const float* v, int count);
     void programUniform1iv(GLObjectName program, int loc, const int* v, int count);
     void programUniformMatrix4fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniform1d(GLObjectName program, int loc, double v0);
+    void programUniform2d(GLObjectName program, int loc, double v0, double v1);
+    void programUniform3d(GLObjectName program, int loc, double v0, double v1, double v2);
+    void programUniform4d(GLObjectName program, int loc, double v0, double v1, double v2, double v3);
+    void programUniform1dv(GLObjectName program, int loc, const double* v, int count);
+    void programUniform2dv(GLObjectName program, int loc, const double* v, int count);
+    void programUniform3dv(GLObjectName program, int loc, const double* v, int count);
+    void programUniform4dv(GLObjectName program, int loc, const double* v, int count);
+    void programUniform1ui(GLObjectName program, int loc, uint32_t v0);
+    void programUniform2ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1);
+    void programUniform3ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1, uint32_t v2);
+    void programUniform4ui(GLObjectName program, int loc, uint32_t v0, uint32_t v1, uint32_t v2, uint32_t v3);
+    void programUniform1uiv(GLObjectName program, int loc, const uint32_t* v, int count);
+    void programUniform2uiv(GLObjectName program, int loc, const uint32_t* v, int count);
+    void programUniform3uiv(GLObjectName program, int loc, const uint32_t* v, int count);
+    void programUniform4uiv(GLObjectName program, int loc, const uint32_t* v, int count);
+    void programUniform2fv(GLObjectName program, int loc, const float* v, int count);
+    void programUniform3fv(GLObjectName program, int loc, const float* v, int count);
+    void programUniform4fv(GLObjectName program, int loc, const float* v, int count);
+    void programUniform2iv(GLObjectName program, int loc, const int* v, int count);
+    void programUniform3iv(GLObjectName program, int loc, const int* v, int count);
+    void programUniform4iv(GLObjectName program, int loc, const int* v, int count);
+    void programUniformMatrix2fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix3fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix2dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix3dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix4dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
 
     // --- State queries (SPEC §22) ---
     // Read tracked pipeline state (the frontend owns these values, so glGet
