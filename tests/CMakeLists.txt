@@ -102,6 +102,7 @@ add_executable(yaglt_tests
     unit/create_object_test.cpp
     unit/object_is_test.cpp
     unit/point_parameter_test.cpp
+    unit/pixel_store_test.cpp
     unit/clear_buffer_test.cpp
    unit/clear_tex_image_test.cpp
     unit/copy_image_sub_data_test.cpp

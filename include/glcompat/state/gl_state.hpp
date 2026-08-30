@@ -184,8 +184,13 @@ public:
     bool setProvokingVertex(GLenum mode);
     GLenum provokingVertex() const { return provokingVertex_.mode; }
 
-    // --- Pixel store ---
+    // --- Pixel store (SPEC §8.4) ---
+    // Stores the given pixel-store parameter; returns true only when the value
+    // actually changed (so the backend can skip redundant native calls, SPEC §10).
     bool setPixelStorei(GLenum pname, GLint param);
+    // Reads a previously stored pixel-store parameter. Returns true when `pname`
+    // is a recognized pixel-store parameter (even if its value is the default).
+    bool getPixelStorei(GLenum pname, GLint* out) const;
 
     // --- Viewport (glViewport, SPEC §10) ---
     // Index 0 is the default viewport set by glViewport; indexed variants
@@ -467,9 +472,57 @@ private:
         }
     };
     struct PixelStoreState {
+        // Pack params (SPEC §8.4)
+        GLint packSwapBytes = 0;       // boolean
+        GLint packLsbFirst = 0;        // boolean
+        GLint packRowLength = 0;
+        GLint packImageHeight = 0;
+        GLint packSkipRow = 0;
+        GLint packSkipPixels = 0;
+        GLint packSkipImages = 0;
+        GLint packAlignment = 4;
+        GLint packCompressedBlockWidth = 0;
+        GLint packCompressedBlockHeight = 0;
+        GLint packCompressedBlockDepth = 0;
+        GLint packCompressedBlockSize = 0;
+        // Unpack params (SPEC §8.4)
+        GLint unpackSwapBytes = 0;     // boolean
+        GLint unpackLsbFirst = 0;      // boolean
+        GLint unpackRowLength = 0;
+        GLint unpackImageHeight = 0;
+        GLint unpackSkipRow = 0;
+        GLint unpackSkipPixels = 0;
+        GLint unpackSkipImages = 0;
         GLint unpackAlignment = 4;
+        GLint unpackCompressedBlockWidth = 0;
+        GLint unpackCompressedBlockHeight = 0;
+        GLint unpackCompressedBlockDepth = 0;
+        GLint unpackCompressedBlockSize = 0;
         bool equal(const PixelStoreState& o) const {
-            return unpackAlignment == o.unpackAlignment;
+            return packSwapBytes == o.packSwapBytes &&
+                   packLsbFirst == o.packLsbFirst &&
+                   packRowLength == o.packRowLength &&
+                   packImageHeight == o.packImageHeight &&
+                   packSkipRow == o.packSkipRow &&
+                   packSkipPixels == o.packSkipPixels &&
+                   packSkipImages == o.packSkipImages &&
+                   packAlignment == o.packAlignment &&
+                   packCompressedBlockWidth == o.packCompressedBlockWidth &&
+                   packCompressedBlockHeight == o.packCompressedBlockHeight &&
+                   packCompressedBlockDepth == o.packCompressedBlockDepth &&
+                   packCompressedBlockSize == o.packCompressedBlockSize &&
+                   unpackSwapBytes == o.unpackSwapBytes &&
+                   unpackLsbFirst == o.unpackLsbFirst &&
+                   unpackRowLength == o.unpackRowLength &&
+                   unpackImageHeight == o.unpackImageHeight &&
+                   unpackSkipRow == o.unpackSkipRow &&
+                   unpackSkipPixels == o.unpackSkipPixels &&
+                   unpackSkipImages == o.unpackSkipImages &&
+                   unpackAlignment == o.unpackAlignment &&
+                   unpackCompressedBlockWidth == o.unpackCompressedBlockWidth &&
+                   unpackCompressedBlockHeight == o.unpackCompressedBlockHeight &&
+                   unpackCompressedBlockDepth == o.unpackCompressedBlockDepth &&
+                   unpackCompressedBlockSize == o.unpackCompressedBlockSize;
         }
     };
     struct ClearColorState {

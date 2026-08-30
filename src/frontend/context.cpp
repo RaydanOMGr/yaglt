@@ -8148,13 +8148,85 @@ void Context::vertexBindingDivisor(uint32_t bindingindex, uint32_t divisor) {
         vertexBindingDivisorImpl(*vao, bindingindex, divisor);
 }
 
+namespace {
+// Pixel-store parameter classification (SPEC §8.4). The 24 accepted pnames fall
+// into: boolean (SWAP_BYTES / LSB_FIRST), alignment (must be 1/2/4/8), and
+// non-negative integer (row length, skip*, image height, compressed block*).
+bool isPixelStorePname(uint32_t pname) {
+    switch (pname) {
+    case GL_PACK_SWAP_BYTES: case GL_PACK_LSB_FIRST: case GL_PACK_ROW_LENGTH:
+    case GL_PACK_IMAGE_HEIGHT: case GL_PACK_SKIP_ROW: case GL_PACK_SKIP_PIXELS:
+    case GL_PACK_ALIGNMENT: case GL_PACK_SKIP_IMAGES:
+    case GL_PACK_COMPRESSED_BLOCK_WIDTH: case GL_PACK_COMPRESSED_BLOCK_HEIGHT:
+    case GL_PACK_COMPRESSED_BLOCK_DEPTH: case GL_PACK_COMPRESSED_BLOCK_SIZE:
+    case GL_UNPACK_SWAP_BYTES: case GL_UNPACK_LSB_FIRST: case GL_UNPACK_ROW_LENGTH:
+    case GL_UNPACK_IMAGE_HEIGHT: case GL_UNPACK_SKIP_ROW: case GL_UNPACK_SKIP_PIXELS:
+    case GL_UNPACK_ALIGNMENT: case GL_UNPACK_SKIP_IMAGES:
+    case GL_UNPACK_COMPRESSED_BLOCK_WIDTH: case GL_UNPACK_COMPRESSED_BLOCK_HEIGHT:
+    case GL_UNPACK_COMPRESSED_BLOCK_DEPTH: case GL_UNPACK_COMPRESSED_BLOCK_SIZE:
+        return true;
+    default:
+        return false;
+    }
+}
+bool isPixelStoreAlignmentPname(uint32_t pname) {
+    return pname == GL_PACK_ALIGNMENT || pname == GL_UNPACK_ALIGNMENT;
+}
+bool isPixelStoreBooleanPname(uint32_t pname) {
+    return pname == GL_PACK_SWAP_BYTES || pname == GL_PACK_LSB_FIRST ||
+           pname == GL_UNPACK_SWAP_BYTES || pname == GL_UNPACK_LSB_FIRST;
+}
+} // namespace
+
 void Context::pixelStorei(uint32_t pname, int param) {
+    // SPEC §8.4: an unrecognized pname is GL_INVALID_ENUM; ALIGNMENT must be one
+    // of 1/2/4/8 (GL_INVALID_VALUE); every other integer param must be >= 0
+    // (GL_INVALID_VALUE). The boolean params accept any value.
+    if (!isPixelStorePname(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (isPixelStoreAlignmentPname(pname) &&
+        param != 1 && param != 2 && param != 4 && param != 8) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isPixelStoreBooleanPname(pname) && !isPixelStoreAlignmentPname(pname) &&
+        param < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
     // Push only when the value actually changed (SPEC §10: avoid redundant
     // backend calls). The backend's initial pixel-store state matches the GL
     // default, so an unchanged value needs no push before a texImage upload.
     if (state_.setPixelStorei(pname, param)) {
         if (GLStateSink* sink = backend_.stateSink()) {
             sink->pixelStorei(pname, param);
+        }
+    }
+}
+
+void Context::pixelStoref(uint32_t pname, float param) {
+    // SPEC §8.4: glPixelStoref accepts the same pnames; the integer params are
+    // taken from the truncated value.
+    if (!isPixelStorePname(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    GLint ip = static_cast<GLint>(param);
+    if (isPixelStoreAlignmentPname(pname) &&
+        ip != 1 && ip != 2 && ip != 4 && ip != 8) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!isPixelStoreBooleanPname(pname) && !isPixelStoreAlignmentPname(pname) &&
+        ip < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (state_.setPixelStorei(pname, ip)) {
+        if (GLStateSink* sink = backend_.stateSink()) {
+            sink->pixelStorei(pname, ip);
         }
     }
 }

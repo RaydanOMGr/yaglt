@@ -510,11 +510,67 @@ bool GLStateTracker::setClampColor(GLenum target, GLenum mode) {
 }
 
 bool GLStateTracker::setPixelStorei(GLenum pname, GLint param) {
-    if (pname == 0x0CF5 /* GL_UNPACK_ALIGNMENT */ &&
-        pixel_.unpackAlignment == param)
-        return false;
-    if (pname == 0x0CF5) pixel_.unpackAlignment = param;
+    GLint* field = nullptr;
+    switch (pname) {
+    case GL_PACK_SWAP_BYTES: field = &pixel_.packSwapBytes; break;
+    case GL_PACK_LSB_FIRST: field = &pixel_.packLsbFirst; break;
+    case GL_PACK_ROW_LENGTH: field = &pixel_.packRowLength; break;
+    case GL_PACK_IMAGE_HEIGHT: field = &pixel_.packImageHeight; break;
+    case GL_PACK_SKIP_ROW: field = &pixel_.packSkipRow; break;
+    case GL_PACK_SKIP_PIXELS: field = &pixel_.packSkipPixels; break;
+    case GL_PACK_ALIGNMENT: field = &pixel_.packAlignment; break;
+    case GL_PACK_SKIP_IMAGES: field = &pixel_.packSkipImages; break;
+    case GL_PACK_COMPRESSED_BLOCK_WIDTH: field = &pixel_.packCompressedBlockWidth; break;
+    case GL_PACK_COMPRESSED_BLOCK_HEIGHT: field = &pixel_.packCompressedBlockHeight; break;
+    case GL_PACK_COMPRESSED_BLOCK_DEPTH: field = &pixel_.packCompressedBlockDepth; break;
+    case GL_PACK_COMPRESSED_BLOCK_SIZE: field = &pixel_.packCompressedBlockSize; break;
+    case GL_UNPACK_SWAP_BYTES: field = &pixel_.unpackSwapBytes; break;
+    case GL_UNPACK_LSB_FIRST: field = &pixel_.unpackLsbFirst; break;
+    case GL_UNPACK_ROW_LENGTH: field = &pixel_.unpackRowLength; break;
+    case GL_UNPACK_IMAGE_HEIGHT: field = &pixel_.unpackImageHeight; break;
+    case GL_UNPACK_SKIP_ROW: field = &pixel_.unpackSkipRow; break;
+    case GL_UNPACK_SKIP_PIXELS: field = &pixel_.unpackSkipPixels; break;
+    case GL_UNPACK_ALIGNMENT: field = &pixel_.unpackAlignment; break;
+    case GL_UNPACK_SKIP_IMAGES: field = &pixel_.unpackSkipImages; break;
+    case GL_UNPACK_COMPRESSED_BLOCK_WIDTH: field = &pixel_.unpackCompressedBlockWidth; break;
+    case GL_UNPACK_COMPRESSED_BLOCK_HEIGHT: field = &pixel_.unpackCompressedBlockHeight; break;
+    case GL_UNPACK_COMPRESSED_BLOCK_DEPTH: field = &pixel_.unpackCompressedBlockDepth; break;
+    case GL_UNPACK_COMPRESSED_BLOCK_SIZE: field = &pixel_.unpackCompressedBlockSize; break;
+    default: return false; // not a recognized pixel-store pname
+    }
+    if (*field == param) return false;
+    *field = param;
     return true;
+}
+
+bool GLStateTracker::getPixelStorei(GLenum pname, GLint* out) const {
+    switch (pname) {
+    case GL_PACK_SWAP_BYTES: *out = pixel_.packSwapBytes; return true;
+    case GL_PACK_LSB_FIRST: *out = pixel_.packLsbFirst; return true;
+    case GL_PACK_ROW_LENGTH: *out = pixel_.packRowLength; return true;
+    case GL_PACK_IMAGE_HEIGHT: *out = pixel_.packImageHeight; return true;
+    case GL_PACK_SKIP_ROW: *out = pixel_.packSkipRow; return true;
+    case GL_PACK_SKIP_PIXELS: *out = pixel_.packSkipPixels; return true;
+    case GL_PACK_ALIGNMENT: *out = pixel_.packAlignment; return true;
+    case GL_PACK_SKIP_IMAGES: *out = pixel_.packSkipImages; return true;
+    case GL_PACK_COMPRESSED_BLOCK_WIDTH: *out = pixel_.packCompressedBlockWidth; return true;
+    case GL_PACK_COMPRESSED_BLOCK_HEIGHT: *out = pixel_.packCompressedBlockHeight; return true;
+    case GL_PACK_COMPRESSED_BLOCK_DEPTH: *out = pixel_.packCompressedBlockDepth; return true;
+    case GL_PACK_COMPRESSED_BLOCK_SIZE: *out = pixel_.packCompressedBlockSize; return true;
+    case GL_UNPACK_SWAP_BYTES: *out = pixel_.unpackSwapBytes; return true;
+    case GL_UNPACK_LSB_FIRST: *out = pixel_.unpackLsbFirst; return true;
+    case GL_UNPACK_ROW_LENGTH: *out = pixel_.unpackRowLength; return true;
+    case GL_UNPACK_IMAGE_HEIGHT: *out = pixel_.unpackImageHeight; return true;
+    case GL_UNPACK_SKIP_ROW: *out = pixel_.unpackSkipRow; return true;
+    case GL_UNPACK_SKIP_PIXELS: *out = pixel_.unpackSkipPixels; return true;
+    case GL_UNPACK_ALIGNMENT: *out = pixel_.unpackAlignment; return true;
+    case GL_UNPACK_SKIP_IMAGES: *out = pixel_.unpackSkipImages; return true;
+    case GL_UNPACK_COMPRESSED_BLOCK_WIDTH: *out = pixel_.unpackCompressedBlockWidth; return true;
+    case GL_UNPACK_COMPRESSED_BLOCK_HEIGHT: *out = pixel_.unpackCompressedBlockHeight; return true;
+    case GL_UNPACK_COMPRESSED_BLOCK_DEPTH: *out = pixel_.unpackCompressedBlockDepth; return true;
+    case GL_UNPACK_COMPRESSED_BLOCK_SIZE: *out = pixel_.unpackCompressedBlockSize; return true;
+    default: return false;
+    }
 }
 
 bool GLStateTracker::setViewport(GLint x, GLint y, GLsizei width,
@@ -986,9 +1042,39 @@ int GLStateTracker::apply(GLStateSink& sink) {
     }
 
     if (!pixel_.equal(pixelApplied_)) {
-        sink.pixelStorei(0x0CF5 /* GL_UNPACK_ALIGNMENT */,
-                         pixel_.unpackAlignment);
-        pixelApplied_ = pixel_;
+        // Push only the individual pixel-store parameters that changed (SPEC §10:
+        // avoid redundant native glPixelStorei calls). The backend interprets each
+        // pname independently.
+#define YAGLT_PUSH_PIXEL(field, pname)                          \
+        if (pixel_.field != pixelApplied_.field) {             \
+            sink.pixelStorei(pname, pixel_.field);              \
+            pixelApplied_.field = pixel_.field;                 \
+        }
+        YAGLT_PUSH_PIXEL(packSwapBytes, GL_PACK_SWAP_BYTES)
+        YAGLT_PUSH_PIXEL(packLsbFirst, GL_PACK_LSB_FIRST)
+        YAGLT_PUSH_PIXEL(packRowLength, GL_PACK_ROW_LENGTH)
+        YAGLT_PUSH_PIXEL(packImageHeight, GL_PACK_IMAGE_HEIGHT)
+        YAGLT_PUSH_PIXEL(packSkipRow, GL_PACK_SKIP_ROW)
+        YAGLT_PUSH_PIXEL(packSkipPixels, GL_PACK_SKIP_PIXELS)
+        YAGLT_PUSH_PIXEL(packAlignment, GL_PACK_ALIGNMENT)
+        YAGLT_PUSH_PIXEL(packSkipImages, GL_PACK_SKIP_IMAGES)
+        YAGLT_PUSH_PIXEL(packCompressedBlockWidth, GL_PACK_COMPRESSED_BLOCK_WIDTH)
+        YAGLT_PUSH_PIXEL(packCompressedBlockHeight, GL_PACK_COMPRESSED_BLOCK_HEIGHT)
+        YAGLT_PUSH_PIXEL(packCompressedBlockDepth, GL_PACK_COMPRESSED_BLOCK_DEPTH)
+        YAGLT_PUSH_PIXEL(packCompressedBlockSize, GL_PACK_COMPRESSED_BLOCK_SIZE)
+        YAGLT_PUSH_PIXEL(unpackSwapBytes, GL_UNPACK_SWAP_BYTES)
+        YAGLT_PUSH_PIXEL(unpackLsbFirst, GL_UNPACK_LSB_FIRST)
+        YAGLT_PUSH_PIXEL(unpackRowLength, GL_UNPACK_ROW_LENGTH)
+        YAGLT_PUSH_PIXEL(unpackImageHeight, GL_UNPACK_IMAGE_HEIGHT)
+        YAGLT_PUSH_PIXEL(unpackSkipRow, GL_UNPACK_SKIP_ROW)
+        YAGLT_PUSH_PIXEL(unpackSkipPixels, GL_UNPACK_SKIP_PIXELS)
+        YAGLT_PUSH_PIXEL(unpackAlignment, GL_UNPACK_ALIGNMENT)
+        YAGLT_PUSH_PIXEL(unpackSkipImages, GL_UNPACK_SKIP_IMAGES)
+        YAGLT_PUSH_PIXEL(unpackCompressedBlockWidth, GL_UNPACK_COMPRESSED_BLOCK_WIDTH)
+        YAGLT_PUSH_PIXEL(unpackCompressedBlockHeight, GL_UNPACK_COMPRESSED_BLOCK_HEIGHT)
+        YAGLT_PUSH_PIXEL(unpackCompressedBlockDepth, GL_UNPACK_COMPRESSED_BLOCK_DEPTH)
+        YAGLT_PUSH_PIXEL(unpackCompressedBlockSize, GL_UNPACK_COMPRESSED_BLOCK_SIZE)
+#undef YAGLT_PUSH_PIXEL
         ++applied;
     }
 
@@ -1275,6 +1361,12 @@ int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     case 0x0B91: // GL_STENCIL_CLEAR_VALUE
         out[0] = static_cast<GLint>(clearStencil_.stencil);
         return 1;
+    // No earlier case matched: fall through to the pixel-store block below.
+    }
+    // Pixel store parameters (SPEC §8.4)
+    {
+        GLint pv = 0;
+        if (getPixelStorei(p, &pv)) { out[0] = pv; return 1; }
     }
     return 0;
 }
@@ -1298,6 +1390,15 @@ int GLStateTracker::getBoolean(GLenum p, GLboolean* out) const {
     if (p == GL_SAMPLE_COVERAGE_INVERT) {
         out[0] = static_cast<GLboolean>(sampleCoverage_.invert ? 1 : 0);
         return 1;
+    }
+    // Pixel store parameters (SPEC §8.4): SWAP_BYTES/LSB_FIRST are booleans;
+    // the remaining integer params read back as TRUE when non-zero.
+    {
+        GLint pv = 0;
+        if (getPixelStorei(p, &pv)) {
+            out[0] = static_cast<GLboolean>(pv ? 1 : 0);
+            return 1;
+        }
     }
     return 0;
 }
@@ -1356,6 +1457,11 @@ int GLStateTracker::getFloat(GLenum p, GLfloat* out) const {
     case 0x8C36: // GL_MIN_SAMPLE_SHADING
         out[0] = multisampleRaster_.minSampleShading; return 1;
     }
+    // Pixel store parameters (SPEC §8.4) — returned as float.
+    {
+        GLint pv = 0;
+        if (getPixelStorei(p, &pv)) { out[0] = static_cast<GLfloat>(pv); return 1; }
+    }
     return 0;
 }
 
@@ -1404,6 +1510,11 @@ int GLStateTracker::getDouble(GLenum p, GLdouble* out) const {
         out[0] = scissor_[0].x; out[1] = scissor_[0].y;
         out[2] = scissor_[0].width; out[3] = scissor_[0].height;
         return 4;
+    }
+    // Pixel store parameters (SPEC §8.4) — returned as double.
+    {
+        GLint pv = 0;
+        if (getPixelStorei(p, &pv)) { out[0] = static_cast<GLdouble>(pv); return 1; }
     }
     return 0;
 }

@@ -698,8 +698,9 @@ public:
 
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the
-    // backend immediately (it affects subsequent texture/image uploads).
+    // backend immediately (it affects subsequent texture/image uploads, SPEC §8.4).
     void pixelStorei(uint32_t pname, int param);
+    void pixelStoref(uint32_t pname, float param);
 
     // --- Vertex arrays ---
     GLObjectName genVertexArray();

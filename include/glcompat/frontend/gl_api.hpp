@@ -774,8 +774,9 @@ void glSampleCoverage(GLfloat value, GLboolean invert);
 // backend only when it changes (SPEC §10).
 void glPrimitiveRestartIndex(GLuint index);
 
-// Pixel store (SPEC §10). Affects subsequent texture/image uploads.
+// Pixel store (SPEC §8.4). Affects subsequent texture/image uploads.
 void glPixelStorei(GLenum pname, GLint param);
+void glPixelStoref(GLenum pname, GLfloat param);
 
 // Viewport (glViewport) and scissor box (glScissor), recorded in the current
 // context's GLStateTracker and pushed to the backend on the next flush (SPEC §10).

@@ -206,6 +206,7 @@ public:
     uint32_t lastClampColorTarget = 0x891C; // GL_CLAMP_READ_COLOR
     uint32_t lastClampColorMode = 0x891D;    // GL_FIXED_ONLY
     int pixelStoreiCalls = 0;
+    std::vector<std::pair<uint32_t, int32_t>> pixelStoreCalls; // (pname, param)
 
     int viewportCalls = 0;
     int32_t lastViewportX = 0, lastViewportY = 0;
@@ -456,7 +457,10 @@ public:
         lastClampColorTarget = target;
         lastClampColorMode = mode;
     }
-    void pixelStorei(GLenum, GLint) override { ++pixelStoreiCalls; }
+    void pixelStorei(GLenum pname, GLint param) override {
+        ++pixelStoreiCalls;
+        pixelStoreCalls.emplace_back(pname, param);
+    }
     void setViewport(int32_t x, int32_t y, int32_t w, int32_t h) override {
         ++viewportCalls;
         lastViewportX = x;

@@ -600,7 +600,40 @@ constexpr GLenum GL_TEXTURE = 0x1702;
 constexpr GLenum GL_COLOR = 0x1800;
 constexpr GLenum GL_DEPTH = 0x1801;
 constexpr GLenum GL_STENCIL = 0x1802;
+ // Pixel store parameters (SPEC §8.4). Values follow the desktop GL enum
+ // assignments so a real application's glPixelStore* calls are recognized on the
+ // drop-in path. GLES system headers define GL_UNPACK_ALIGNMENT / GL_PACK_ALIGNMENT
+ // as macros; undefine them so our constexpr names are authoritative.
+#ifdef GL_UNPACK_ALIGNMENT
+#undef GL_UNPACK_ALIGNMENT
+#endif
+#ifdef GL_PACK_ALIGNMENT
+#undef GL_PACK_ALIGNMENT
+#endif
+constexpr GLenum GL_PACK_SWAP_BYTES = 0x0D00;
+constexpr GLenum GL_PACK_LSB_FIRST = 0x0D01;
+constexpr GLenum GL_PACK_ROW_LENGTH = 0x0D02;
+constexpr GLenum GL_PACK_SKIP_ROW = 0x0D03;
+constexpr GLenum GL_PACK_SKIP_PIXELS = 0x0D04;
+constexpr GLenum GL_PACK_ALIGNMENT = 0x0D05;
+constexpr GLenum GL_PACK_SKIP_IMAGES = 0x0D06;
+constexpr GLenum GL_PACK_IMAGE_HEIGHT = 0x0D07;
+constexpr GLenum GL_PACK_COMPRESSED_BLOCK_WIDTH = 0x0D08;
+constexpr GLenum GL_PACK_COMPRESSED_BLOCK_HEIGHT = 0x0D09;
+constexpr GLenum GL_PACK_COMPRESSED_BLOCK_DEPTH = 0x0D0A;
+constexpr GLenum GL_PACK_COMPRESSED_BLOCK_SIZE = 0x0D0B;
+constexpr GLenum GL_UNPACK_SWAP_BYTES = 0x0CF0;
+constexpr GLenum GL_UNPACK_LSB_FIRST = 0x0CF1;
+constexpr GLenum GL_UNPACK_ROW_LENGTH = 0x0CF2;
+constexpr GLenum GL_UNPACK_SKIP_ROW = 0x0CF3;
+constexpr GLenum GL_UNPACK_SKIP_PIXELS = 0x0CF4;
 constexpr GLenum GL_UNPACK_ALIGNMENT = 0x0CF5;
+constexpr GLenum GL_UNPACK_SKIP_IMAGES = 0x0CF6;
+constexpr GLenum GL_UNPACK_IMAGE_HEIGHT = 0x0CF7;
+constexpr GLenum GL_UNPACK_COMPRESSED_BLOCK_WIDTH = 0x0CF8;
+constexpr GLenum GL_UNPACK_COMPRESSED_BLOCK_HEIGHT = 0x0CF9;
+constexpr GLenum GL_UNPACK_COMPRESSED_BLOCK_DEPTH = 0x0CFA;
+constexpr GLenum GL_UNPACK_COMPRESSED_BLOCK_SIZE = 0x0CFB;
 
 // Clear mask bits (SPEC §2.1, framebuffer clear).
 constexpr GLenum GL_DEPTH_BUFFER_BIT = 0x00000100;

@@ -2282,6 +2282,11 @@ void glPixelStorei(GLenum pname, GLint param) {
     g_current->pixelStorei(pname, static_cast<int>(param));
 }
 
+void glPixelStoref(GLenum pname, GLfloat param) {
+    if (g_current == nullptr) return;
+    g_current->pixelStoref(pname, param);
+}
+
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
     if (g_current == nullptr) return;
     g_current->setViewport(x, y, width, height);

@@ -3,6 +3,25 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — pixel-store §8.4 expansion + query fix, this session)
+- Expanded pixel-store (SPEC §8.4) from the lone `GL_UNPACK_ALIGNMENT` constant to
+  all 24 `GL_PACK_*`/`GL_UNPACK_*` desktop enum assignments (corrected earlier
+  off-by-one values: `UNPACK_ALIGNMENT=0x0CF5`, `PACK_ALIGNMENT=0x0D05`,
+  `SKIP_ROWS=0x0D03/0x0CF3`, `SKIP_PIXELS=0x0D04/0x0CF4`, `SKIP_IMAGES=0x0D06/0x0CF6`,
+  `IMAGE_HEIGHT=0x0D07/0x0CF7`). `#undef`'d the colliding GLES macros
+  `GL_UNPACK_ALIGNMENT`/`GL_PACK_ALIGNMENT` in `gl_types.hpp` so the `glcompat`
+  constexpr values are authoritative regardless of include order.
+- `PixelStoreState` now holds all 24 fields with `equal()`; `setPixelStorei`/`getPixelStorei`
+  cover every pname. `Context::pixelStorei`/`pixelStoref` validate unknown pname
+  (`GL_INVALID_ENUM`), non-{1,2,4,8} `ALIGNMENT` (`GL_INVALID_VALUE`), and negative
+  non-boolean integer params (`GL_INVALID_VALUE`), pushing to the backend only on change.
+- `glGetIntegerv`/`glGetBooleanv`/`glGetFloatv`/`glGetDoublev` now route every
+  pixel-store pname through `getPixelStorei` (bug fixed: the query block was an
+  unreachable fall-through inside the `getInteger`/`getFloat`/`getDouble` switch).
+- Mock backend records `pixelStorei` calls (`pixelStoreiCalls` counter) for the
+  change-skipping test. New `tests/unit/pixel_store_test.cpp` (11 cases). Default
+  suite 792/792 green.
+
 ## Recent Work (2026-08-29 — per-draw-buffer color mask, this session)
 - Added per-draw-buffer color write mask `glColorMaski` (SPEC §17.3.6,
   EXT_draw_buffers2). The tracker now keeps `std::vector<ColorMaskState>
