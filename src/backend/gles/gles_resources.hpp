@@ -65,6 +65,22 @@ struct GLESBackendBuffer : BackendBuffer {
                                  static_cast<GLenum>(flags));
         }
     }
+    void namedBufferData(intptr_t size, uint32_t usage, const void* data) override {
+        if (lib && lib->driverLive() && lib->glNamedBufferData) {
+            lib->glNamedBufferData(handle, size, data, usage);
+        }
+    }
+    void namedBufferSubData(intptr_t offset, intptr_t size, const void* data) override {
+        if (lib && lib->driverLive() && lib->glNamedBufferSubData) {
+            lib->glNamedBufferSubData(handle, offset, size, data);
+        }
+    }
+    void namedBufferStorage(intptr_t size, uint32_t flags, const void* data) override {
+        if (lib && lib->driverLive() && lib->glNamedBufferStorage) {
+            lib->glNamedBufferStorage(handle, size, data,
+                                      static_cast<GLbitfield>(flags));
+        }
+    }
     void copySubData(uint32_t readTarget, uint32_t writeTarget,
                      intptr_t readOffset, intptr_t writeOffset,
                      intptr_t size) override {

@@ -49,8 +49,16 @@ void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usa
 // Buffer sub-data / immutable storage / copy (SPEC §6).
 void glBufferSubData(GLenum target, GLsizeiptr offset, GLsizeiptr size,
                      const GLvoid* data);
-void glBufferStorage(GLenum target, GLsizeiptr size, const GLvoid* data,
-                     GLbitfield flags);
+ void glBufferStorage(GLenum target, GLsizeiptr size, const GLvoid* data,
+                      GLbitfield flags);
+// DSA buffer allocation (SPEC §6.1/§6.2 glNamedBufferData / glNamedBufferSubData
+// / glNamedBufferStorage). Operate on a named buffer by object name.
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const GLvoid* data,
+                       GLenum usage);
+void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size,
+                          const GLvoid* data);
+void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const GLvoid* data,
+                          GLbitfield flags);
 void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
                          GLintptr readOffset, GLintptr writeOffset,
                          GLsizeiptr size);

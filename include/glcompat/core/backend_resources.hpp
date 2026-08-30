@@ -52,6 +52,23 @@ public:
     // frontend registers this so the backend's name->native map resolves buffer
     // binds at draw/flush time (SPEC §3/§11).
     virtual uint32_t nativeId() const { return 0; }
+
+    // DSA buffer allocation (SPEC §6.1/§6.2 glNamedBufferData / glNamedBufferSubData
+    // / glNamedBufferStorage). Keyed by this buffer resource (not a bind target),
+    // unlike the target-based variants above. The default forwards onto the
+    // target-based methods with a placeholder target, which is sufficient for
+    // backends that ignore the target (mock); native backends override these.
+    virtual void namedBufferData(intptr_t size, uint32_t usage, const void* data) {
+        bufferData(0, size, usage, data);
+    }
+    virtual void namedBufferSubData(intptr_t offset, intptr_t size,
+                                    const void* data) {
+        bufferSubData(0, offset, size, data);
+    }
+    virtual void namedBufferStorage(intptr_t size, uint32_t flags,
+                                    const void* data) {
+        bufferStorage(0, size, flags, data);
+    }
 };
 class BackendTexture {
 public:

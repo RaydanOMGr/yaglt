@@ -11,6 +11,7 @@ public:
     std::unique_ptr<BackendBuffer> createBuffer() override {
         auto r = std::make_unique<MockBuffer>();
         r->id = ++counter_;
+        lastCreatedBuffer = r.get();
         return r;
     }
     std::unique_ptr<BackendTexture> createTexture() override {
@@ -66,6 +67,9 @@ public:
     // Test helper: the most recently created MockQuery (nullptr before any query
     // is created). Lets tests configure/observe query state directly.
     MockQuery* lastCreatedQuery = nullptr;
+    // Test helper: the most recently created MockBuffer (nullptr before any
+    // buffer is created). Lets tests observe buffer-backend calls directly.
+    MockBuffer* lastCreatedBuffer = nullptr;
 
 private:
     int counter_ = 0;

@@ -73,6 +73,20 @@ public:
     // buffer reports GL_INVALID_OPERATION. flags is the GL_MAP_* bitfield.
     void bufferStorage(uint32_t target, intptr_t size, const void* data,
                        uint32_t flags);
+    // DSA buffer allocation (SPEC §6.1/§6.2 glNamedBufferData /
+    // glNamedBufferSubData / glNamedBufferStorage). These operate on a named
+    // buffer by object name (no bind required). They share the validation and
+    // CPU-mirror bookkeeping of the target-based variants: an ungenerated name
+    // reports GL_INVALID_OPERATION; sub-data must be in bounds (GL_INVALID_VALUE);
+    // storage requires ImmutableBufferStorage and rejects re-allocation of an
+    // already-immutable buffer (GL_INVALID_OPERATION), and a non-positive size for
+    // storage reports GL_INVALID_VALUE.
+    void namedBufferData(GLObjectName buffer, intptr_t size, uint32_t usage,
+                          const void* data);
+    void namedBufferSubData(GLObjectName buffer, intptr_t offset, intptr_t size,
+                            const void* data);
+    void namedBufferStorage(GLObjectName buffer, intptr_t size, const void* data,
+                            uint32_t flags);
     // Copy a sub-region between two buffers (SPEC §6 glCopyBufferSubData). Both
     // read and write targets must be bound; the regions must be in bounds.
     void copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,

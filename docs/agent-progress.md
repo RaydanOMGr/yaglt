@@ -3,6 +3,30 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — DSA named-buffer allocation §6.1/§6.2, restored)
+
+- Restored and completed the DSA named-buffer allocation feature a crashed session
+  left uncommitted. New frontend entry points `glNamedBufferData` /
+  `glNamedBufferSubData` / `glNamedBufferStorage` (SPEC §6.1/§6.2) operate on a
+  named buffer by object name — no bind required. `Context::namedBufferData` /
+  `namedBufferSubData` / `namedBufferStorage` share the target-based validation and
+  CPU-mirror bookkeeping: an ungenerated name → `GL_INVALID_OPERATION`, a sub-data
+  region past the allocation → `GL_INVALID_VALUE`, an already-immutable buffer
+  rejects re-allocation → `GL_INVALID_OPERATION` (checked before size, matching the
+  real GL ordering), and a non-positive `glNamedBufferStorage` size → `GL_INVALID_VALUE`.
+  `BackendBuffer` gained `namedBufferData` / `namedBufferSubData` / `namedBufferStorage`
+  virtuals (default forwards onto the target-based path, sufficient for the mock);
+  `GLESBackendBuffer` overrides them to forward to the native ES 3.1+ DSA entry
+  points when resolved, and the mock records each call (`namedBufferDataCalls` /
+  `namedBufferStorageCalls` / …) via a `lastCreatedBuffer` factory hook mirroring
+  `lastCreatedQuery`. The `GLESLib` loader resolves the three optional symbols and
+  the `gl*` shim regenerates from `gl_api.hpp`. New `tests/unit/named_buffer_test.cpp`
+  (5 cases: allocate+mirror, in-bounds sub-data round-trip + out-of-bounds reject,
+  immutable storage + re-alloc reject + non-positive-size reject, ungenerated-name
+  errors, public dispatch surface). Default **815/815** and sanitizer **815/815**
+  green (fixed two pre-commit bugs the crash left: swapped `glNamedBufferData` args in
+  the `gl_api` dispatch and a wrong-arg-order call in the public-dispatch test case).
+
 ## Recent Work (2026-08-30 — timestamp query counter §4.2.1, this session)
 - Added `glQueryCounter` (SPEC §4.2.1): records a timestamp into a query object once
   all prior GL commands have completed. `BackendQuery` gained a `queryCounter(uint32_t

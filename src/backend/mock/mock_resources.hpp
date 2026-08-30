@@ -51,6 +51,38 @@ public:
         lastStorageFlags = flags;
         lastStorageHadData = (data != nullptr);
     }
+    int namedBufferDataCalls = 0;
+    intptr_t lastNamedSize = 0;
+    uint32_t lastNamedUsage = 0;
+    bool lastNamedHadData = false;
+    void namedBufferData(intptr_t size, uint32_t usage, const void* data) override {
+        ++namedBufferDataCalls;
+        lastNamedSize = size;
+        lastNamedUsage = usage;
+        lastNamedHadData = (data != nullptr);
+    }
+    int namedBufferSubDataCalls = 0;
+    intptr_t lastNamedSubOffset = 0;
+    intptr_t lastNamedSubSize = 0;
+    bool lastNamedSubHadData = false;
+    void namedBufferSubData(intptr_t offset, intptr_t size,
+                            const void* data) override {
+        ++namedBufferSubDataCalls;
+        lastNamedSubOffset = offset;
+        lastNamedSubSize = size;
+        lastNamedSubHadData = (data != nullptr);
+    }
+    int namedBufferStorageCalls = 0;
+    intptr_t lastNamedStorageSize = 0;
+    uint32_t lastNamedStorageFlags = 0;
+    bool lastNamedStorageHadData = false;
+    void namedBufferStorage(intptr_t size, uint32_t flags,
+                            const void* data) override {
+        ++namedBufferStorageCalls;
+        lastNamedStorageSize = size;
+        lastNamedStorageFlags = flags;
+        lastNamedStorageHadData = (data != nullptr);
+    }
     int copySubDataCalls = 0;
     uint32_t lastCopyReadTarget = 0;
     uint32_t lastCopyWriteTarget = 0;

@@ -62,6 +62,11 @@ bool GLESLib::load() {
     resolve(gles, glBufferSubData, "glBufferSubData");
     resolve(gles, glBufferStorage, "glBufferStorage");
     resolve(gles, glCopyBufferSubData, "glCopyBufferSubData");
+    // DSA buffer allocation (ES 3.1+, SPEC §6.1/§6.2). Optional: the frontend's
+    // target-based path binds then allocates when these are absent.
+    resolve(gles, glNamedBufferData, "glNamedBufferData");
+    resolve(gles, glNamedBufferSubData, "glNamedBufferSubData");
+    resolve(gles, glNamedBufferStorage, "glNamedBufferStorage");
     resolve(gles, glMapBufferRange, "glMapBufferRange");
     resolve(gles, glUnmapBuffer, "glUnmapBuffer");
     resolve(gles, glInvalidateBufferData, "glInvalidateBufferData");

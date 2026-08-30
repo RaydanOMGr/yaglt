@@ -224,6 +224,81 @@ void Context::bufferStorage(uint32_t target, intptr_t size, const void* data,
     }
 }
 
+void Context::namedBufferData(GLObjectName buffer, intptr_t size, uint32_t usage,
+                              const void* data) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    if (obj->immutable) {
+        // Reallocation of already-immutable storage is disallowed (SPEC §6.1).
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    obj->size = size;
+    obj->usage = usage;
+    obj->store.assign(size > 0 ? static_cast<size_t>(size) : 0, 0);
+    if (data && size > 0)
+        std::memcpy(obj->store.data(), data, static_cast<size_t>(size));
+    obj->immutable = false;
+    obj->immutableFlags = 0;
+    if (obj->backend) {
+        obj->backend->namedBufferData(size, usage, data);
+    }
+}
+
+void Context::namedBufferSubData(GLObjectName buffer, intptr_t offset,
+                                 intptr_t size, const void* data) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    if (offset < 0 || size < 0 || offset + size > obj->size) {
+        setError(GLError::InvalidValue); // region out of bounds
+        return;
+    }
+    if (size > 0) {
+        std::memcpy(obj->store.data() + static_cast<size_t>(offset), data,
+                    static_cast<size_t>(size));
+    }
+    if (obj->backend) {
+        obj->backend->namedBufferSubData(offset, size, data);
+    }
+}
+
+void Context::namedBufferStorage(GLObjectName buffer, intptr_t size,
+                                 const void* data, uint32_t flags) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return;
+    }
+    if (!backend_.capabilities().isSupported(Feature::ImmutableBufferStorage)) {
+        setError(GLError::InvalidOperation); // backend cannot do immutable storage
+        return;
+    }
+    if (obj->immutable) {
+        // Already-immutable storage cannot be reallocated (SPEC §6).
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (size <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    obj->size = size;
+    obj->usage = flags; // storage flags act as the effective usage for queries
+    obj->immutable = true;
+    obj->immutableFlags = flags;
+    obj->store.assign(static_cast<size_t>(size), 0);
+    if (data) std::memcpy(obj->store.data(), data, static_cast<size_t>(size));
+    if (obj->backend) {
+        obj->backend->namedBufferStorage(size, flags, data);
+    }
+}
+
 void Context::copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,
                                 intptr_t readOffset, intptr_t writeOffset,
                                 intptr_t size) {

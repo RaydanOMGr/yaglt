@@ -96,6 +96,24 @@ void glBufferStorage(GLenum target, GLsizeiptr size, const GLvoid* data,
     g_current->bufferStorage(target, size, data, flags);
 }
 
+void glNamedBufferData(GLuint buffer, GLsizeiptr size, const GLvoid* data,
+                       GLenum usage) {
+    if (g_current == nullptr) return;
+    g_current->namedBufferData(buffer, size, usage, data);
+}
+
+void glNamedBufferSubData(GLuint buffer, GLintptr offset, GLsizeiptr size,
+                          const GLvoid* data) {
+    if (g_current == nullptr) return;
+    g_current->namedBufferSubData(buffer, offset, size, data);
+}
+
+void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const GLvoid* data,
+                          GLbitfield flags) {
+    if (g_current == nullptr) return;
+    g_current->namedBufferStorage(buffer, size, data, flags);
+}
+
 void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
                          GLintptr readOffset, GLintptr writeOffset,
                          GLsizeiptr size) {
