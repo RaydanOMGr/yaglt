@@ -1018,6 +1018,11 @@ public:
     void uniformBlockBinding(GLObjectName program, uint32_t blockIndex,
                              uint32_t blockBinding);
 
+    // Associate a program's shader-storage block `blockIndex` with shader-storage-
+    // buffer binding point `blockBinding` (SPEC §7.6.2 glShaderStorageBlockBinding).
+    // Capability-gated by ShaderStorageBufferObjects.
+    void shaderStorageBlockBinding(GLObjectName program, uint32_t blockIndex,
+                                   uint32_t blockBinding);
 
     // Subroutine reflection + selection (SPEC §7.9). All require the `Subroutines`
     // capability; `program` (for the reflection getters) must be a linked program;

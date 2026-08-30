@@ -389,6 +389,13 @@ public:
     virtual void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) {
         (void)blockIndex; (void)blockBinding;
     }
+    // Associate a program's shader-storage block `blockIndex` with shader-storage-
+    // buffer binding point `blockBinding` (SPEC §7.6.2 glShaderStorageBlockBinding).
+    // Default no-op so backends opt in; the GLES backend forwards to the driver on
+    // the native program (ES 3.1+), and the mock records it.
+    virtual void shaderStorageBlockBinding(uint32_t blockIndex, uint32_t blockBinding) {
+        (void)blockIndex; (void)blockBinding;
+    }
     // Specify the transform-feedback varying names captured when the program is
     // the active program of a transform-feedback begin (SPEC §13.3.1
     // glTransformFeedbackVaryings). Called before link(); takes effect on the
@@ -471,6 +478,10 @@ public:
     virtual int activeUniformCount() const { return 0; }
     virtual int activeAttributeCount() const { return 0; }
     virtual int activeUniformBlockCount() const { return 0; }
+    // Number of active shader-storage blocks in the linked program (SPEC §7.6.2).
+    // Honest 0 for backends without introspection; the mock returns a configurable
+    // count so frontend block-index validation can be exercised.
+    virtual int activeShaderStorageBlockCount() const { return 0; }
 
     // Program-interface reflection (SPEC §7.3.11). Defaults are honest for
     // backends without introspection: no resources are visible, names are not

@@ -670,6 +670,10 @@ struct GLESBackendProgram : BackendProgram {
         if (lib && lib->driverLive() && handle != 0 && lib->glUniformBlockBinding)
             lib->glUniformBlockBinding(handle, blockIndex, blockBinding);
     }
+    void shaderStorageBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
+        if (lib && lib->driverLive() && handle != 0 && lib->glShaderStorageBlockBinding)
+            lib->glShaderStorageBlockBinding(handle, blockIndex, blockBinding);
+    }
     void transformFeedbackVaryings(const std::vector<std::string>& varyings,
                                    uint32_t bufferMode) override {
         if (lib && lib->driverLive() && handle != 0 && lib->glTransformFeedbackVaryings) {

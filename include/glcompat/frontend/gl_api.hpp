@@ -580,6 +580,8 @@ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
                           GLuint* uniformIndices);
    void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
                               GLuint uniformBlockBinding);
+   void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex,
+                                    GLuint storageBlockBinding);
 
 
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar* name);

@@ -184,6 +184,7 @@ bool GLESLib::load() {
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glUniformBlockBinding, "glUniformBlockBinding");
+    resolve(gles, glShaderStorageBlockBinding, "glShaderStorageBlockBinding");
     // Transform-feedback varying capture setup (SPEC §13.3.1). ES 3.0+; resolved
     // optionally so load() still succeeds without it.
     resolve(gles, glTransformFeedbackVaryings, "glTransformFeedbackVaryings");

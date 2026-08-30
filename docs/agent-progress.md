@@ -3,6 +3,28 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — shader-storage-block binding §7.6.2, this session)
+- Added `glShaderStorageBlockBinding` (SPEC §7.6.2), the exact analog of the
+  already-implemented `glUniformBlockBinding`. `BackendProgram` gained a
+  `shaderStorageBlockBinding(uint32_t blockIndex, uint32_t blockBinding)` virtual
+  and an `activeShaderStorageBlockCount()` accessor (default no-op / 0 so backends
+  opt in). `Context::shaderStorageBlockBinding` is capability-gated by
+  `ShaderStorageBufferObjects` (mock reports Native; GLES native on ES 3.1+, else
+  honest `GL_INVALID_OPERATION`), validates a linked program (`GL_INVALID_OPERATION`),
+  a block index ≥ the active shader-storage-block count (`GL_INVALID_VALUE`), and a
+  binding point ≥ `MAX_SHADER_STORAGE_BUFFER_BINDINGS` floor (8, `GL_INVALID_VALUE`),
+  then forwards to the backend. The mock records the block→binding association in
+  `shaderStorageBlockBindings` (driven by a configurable `activeShaderStorageBlocks`
+  count). The GLES backend forwards to the newly-resolved optional `GLESLib::
+  glShaderStorageBlockBinding` symbol (ES 3.1+). `GL_MAX_SHADER_STORAGE_BUFFER_
+  BINDINGS` (0x90DA) added to `gl_types.hpp`; `glShaderStorageBlockBinding`
+  declared in `gl_api.hpp` and dispatched in `gl_api.cpp`.
+- New `tests/unit/shader_storage_block_binding_test.cpp` (4 cases: records the
+  association, unlinked-program error, out-of-range block index, out-of-range
+  binding point at the floor of 8). Default suite 806 → 810 green; `build_san`
+  (ASan/UBSan) 810/810 green; `build_tx` (GLES/translate) compiles. Coverage
+  regenerated: core 84.2% → 84.4% (481/570), full 49.5% → 49.6% (522/1052).
+
 ## Recent Work (2026-08-30 — uniform setter variant expansion §8, this session)
 - Expanded the uniform setter surface (SPEC §8) to cover every `glUniform*` /
   `glProgramUniform*` spelling the frontend was missing: double-precision

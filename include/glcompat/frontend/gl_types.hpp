@@ -509,6 +509,7 @@ constexpr GLenum GL_LOCATION = 0x930E;
 // equivalent before delegating to GetProgramResourceiv.
 constexpr GLenum GL_UNIFORM_BLOCK_BINDING = 0x8A3F;
 constexpr GLenum GL_MAX_UNIFORM_BUFFER_BINDINGS = 0x8A2F;
+constexpr GLenum GL_MAX_SHADER_STORAGE_BUFFER_BINDINGS = 0x90DA;
 constexpr GLenum GL_UNIFORM_BLOCK_DATA_SIZE = 0x8A40;
 constexpr GLenum GL_UNIFORM_BLOCK_NAME_LENGTH = 0x8A41;
 constexpr GLenum GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = 0x8A42;

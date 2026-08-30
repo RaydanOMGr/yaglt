@@ -1722,6 +1722,12 @@ void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
     g_current->uniformBlockBinding(program, uniformBlockIndex, uniformBlockBinding);
 }
 
+void glShaderStorageBlockBinding(GLuint program, GLuint storageBlockIndex,
+                                 GLuint storageBlockBinding) {
+    if (g_current == nullptr) return;
+    g_current->shaderStorageBlockBinding(program, storageBlockIndex, storageBlockBinding);
+}
+
 
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype,
                             const GLchar* name) {

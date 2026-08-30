@@ -5889,6 +5889,36 @@ void Context::uniformBlockBinding(GLObjectName program, uint32_t blockIndex,
 }
 
 namespace {
+// GL 4.6 guarantees at least this many shader-storage-buffer binding points
+// (table 23.47). Used only as a floor for the blockBinding upper bound;
+// real drivers report >= this via MAX_SHADER_STORAGE_BUFFER_BINDINGS.
+constexpr uint32_t kMaxShaderStorageBufferBindings = 8;
+} // namespace
+
+void Context::shaderStorageBlockBinding(GLObjectName program, uint32_t blockIndex,
+                                         uint32_t blockBinding) {
+    if (!backend_.capabilities().isSupported(Feature::ShaderStorageBufferObjects)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    const uint32_t count = static_cast<uint32_t>(p->backend->activeShaderStorageBlockCount());
+    if (blockIndex >= count) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (blockBinding >= kMaxShaderStorageBufferBindings) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    p->backend->shaderStorageBlockBinding(blockIndex, blockBinding);
+}
+
+namespace {
 
 bool isValidSubroutineStage(uint32_t stage) {
     switch (stage) {

@@ -733,6 +733,16 @@ public:
     void uniformBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
         blockBindings[blockIndex] = blockBinding;
     }
+    // Shader-storage block -> binding-point association (SPEC §7.6.2
+    // glShaderStorageBlockBinding). Mirrors the uniform-block recording above.
+    uint32_t activeShaderStorageBlocks = 0;
+    std::map<uint32_t, uint32_t> shaderStorageBlockBindings;
+    int activeShaderStorageBlockCount() const override {
+        return static_cast<int>(activeShaderStorageBlocks);
+    }
+    void shaderStorageBlockBinding(uint32_t blockIndex, uint32_t blockBinding) override {
+        shaderStorageBlockBindings[blockIndex] = blockBinding;
+    }
     void transformFeedbackVaryings(const std::vector<std::string>& varyings,
                                    uint32_t bufferMode) override {
         tfRequestedVaryings = varyings;
