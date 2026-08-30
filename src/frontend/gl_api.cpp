@@ -1703,11 +1703,17 @@ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
 }
 
 void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
-                                 GLsizei bufSize, GLsizei* length,
-                                 GLchar* uniformBlockName) {
+                                  GLsizei bufSize, GLsizei* length,
+                                  GLchar* uniformBlockName) {
     if (g_current == nullptr) return;
     g_current->getActiveUniformBlockName(program, uniformBlockIndex, bufSize, length,
-                                         uniformBlockName);
+                                          uniformBlockName);
+}
+
+void glGetUniformIndices(GLuint program, GLsizei uniformCount,
+                        const GLchar* const* uniformNames, GLuint* uniformIndices) {
+    if (g_current == nullptr) return;
+    g_current->getUniformIndices(program, uniformCount, uniformNames, uniformIndices);
 }
 
 void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,

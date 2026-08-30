@@ -572,11 +572,14 @@ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
  void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount,
                             const GLuint* uniformIndices, GLenum pname,
                             GLint* params);
- void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
-                                   GLsizei bufSize, GLsizei* length,
-                                   GLchar* uniformBlockName);
-  void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
-                             GLuint uniformBlockBinding);
+  void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
+                                    GLsizei bufSize, GLsizei* length,
+                                    GLchar* uniformBlockName);
+  void glGetUniformIndices(GLuint program, GLsizei uniformCount,
+                          const GLchar* const* uniformNames,
+                          GLuint* uniformIndices);
+   void glUniformBlockBinding(GLuint program, GLuint uniformBlockIndex,
+                              GLuint uniformBlockBinding);
 
 
 GLuint glGetSubroutineIndex(GLuint program, GLenum shadertype, const GLchar* name);

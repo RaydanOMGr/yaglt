@@ -1010,6 +1010,8 @@ public:
                              int32_t* params);
     void getActiveUniformBlockName(GLObjectName program, uint32_t index,
                                      int32_t bufSize, int32_t* length, char* name);
+    void getUniformIndices(GLObjectName program, int32_t uniformCount,
+                           const char* const* uniformNames, uint32_t* uniformIndices);
     // Bind a program's uniform block `blockIndex` to uniform-buffer binding point
     // `blockBinding` (SPEC §7.6.2 glUniformBlockBinding).
     void uniformBlockBinding(GLObjectName program, uint32_t blockIndex,

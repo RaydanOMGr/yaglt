@@ -5792,6 +5792,32 @@ void Context::getActiveUniformsiv(GLObjectName program, int32_t uniformCount,
     }
 }
 
+void Context::getUniformIndices(GLObjectName program, int32_t uniformCount,
+                                const char* const* uniformNames,
+                                uint32_t* uniformIndices) {
+    // SPEC 7.3.1 glGetUniformIndices: map each uniform name to its index via
+    // ProgramResourceIndex(UNIFORM); unknown names yield GL_INVALID_INDEX with no
+    // per-name error. Error ordering mirrors glGetActiveUniformsiv.
+    ProgramObject* p = getProgram(program);
+    if (p == nullptr || !p->linked || !p->backend) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (uniformCount < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (uniformCount > 0 &&
+        (uniformNames == nullptr || uniformIndices == nullptr)) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    for (int32_t i = 0; i < uniformCount; ++i) {
+        const std::string name = (uniformNames[i] != nullptr) ? uniformNames[i] : "";
+        uniformIndices[i] = p->backend->getProgramResourceIndex(GL_UNIFORM, name);
+    }
+}
+
 uint32_t Context::getUniformBlockIndex(GLObjectName program, const std::string& name) {
     // Equivalent (SPEC §7.6) to GetProgramResourceIndex(UNIFORM_BLOCK, name).
     // Returns GL_INVALID_INDEX honestly when the block is absent (no error).
