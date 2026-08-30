@@ -559,6 +559,14 @@ public:
     // Attaching a non-existent object reports GL_INVALID_OPERATION honestly.
     void framebufferTexture2D(uint32_t target, uint32_t attachment,
                               uint32_t texTarget, GLObjectName texture, int level);
+    // 1D texture attachment (SPEC §9.2.1). texTarget must be GL_TEXTURE_1D.
+    void framebufferTexture1D(uint32_t target, uint32_t attachment,
+                              uint32_t texTarget, GLObjectName texture, int level);
+    // 3D texture attachment (SPEC §9.2.1). texTarget must be GL_TEXTURE_3D; `layer`
+    // selects the depth slice (routed to framebufferTextureLayer on the backend).
+    void framebufferTexture3D(uint32_t target, uint32_t attachment,
+                              uint32_t texTarget, GLObjectName texture, int level,
+                              int layer);
     void framebufferRenderbuffer(uint32_t target, uint32_t attachment,
                                  uint32_t rbTarget, GLObjectName renderbuffer);
     void framebufferTexture(uint32_t target, uint32_t attachment,

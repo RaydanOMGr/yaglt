@@ -3531,6 +3531,82 @@ applied:
     }
 }
 
+void Context::framebufferTexture1D(uint32_t target, uint32_t attachment,
+                                    uint32_t texTarget, GLObjectName texture,
+                                    int level) {
+    if (texTarget != GL_TEXTURE_1D) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation); // no framebuffer bound
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 0; // texture
+    att.name = texture;
+    att.texTarget = GL_TEXTURE_1D;
+    att.level = level;
+    att.layer = 0;
+    for (auto& a : fbo->attachments) {
+        if (a.attachment == attachment) { a = att; goto applied; }
+    }
+    fbo->attachments.push_back(att);
+applied:
+    if (fbo->backend) {
+        uint32_t nativeTex = 0;
+        if (texture != 0) {
+            if (auto* t = getTexture(texture)) nativeTex = t->backend ? t->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferTexture2D(target, attachment, GL_TEXTURE_1D,
+                                           nativeTex, level);
+    }
+}
+
+void Context::framebufferTexture3D(uint32_t target, uint32_t attachment,
+                                    uint32_t texTarget, GLObjectName texture,
+                                    int level, int layer) {
+    if (texTarget != GL_TEXTURE_3D) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);
+    if (fbo == nullptr) {
+        setError(GLError::InvalidOperation); // no framebuffer bound
+        return;
+    }
+    if (texture != 0 && textures_.find(texture) == textures_.end()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    FramebufferObject::Attachment att;
+    att.attachment = attachment;
+    att.type = 0; // texture
+    att.name = texture;
+    att.texTarget = GL_TEXTURE_3D;
+    att.level = level;
+    att.layer = layer;
+    for (auto& a : fbo->attachments) {
+        if (a.attachment == attachment) { a = att; goto applied; }
+    }
+    fbo->attachments.push_back(att);
+applied:
+    if (fbo->backend) {
+        uint32_t nativeTex = 0;
+        if (texture != 0) {
+            if (auto* t = getTexture(texture)) nativeTex = t->backend ? t->backend->nativeId() : 0;
+        }
+        fbo->backend->framebufferTextureLayer(target, attachment, nativeTex, level,
+                                              layer);
+    }
+}
+
 void Context::framebufferRenderbuffer(uint32_t target, uint32_t attachment,
                                       uint32_t rbTarget, GLObjectName renderbuffer) {
     FramebufferObject* fbo = getFramebuffer(boundFramebuffer_);

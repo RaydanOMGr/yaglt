@@ -1072,6 +1072,19 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
     g_current->framebufferTexture2D(target, attachment, texTarget, texture, level);
 }
 
+void glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level) {
+    if (g_current == nullptr) return;
+    g_current->framebufferTexture1D(target, attachment, texTarget, texture, level);
+}
+
+void glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level, GLint layer) {
+    if (g_current == nullptr) return;
+    g_current->framebufferTexture3D(target, attachment, texTarget, texture, level,
+                                    layer);
+}
+
 void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
                                GLuint renderbuffer) {
     if (g_current == nullptr) return;

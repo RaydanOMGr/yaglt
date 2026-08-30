@@ -395,9 +395,13 @@ void glBindFramebuffer(GLenum target, GLuint framebuffer);
 void glDeleteFramebuffers(GLsizei n, const GLuint* framebuffers);
 GLboolean glIsFramebuffer(GLuint framebuffer);
 
-// Framebuffer attachments (SPEC §2.1).
+// Framebuffer attachments (SPEC §2.1 / §9.2.1).
 void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum texTarget,
                            GLuint texture, GLint level);
+void glFramebufferTexture1D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level);
+void glFramebufferTexture3D(GLenum target, GLenum attachment, GLenum texTarget,
+                           GLuint texture, GLint level, GLint layer);
 void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum rbTarget,
                                GLuint renderbuffer);
 void glFramebufferTexture(GLenum target, GLenum attachment, GLuint texture,

@@ -3,6 +3,28 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — non-DSA framebuffer texture 1D/3D §9.2.1, this session)
+
+- Closed the non-DSA 1D/3D texture-attachment gaps: added `glFramebufferTexture1D`
+  and `glFramebufferTexture3D` (SPEC §9.2.1), complementing the existing
+  `glFramebufferTexture2D`/`glFramebufferTexture`/`glFramebufferTextureLayer`.
+  `Context::framebufferTexture1D` requires `textarget == GL_TEXTURE_1D` (else
+  `GL_INVALID_ENUM`) and routes to the backend `framebufferTexture2D` with
+  `GL_TEXTURE_1D`; `Context::framebufferTexture3D` requires `textarget ==
+  GL_TEXTURE_3D` (else `GL_INVALID_ENUM`, carries a `layer`) and routes to the
+  backend `framebufferTextureLayer` (the same path GLES uses for 3D depth slices).
+  Both validate a bound FBO (`GL_INVALID_OPERATION` for default/unbound), an unknown
+  texture name (`GL_INVALID_OPERATION`), and record the attachment on the bound
+  `FramebufferObject`. Wired through `context.hpp`/`context.cpp` and the public C
+  surface `gl_api.hpp`/`gl_api.cpp` (null-context guard); the `gl*` shim regenerates
+  both from `gl_api.hpp`. Added 5 cases to `tests/unit/framebuffer_attach_test.cpp`
+  (1D records + rejects bad textarget; 3D records layer + rejects bad textarget;
+  public `glFramebufferTexture1D`/`glFramebufferTexture3D` surface). Default
+  **874/874** → **879/879**, sanitizer (ASan/UBSan) **879/879** green, `build_tx`
+  (GLES e2e under Mesa softpipe) **886/886** → **891/891**. `docs/feature-matrix.md`
+  adds the "Non-DSA framebuffer texture 1D/3D attachment (SPEC §9.2.1)" row; coverage
+  regenerated.
+
 ## Recent Work (2026-08-31 — non-DSA framebuffer draw/read-buffer §9.3.1, this session)
 
 - Closed the non-DSA single-draw-buffer gap: added `glDrawBuffer` (SPEC §9.3.1),
