@@ -3,6 +3,32 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — compressed texture image upload §8.6, this session)
+
+- Implemented the full compressed texture image upload family (SPEC §8.6), which
+  previously had only the read-back side (`glGetCompressedTexImage` /
+  `glGetCompressedTextureImage`) but no upload path. New core entry points
+  `glCompressedTexImage1D/2D/3D` and `glCompressedTexSubImage1D/2D/3D` (classic,
+  target-based) plus `glCompressedTextureSubImage1D/2D/3D` (DSA, by texture name).
+  `BackendTexture` gained six virtuals `compressedTexImage1D/2D/3D` /
+  `compressedTexSubImage1D/2D/3D` (default no-op). The mock records every call
+  (`compressedTexImage*Calls`, `compressedTexSubImage*Calls`, `lastCompressed*`)
+  and the GLES backend forwards to the native `glCompressedTexImage*` (1D/3D
+  folded to 2D/3D targets) / `glCompressedTexSubImage*` entry points (all resolved
+  as optional `GLESLib` symbols, ES 3.0+). `Context::compressedTexImage{1,2,3}D`
+  / `compressedTexSubImage{1,2,3}D` / `compressedTextureSubImage{1,2,3}D` validate
+  an ungenerated or non-texture name → `GL_INVALID_OPERATION`, a negative level or
+  out-of-bounds sub-region → `GL_INVALID_VALUE`, and capability-gate the 3D path;
+  `GL_TEXTURE_RECTANGLE` is an honest `GL_INVALID_ENUM` (compressed rectangle
+  unsupported). `gl_api` declares and dispatches all nine; the `gl*` shim
+  regenerates from `gl_api.hpp`. New `tests/unit/compressed_tex_image_test.cpp`
+  (9 cases: classic + DSA upload record + backend push, 1D/3D target folding,
+  level/region validation, ungenerated-name / non-texture errors, public dispatch
+  surface). Default **834/834** → **843/843**, sanitizer (ASan/UBSan) **843/843**
+  green. Coverage regenerated: core 86.1% → 87.7% (500/570), full 50.6% → 51.4%
+  (541/1052). `docs/feature-matrix.md` adds the "Compressed texture image upload
+  (SPEC §8.6)" row.
+
 ## Recent Work (2026-08-30 — DSA buffer copy §6, this session)
 
 - Added `glCopyNamedBufferSubData` (SPEC §6), the DSA counterpart of the
@@ -521,9 +547,9 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Phase 3 — Core rendering state (viewport/scissor/depth-range/clear) + draw
-Overall status: Early implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear)
-Last updated: 2026-08-29
+Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 87.7% (500/570)
+Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §8/§6/§10 surface)
+Last updated: 2026-08-30
 Known major blockers:
 - Geometry/tessellation still honest-Unsupported (no GLES equivalent; compute is
   implemented).
