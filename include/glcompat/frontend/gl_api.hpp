@@ -372,6 +372,11 @@ void glDeleteRenderbuffers(GLsizei n, const GLuint* renderbuffers);
 GLboolean glIsRenderbuffer(GLuint renderbuffer);
 void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                          GLsizei height);
+// Classic (non-DSA) multisample renderbuffer storage (SPEC §9.2.4). Operates on
+// the renderbuffer bound to `target` (must be GL_RENDERBUFFER).
+void glRenderbufferStorageMultisample(GLenum target, GLsizei samples,
+                                      GLenum internalFormat, GLsizei width,
+                                      GLsizei height);
 
 // Direct State Access renderbuffer surface (SPEC §8.2 / §9.2).
 void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers);

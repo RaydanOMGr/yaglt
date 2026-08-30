@@ -3255,3 +3255,26 @@ crashed agent, this session)
      Coverage regenerated.
    - Validation: `build` 867/867, `build_san` (ASan/UBSan clean) 867/867,
      `build_tx` (GLES e2e under Mesa softpipe) 879/879.
+
+## Recent Work (2026-08-31 — non-DSA multisample renderbuffer storage, §9.2.4)
+
+ - **glRenderbufferStorageMultisample (SPEC §9.2.4)** — closes the non-DSA
+   multisample renderbuffer gap (the DSA `glNamedRenderbufferStorageMultisample`
+   was already present). It operates on the renderbuffer bound to `target` (must be
+   `GL_RENDERBUFFER`), capability-gated by `RenderbufferObjects`, and validates a
+   bound renderbuffer (`GL_INVALID_OPERATION`) plus negative samples/width/height
+   (`GL_INVALID_VALUE`). The frontend records the storage on the `RenderbufferObject`
+   and forwards to the already-existing `BackendRenderbuffer::renderbufferStorageMultisample`
+   (GLES drives the native `glRenderbufferStorageMultisample`; the mock records the
+   call + last samples).
+   - `include/glcompat/frontend/context.hpp` + `src/frontend/context.cpp`:
+     `Context::renderbufferStorageMultisample` (mirrors the non-multisample
+     `Context::renderbufferStorage` validation/forward path).
+   - `include/glcompat/frontend/gl_api.hpp` + `gl_api.cpp`: public `gl*` dispatch
+     (null-context guard).
+   - `tests/unit/texture_fbo_test.cpp`: 4 new cases (allocates + records samples,
+     requires bound renderbuffer, rejects negative samples/size, public gl* surface)
+     + registered (same TU).
+   - `docs/feature-matrix.md` §9.2.4 gains a row. Coverage regenerated.
+   - Validation: `build` 871/871, `build_san` (ASan/UBSan clean) 871/871,
+     `build_tx` (GLES e2e under Mesa softpipe) 883/883.

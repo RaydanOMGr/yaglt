@@ -3414,6 +3414,37 @@ void Context::renderbufferStorage(uint32_t target, uint32_t internalFormat,
     }
 }
 
+void Context::renderbufferStorageMultisample(uint32_t target, int samples,
+                                             uint32_t internalFormat, int width,
+                                             int height) {
+    if (!backend_.capabilities().isSupported(Feature::RenderbufferObjects)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (target != GL_RENDERBUFFER) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    RenderbufferObject* rbo = getRenderbuffer(boundRenderbuffer_);
+    if (rbo == nullptr) {
+        setError(GLError::InvalidOperation); // no renderbuffer bound
+        return;
+    }
+    if (samples < 0 || width < 0 || height < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    rbo->internalFormat = internalFormat;
+    rbo->width = width;
+    rbo->height = height;
+    rbo->samples = samples;
+    rbo->storageSet = true;
+    if (rbo->backend) {
+        rbo->backend->renderbufferStorageMultisample(target, samples,
+                                                     internalFormat, width, height);
+    }
+}
+
 void Context::genRenderbuffers(uint32_t n, GLObjectName* names) {
     for (uint32_t i = 0; i < n; ++i) names[i] = genRenderbuffer();
 }

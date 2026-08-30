@@ -1002,6 +1002,16 @@ void glRenderbufferStorage(GLenum target, GLenum internalFormat, GLsizei width,
                                   static_cast<int>(height));
 }
 
+void glRenderbufferStorageMultisample(GLenum target, GLsizei samples,
+                                      GLenum internalFormat, GLsizei width,
+                                      GLsizei height) {
+    if (g_current == nullptr) return;
+    g_current->renderbufferStorageMultisample(target, static_cast<int>(samples),
+                                             static_cast<uint32_t>(internalFormat),
+                                             static_cast<int>(width),
+                                             static_cast<int>(height));
+}
+
 // Direct State Access renderbuffer surface (SPEC §8.2 / §9.2).
 void glCreateRenderbuffers(GLsizei n, GLuint* renderbuffers) {
     if (g_current == nullptr) return;

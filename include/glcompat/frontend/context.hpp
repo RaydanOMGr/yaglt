@@ -518,6 +518,12 @@ public:
     // target must be GL_RENDERBUFFER. Capability-gated (RenderbufferObjects).
     void renderbufferStorage(uint32_t target, uint32_t internalFormat, int width,
                              int height);
+    // Classic (non-DSA) multisample renderbuffer storage (SPEC §9.2.4). Operates on
+    // the renderbuffer bound to `target` (must be GL_RENDERBUFFER). Capability-gated
+    // (RenderbufferObjects); negative samples/width/height -> GL_INVALID_VALUE.
+    void renderbufferStorageMultisample(uint32_t target, int samples,
+                                        uint32_t internalFormat, int width,
+                                        int height);
 
     // --- Direct State Access renderbuffer surface (SPEC §8.2 / §9.2) ---
     // Operate on an explicit, named renderbuffer instead of the bound one.

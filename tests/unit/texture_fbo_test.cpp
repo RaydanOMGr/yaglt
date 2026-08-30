@@ -264,6 +264,70 @@ TEST_CASE("renderbuffer_storage_rejects_negative_size") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
+TEST_CASE("renderbuffer_storage_multisample_allocates_and_records") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rbo = ctx.genRenderbuffer();
+    ctx.bindRenderbuffer(rbo);
+
+    ctx.renderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, 32, 32);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    RenderbufferObject* r = ctx.getRenderbuffer(rbo);
+    EXPECT_NE(r, nullptr);
+    EXPECT_TRUE(r->storageSet);
+    EXPECT_EQ(r->internalFormat, GL_RGBA8);
+    EXPECT_EQ(r->width, 32);
+    EXPECT_EQ(r->height, 32);
+    EXPECT_EQ(r->samples, 4);
+
+    MockRenderbuffer* mr = as<MockRenderbuffer>(r->backend.get());
+    EXPECT_NE(mr, nullptr);
+    EXPECT_EQ(mr->renderbufferStorageMultisampleCalls, 1);
+    EXPECT_EQ(mr->lastTarget, GL_RENDERBUFFER);
+    EXPECT_EQ(mr->lastSamples, 4);
+    EXPECT_EQ(mr->lastInternalFormat, GL_RGBA8);
+    EXPECT_EQ(mr->lastWidth, 32);
+    EXPECT_EQ(mr->lastHeight, 32);
+}
+
+TEST_CASE("renderbuffer_storage_multisample_requires_bound_renderbuffer") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.renderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, 4, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+}
+
+TEST_CASE("renderbuffer_storage_multisample_rejects_negative") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName rbo = ctx.genRenderbuffer();
+    ctx.bindRenderbuffer(rbo);
+    ctx.renderbufferStorageMultisample(GL_RENDERBUFFER, -1, GL_RGBA8, 4, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+    ctx.renderbufferStorageMultisample(GL_RENDERBUFFER, 0, GL_RGBA8, -2, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("gl_renderbuffer_storage_multisample_public_surface") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+
+    GLuint rb = 0;
+    glGenRenderbuffers(1, &rb);
+    glBindRenderbuffer(GL_RENDERBUFFER, rb);
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, 16, 16);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+
+    RenderbufferObject* r = ctx.getRenderbuffer(rb);
+    MockRenderbuffer* mr = as<MockRenderbuffer>(r->backend.get());
+    EXPECT_EQ(mr->renderbufferStorageMultisampleCalls, 1);
+    EXPECT_EQ(mr->lastSamples, 4);
+
+    setCurrentContext(nullptr);
+}
+
 TEST_CASE("framebuffer_renderbuffer_depth_completeness_via_mock") {
     auto backend = makeBackend();
     Context ctx(*backend);
