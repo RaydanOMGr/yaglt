@@ -108,6 +108,31 @@ struct GLESBackendBuffer : BackendBuffer {
             lib->glUnmapBuffer(target);
         }
     }
+    void flushMappedBufferRange(uint32_t target, intptr_t offset,
+                                intptr_t length) override {
+        if (lib && lib->driverLive() && lib->glFlushMappedBufferRange) {
+            if (lib->glBindBuffer) lib->glBindBuffer(target, handle);
+            lib->glFlushMappedBufferRange(target, offset, length);
+        }
+    }
+    void* mapNamedBufferRange(intptr_t offset, intptr_t length,
+                              uint32_t access) override {
+        if (lib && lib->driverLive() && lib->glMapNamedBufferRange) {
+            return lib->glMapNamedBufferRange(handle, offset, length,
+                                              static_cast<GLbitfield>(access));
+        }
+        return nullptr;
+    }
+    void unmapNamedBuffer() override {
+        if (lib && lib->driverLive() && lib->glUnmapNamedBuffer) {
+            lib->glUnmapNamedBuffer(handle);
+        }
+    }
+    void flushMappedNamedBufferRange(intptr_t offset, intptr_t length) override {
+        if (lib && lib->driverLive() && lib->glFlushMappedNamedBufferRange) {
+            lib->glFlushMappedNamedBufferRange(handle, offset, length);
+        }
+    }
     void invalidateBufferData(uint32_t target) override {
         (void)target;
         if (lib && lib->driverLive() && lib->glInvalidateBufferData) {

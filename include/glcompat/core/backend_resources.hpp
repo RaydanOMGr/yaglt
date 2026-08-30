@@ -38,6 +38,26 @@ public:
     }
     // Unmap a previously mapped region (SPEC §6 glUnmapBuffer). Default no-op.
     virtual void unmapBuffer(uint32_t target) { (void)target; }
+    // Flush a mapped sub-region so backend writes the CPU-mirror contents back to
+    // native storage (SPEC §6 glFlushMappedBufferRange). Default no-op.
+    virtual void flushMappedBufferRange(uint32_t target, intptr_t offset,
+                                        intptr_t length) {
+        (void)target; (void)offset; (void)length;
+    }
+    // DSA buffer mapping (SPEC §6.1 glMapNamedBuffer / glMapNamedBufferRange /
+    // glUnmapNamedBuffer / glFlushMappedNamedBufferRange). Keyed by this buffer
+    // resource (not a bind target), unlike the target-based variants above. The
+    // default forwards onto the target-based methods with a placeholder target,
+    // which is sufficient for backends that ignore the target (mock); native
+    // backends override these to use the DSA entry points directly.
+    virtual void* mapNamedBufferRange(intptr_t offset, intptr_t length,
+                                      uint32_t access) {
+        return mapBufferRange(0, offset, length, access);
+    }
+    virtual void unmapNamedBuffer() { unmapBuffer(0); }
+    virtual void flushMappedNamedBufferRange(intptr_t offset, intptr_t length) {
+        flushMappedBufferRange(0, offset, length);
+    }
     // Discard the buffer's cached data store (SPEC §6 glInvalidateBufferData /
     // glInvalidateBufferSubData), a driver hint. Default no-op; GLES 3.0+ forwards
     // to the driver, which may free or repurpose the backing store.

@@ -59,6 +59,14 @@ struct GLESLib {
     void (*glCopyBufferSubData)(GLenum, GLenum, GLintptr, GLintptr, GLsizeiptr) = nullptr;
     void* (*glMapBufferRange)(GLenum, GLintptr, GLsizeiptr, GLbitfield) = nullptr;
     GLboolean (*glUnmapBuffer)(GLenum) = nullptr;
+    // DSA buffer mapping (SPEC §6.1, ES 3.1+). Optional: the frontend serves its
+    // own CPU mirror, so a missing native symbol falls back to the target-based
+    // path automatically.
+    void* (*glMapNamedBufferRange)(GLuint, GLintptr, GLsizeiptr, GLbitfield) =
+        nullptr;
+    GLboolean (*glUnmapNamedBuffer)(GLuint) = nullptr;
+    void (*glFlushMappedNamedBufferRange)(GLuint, GLintptr, GLsizeiptr) = nullptr;
+    void (*glFlushMappedBufferRange)(GLenum, GLintptr, GLsizeiptr) = nullptr;
     // Buffer discard hints (SPEC §6, GLES 3.0+). Resolved optionally so load()
     // still succeeds on a driver that lacks them (the frontend still tracks its
     // CPU mirror regardless).

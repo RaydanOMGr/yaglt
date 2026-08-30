@@ -657,6 +657,112 @@ bool Context::unmapBuffer(uint32_t target) {
     return true;
 }
 
+void Context::flushMappedBufferRange(uint32_t target, intptr_t offset,
+                                      intptr_t length) {
+    GLObjectName bound = boundBuffer(target);
+    if (bound == 0) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    BufferObject* obj = getBuffer(bound);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!obj->mapped) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (offset < 0 || length < 0 || offset + length > obj->size) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (obj->backend && length > 0) {
+        // Push the written CPU-mirror region to the backend's native copy.
+        obj->backend->bufferSubData(target, offset, length,
+                                   obj->store.data() + static_cast<size_t>(offset));
+        obj->backend->flushMappedBufferRange(target, offset, length);
+    }
+}
+
+void* Context::mapNamedBuffer(GLObjectName buffer, uint32_t access) {
+    return mapNamedBufferRange(buffer, 0, 0, access);
+}
+
+void* Context::mapNamedBufferRange(GLObjectName buffer, intptr_t offset,
+                                   intptr_t length, uint32_t access) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation); // ungenerated name
+        return nullptr;
+    }
+    if (obj->mapped) {
+        setError(GLError::InvalidOperation); // already mapped
+        return nullptr;
+    }
+    if (length == 0) length = obj->size; // glMapNamedBuffer maps the whole buffer
+    if (offset < 0 || length < 0 || offset + length > obj->size) {
+        setError(GLError::InvalidValue);
+        return nullptr;
+    }
+    obj->mapped = true;
+    obj->mapOffset = offset;
+    obj->mapLength = length;
+    obj->mapAccess = access;
+    obj->mapPointer = obj->store.data() + static_cast<size_t>(offset);
+    if (obj->backend) {
+        obj->backend->mapNamedBufferRange(offset, length, access);
+    }
+    return obj->store.data() + static_cast<size_t>(offset);
+}
+
+bool Context::unmapNamedBuffer(GLObjectName buffer) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return false;
+    }
+    if (!obj->mapped) {
+        setError(GLError::InvalidOperation);
+        return false;
+    }
+    if (obj->backend && obj->mapLength > 0) {
+        obj->backend->namedBufferSubData(obj->mapOffset, obj->mapLength,
+                                        obj->store.data() +
+                                            static_cast<size_t>(obj->mapOffset));
+        obj->backend->unmapNamedBuffer();
+    }
+    obj->mapped = false;
+    obj->mapOffset = 0;
+    obj->mapLength = 0;
+    obj->mapAccess = 0;
+    obj->mapPointer = nullptr;
+    return true;
+}
+
+void Context::flushMappedNamedBufferRange(GLObjectName buffer, intptr_t offset,
+                                          intptr_t length) {
+    BufferObject* obj = getBuffer(buffer);
+    if (obj == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!obj->mapped) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (offset < 0 || length < 0 || offset + length > obj->size) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (obj->backend && length > 0) {
+        obj->backend->namedBufferSubData(offset, length,
+                                         obj->store.data() +
+                                             static_cast<size_t>(offset));
+        obj->backend->flushMappedNamedBufferRange(offset, length);
+    }
+}
+
 namespace {
 
 // Per-internalformat layout used by Clear*Buffer* (SPEC §6 / table 8.24).

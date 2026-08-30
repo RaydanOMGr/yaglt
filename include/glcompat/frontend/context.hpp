@@ -141,6 +141,23 @@ public:
     // Unmap a previously mapped buffer (SPEC §6 glUnmapBuffer). Returns false and
     // reports GL_INVALID_OPERATION when no buffer is mapped.
     bool unmapBuffer(uint32_t target);
+    // Flush a mapped sub-region back to native storage (SPEC §6
+    // glFlushMappedBufferRange). Requires a bound mapped buffer; the region must
+    // be in bounds (else GL_INVALID_VALUE).
+    void flushMappedBufferRange(uint32_t target, intptr_t offset, intptr_t length);
+    // DSA buffer mapping (SPEC §6.1 glMapNamedBuffer / glMapNamedBufferRange /
+    // glUnmapNamedBuffer / glFlushMappedNamedBufferRange). Operate on a named
+    // buffer by object name (no bind required). They share the target-based
+    // validation and CPU-mirror bookkeeping: an ungenerated name reports
+    // GL_INVALID_OPERATION, an already-mapped buffer reports GL_INVALID_OPERATION,
+    // and an out-of-bounds region reports GL_INVALID_VALUE. Unmap flushes the
+    // CPU-mirror region back through the backend before clearing the mapping.
+    void* mapNamedBuffer(GLObjectName buffer, uint32_t access);
+    void* mapNamedBufferRange(GLObjectName buffer, intptr_t offset, intptr_t length,
+                              uint32_t access);
+    bool unmapNamedBuffer(GLObjectName buffer);
+    void flushMappedNamedBufferRange(GLObjectName buffer, intptr_t offset,
+                                     intptr_t length);
     // Read back a region of a buffer's data store (SPEC §6 glGetBufferSubData /
     // glGetNamedBufferSubData). Requires a bound/existing buffer; the region must
     // be in bounds (else GL_INVALID_VALUE) and the store must not be mapped

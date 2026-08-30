@@ -3,6 +3,33 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — DSA + target-based buffer mapping §6/§6.1, this session)
+
+- Added the buffer-mapping surface (SPEC §6 / §6.1), completing the SPEC §6
+  buffer object story alongside the already-implemented `glMapBuffer` /
+  `glMapBufferRange` / `glUnmapBuffer`. New DSA entry points `glMapNamedBuffer` /
+  `glMapNamedBufferRange` / `glUnmapNamedBuffer` / `glFlushMappedNamedBufferRange`
+  operate on a named buffer by object name (no bind), and the previously-missing
+  target-based `glFlushMappedBufferRange` (SPEC §6) was added too. `Context` gained
+  `mapNamedBuffer` / `mapNamedBufferRange` / `unmapNamedBuffer` /
+  `flushMappedNamedBufferRange` / `flushMappedBufferRange`; mapping returns a
+  pointer into the frontend's authoritative CPU data store and validates
+  ungenerated name / already-mapped → `GL_INVALID_OPERATION` and out-of-bounds
+  region → `GL_INVALID_VALUE`; unmap and flush push the written CPU-mirror region
+  back to the native store via `namedBufferSubData` then clear the mapping (the
+  target-based paths use `bufferSubData`). `glGetNamedBufferPointerv` already
+  answers `GL_BUFFER_MAP_POINTER` from the live `mapPointer`. `BackendBuffer` gained
+  `mapNamedBufferRange` / `unmapNamedBuffer` / `flushMappedNamedBufferRange` /
+  `flushMappedBufferRange` virtuals (defaults forward onto the target-based path;
+  sufficient for the mock which records each call); `GLESBackendBuffer` overrides
+  them to forward to the ES 3.1+ DSA entry points when resolved (optional), and the
+  `GLESLib` loader resolves the four new symbols. `gl*` shim regenerated from
+  `gl_api.hpp`. New `tests/unit/named_buffer_map_test.cpp` (7 cases: mirror pointer
+  + write-through, range offset, validation (already-mapped/out-of-bounds/
+  ungenerated-name), named flush push, target-based flush, public dispatch surface).
+  Default **827/827**, sanitizer **827/827**, translate (Mesa) **839/839** green.
+  Coverage regenerated: core 85.1% → 86.0% (490/570), full 50.0% → 50.5% (531/1052).
+
 ## Recent Work (2026-08-30 — DSA named-buffer allocation §6.1/§6.2, restored)
 
 - Restored and completed the DSA named-buffer allocation feature a crashed session

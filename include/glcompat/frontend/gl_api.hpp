@@ -90,6 +90,14 @@ GLvoid* glMapBuffer(GLenum target, GLenum access);
 GLvoid* glMapBufferRange(GLenum target, GLintptr offset, GLsizeiptr length,
                         GLbitfield access);
 GLboolean glUnmapBuffer(GLenum target);
+GLvoid glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length);
+// DSA buffer mapping (SPEC §6.1). Operate on a named buffer by object name.
+GLvoid* glMapNamedBuffer(GLuint buffer, GLenum access);
+GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
+                             GLbitfield access);
+GLboolean glUnmapNamedBuffer(GLuint buffer);
+GLvoid glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset,
+                                    GLsizeiptr length);
 
 // Buffer data read-back / clear / discard (SPEC §6). The frontend keeps an
 // authoritative CPU mirror of each buffer's data store, so getBufferSubData

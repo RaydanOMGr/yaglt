@@ -185,6 +185,33 @@ GLboolean glUnmapBuffer(GLenum target) {
     return g_current->unmapBuffer(target) ? GL_TRUE : GL_FALSE;
 }
 
+GLvoid glFlushMappedBufferRange(GLenum target, GLintptr offset, GLsizeiptr length) {
+    if (g_current == nullptr) return;
+    g_current->flushMappedBufferRange(target, offset, length);
+}
+
+GLvoid* glMapNamedBuffer(GLuint buffer, GLenum access) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->mapNamedBuffer(buffer, access);
+}
+
+GLvoid* glMapNamedBufferRange(GLuint buffer, GLintptr offset, GLsizeiptr length,
+                              GLbitfield access) {
+    if (g_current == nullptr) return nullptr;
+    return g_current->mapNamedBufferRange(buffer, offset, length, access);
+}
+
+GLboolean glUnmapNamedBuffer(GLuint buffer) {
+    if (g_current == nullptr) return GL_FALSE;
+    return g_current->unmapNamedBuffer(buffer) ? GL_TRUE : GL_FALSE;
+}
+
+GLvoid glFlushMappedNamedBufferRange(GLuint buffer, GLintptr offset,
+                                     GLsizeiptr length) {
+    if (g_current == nullptr) return;
+    g_current->flushMappedNamedBufferRange(buffer, offset, length);
+}
+
 void glGetBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size,
                        GLvoid* data) {
     if (g_current == nullptr) return;

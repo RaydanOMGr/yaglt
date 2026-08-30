@@ -117,6 +117,38 @@ public:
         ++unmapBufferCalls;
         lastTarget = target;
     }
+    int flushMappedBufferRangeCalls = 0;
+    intptr_t lastFlushOffset = 0;
+    intptr_t lastFlushLength = 0;
+    void flushMappedBufferRange(uint32_t target, intptr_t offset,
+                                intptr_t length) override {
+        ++flushMappedBufferRangeCalls;
+        lastTarget = target;
+        lastFlushOffset = offset;
+        lastFlushLength = length;
+    }
+    int mapNamedBufferRangeCalls = 0;
+    intptr_t lastNamedMapOffset = 0;
+    intptr_t lastNamedMapLength = 0;
+    uint32_t lastNamedMapAccess = 0;
+    void* mapNamedBufferRange(intptr_t offset, intptr_t length,
+                              uint32_t access) override {
+        ++mapNamedBufferRangeCalls;
+        lastNamedMapOffset = offset;
+        lastNamedMapLength = length;
+        lastNamedMapAccess = access;
+        return nullptr; // frontend serves the CPU mirror
+    }
+    int unmapNamedBufferCalls = 0;
+    void unmapNamedBuffer() override { ++unmapNamedBufferCalls; }
+    int flushMappedNamedBufferRangeCalls = 0;
+    intptr_t lastNamedFlushOffset = 0;
+    intptr_t lastNamedFlushLength = 0;
+    void flushMappedNamedBufferRange(intptr_t offset, intptr_t length) override {
+        ++flushMappedNamedBufferRangeCalls;
+        lastNamedFlushOffset = offset;
+        lastNamedFlushLength = length;
+    }
     int invalidateBufferDataCalls = 0;
     int invalidateBufferSubDataCalls = 0;
     uint32_t lastInvalidateTarget = 0;

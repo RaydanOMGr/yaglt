@@ -69,6 +69,11 @@ bool GLESLib::load() {
     resolve(gles, glNamedBufferStorage, "glNamedBufferStorage");
     resolve(gles, glMapBufferRange, "glMapBufferRange");
     resolve(gles, glUnmapBuffer, "glUnmapBuffer");
+    // DSA buffer mapping (ES 3.1+, SPEC §6.1). Optional.
+    resolve(gles, glMapNamedBufferRange, "glMapNamedBufferRange");
+    resolve(gles, glUnmapNamedBuffer, "glUnmapNamedBuffer");
+    resolve(gles, glFlushMappedNamedBufferRange, "glFlushMappedNamedBufferRange");
+    resolve(gles, glFlushMappedBufferRange, "glFlushMappedBufferRange");
     resolve(gles, glInvalidateBufferData, "glInvalidateBufferData");
     resolve(gles, glInvalidateBufferSubData, "glInvalidateBufferSubData");
     ok &= resolve(gles, glGenTextures, "glGenTextures");
