@@ -1523,6 +1523,11 @@ void glGetQueryiv(GLenum target, GLenum pname, GLint* params) {
     g_current->getQueryiv(target, pname, params);
 }
 
+void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getQueryIndexediv(target, index, pname, params);
+}
+
 void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getQueryObjectiv(id, pname, params);

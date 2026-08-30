@@ -969,6 +969,13 @@ public:
     // QUERY_RESULT / QUERY_RESULT_AVAILABLE read the cached result. Unknown
     // pname yields GL_INVALID_ENUM; an unknown query id yields GL_INVALID_OPERATION.
     void getQueryiv(uint32_t target, uint32_t pname, int32_t* params);
+    // Indexed query parameter query (SPEC §4 / §19, glGetQueryIndexediv). Only the
+    // counter targets `GL_PRIMITIVES_GENERATED` and
+    // `GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN` are valid; `pname` must be
+    // `GL_CURRENT_QUERY`. Reads the active query for (target, index) from the
+    // frontend's indexed-active map. Unknown target / pname -> GL_INVALID_ENUM;
+    // a NULL params -> GL_INVALID_VALUE.
+    void getQueryIndexediv(uint32_t target, uint32_t index, uint32_t pname, int32_t* params);
     void getQueryObjectiv(GLObjectName id, uint32_t pname, int32_t* params);
     void getQueryObjectuiv(GLObjectName id, uint32_t pname, uint32_t* params);
     void getQueryObjecti64v(GLObjectName id, uint32_t pname, int64_t* params);
@@ -1769,6 +1776,10 @@ private:
     std::unordered_map<GLObjectName, std::unique_ptr<QueryObject>> queries_;
     // Active query per target (SPEC §4: only one query per target may be active).
     std::unordered_map<uint32_t, GLObjectName> activeQueries_;
+    // Active indexed query per (target, index) for the counter targets
+    // GL_PRIMITIVES_GENERATED / GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN.
+    std::unordered_map<uint32_t, std::unordered_map<uint32_t, GLObjectName>>
+        activeIndexedQueries_;
     // Frontend-owned sync objects. The raw pointer doubles as the opaque GLsync.
     std::vector<std::unique_ptr<SyncObject>> syncs_;
 

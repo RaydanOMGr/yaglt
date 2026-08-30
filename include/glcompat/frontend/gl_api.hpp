@@ -539,6 +539,7 @@ void glBeginQueryIndexed(GLenum target, GLuint index, GLuint id);
 void glEndQueryIndexed(GLenum target, GLuint index);
 void glQueryCounter(GLuint id, GLenum target);
 void glGetQueryiv(GLenum target, GLenum pname, GLint* params);
+void glGetQueryIndexediv(GLenum target, GLuint index, GLenum pname, GLint* params);
 void glGetQueryObjectiv(GLuint id, GLenum pname, GLint* params);
 void glGetQueryObjectuiv(GLuint id, GLenum pname, GLuint* params);
 void glGetQueryObjecti64v(GLuint id, GLenum pname, GLint64* params);

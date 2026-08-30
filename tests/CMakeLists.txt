@@ -105,6 +105,7 @@ add_executable(yaglt_tests
     unit/tex_image_robustness_test.cpp
     unit/query_buffer_object_test.cpp
     unit/indexed_query_test.cpp
+    unit/query_indexed_current_test.cpp
     unit/texture_sub_image_test.cpp
     unit/conditional_render_test.cpp
     unit/uniform_block_binding_test.cpp

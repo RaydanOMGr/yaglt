@@ -4749,23 +4749,51 @@ void Context::endQuery(uint32_t target) {
     activeQueries_.erase(it);
 }
 
-void Context::beginQueryIndexed(uint32_t target, uint32_t /*index*/, GLObjectName id) {
+void Context::beginQueryIndexed(uint32_t target, uint32_t index, GLObjectName id) {
     // Indexed variants only exist for primitive/tf-written counters (SPEC §4).
     if (target != GL_PRIMITIVES_GENERATED &&
         target != GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN) {
         setError(GLError::InvalidEnum);
         return;
     }
-    beginQuery(target, id);
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    QueryObject* q = getQuery(id);
+    if (!q) {
+        setError(GLError::InvalidOperation); // ungenerated id
+        return;
+    }
+    auto& forTarget = activeIndexedQueries_[target];
+    if (q->active || forTarget.count(index)) {
+        setError(GLError::InvalidOperation); // already active
+        return;
+    }
+    q->target = target;
+    q->active = true;
+    forTarget[index] = id;
+    if (q->backend) q->backend->begin(target);
 }
 
-void Context::endQueryIndexed(uint32_t target, uint32_t /*index*/) {
+void Context::endQueryIndexed(uint32_t target, uint32_t index) {
     if (target != GL_PRIMITIVES_GENERATED &&
         target != GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN) {
         setError(GLError::InvalidEnum);
         return;
     }
-    endQuery(target);
+    auto it = activeIndexedQueries_.find(target);
+    if (it == activeIndexedQueries_.end() || !it->second.count(index)) {
+        setError(GLError::InvalidOperation); // no active query for (target, index)
+        return;
+    }
+    GLObjectName id = it->second[index];
+    if (QueryObject* q = getQuery(id)) {
+        if (q->backend) q->backend->end();
+        q->active = false;
+    }
+    it->second.erase(index);
+    if (it->second.empty()) activeIndexedQueries_.erase(it);
 }
 
 void Context::queryCounter(GLObjectName id, uint32_t target) {
@@ -4826,6 +4854,32 @@ void Context::getQueryiv(uint32_t target, uint32_t pname, int32_t* params) {
             setError(GLError::InvalidEnum);
             return;
     }
+}
+
+void Context::getQueryIndexediv(uint32_t target, uint32_t index, uint32_t pname,
+                                int32_t* params) {
+    if (!backend_.capabilities().isSupported(Feature::Queries)) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (target != GL_PRIMITIVES_GENERATED &&
+        target != GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN) {
+        setError(GLError::InvalidEnum); // only the counter targets are indexed
+        return;
+    }
+    if (pname != GL_CURRENT_QUERY) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (!params) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    auto it = activeIndexedQueries_.find(target);
+    if (it != activeIndexedQueries_.end() && it->second.count(index))
+        *params = static_cast<int32_t>(it->second[index]);
+    else
+        *params = 0;
 }
 
 void Context::getQueryObjectiv(GLObjectName id, uint32_t pname, int32_t* params) {

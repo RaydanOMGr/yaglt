@@ -3,6 +3,26 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glGetQueryIndexediv (SPEC §4 / §19), this session)
+
+- Added `glGetQueryIndexediv` (SPEC §4 / §19), the indexed counterpart of
+  `glGetQueryiv`. `Context::getQueryIndexediv` validates that `target` is an
+  indexed counter target (`GL_PRIMITIVES_GENERATED` / `GL_TRANSFORM_FEEDBACK_
+  PRIMITIVES_WRITTEN`, else `GL_INVALID_ENUM`), that `pname == GL_CURRENT_QUERY`
+  (else `GL_INVALID_ENUM`), and that `params != nullptr` (`GL_INVALID_VALUE`),
+  then reads the active query id for the (target, index) pair from a new
+  frontend `activeIndexedQueries_` map. Refactored `beginQueryIndexed` /
+  `endQueryIndexed` to track the indexed map (per-(target,index) active
+  entries) instead of collapsing into the non-indexed `activeQueries_` map, so
+  each index is independently queryable. Frontend-owned (no backend driver
+  call). Wired through `context.hpp`/`context.cpp`, `gl_api.hpp`/`gl_api.cpp`
+  (null-context guard; the `gl*` shim regenerates `glGetQueryIndexediv` from
+  `gl_api.hpp`), 2 new cases in `tests/unit/query_indexed_current_test.cpp`
+  (active-query read per index/target + end clears; target/pname/params
+  validation). Default **883/883** → **885/885**, sanitizer **885/885** green,
+  `build_tx` (GLES e2e under Mesa softpipe) **895/895** → **897/897**.
+  `docs/feature-matrix.md` §4/§19 row extended; coverage regenerated.
+
 ## Recent Work (2026-08-31 — glSamplerParameteriv (SPEC §8.2), this session)
 
 - Closed the missing integer-vector sampler-parameter gap: added `glSamplerParameteriv`
