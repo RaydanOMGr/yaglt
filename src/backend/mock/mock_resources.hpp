@@ -809,48 +809,100 @@ public:
     int uniform1iCalls = 0, uniform2iCalls = 0, uniform3iCalls = 0,
         uniform4iCalls = 0;
     int uniform1fvCalls = 0, uniform1ivCalls = 0, uniformMatrix4fvCalls = 0;
+    mutable int getUniformfvCalls = 0, getUniformivCalls = 0, getUniformuivCalls = 0,
+        getUniformdvCalls = 0;
     int lastUniformLoc = -1;
     float lastF0 = 0, lastF1 = 0, lastF2 = 0, lastF3 = 0;
     int lastI0 = 0, lastI1 = 0, lastI2 = 0, lastI3 = 0;
     int lastUniformCount = 0;
     bool lastTranspose = false;
+    // Mirrors of the most recently written uniform values, keyed by location, so
+    // glGetUniform* can round-trip through the mock.
+    std::unordered_map<int, std::vector<float>> uniformFloatStore;
+    std::unordered_map<int, std::vector<int32_t>> uniformIntStore;
+    std::unordered_map<int, std::vector<uint32_t>> uniformUintStore;
     void uniform1f(int loc, float v0) override {
         ++uniform1fCalls; lastUniformLoc = loc; lastF0 = v0;
+        uniformFloatStore[loc] = {v0};
     }
     void uniform2f(int loc, float v0, float v1) override {
         ++uniform2fCalls; lastUniformLoc = loc; lastF0 = v0; lastF1 = v1;
+        uniformFloatStore[loc] = {v0, v1};
     }
     void uniform3f(int loc, float v0, float v1, float v2) override {
         ++uniform3fCalls; lastUniformLoc = loc; lastF0 = v0; lastF1 = v1; lastF2 = v2;
+        uniformFloatStore[loc] = {v0, v1, v2};
     }
     void uniform4f(int loc, float v0, float v1, float v2, float v3) override {
         ++uniform4fCalls; lastUniformLoc = loc; lastF0 = v0; lastF1 = v1;
         lastF2 = v2; lastF3 = v3;
+        uniformFloatStore[loc] = {v0, v1, v2, v3};
     }
     void uniform1i(int loc, int v0) override {
         ++uniform1iCalls; lastUniformLoc = loc; lastI0 = v0;
+        uniformIntStore[loc] = {v0};
     }
     void uniform2i(int loc, int v0, int v1) override {
         ++uniform2iCalls; lastUniformLoc = loc; lastI0 = v0; lastI1 = v1;
+        uniformIntStore[loc] = {v0, v1};
     }
     void uniform3i(int loc, int v0, int v1, int v2) override {
         ++uniform3iCalls; lastUniformLoc = loc; lastI0 = v0; lastI1 = v1; lastI2 = v2;
+        uniformIntStore[loc] = {v0, v1, v2};
     }
     void uniform4i(int loc, int v0, int v1, int v2, int v3) override {
         ++uniform4iCalls; lastUniformLoc = loc; lastI0 = v0; lastI1 = v1;
         lastI2 = v2; lastI3 = v3;
+        uniformIntStore[loc] = {v0, v1, v2, v3};
     }
     void uniform1fv(int loc, const float* v, int count) override {
         ++uniform1fvCalls; lastUniformLoc = loc; lastUniformCount = count;
-        if (v && count > 0) lastF0 = v[0];
+        if (v && count > 0) {
+            lastF0 = v[0];
+            uniformFloatStore[loc].assign(v, v + count);
+        }
     }
     void uniform1iv(int loc, const int* v, int count) override {
         ++uniform1ivCalls; lastUniformLoc = loc; lastUniformCount = count;
-        if (v && count > 0) lastI0 = v[0];
+        if (v && count > 0) {
+            lastI0 = v[0];
+            uniformIntStore[loc].assign(v, v + count);
+        }
     }
     void uniformMatrix4fv(int loc, const float* m, int count, bool transpose) override {
         ++uniformMatrix4fvCalls; lastUniformLoc = loc; lastUniformCount = count;
         lastTranspose = transpose;
+        if (m && count > 0) {
+            uniformFloatStore[loc].assign(m, m + 16 * count);
+        }
+    }
+    void getUniformfv(int32_t location, float* params) const override {
+        ++getUniformfvCalls;
+        auto it = uniformFloatStore.find(location);
+        if (it != uniformFloatStore.end() && params) {
+            for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+        }
+    }
+    void getUniformiv(int32_t location, int32_t* params) const override {
+        ++getUniformivCalls;
+        auto it = uniformIntStore.find(location);
+        if (it != uniformIntStore.end() && params) {
+            for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+        }
+    }
+    void getUniformuiv(int32_t location, uint32_t* params) const override {
+        ++getUniformuivCalls;
+        auto it = uniformUintStore.find(location);
+        if (it != uniformUintStore.end() && params) {
+            for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+        }
+    }
+    void getUniformdv(int32_t location, double* params) const override {
+        ++getUniformdvCalls;
+        auto it = uniformFloatStore.find(location);
+        if (it != uniformFloatStore.end() && params) {
+            for (size_t i = 0; i < it->second.size(); ++i) params[i] = it->second[i];
+        }
     }
 
     std::unordered_map<std::string, int> attribLocations;

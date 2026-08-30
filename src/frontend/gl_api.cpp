@@ -1890,6 +1890,41 @@ void glUniformMatrix4fv(GLint location, GLsizei count, GLboolean transpose,
                                transpose != 0);
 }
 
+// --- Program uniform value queries (SPEC §7.9) ---
+
+void glGetUniformfv(GLuint program, GLint location, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getUniformfv(program, location, params);
+}
+void glGetUniformiv(GLuint program, GLint location, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getUniformiv(program, location, params);
+}
+void glGetUniformuiv(GLuint program, GLint location, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getUniformuiv(program, location, params);
+}
+void glGetUniformdv(GLuint program, GLint location, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getUniformdv(program, location, params);
+}
+void glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat* params) {
+    if (g_current == nullptr) return;
+    g_current->getnUniformfv(program, location, static_cast<int32_t>(bufSize), params);
+}
+void glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getnUniformiv(program, location, static_cast<int32_t>(bufSize), params);
+}
+void glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint* params) {
+    if (g_current == nullptr) return;
+    g_current->getnUniformuiv(program, location, static_cast<int32_t>(bufSize), params);
+}
+void glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getnUniformdv(program, location, static_cast<int32_t>(bufSize), params);
+}
+
 // --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
 
 void glProgramUniform1f(GLuint program, GLint location, GLfloat v0) {

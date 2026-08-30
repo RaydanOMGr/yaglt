@@ -380,6 +380,9 @@ struct GLESLib {
     void (*glUniform1fv)(GLint, GLsizei, const GLfloat*) = nullptr;
     void (*glUniform1iv)(GLint, GLsizei, const GLint*) = nullptr;
     void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glGetUniformfv)(GLuint, GLint, GLfloat*) = nullptr;
+    void (*glGetUniformiv)(GLuint, GLint, GLint*) = nullptr;
+    void (*glGetUniformuiv)(GLuint, GLint, GLuint*) = nullptr;
 
     // Tracks the driver program bound by this loader so uniform calls can avoid
     // redundant glUseProgram (SPEC §10: skip unchanged native state).

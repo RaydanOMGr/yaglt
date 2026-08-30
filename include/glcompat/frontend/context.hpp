@@ -1327,6 +1327,23 @@ public:
     void uniform1iv(int loc, const int* v, int count);
     void uniformMatrix4fv(int loc, const float* m, int count, bool transpose);
 
+    // --- Program uniform value queries (SPEC §7.9 glGetUniform{f,i,ui,d}v) ---
+    // Read back a uniform value from a successfully linked program. The program
+    // must be linked (GL_INVALID_OPERATION otherwise); a -1 location generates
+    // GL_INVALID_OPERATION; a null params generates GL_INVALID_VALUE.
+    void getUniformfv(GLObjectName program, int loc, float* params);
+    void getUniformiv(GLObjectName program, int loc, int32_t* params);
+    void getUniformuiv(GLObjectName program, int loc, uint32_t* params);
+    void getUniformdv(GLObjectName program, int loc, double* params);
+
+    // Robust (GL4.5 ARB_robustness) bounds-checked variants. `bufSize` is the
+    // maximum size in basic machine units of the params buffer; a negative
+    // bufSize generates GL_INVALID_VALUE.
+    void getnUniformfv(GLObjectName program, int loc, int32_t bufSize, float* params);
+    void getnUniformiv(GLObjectName program, int loc, int32_t bufSize, int32_t* params);
+    void getnUniformuiv(GLObjectName program, int loc, int32_t bufSize, uint32_t* params);
+    void getnUniformdv(GLObjectName program, int loc, int32_t bufSize, double* params);
+
     // --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
     // Like the glUniform* setters but target an explicit program rather than the
     // active one. The program must be a successfully linked program object

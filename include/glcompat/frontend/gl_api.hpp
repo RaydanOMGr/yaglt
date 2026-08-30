@@ -629,6 +629,23 @@ void glGetTransformFeedbackVarying(GLuint program, GLuint index, GLsizei bufSize
 // operate on the currently active program (glUseProgram); a -1 location is a
 // silent no-op, matching glUniform* semantics.
 GLint glGetUniformLocation(GLuint program, const GLchar* name);
+
+// --- Program uniform value queries (SPEC §7.9 glGetUniform{f,i,ui,d}v) ---
+// Read back a uniform value from a successfully linked program. The program must
+// be linked (GL_INVALID_OPERATION otherwise); a -1 location generates
+// GL_INVALID_OPERATION; a null `params` generates GL_INVALID_VALUE.
+void glGetUniformfv(GLuint program, GLint location, GLfloat* params);
+void glGetUniformiv(GLuint program, GLint location, GLint* params);
+void glGetUniformuiv(GLuint program, GLint location, GLuint* params);
+void glGetUniformdv(GLuint program, GLint location, GLdouble* params);
+
+// Robust (GL4.5 ARB_robustness) bounds-checked variants. `bufSize` is the maximum
+// size in basic machine units of the `params` buffer; a negative bufSize
+// generates GL_INVALID_VALUE.
+void glGetnUniformfv(GLuint program, GLint location, GLsizei bufSize, GLfloat* params);
+void glGetnUniformiv(GLuint program, GLint location, GLsizei bufSize, GLint* params);
+void glGetnUniformuiv(GLuint program, GLint location, GLsizei bufSize, GLuint* params);
+void glGetnUniformdv(GLuint program, GLint location, GLsizei bufSize, GLdouble* params);
 void glUniform1f(GLint location, GLfloat v0);
 void glUniform2f(GLint location, GLfloat v0, GLfloat v1);
 void glUniform3f(GLint location, GLfloat v0, GLfloat v1, GLfloat v2);

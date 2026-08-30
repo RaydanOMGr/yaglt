@@ -877,6 +877,27 @@ struct GLESBackendProgram : BackendProgram {
         bind();
         lib->glUniformMatrix4fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
     }
+    void getUniformfv(int32_t location, float* params) const override {
+        if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
+        lib->glGetUniformfv(handle, location, params);
+    }
+    void getUniformiv(int32_t location, int32_t* params) const override {
+        if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
+        lib->glGetUniformiv(handle, location, params);
+    }
+    void getUniformuiv(int32_t location, uint32_t* params) const override {
+        if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
+        if (lib->glGetUniformuiv) lib->glGetUniformuiv(handle, location, params);
+    }
+    void getUniformdv(int32_t location, double* params) const override {
+        if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
+        // ES has no glGetUniformdv; widen the float query to double.
+        if (lib->glGetUniformfv) {
+            float f = 0;
+            lib->glGetUniformfv(handle, location, &f);
+            *params = static_cast<double>(f);
+        }
+    }
 
 private:
     // Bind this program only when it is not already the bound driver program, so

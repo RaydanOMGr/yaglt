@@ -9046,6 +9046,77 @@ void Context::uniformMatrix4fv(int loc, const float* m, int count, bool transpos
     bp->uniformMatrix4fv(loc, m, count, transpose);
 }
 
+// --- Program uniform value queries (SPEC §7.9) ---
+
+void Context::getUniformfv(GLObjectName program, int loc, float* params) {
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformfv(loc, params);
+}
+
+void Context::getUniformiv(GLObjectName program, int loc, int32_t* params) {
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformiv(loc, params);
+}
+
+void Context::getUniformuiv(GLObjectName program, int loc, uint32_t* params) {
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformuiv(loc, params);
+}
+
+void Context::getUniformdv(GLObjectName program, int loc, double* params) {
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformdv(loc, params);
+}
+
+void Context::getnUniformfv(GLObjectName program, int loc, int32_t bufSize, float* params) {
+    if (bufSize < 0) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformfv(loc, params);
+}
+
+void Context::getnUniformiv(GLObjectName program, int loc, int32_t bufSize, int32_t* params) {
+    if (bufSize < 0) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformiv(loc, params);
+}
+
+void Context::getnUniformuiv(GLObjectName program, int loc, int32_t bufSize, uint32_t* params) {
+    if (bufSize < 0) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformuiv(loc, params);
+}
+
+void Context::getnUniformdv(GLObjectName program, int loc, int32_t bufSize, double* params) {
+    if (bufSize < 0) { setError(GLError::InvalidValue); return; }
+    if (params == nullptr) { setError(GLError::InvalidValue); return; }
+    if (loc < 0) { setError(GLError::InvalidOperation); return; }
+    BackendProgram* bp = backendProgramFor(program);
+    if (bp == nullptr) return;
+    bp->getUniformdv(loc, params);
+}
+
+
 // --- Program uniforms (SPEC §7.9, glProgramUniform*) ---
 
 void Context::programUniform1f(GLObjectName program, int loc, float v0) {

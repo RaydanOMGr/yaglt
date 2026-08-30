@@ -3,6 +3,25 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — uniform value readback §7.9, this session)
+- Implemented uniform value queries (SPEC §7.9): `glGetUniformfv`/`glGetUniformiv`/
+  `glGetUniformuiv`/`glGetUniformdv` plus the robust bounds-checked `glGetnUniform{f,i,ui,d}v`
+  variants (GL4.5 ARB_robustness). Declared in `gl_api.hpp`, dispatched in `gl_api.cpp`,
+  and implemented in `Context::{getUniformfv,getUniformiv,getUniformuiv,getUniformdv,
+  getnUniformfv,...}`. Validation: program not linked → `GL_INVALID_OPERATION`,
+  location `-1` → `GL_INVALID_OPERATION`, null `params` → `GL_INVALID_VALUE`, negative
+  `bufSize` → `GL_INVALID_VALUE`.
+- `BackendProgram` gained `getUniformfv/iv/uiv/dv` virtuals (default no-op so backends
+  opt in). The mock stores the last-written uniform values per location and round-trips
+  them through `glGetUniform*`; the GLES backend forwards to `glGetUniformfv/iv/uiv`
+  (new `GLESLib` symbols) and widens the float query to `double` for `glGetUniformdv`
+  (ES has no native double uniform query). The `glGetUniformdv` loader symbol was
+  deliberately omitted (not a real ES entry point).
+- New `tests/unit/uniform_get_test.cpp` (8 cases: float/int/double round-trip, unlinked
+  program, negative location, null params, negative bufSize, unsigned-variant call).
+  Default suite now 792 → 799 green. Coverage regenerated: core 73.2% → 74.7%,
+  full 43.4% → 44.4%. Both `build` and `build_tx` compile.
+
 ## Recent Work (2026-08-30 — pixel-store §8.4 expansion + query fix, this session)
 - Expanded pixel-store (SPEC §8.4) from the lone `GL_UNPACK_ALIGNMENT` constant to
   all 24 `GL_PACK_*`/`GL_UNPACK_*` desktop enum assignments (corrected earlier

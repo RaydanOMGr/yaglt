@@ -344,6 +344,9 @@ bool GLESLib::load() {
     resolve(gles, glUniform1fv, "glUniform1fv");
     resolve(gles, glUniform1iv, "glUniform1iv");
     resolve(gles, glUniformMatrix4fv, "glUniformMatrix4fv");
+    resolve(gles, glGetUniformfv, "glGetUniformfv");
+    resolve(gles, glGetUniformiv, "glGetUniformiv");
+    resolve(gles, glGetUniformuiv, "glGetUniformuiv");
 
     if (!ok) {
         dlclose(egl);

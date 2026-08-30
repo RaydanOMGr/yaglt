@@ -415,6 +415,14 @@ public:
     // is absent (matching desktop GL semantics). A -1 location is a silent no-op
     // in every setter, matching glUniform* behavior.
     virtual int getUniformLocation(const std::string& name) const { return -1; }
+    // Uniform value readback (SPEC §7.9 glGetUniform{f,i,ui,d}v). Operate on this
+    // linked program; `location` must be a valid (>= 0) location. Defaults are
+    // no-ops so backends opt in; the frontend validates the program/link state,
+    // the location, and a null `params` before calling these.
+    virtual void getUniformfv(int32_t location, float* params) const {}
+    virtual void getUniformiv(int32_t location, int32_t* params) const {}
+    virtual void getUniformuiv(int32_t location, uint32_t* params) const {}
+    virtual void getUniformdv(int32_t location, double* params) const {}
     virtual void uniform1f(int loc, float v0) {}
     virtual void uniform2f(int loc, float v0, float v1) {}
     virtual void uniform3f(int loc, float v0, float v1, float v2) {}
