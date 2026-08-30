@@ -187,6 +187,18 @@ public:
     virtual void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                             uint32_t format, uint32_t type, void* pixels) = 0;
 
+    // Robust pixel readback (SPEC §18 / ARB_robustness). `bufSize` is the capacity
+    // of `pixels` in bytes; the backend writes at most that many bytes, truncating
+    // silently (matching the robustness spec — no error on an undersized buffer).
+    // The default forwards to readPixels, which ignores bufSize (safe because the
+    // driver copy cannot overflow the caller); backends with a native robust entry
+    // point override this to pass bufSize through.
+    virtual void readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                             uint32_t format, uint32_t type, int32_t bufSize,
+                             void* pixels) {
+        readPixels(x, y, width, height, format, type, pixels);
+    }
+
     // Internal format queries (SPEC §22.3, glGetInternalformativ /
     // glGetInternalformati64v). The frontend validates the call (null params ->
     // INVALID_VALUE, negative bufSize -> INVALID_VALUE, unknown pname ->

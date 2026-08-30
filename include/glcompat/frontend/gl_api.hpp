@@ -1006,6 +1006,13 @@ void glMemoryBarrierByRegion(GLbitfield barriers);
 void glReadPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
                   GLenum type, GLvoid* pixels);
 
+// Robust pixel readback (SPEC §18 / ARB_robustness): like glReadPixels but with
+// a byte-capacity guard `bufSize` on `pixels`. Non-positive width/height or a
+// negative `bufSize` reports GL_INVALID_VALUE; an undersized buffer is truncated
+// silently (no error), matching the robustness spec.
+void glReadnPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum format,
+                   GLenum type, GLsizei bufSize, GLvoid* pixels);
+
 // Flush tracked pipeline state to the backend (SPEC §10). Pushes only the
 // state that changed since the last flush, so the driver is not re-set for
 // unchanged state. Call this at draw / state-flush time.

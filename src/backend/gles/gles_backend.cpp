@@ -809,6 +809,15 @@ void GLESBackend::readPixels(int32_t x, int32_t y, int32_t width, int32_t height
         lib_->glReadPixels(x, y, width, height, format, type, pixels);
 }
 
+void GLESBackend::readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                              uint32_t format, uint32_t type, int32_t bufSize,
+                              void* pixels) {
+    if (lib_->glReadnPixels)
+        lib_->glReadnPixels(x, y, width, height, format, type, bufSize, pixels);
+    else if (lib_->glReadPixels)
+        lib_->glReadPixels(x, y, width, height, format, type, pixels);
+}
+
 void GLESBackend::logicOp(uint32_t mode) {
     if (lib_->glLogicOp) lib_->glLogicOp(mode);
 }

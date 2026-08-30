@@ -254,6 +254,11 @@ public:
     int32_t lastReadX = 0, lastReadY = 0, lastReadW = 0, lastReadH = 0;
     uint32_t lastReadFormat = 0, lastReadType = 0;
     void* lastReadPixels = nullptr;
+    int readnPixelsCalls = 0;
+    int32_t lastReadnX = 0, lastReadnY = 0, lastReadnW = 0, lastReadnH = 0;
+    uint32_t lastReadnFormat = 0, lastReadnType = 0;
+    int32_t lastReadnBufSize = 0;
+    void* lastReadnPixels = nullptr;
 
     void enable(GLenum cap) override {
         ++enableCalls;
@@ -1027,6 +1032,19 @@ public:
         lastReadFormat = format;
         lastReadType = type;
         lastReadPixels = pixels;
+    }
+
+    void readnPixels(int32_t x, int32_t y, int32_t w, int32_t h, uint32_t format,
+                     uint32_t type, int32_t bufSize, void* pixels) override {
+        ++readnPixelsCalls;
+        lastReadnX = x;
+        lastReadnY = y;
+        lastReadnW = w;
+        lastReadnH = h;
+        lastReadnFormat = format;
+        lastReadnType = type;
+        lastReadnBufSize = bufSize;
+        lastReadnPixels = pixels;
     }
 
     // Internal format queries (SPEC §22.3). The mock does not model real driver

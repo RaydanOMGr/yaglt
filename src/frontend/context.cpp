@@ -9632,6 +9632,22 @@ void Context::readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
     backend_.readPixels(x, y, width, height, format, type, pixels);
 }
 
+void Context::readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                          uint32_t format, uint32_t type, int32_t bufSize,
+                          void* pixels) {
+    if (width <= 0 || height <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Flush tracked state first so the backend reads the current framebuffer.
+    flushState();
+    backend_.readnPixels(x, y, width, height, format, type, bufSize, pixels);
+}
+
 // --- Uniforms (SPEC §8) ---
 
 BackendProgram* Context::activeBackendProgram() {

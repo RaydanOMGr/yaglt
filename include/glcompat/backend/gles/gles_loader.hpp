@@ -195,6 +195,8 @@ struct GLESLib {
     void (*glFinish)(void) = nullptr;
     void (*glReadPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum,
                          void*) = nullptr;
+    void (*glReadnPixels)(GLint, GLint, GLsizei, GLsizei, GLenum, GLenum, GLsizei,
+                          void*) = nullptr;
     void (*glBindBufferBase)(GLenum, GLuint, GLuint) = nullptr;
     void (*glBindBufferRange)(GLenum, GLuint, GLuint, GLintptr, GLsizeiptr) = nullptr;
 

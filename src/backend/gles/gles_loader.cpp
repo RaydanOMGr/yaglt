@@ -191,6 +191,10 @@ bool GLESLib::load() {
     ok &= resolve(gles, glFlush, "glFlush");
     ok &= resolve(gles, glFinish, "glFinish");
     ok &= resolve(gles, glReadPixels, "glReadPixels");
+    // glReadnPixels is core in GL 4.5 (ARB_robustness) but not a standard ES entry
+    // point; resolve it optionally so load() still succeeds on ES drivers that
+    // omit it, and GLESBackend::readnPixels falls back to glReadPixels.
+    resolve(gles, glReadnPixels, "glReadnPixels");
     ok &= resolve(gles, glBindBufferBase, "glBindBufferBase");
     ok &= resolve(gles, glBindBufferRange, "glBindBufferRange");
     ok &= resolve(gles, glUniformBlockBinding, "glUniformBlockBinding");

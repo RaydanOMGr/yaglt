@@ -800,6 +800,12 @@ public:
     // width/height reports GL_INVALID_VALUE honestly.
     void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                     uint32_t format, uint32_t type, void* pixels);
+    // Robust pixel readback (SPEC §18 / ARB_robustness): like readPixels but with
+    // a byte-capacity guard on `pixels`. A non-positive width/height or a negative
+    // `bufSize` reports GL_INVALID_VALUE; the backend truncates silently if the
+    // buffer is smaller than the transfer (no error, per the robustness spec).
+    void readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                     uint32_t format, uint32_t type, int32_t bufSize, void* pixels);
 
     // --- Pixel store (SPEC §10) ---
     // Records global pixel-store state in the tracker and pushes it to the

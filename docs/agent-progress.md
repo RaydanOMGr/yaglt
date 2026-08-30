@@ -3,6 +3,25 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — robust pixel readback §18 / ARB_robustness, this session)
+
+- Added `glReadnPixels` (SPEC §18 / ARB_robustness), the bounds-checked
+  counterpart of `glReadPixels`. New `IGraphicsBackend::readnPixels(x, y, w, h,
+  format, type, bufSize, pixels)` virtual with a default body that forwards to
+  `readPixels` (ignoring `bufSize`); `MockBackend` records `readnPixelsCalls` /
+  `lastReadn*` (incl. `lastReadnBufSize`), and `GLESBackend` calls the driver
+  `glReadnPixels` when the `GLESLib` loader resolves it (resolved optionally,
+  ES has no native robust read), else falls back to `glReadPixels`. `Context::
+  readnPixels` validates non-positive width/height and a negative `bufSize` →
+  `GL_INVALID_VALUE`, flushes tracked state, then forwards to the backend. `gl_api`
+  declares and dispatches the entry point; the `gl*` shim regenerates `glReadnPixels`
+  from `gl_api.hpp`. New `tests/unit/readn_pixels_test.cpp` (3 cases: robust read
+  record + bufSize capture, non-positive width/height value error, negative bufSize
+  value error). Default **853/853** → **856/856**, sanitizer (ASan/UBSan)
+  **856/856** green; `build_tx` (GLES/translate + shim) compiles. Coverage
+  regenerated: core 88.8% → 88.9% (507/570), full 52.0% → 52.1% (548/1052).
+  `docs/feature-matrix.md` adds the "Robust pixel readback (SPEC §18)" row.
+
 ## Recent Work (2026-08-30 — copy texture sub-image §8.5, this session)
 
 - Implemented the copy-texture-sub-image family (SPEC §8.5), defining a texture
@@ -569,7 +588,7 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 88.8% (506/570)
+Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 88.9% (507/570)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §8/§6/§10 surface)
 Last updated: 2026-08-30
 Known major blockers:

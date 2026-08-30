@@ -259,6 +259,11 @@ public:
     // Read back pixels from the bound framebuffer (SPEC §2.1).
     void readPixels(int32_t x, int32_t y, int32_t width, int32_t height,
                     uint32_t format, uint32_t type, void* pixels) override;
+    // Robust pixel readback (SPEC §18 / ARB_robustness). Uses glReadnPixels when
+    // the driver exposes it, else falls back to glReadPixels (SPEC §2.1).
+    void readnPixels(int32_t x, int32_t y, int32_t width, int32_t height,
+                     uint32_t format, uint32_t type, int32_t bufSize,
+                     void* pixels) override;
 
     // Whole-framebuffer copy (SPEC §15, glBlitFramebuffer).
     void blitFramebuffer(int32_t srcX0, int32_t srcY0, int32_t srcX1, int32_t srcY1,
