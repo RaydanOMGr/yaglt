@@ -12,6 +12,7 @@ add_executable(yaglt_tests
     unit/ubo_ssbo_test.cpp
     unit/draw_test.cpp
     unit/draw_expansion_test.cpp
+    unit/draw_base_vertex_variants_test.cpp
     unit/multi_draw_base_instance_test.cpp
     unit/compressed_tex_image_test.cpp
     unit/copy_tex_sub_image_test.cpp

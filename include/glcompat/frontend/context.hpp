@@ -1417,6 +1417,20 @@ public:
                            int32_t count, uint32_t type, intptr_t indices);
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
                                 intptr_t indices, int32_t basevertex);
+    // Base-vertex draw variants (SPEC §10, GL 3.2 core / ARB_draw_elements_base_vertex).
+    // All three gate on Feature::DrawElementsBaseVertex (else GL_INVALID_OPERATION) and
+    // require an active program (else GL_INVALID_OPERATION) before flushing state and
+    // forwarding to the backend. `drawRangeElementsBaseVertex` additionally rejects
+    // end < start with GL_INVALID_VALUE.
+    void drawElementsInstancedBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                         intptr_t indices, int32_t primcount,
+                                         int32_t basevertex);
+    void drawRangeElementsBaseVertex(uint32_t mode, uint32_t start, uint32_t end,
+                                     int32_t count, uint32_t type, intptr_t indices,
+                                     int32_t basevertex);
+    void multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                     uint32_t type, const intptr_t* indices,
+                                     int32_t drawcount, int32_t basevertex);
     // Base-instance draws (SPEC §10, ARB_base_instance / GL 4.2). Extend the
     // instanced draws with `baseinstance` (per-instance attribute offset). Require
     // Feature::BaseInstance (else GL_INVALID_OPERATION) and an active program (else

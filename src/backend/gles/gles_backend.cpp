@@ -657,6 +657,38 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                         static_cast<GLint>(basevertex));
   }
 
+  void GLESBackend::drawElementsInstancedBaseVertex(uint32_t mode, int32_t count,
+                                                    uint32_t type, intptr_t indices,
+                                                    int32_t primcount,
+                                                    int32_t basevertex) {
+      if (lib_->glDrawElementsInstancedBaseVertex)
+          lib_->glDrawElementsInstancedBaseVertex(
+              mode, count, type, reinterpret_cast<const void*>(indices), primcount,
+              static_cast<GLint>(basevertex));
+  }
+
+  void GLESBackend::drawRangeElementsBaseVertex(uint32_t mode, uint32_t start,
+                                                uint32_t end, int32_t count,
+                                                uint32_t type, intptr_t indices,
+                                                int32_t basevertex) {
+      if (lib_->glDrawRangeElementsBaseVertex)
+          lib_->glDrawRangeElementsBaseVertex(
+              mode, start, end, count, type,
+              reinterpret_cast<const void*>(indices),
+              static_cast<GLint>(basevertex));
+  }
+
+  void GLESBackend::multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                                uint32_t type, const intptr_t* indices,
+                                                int32_t drawcount,
+                                                int32_t basevertex) {
+      if (lib_->glMultiDrawElementsBaseVertex)
+          lib_->glMultiDrawElementsBaseVertex(
+              mode, counts, type,
+              reinterpret_cast<const void* const*>(indices),
+              static_cast<GLsizei>(drawcount), static_cast<GLint>(basevertex));
+  }
+
   void GLESBackend::drawArraysInstancedBaseInstance(uint32_t mode, int32_t first,
                                                   int32_t count, int32_t primcount,
                                                   uint32_t baseinstance) {

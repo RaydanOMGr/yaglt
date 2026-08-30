@@ -3251,15 +3251,42 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
                                 reinterpret_cast<intptr_t>(indices));
 }
 
- void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
-                              const GLvoid* indices, GLint basevertex) {
-     if (g_current == nullptr) return;
-     g_current->drawElementsBaseVertex(mode, count, type,
-                                      reinterpret_cast<intptr_t>(indices),
-                                      basevertex);
- }
+  void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                               const GLvoid* indices, GLint basevertex) {
+      if (g_current == nullptr) return;
+      g_current->drawElementsBaseVertex(mode, count, type,
+                                       reinterpret_cast<intptr_t>(indices),
+                                       basevertex);
+  }
 
- void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect) {
+  void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                                         const GLvoid* indices, GLsizei primcount,
+                                         GLint basevertex) {
+      if (g_current == nullptr) return;
+      g_current->drawElementsInstancedBaseVertex(mode, count, type,
+                                                reinterpret_cast<intptr_t>(indices),
+                                                primcount, basevertex);
+  }
+
+  void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end,
+                                     GLsizei count, GLenum type,
+                                     const GLvoid* indices, GLint basevertex) {
+      if (g_current == nullptr) return;
+      g_current->drawRangeElementsBaseVertex(mode, start, end, count, type,
+                                             reinterpret_cast<intptr_t>(indices),
+                                             basevertex);
+  }
+
+  void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei* counts, GLenum type,
+                                     const GLvoid* const* indices, GLsizei drawcount,
+                                     GLint basevertex) {
+      if (g_current == nullptr) return;
+      g_current->multiDrawElementsBaseVertex(
+          mode, reinterpret_cast<const int32_t*>(counts), type,
+          reinterpret_cast<const intptr_t*>(indices), drawcount, basevertex);
+  }
+
+  void glDrawArraysIndirect(GLenum mode, const GLvoid* indirect) {
      if (g_current == nullptr) return;
      g_current->drawArraysIndirect(mode, indirect);
  }

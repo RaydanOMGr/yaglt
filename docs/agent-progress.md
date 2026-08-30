@@ -3220,3 +3220,38 @@ crashed agent, this session)
    - `docs/feature-matrix.md` §9.3.1 gains a row. Coverage regenerated.
    - Validation: `build` 864/864, `build_san` (ASan/UBSan clean) 864/864,
      `build_tx` (GLES e2e under Mesa softpipe) 876/876.
+
+## Recent Work (2026-08-31 — base-vertex draw variants, §10 / GL 3.2)
+
+ - **glDrawElementsInstancedBaseVertex / glDrawRangeElementsBaseVertex /
+   glMultiDrawElementsBaseVertex (SPEC §10, GL 3.2 core / ARB_draw_elements_base_vertex)**
+   — closes the base-vertex indexed-draw gap (the single `glDrawElementsBaseVertex`
+   was already present). All three are capability-gated by `DrawElementsBaseVertex`
+   (Native on the mock profile; ES 3.2 native on GLES, resolved optionally so a
+   driver lacking them still initializes — the capability system reports them
+   unsupported). They flush tracked state, require an active program (`GL_INVALID_OPERATION`
+   otherwise), and forward to the backend; `glDrawRangeElementsBaseVertex` additionally
+   rejects `end < start` with `GL_INVALID_VALUE`.
+   - `include/glcompat/core/backend.hpp`: three new `IGraphicsBackend` virtuals
+     (`drawElementsInstancedBaseVertex`, `drawRangeElementsBaseVertex`,
+     `multiDrawElementsBaseVertex`).
+   - `include/glcompat/backend/gles/gles_loader.hpp` + `gles_loader.cpp`: optional
+     `glDrawElementsInstancedBaseVertex` / `glDrawRangeElementsBaseVertex` /
+     `glMultiDrawElementsBaseVertex` (ES 3.2 native spellings).
+   - `include/glcompat/backend/gles/gles_backend.hpp` + `gles_backend.cpp`: forward
+     to the native ES 3.2 entry points when resolved (else no-op, mirroring the
+     existing `drawElementsBaseVertex` path).
+   - `src/backend/mock/mock_backend.hpp`: three overrides recording the call +
+     last base vertex (`drawElementsInstancedBaseVertexCalls` /
+     `drawRangeElementsBaseVertexCalls` / `multiDrawElementsBaseVertexCalls`).
+   - `include/glcompat/frontend/context.hpp` + `context.cpp`: three `Context` methods
+     (capability + active-program gate, range validation for the range variant).
+   - `include/glcompat/frontend/gl_api.hpp` + `gl_api.cpp`: public `gl*` dispatch
+     (null-context guard).
+   - `tests/unit/draw_base_vertex_variants_test.cpp` (new, 3 cases: instanced forward,
+     range validates + records, multi-draw records drawcount/basevertex) + registered
+     in `tests/CMakeLists.txt`.
+   - `docs/feature-matrix.md` §10 gains a row; `docs/coverage-core.md` §10 row updated.
+     Coverage regenerated.
+   - Validation: `build` 867/867, `build_san` (ASan/UBSan clean) 867/867,
+     `build_tx` (GLES e2e under Mesa softpipe) 879/879.

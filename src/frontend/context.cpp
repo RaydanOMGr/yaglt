@@ -5535,19 +5535,74 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
     backend_.drawRangeElements(mode, start, end, count, type, indices);
 }
 
- void Context::drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
-                                      intptr_t indices, int32_t basevertex) {
-     if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
-         setError(GLError::InvalidOperation);
-         return;
-     }
-     if (state_.activeProgram() == 0) {
-         setError(GLError::InvalidOperation);
-         return;
-     }
-      flushState();
-      backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
-  }
+  void Context::drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                       intptr_t indices, int32_t basevertex) {
+       if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+           setError(GLError::InvalidOperation);
+           return;
+       }
+       if (state_.activeProgram() == 0) {
+           setError(GLError::InvalidOperation);
+           return;
+       }
+        flushState();
+        backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
+    }
+
+    void Context::drawElementsInstancedBaseVertex(uint32_t mode, int32_t count,
+                                                  uint32_t type, intptr_t indices,
+                                                  int32_t primcount,
+                                                  int32_t basevertex) {
+        if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        flushState();
+        backend_.drawElementsInstancedBaseVertex(mode, count, type, indices,
+                                                primcount, basevertex);
+    }
+
+    void Context::drawRangeElementsBaseVertex(uint32_t mode, uint32_t start,
+                                              uint32_t end, int32_t count,
+                                              uint32_t type, intptr_t indices,
+                                              int32_t basevertex) {
+        if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (end < start) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        flushState();
+        backend_.drawRangeElementsBaseVertex(mode, start, end, count, type, indices,
+                                             basevertex);
+    }
+
+    void Context::multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                              uint32_t type, const intptr_t* indices,
+                                              int32_t drawcount, int32_t basevertex) {
+        if (!backend_.capabilities().isSupported(Feature::DrawElementsBaseVertex)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        flushState();
+        backend_.multiDrawElementsBaseVertex(mode, counts, type, indices, drawcount,
+                                             basevertex);
+    }
+
 
   void Context::drawArraysInstancedBaseInstance(uint32_t mode, int32_t first,
                                               int32_t count, int32_t primcount,

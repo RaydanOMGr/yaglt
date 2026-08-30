@@ -855,6 +855,44 @@ public:
         lastDrawIndices = indices;
         lastDrawBasevertex = basevertex;
     }
+    // --- Base-vertex draw variants (SPEC §10, GL 3.2) ---
+    int drawElementsInstancedBaseVertexCalls = 0;
+    int drawRangeElementsBaseVertexCalls = 0;
+    int multiDrawElementsBaseVertexCalls = 0;
+    void drawElementsInstancedBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                         intptr_t indices, int32_t primcount,
+                                         int32_t basevertex) override {
+        ++drawElementsInstancedBaseVertexCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawBasevertex = basevertex;
+        (void)primcount;
+    }
+    void drawRangeElementsBaseVertex(uint32_t mode, uint32_t start, uint32_t end,
+                                     int32_t count, uint32_t type, intptr_t indices,
+                                     int32_t basevertex) override {
+        ++drawRangeElementsBaseVertexCalls;
+        lastDrawMode = mode;
+        lastDrawStart = start;
+        lastDrawEnd = end;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawBasevertex = basevertex;
+    }
+    void multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                     uint32_t type, const intptr_t* indices,
+                                     int32_t drawcount, int32_t basevertex) override {
+        ++multiDrawElementsBaseVertexCalls;
+        lastDrawMode = mode;
+        lastDrawCount = drawcount;
+        lastDrawType = type;
+        lastDrawBasevertex = basevertex;
+        (void)counts;
+        (void)indices;
+    }
 
     // Indirect draw (SPEC §10). Recorded so tests can assert the call is issued
     // (the mock has no driver; the frontend validates the indirect buffer / program).

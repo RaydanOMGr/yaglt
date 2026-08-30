@@ -387,6 +387,16 @@ struct GLESLib {
                                 const void*) = nullptr;
     void (*glDrawElementsBaseVertex)(GLenum, GLsizei, GLenum, const void*,
                                      GLint) = nullptr;
+    // Base-vertex draw variants (SPEC §10, GL 3.2 / ES 3.2). Resolved optionally so
+    // load() still succeeds on a driver that lacks them (the capability system
+    // reports DrawElementsBaseVertex unsupported instead of failing backend init).
+    void (*glDrawElementsInstancedBaseVertex)(GLenum, GLsizei, GLenum, const void*,
+                                              GLsizei, GLint) = nullptr;
+    void (*glDrawRangeElementsBaseVertex)(GLenum, GLuint, GLuint, GLsizei, GLenum,
+                                          const void*, GLint) = nullptr;
+    void (*glMultiDrawElementsBaseVertex)(GLenum, const GLsizei*, GLenum,
+                                          const void* const*, GLsizei,
+                                          GLint) = nullptr;
     // Indirect draw (SPEC §10, ES 3.1+). Resolved optionally so load() still
     // succeeds on a driver that lacks them (the capability system reports
     // IndirectDrawing unsupported instead of failing the whole backend init).

@@ -288,6 +288,9 @@ bool GLESLib::load() {
     resolve(gles, glMultiDrawElementsBaseInstance, "glMultiDrawElementsBaseInstance");
     resolve(gles, glDrawRangeElements, "glDrawRangeElements");
     resolve(gles, glDrawElementsBaseVertex, "glDrawElementsBaseVertex");
+    resolve(gles, glDrawElementsInstancedBaseVertex, "glDrawElementsInstancedBaseVertex");
+    resolve(gles, glDrawRangeElementsBaseVertex, "glDrawRangeElementsBaseVertex");
+    resolve(gles, glMultiDrawElementsBaseVertex, "glMultiDrawElementsBaseVertex");
     // Base-instance draws (SPEC §10, ES 3.2+); resolved optionally.
     resolve(gles, glDrawArraysInstancedBaseInstance, "glDrawArraysInstancedBaseInstance");
     resolve(gles, glDrawElementsInstancedBaseInstance, "glDrawElementsInstancedBaseInstance");

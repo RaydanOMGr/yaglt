@@ -85,8 +85,25 @@ public:
                                    int32_t count, uint32_t type,
                                    intptr_t indices) = 0;
     virtual void drawElementsBaseVertex(uint32_t mode, int32_t count,
-                                        uint32_t type, intptr_t indices,
-                                        int32_t basevertex) = 0;
+                                         uint32_t type, intptr_t indices,
+                                         int32_t basevertex) = 0;
+    // Base-vertex draw variants (SPEC §10, GL 3.2 core / ARB_draw_elements_base_vertex).
+    // These extend the base-vertex indexed draw with instancing, an index range, and
+    // multi-draw. The frontend gates all three on Feature::DrawElementsBaseVertex and
+    // (for the instanced variant) requires an active program, then forwards here. The
+    // GLES backend maps them to the ES 3.2 native entry points when available.
+    virtual void drawElementsInstancedBaseVertex(uint32_t mode, int32_t count,
+                                                 uint32_t type, intptr_t indices,
+                                                 int32_t primcount,
+                                                 int32_t basevertex) = 0;
+    virtual void drawRangeElementsBaseVertex(uint32_t mode, uint32_t start,
+                                             uint32_t end, int32_t count,
+                                             uint32_t type, intptr_t indices,
+                                             int32_t basevertex) = 0;
+    virtual void multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                             uint32_t type, const intptr_t* indices,
+                                             int32_t drawcount,
+                                             int32_t basevertex) = 0;
     // Base-instance draws (SPEC §10, ARB_base_instance / GL 4.2). These extend the
     // instanced draws with a `baseinstance` that offsets the per-instance attribute
     // index (the native glDraw*InstancedBaseInstance entry points, ES 3.2+). The

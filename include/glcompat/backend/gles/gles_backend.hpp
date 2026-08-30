@@ -194,6 +194,16 @@ public:
                           int32_t count, uint32_t type, intptr_t indices) override;
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
                                 intptr_t indices, int32_t basevertex) override;
+    // Base-vertex draw variants (SPEC §10, ES 3.2+; forwarded when the driver supports them).
+    void drawElementsInstancedBaseVertex(uint32_t mode, int32_t count, uint32_t type,
+                                         intptr_t indices, int32_t primcount,
+                                         int32_t basevertex) override;
+    void drawRangeElementsBaseVertex(uint32_t mode, uint32_t start, uint32_t end,
+                                     int32_t count, uint32_t type, intptr_t indices,
+                                     int32_t basevertex) override;
+    void multiDrawElementsBaseVertex(uint32_t mode, const int32_t* counts,
+                                     uint32_t type, const intptr_t* indices,
+                                     int32_t drawcount, int32_t basevertex) override;
     // Base-instance draws (SPEC §10, ES 3.2+; forwarded when the driver supports them).
     void drawArraysInstancedBaseInstance(uint32_t mode, int32_t first, int32_t count,
                                          int32_t primcount, uint32_t baseinstance) override;

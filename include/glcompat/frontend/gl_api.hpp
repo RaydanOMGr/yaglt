@@ -1140,6 +1140,18 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
                          GLenum type, const GLvoid* indices);
  void glDrawElementsBaseVertex(GLenum mode, GLsizei count, GLenum type,
                               const GLvoid* indices, GLint basevertex);
+// Base-vertex draw variants (SPEC §10, GL 3.2 core / ARB_draw_elements_base_vertex).
+// Capability-gated by Feature::DrawElementsBaseVertex; require an active program.
+// `glDrawRangeElementsBaseVertex` rejects end < start with GL_INVALID_VALUE.
+void glDrawElementsInstancedBaseVertex(GLenum mode, GLsizei count, GLenum type,
+                                       const GLvoid* indices, GLsizei primcount,
+                                       GLint basevertex);
+void glDrawRangeElementsBaseVertex(GLenum mode, GLuint start, GLuint end,
+                                   GLsizei count, GLenum type,
+                                   const GLvoid* indices, GLint basevertex);
+void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei* counts, GLenum type,
+                                   const GLvoid* const* indices, GLsizei drawcount,
+                                   GLint basevertex);
  // Indirect draw (SPEC §10). Requires an indirect buffer bound to
  // GL_DRAW_INDIRECT_BUFFER and an active program; capability-gated by
  // IndirectDrawing. `indirect` is the byte offset into that bound buffer.
