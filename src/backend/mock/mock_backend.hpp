@@ -654,6 +654,10 @@ public:
     int drawElementsCalls = 0;
     int drawArraysInstancedCalls = 0;
     int drawElementsInstancedCalls = 0;
+    int drawArraysInstancedBaseInstanceCalls = 0;
+    int drawElementsInstancedBaseInstanceCalls = 0;
+    int drawElementsInstancedBaseVertexBaseInstanceCalls = 0;
+    uint32_t lastDrawBaseInstance = 0;
     uint32_t lastDrawMode = 0;
     int32_t lastDrawFirst = 0;
     int32_t lastDrawCount = 0;
@@ -690,6 +694,38 @@ public:
         lastDrawType = type;
         lastDrawIndices = indices;
         lastDrawPrimcount = primcount;
+    }
+    void drawArraysInstancedBaseInstance(uint32_t mode, int32_t first, int32_t count,
+                                         int32_t primcount, uint32_t baseinstance) override {
+        ++drawArraysInstancedBaseInstanceCalls;
+        lastDrawMode = mode;
+        lastDrawFirst = first;
+        lastDrawCount = count;
+        lastDrawPrimcount = primcount;
+        lastDrawBaseInstance = baseinstance;
+    }
+    void drawElementsInstancedBaseInstance(uint32_t mode, int32_t count, uint32_t type,
+                                           intptr_t indices, int32_t primcount,
+                                           uint32_t baseinstance) override {
+        ++drawElementsInstancedBaseInstanceCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawPrimcount = primcount;
+        lastDrawBaseInstance = baseinstance;
+    }
+    void drawElementsInstancedBaseVertexBaseInstance(uint32_t mode, int32_t count,
+                                                    uint32_t type, intptr_t indices,
+                                                    int32_t primcount, int32_t basevertex,
+                                                    uint32_t baseinstance) override {
+        ++drawElementsInstancedBaseVertexBaseInstanceCalls;
+        lastDrawMode = mode;
+        lastDrawCount = count;
+        lastDrawType = type;
+        lastDrawIndices = indices;
+        lastDrawPrimcount = primcount;
+        lastDrawBaseInstance = baseinstance;
     }
 
     // --- Transform-feedback draw recording (SPEC §13.3.3) ---

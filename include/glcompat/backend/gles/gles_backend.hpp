@@ -184,7 +184,17 @@ public:
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                           int32_t count, uint32_t type, intptr_t indices) override;
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
-                               intptr_t indices, int32_t basevertex) override;
+                                intptr_t indices, int32_t basevertex) override;
+    // Base-instance draws (SPEC §10, ES 3.2+; forwarded when the driver supports them).
+    void drawArraysInstancedBaseInstance(uint32_t mode, int32_t first, int32_t count,
+                                         int32_t primcount, uint32_t baseinstance) override;
+    void drawElementsInstancedBaseInstance(uint32_t mode, int32_t count, uint32_t type,
+                                           intptr_t indices, int32_t primcount,
+                                           uint32_t baseinstance) override;
+    void drawElementsInstancedBaseVertexBaseInstance(uint32_t mode, int32_t count,
+                                                     uint32_t type, intptr_t indices,
+                                                     int32_t primcount, int32_t basevertex,
+                                                     uint32_t baseinstance) override;
     // Indirect draw (SPEC §10, ES 3.1+; forwarded when the driver supports it).
     void drawArraysIndirect(uint32_t mode, const void* indirect) override;
     void drawElementsIndirect(uint32_t mode, uint32_t type,

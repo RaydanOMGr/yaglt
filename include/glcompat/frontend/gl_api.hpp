@@ -891,8 +891,21 @@ GLboolean glIsEnabledi(GLenum cap, GLuint index);
 void glDrawArrays(GLenum mode, GLint first, GLsizei count);
 void glDrawElements(GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
 void glDrawArraysInstanced(GLenum mode, GLint first, GLsizei count, GLsizei primcount);
-void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
-                             const GLvoid* indices, GLsizei primcount);
+ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
+                              const GLvoid* indices, GLsizei primcount);
+
+// Base-instance draws (SPEC §10, ARB_base_instance / GL 4.2). Extend the
+// instanced draws with `baseinstance` (per-instance attribute offset).
+// Capability-gated by Feature::BaseInstance; an active program is required.
+void glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count,
+                                       GLsizei primcount, GLuint baseinstance);
+void glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type,
+                                         const GLvoid* indices, GLsizei primcount,
+                                         GLuint baseinstance);
+void glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count,
+                                                   GLenum type, const GLvoid* indices,
+                                                   GLsizei primcount, GLint basevertex,
+                                                   GLuint baseinstance);
 
 // Vertex attribute divisor (SPEC §10, glVertexAttribDivisor). Sets the per-
 // attribute instance step rate on the bound VAO; 0 = per-vertex, >0 = per-instance.

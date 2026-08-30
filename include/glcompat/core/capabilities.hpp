@@ -35,6 +35,7 @@ enum class Feature {
     MultiDraw,
     DrawRangeElements,
     DrawElementsBaseVertex,
+    BaseInstance,
     // Framebuffers
     FramebufferObjects,
     RenderbufferObjects,

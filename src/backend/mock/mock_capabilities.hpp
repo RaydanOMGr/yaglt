@@ -36,6 +36,7 @@ inline void populateMockCapabilities(CapabilityTable& table) {
     table.set(F::MultiDraw, S::Native);
     table.set(F::DrawRangeElements, S::Native);
     table.set(F::DrawElementsBaseVertex, S::Native);
+    table.set(F::BaseInstance, S::Native);
     table.set(F::FramebufferObjects, S::Native);
     table.set(F::RenderbufferObjects, S::Native);
     table.set(F::UniformBufferObjects, S::Native);

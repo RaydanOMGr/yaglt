@@ -624,14 +624,41 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                  reinterpret_cast<const void*>(indices));
 }
 
- void GLESBackend::drawElementsBaseVertex(uint32_t mode, int32_t count,
-                                          uint32_t type, intptr_t indices,
-                                          int32_t basevertex) {
-     if (lib_->glDrawElementsBaseVertex)
-         lib_->glDrawElementsBaseVertex(mode, count, type,
-                                       reinterpret_cast<const void*>(indices),
-                                       static_cast<GLint>(basevertex));
- }
+  void GLESBackend::drawElementsBaseVertex(uint32_t mode, int32_t count,
+                                           uint32_t type, intptr_t indices,
+                                           int32_t basevertex) {
+      if (lib_->glDrawElementsBaseVertex)
+          lib_->glDrawElementsBaseVertex(mode, count, type,
+                                        reinterpret_cast<const void*>(indices),
+                                        static_cast<GLint>(basevertex));
+  }
+
+  void GLESBackend::drawArraysInstancedBaseInstance(uint32_t mode, int32_t first,
+                                                  int32_t count, int32_t primcount,
+                                                  uint32_t baseinstance) {
+      if (lib_->glDrawArraysInstancedBaseInstance)
+          lib_->glDrawArraysInstancedBaseInstance(mode, first, count, primcount,
+                                                 baseinstance);
+  }
+
+  void GLESBackend::drawElementsInstancedBaseInstance(uint32_t mode, int32_t count,
+                                                     uint32_t type, intptr_t indices,
+                                                     int32_t primcount,
+                                                     uint32_t baseinstance) {
+      if (lib_->glDrawElementsInstancedBaseInstance)
+          lib_->glDrawElementsInstancedBaseInstance(mode, count, type,
+                                                   reinterpret_cast<const void*>(indices),
+                                                   primcount, baseinstance);
+  }
+
+  void GLESBackend::drawElementsInstancedBaseVertexBaseInstance(
+      uint32_t mode, int32_t count, uint32_t type, intptr_t indices,
+      int32_t primcount, int32_t basevertex, uint32_t baseinstance) {
+      if (lib_->glDrawElementsInstancedBaseVertexBaseInstance)
+          lib_->glDrawElementsInstancedBaseVertexBaseInstance(
+              mode, count, type, reinterpret_cast<const void*>(indices), primcount,
+              static_cast<GLint>(basevertex), baseinstance);
+  }
  
  void GLESBackend::drawArraysIndirect(uint32_t mode, const void* indirect) {
      if (lib_->glDrawArraysIndirect)

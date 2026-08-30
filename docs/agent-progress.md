@@ -2840,4 +2840,22 @@ crashed agent, this session)
    resolution, program requirement, unknown-object rejection, active-loop rejection
    (with paused allowed), and instanced/stream variants. Coverage regenerated:
    452/1052 (~43.0%) full, 412/570 (~72.3%) core. Validation: `build` 765/765,
-   `build_san` 765/765, `build_tx` (GLES e2e) 777/777.
+    `build_san` 765/765, `build_tx` (GLES e2e) 777/777.
+
+ - **glDraw*InstancedBaseInstance family (SPEC §10, ARB_base_instance / GL 4.2)** —
+    per-instance attribute offset draws (`glDrawArraysInstancedBaseInstance`,
+    `glDrawElementsInstancedBaseInstance`,
+    `glDrawElementsInstancedBaseVertexBaseInstance`). Added a `Feature::BaseInstance`
+    capability (GLES 3.2+ native; the mock reports it Native). Three new backend draw
+    virtuals in `Backend` (`drawArraysInstancedBaseInstance`,
+    `drawElementsInstancedBaseInstance`,
+    `drawElementsInstancedBaseVertexBaseInstance`); the mock records each with
+    `lastDrawBaseInstance`, and the GLES backend forwards to the native
+    `glDraw*InstancedBaseInstance` entry points (resolved optionally in `gles_loader`).
+    `Context` gates on `Feature::BaseInstance` and an active program, flushes state, then
+    issues the backend draw. `gl_api` exposes all three entry points (C shim regenerated
+    at build). New `tests/unit/draw_base_instance_test.cpp` (5 cases) covering base-instance
+    passthrough for each variant, base-vertex+base-instance combination, the active-program
+    requirement, and a legal `baseinstance == 0`. Coverage regenerated: 455/1052 (~43.3%)
+    full, 415/570 (~72.8%) core. Validation: `build` 770/770, `build_san` 770/770,
+    `build_tx` (GLES e2e) 782/782.

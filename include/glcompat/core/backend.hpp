@@ -70,8 +70,22 @@ public:
                                    int32_t count, uint32_t type,
                                    intptr_t indices) = 0;
     virtual void drawElementsBaseVertex(uint32_t mode, int32_t count,
-                                         uint32_t type, intptr_t indices,
-                                         int32_t basevertex) = 0;
+                                        uint32_t type, intptr_t indices,
+                                        int32_t basevertex) = 0;
+    // Base-instance draws (SPEC §10, ARB_base_instance / GL 4.2). These extend the
+    // instanced draws with a `baseinstance` that offsets the per-instance attribute
+    // index (the native glDraw*InstancedBaseInstance entry points, ES 3.2+). The
+    // frontend flushes tracked state and checks the active program before calling.
+    virtual void drawArraysInstancedBaseInstance(uint32_t mode, int32_t first,
+                                                 int32_t count, int32_t primcount,
+                                                 uint32_t baseinstance) = 0;
+    virtual void drawElementsInstancedBaseInstance(uint32_t mode, int32_t count,
+                                                   uint32_t type, intptr_t indices,
+                                                   int32_t primcount,
+                                                   uint32_t baseinstance) = 0;
+    virtual void drawElementsInstancedBaseVertexBaseInstance(
+        uint32_t mode, int32_t count, uint32_t type, intptr_t indices,
+        int32_t primcount, int32_t basevertex, uint32_t baseinstance) = 0;
     // Indirect draw (SPEC §10). The frontend validates that an indirect buffer is
     // bound to GL_DRAW_INDIRECT_BUFFER and that a program is active before calling
     // these. `indirect` is the offset into that bound buffer (the frontend marshals

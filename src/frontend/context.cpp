@@ -4884,9 +4884,60 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
          setError(GLError::InvalidOperation);
          return;
      }
-     flushState();
-     backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
- }
+      flushState();
+      backend_.drawElementsBaseVertex(mode, count, type, indices, basevertex);
+  }
+
+  void Context::drawArraysInstancedBaseInstance(uint32_t mode, int32_t first,
+                                              int32_t count, int32_t primcount,
+                                              uint32_t baseinstance) {
+      if (!backend_.capabilities().isSupported(Feature::BaseInstance)) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      if (state_.activeProgram() == 0) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      flushState();
+      backend_.drawArraysInstancedBaseInstance(mode, first, count, primcount,
+                                              baseinstance);
+  }
+
+  void Context::drawElementsInstancedBaseInstance(uint32_t mode, int32_t count,
+                                                 uint32_t type, intptr_t indices,
+                                                 int32_t primcount,
+                                                 uint32_t baseinstance) {
+      if (!backend_.capabilities().isSupported(Feature::BaseInstance)) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      if (state_.activeProgram() == 0) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      flushState();
+      backend_.drawElementsInstancedBaseInstance(mode, count, type, indices,
+                                                primcount, baseinstance);
+  }
+
+  void Context::drawElementsInstancedBaseVertexBaseInstance(
+      uint32_t mode, int32_t count, uint32_t type, intptr_t indices,
+      int32_t primcount, int32_t basevertex, uint32_t baseinstance) {
+      if (!backend_.capabilities().isSupported(Feature::BaseInstance)) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      if (state_.activeProgram() == 0) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      flushState();
+      backend_.drawElementsInstancedBaseVertexBaseInstance(mode, count, type, indices,
+                                                         primcount, basevertex,
+                                                         baseinstance);
+  }
+
 
  void Context::drawArraysIndirect(uint32_t mode, const void* offset) {
      if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {

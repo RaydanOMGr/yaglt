@@ -2539,6 +2539,32 @@ void glDrawElementsInstanced(GLenum mode, GLsizei count, GLenum type,
                                      primcount);
 }
 
+void glDrawArraysInstancedBaseInstance(GLenum mode, GLint first, GLsizei count,
+                                       GLsizei primcount, GLuint baseinstance) {
+    if (g_current == nullptr) return;
+    g_current->drawArraysInstancedBaseInstance(mode, first, count, primcount,
+                                              baseinstance);
+}
+
+void glDrawElementsInstancedBaseInstance(GLenum mode, GLsizei count, GLenum type,
+                                         const GLvoid* indices, GLsizei primcount,
+                                         GLuint baseinstance) {
+    if (g_current == nullptr) return;
+    g_current->drawElementsInstancedBaseInstance(mode, count, type,
+                                                reinterpret_cast<intptr_t>(indices),
+                                                primcount, baseinstance);
+}
+
+void glDrawElementsInstancedBaseVertexBaseInstance(GLenum mode, GLsizei count,
+                                                  GLenum type, const GLvoid* indices,
+                                                  GLsizei primcount, GLint basevertex,
+                                                  GLuint baseinstance) {
+    if (g_current == nullptr) return;
+    g_current->drawElementsInstancedBaseVertexBaseInstance(
+        mode, count, type, reinterpret_cast<intptr_t>(indices), primcount,
+        basevertex, baseinstance);
+}
+
 void glVertexAttribDivisor(GLuint index, GLuint divisor) {
     if (g_current == nullptr) return;
     g_current->vertexAttribDivisor(index, divisor);

@@ -319,7 +319,16 @@ struct GLESLib {
     void (*glDrawElements)(GLenum, GLsizei, GLenum, const void*) = nullptr;
     void (*glDrawArraysInstanced)(GLenum, GLint, GLsizei, GLsizei) = nullptr;
     void (*glDrawElementsInstanced)(GLenum, GLsizei, GLenum, const void*,
-                                    GLsizei) = nullptr;
+                                     GLsizei) = nullptr;
+    // Base-instance draws (SPEC §10, ARB_base_instance, ES 3.2+). Resolved
+    // optionally so load() still succeeds on drivers that lack them.
+    void (*glDrawArraysInstancedBaseInstance)(GLenum, GLint, GLsizei, GLsizei,
+                                              GLuint) = nullptr;
+    void (*glDrawElementsInstancedBaseInstance)(GLenum, GLsizei, GLenum, const void*,
+                                                GLsizei, GLuint) = nullptr;
+    void (*glDrawElementsInstancedBaseVertexBaseInstance)(GLenum, GLsizei, GLenum,
+                                                          const void*, GLsizei, GLint,
+                                                          GLuint) = nullptr;
     // Draw expansion (SPEC §10). ES 3.0+ (multi-draw / range-elements) and
     // ES 3.2 (base-vertex); resolved optionally so load() still succeeds when a
     // driver lacks them (the capability system reports them unsupported).

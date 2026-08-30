@@ -1242,7 +1242,16 @@ public:
     void drawArraysInstanced(uint32_t mode, int32_t first, int32_t count,
                              int32_t primcount);
     void drawElementsInstanced(uint32_t mode, int32_t count, uint32_t type,
-                               intptr_t indices, int32_t primcount);
+                                    intptr_t indices, int32_t primcount);
+    void drawArraysInstancedBaseInstance(uint32_t mode, int32_t first, int32_t count,
+                                        int32_t primcount, uint32_t baseinstance);
+    void drawElementsInstancedBaseInstance(uint32_t mode, int32_t count, uint32_t type,
+                                          intptr_t indices, int32_t primcount,
+                                          uint32_t baseinstance);
+    void drawElementsInstancedBaseVertexBaseInstance(uint32_t mode, int32_t count,
+                                                    uint32_t type, intptr_t indices,
+                                                    int32_t primcount, int32_t basevertex,
+                                                    uint32_t baseinstance);
     // Draw expansion (SPEC §10). Each flushes tracked state first (like the
     // single-draw calls) and, for non-instanced variants, requires an active
     // program. `drawElementsBaseVertex` consults Feature::DrawElementsBaseVertex.
@@ -1253,7 +1262,11 @@ public:
     void drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                            int32_t count, uint32_t type, intptr_t indices);
     void drawElementsBaseVertex(uint32_t mode, int32_t count, uint32_t type,
-                                 intptr_t indices, int32_t basevertex);
+                                intptr_t indices, int32_t basevertex);
+    // Base-instance draws (SPEC §10, ARB_base_instance / GL 4.2). Extend the
+    // instanced draws with `baseinstance` (per-instance attribute offset). Require
+    // Feature::BaseInstance (else GL_INVALID_OPERATION) and an active program (else
+    // GL_INVALID_OPERATION); flush tracked state, then issue the backend draw.
     // Indirect draw (SPEC §10). Requires Feature::IndirectDrawing (else
     // GL_INVALID_OPERATION), an active program (else GL_INVALID_OPERATION), and a
     // buffer bound to GL_DRAW_INDIRECT_BUFFER (else GL_INVALID_OPERATION). `offset`
