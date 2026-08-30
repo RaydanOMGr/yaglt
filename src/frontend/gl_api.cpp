@@ -2985,6 +2985,11 @@ void glReadBuffer(GLenum buf) {
     g_current->readBuffer(buf);
 }
 
+void glDrawBuffer(GLenum buf) {
+    if (g_current == nullptr) return;
+    g_current->drawBuffer(static_cast<uint32_t>(buf));
+}
+
 void glLogicOp(GLenum mode) {
     if (g_current == nullptr) return;
     g_current->logicOp(mode);

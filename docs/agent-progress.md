@@ -3,6 +3,22 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — non-DSA framebuffer draw/read-buffer §9.3.1, this session)
+
+- Closed the non-DSA single-draw-buffer gap: added `glDrawBuffer` (SPEC §9.3.1),
+  the singular counterpart of the already-present `glDrawBuffers`/`glReadBuffer`.
+  `Context::drawBuffer` validates the buffer enum (`GL_INVALID_ENUM`) and forwards
+  to the same `GLStateSink` path as `drawBuffers(1, &buf)` (deferred to the next
+  `flushState`). Wired through `include/glcompat/frontend/context.hpp` +
+  `src/frontend/context.cpp` and the public C surface `gl_api.hpp`/`gl_api.cpp`
+  (null-context guard); the `gl*` shim regenerates `glDrawBuffer` from `gl_api.hpp`.
+  Added 3 cases to `tests/unit/framebuffer_buf_test.cpp` (single-buffer push on
+  flush, invalid-enum rejection, public `glDrawBuffer` surface). Default
+  **871/871** → **874/874**, sanitizer (ASan/UBSan) **874/874** green, `build_tx`
+  (GLES e2e under Mesa softpipe) **883/883** → **886/886**. `docs/feature-matrix.md`
+  adds the "Non-DSA framebuffer draw/read-buffer selection (SPEC §9.3.1)" row;
+  coverage regenerated.
+
 ## Recent Work (2026-08-30 — robust pixel readback §18 / ARB_robustness, this session)
 
 - Added `glReadnPixels` (SPEC §18 / ARB_robustness), the bounds-checked

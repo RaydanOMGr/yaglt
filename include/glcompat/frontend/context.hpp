@@ -741,6 +741,10 @@ public:
     // valid draw/read-buffer enum (else GL_INVALID_ENUM).
     void drawBuffers(int32_t n, const GLenum* bufs);
     void readBuffer(GLenum buf);
+    // Set a single draw buffer for the bound framebuffer (glDrawBuffer, SPEC §9.3.1).
+    // Equivalent to drawBuffers(1, &buf); buf must be a valid draw-buffer enum
+    // (else GL_INVALID_ENUM).
+    void drawBuffer(uint32_t buf);
 
     // --- Color logic op (SPEC §17.3.4, glLogicOp) ---
     // Records the logic op mode in the tracker (pushed to the backend only when it

@@ -979,6 +979,8 @@ void glCopyImageSubData(GLuint srcName, GLenum srcTarget, GLint srcLevel,
 // draw buffers for the bound framebuffer; glReadBuffer selects its read buffer.
 void glDrawBuffers(GLsizei n, const GLenum* bufs);
 void glReadBuffer(GLenum buf);
+// Single draw-buffer selection for the bound framebuffer (SPEC §9.3.1).
+void glDrawBuffer(GLenum buf);
 
 // Color logic op (SPEC §17.3.4, glLogicOp). Capability-gated (LogicOp).
 void glLogicOp(GLenum mode);

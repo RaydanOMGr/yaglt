@@ -96,3 +96,36 @@ TEST_CASE("gl_api_draw_read_buffer_surface") {
     EXPECT_EQ(backend->readBufferCalls, 1);
     setCurrentContext(nullptr);
 }
+
+TEST_CASE("draw_buffer_pushes_single_to_sink_on_flush") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.drawBuffer(GL_COLOR_ATTACHMENT0);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(backend->drawBuffersCalls, 0); // deferred until flush
+
+    ctx.flushState();
+    EXPECT_EQ(backend->drawBuffersCalls, 1);
+    EXPECT_EQ(backend->lastDrawBuffersN, 1);
+    EXPECT_EQ(backend->lastDrawBuffers.size(), 1u);
+    EXPECT_EQ(backend->lastDrawBuffers[0], GL_COLOR_ATTACHMENT0);
+}
+
+TEST_CASE("draw_buffer_invalid_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    ctx.drawBuffer(0xFEED);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("gl_api_draw_buffer_surface") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    ctx.flushState();
+    EXPECT_EQ(backend->drawBuffersCalls, 1);
+    EXPECT_EQ(backend->lastDrawBuffers[0], GL_COLOR_ATTACHMENT0);
+    setCurrentContext(nullptr);
+}

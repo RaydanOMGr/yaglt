@@ -9572,6 +9572,15 @@ void Context::readBuffer(GLenum buf) {
     state_.setReadBuffer(buf);
 }
 
+void Context::drawBuffer(uint32_t buf) {
+    if (!isValidDrawBuffer(static_cast<GLenum>(buf))) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    GLenum b = static_cast<GLenum>(buf);
+    state_.setDrawBuffers({b});
+}
+
 void Context::logicOp(uint32_t mode) {
     if (!backend_.capabilities().isSupported(Feature::LogicOp)) {
         setError(GLError::InvalidOperation);
