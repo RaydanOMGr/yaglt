@@ -523,6 +523,7 @@ struct GLESBackendTransformFeedback : BackendTransformFeedback {
         if (lib && lib->driverLive() && lib->glResumeTransformFeedback)
             lib->glResumeTransformFeedback();
     }
+    uint32_t nativeHandle() const override { return handle; }
     GLESLibPtr lib;
     GLuint handle = 0;
 };

@@ -638,13 +638,47 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
          lib_->glDrawArraysIndirect(mode, indirect);
  }
  
-  void GLESBackend::drawElementsIndirect(uint32_t mode, uint32_t type,
-                                         const void* indirect) {
-      if (lib_->glDrawElementsIndirect)
-          lib_->glDrawElementsIndirect(mode, type, indirect);
-  }
+   void GLESBackend::drawElementsIndirect(uint32_t mode, uint32_t type,
+                                          const void* indirect) {
+       if (lib_->glDrawElementsIndirect)
+           lib_->glDrawElementsIndirect(mode, type, indirect);
+   }
 
-  void GLESBackend::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
+   void GLESBackend::drawTransformFeedback(uint32_t mode, uint32_t tfId,
+                                           int32_t count) {
+       (void)count;
+       if (lib_->glDrawTransformFeedback)
+           lib_->glDrawTransformFeedback(mode, tfId);
+   }
+
+   void GLESBackend::drawTransformFeedbackInstanced(uint32_t mode, uint32_t tfId,
+                                                   int32_t count,
+                                                   int32_t primcount) {
+       (void)count;
+       if (lib_->glDrawTransformFeedbackInstanced)
+           lib_->glDrawTransformFeedbackInstanced(
+               mode, tfId, static_cast<GLsizei>(primcount));
+   }
+
+   void GLESBackend::drawTransformFeedbackStream(uint32_t mode, uint32_t tfId,
+                                                uint32_t stream, int32_t count) {
+       (void)count;
+       if (lib_->glDrawTransformFeedbackStream)
+           lib_->glDrawTransformFeedbackStream(mode, tfId, stream);
+   }
+
+   void GLESBackend::drawTransformFeedbackStreamInstanced(uint32_t mode,
+                                                        uint32_t tfId,
+                                                        uint32_t stream,
+                                                        int32_t count,
+                                                        int32_t primcount) {
+       (void)count;
+       if (lib_->glDrawTransformFeedbackStreamInstanced)
+           lib_->glDrawTransformFeedbackStreamInstanced(
+               mode, tfId, stream, static_cast<GLsizei>(primcount));
+   }
+
+   void GLESBackend::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
       if (lib_->glDispatchCompute) lib_->glDispatchCompute(x, y, z);
   }
 

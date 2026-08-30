@@ -4923,6 +4923,103 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
         backend_.drawElementsIndirect(mode, type, offset);
     }
 
+    // Resolve the transform-feedback object referenced by a draw call. `id == 0`
+    // denotes the currently bound object; any other `id` must name an existing
+    // transform-feedback object. Returns nullptr (and leaves no error) when there
+    // is no usable object, so the caller can raise GL_INVALID_OPERATION.
+    static TransformFeedbackObject* resolveTfForDraw(Context* ctx, GLObjectName id) {
+        GLObjectName name = (id == 0) ? ctx->boundTransformFeedback() : id;
+        return ctx->getTransformFeedback(name);
+    }
+
+    void Context::drawTransformFeedback(uint32_t mode, GLObjectName id) {
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        TransformFeedbackObject* tf = resolveTfForDraw(this, id);
+        if (tf == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+            setError(GLError::InvalidOperation); // feedback loop
+            return;
+        }
+        int64_t n = tf->backend ? tf->backend->getCapturedVertexCount(0) : 0;
+        uint32_t tfId = tf->backend ? tf->backend->nativeHandle() : 0;
+        flushState();
+        backend_.drawTransformFeedback(mode, tfId, static_cast<int32_t>(n));
+    }
+
+    void Context::drawTransformFeedbackInstanced(uint32_t mode, GLObjectName id,
+                                                int32_t primcount) {
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        TransformFeedbackObject* tf = resolveTfForDraw(this, id);
+        if (tf == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        int64_t n = tf->backend ? tf->backend->getCapturedVertexCount(0) : 0;
+        uint32_t tfId = tf->backend ? tf->backend->nativeHandle() : 0;
+        flushState();
+        backend_.drawTransformFeedbackInstanced(mode, tfId, static_cast<int32_t>(n),
+                                               primcount);
+    }
+
+    void Context::drawTransformFeedbackStream(uint32_t mode, GLObjectName id,
+                                             uint32_t stream) {
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        TransformFeedbackObject* tf = resolveTfForDraw(this, id);
+        if (tf == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        int64_t n = tf->backend ? tf->backend->getCapturedVertexCount(stream) : 0;
+        uint32_t tfId = tf->backend ? tf->backend->nativeHandle() : 0;
+        flushState();
+        backend_.drawTransformFeedbackStream(mode, tfId, stream,
+                                            static_cast<int32_t>(n));
+    }
+
+    void Context::drawTransformFeedbackStreamInstanced(uint32_t mode, GLObjectName id,
+                                                      uint32_t stream,
+                                                      int32_t primcount) {
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        TransformFeedbackObject* tf = resolveTfForDraw(this, id);
+        if (tf == nullptr) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        int64_t n = tf->backend ? tf->backend->getCapturedVertexCount(stream) : 0;
+        uint32_t tfId = tf->backend ? tf->backend->nativeHandle() : 0;
+        flushState();
+        backend_.drawTransformFeedbackStreamInstanced(mode, tfId, stream,
+                                                    static_cast<int32_t>(n),
+                                                    primcount);
+    }
+
     void Context::dispatchCompute(uint32_t x, uint32_t y, uint32_t z) {
         if (!backend_.capabilities().isSupported(Feature::ComputeShaders)) {
             setError(GLError::InvalidOperation);

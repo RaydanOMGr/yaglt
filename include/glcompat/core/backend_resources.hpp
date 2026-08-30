@@ -288,6 +288,18 @@ public:
     virtual void end() {}
     virtual void pause() {}
     virtual void resume() {}
+    // Number of vertices written to `stream` by the most recent capture
+    // (SPEC §13.3.3 glDrawTransformFeedback). The frontend forwards it to draw
+    // calls so backends that do not track driver-side captured counts can record
+    // the intended draw size. Defaults to 0.
+    virtual int64_t getCapturedVertexCount(uint32_t stream = 0) const {
+        (void)stream;
+        return 0;
+    }
+    // Native driver handle for this transform-feedback object (0 when the backend
+    // has no native resource). The frontend passes it to draw calls so the GLES
+    // backend can issue glDrawTransformFeedback(id) against the right object.
+    virtual uint32_t nativeHandle() const { return 0; }
 };
 class BackendShader {
 public:

@@ -110,6 +110,7 @@ add_executable(yaglt_tests
     unit/validate_program_test.cpp
     unit/specialize_shader_test.cpp
     unit/debug_message_test.cpp
+    unit/draw_transform_feedback_test.cpp
     unit/clip_control_test.cpp
     unit/viewport_indexed_test.cpp
     backend/gles_backend_test.cpp

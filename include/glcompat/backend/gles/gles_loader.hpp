@@ -335,6 +335,13 @@ struct GLESLib {
     // IndirectDrawing unsupported instead of failing the whole backend init).
     void (*glDrawArraysIndirect)(GLenum, const void*) = nullptr;
     void (*glDrawElementsIndirect)(GLenum, GLenum, const void*) = nullptr;
+    // Transform-feedback draws (SPEC §13.3.3, ES 3.2+). Resolved optionally so
+    // load() still succeeds on a driver that lacks them.
+    void (*glDrawTransformFeedback)(GLenum, GLuint) = nullptr;
+    void (*glDrawTransformFeedbackInstanced)(GLenum, GLuint, GLsizei) = nullptr;
+    void (*glDrawTransformFeedbackStream)(GLenum, GLuint, GLuint) = nullptr;
+    void (*glDrawTransformFeedbackStreamInstanced)(GLenum, GLuint, GLuint,
+                                                  GLsizei) = nullptr;
 
     // Vertex attributes (SPEC §2.1).
     GLint (*glGetAttribLocation)(GLuint, const GLchar*) = nullptr;

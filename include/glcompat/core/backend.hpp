@@ -80,6 +80,22 @@ public:
     virtual void drawArraysIndirect(uint32_t mode, const void* indirect) = 0;
     virtual void drawElementsIndirect(uint32_t mode, uint32_t type,
                                       const void* indirect) = 0;
+    // Transform-feedback draws (SPEC §13.3.3). `tfId` is the native transform-
+    // feedback object handle (0 when none); `count` is the captured vertex count
+    // resolved by the frontend via BackendTransformFeedback::getCapturedVertexCount.
+    // The GLES backend forwards (mode, tfId, [stream, ]count) to the native driver,
+    // which uses its own captured count; the mock backend records the call.
+    virtual void drawTransformFeedback(uint32_t mode, uint32_t tfId,
+                                      int32_t count) = 0;
+    virtual void drawTransformFeedbackInstanced(uint32_t mode, uint32_t tfId,
+                                                int32_t count,
+                                                int32_t primcount) = 0;
+    virtual void drawTransformFeedbackStream(uint32_t mode, uint32_t tfId,
+                                             uint32_t stream, int32_t count) = 0;
+    virtual void drawTransformFeedbackStreamInstanced(uint32_t mode, uint32_t tfId,
+                                                      uint32_t stream,
+                                                      int32_t count,
+                                                      int32_t primcount) = 0;
 
     // Compute dispatch (SPEC §7.4). glDispatchCompute issues a 3D work-group
     // grid directly; glDispatchComputeIndirect reads the work-group counts from

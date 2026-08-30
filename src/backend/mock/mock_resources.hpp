@@ -571,10 +571,17 @@ public:
     int id = 0;
     int beginCalls = 0, endCalls = 0, pauseCalls = 0, resumeCalls = 0;
     uint32_t lastBeginMode = 0;
+    // Test-injected captured vertex count so drawTransformFeedback* can be
+    // exercised deterministically (SPEC §13.3.3).
+    int64_t capturedVertexCount = 0;
     void begin(uint32_t mode) override { ++beginCalls; lastBeginMode = mode; }
     void end() override { ++endCalls; }
     void pause() override { ++pauseCalls; }
     void resume() override { ++resumeCalls; }
+    int64_t getCapturedVertexCount(uint32_t stream = 0) const override {
+        (void)stream;
+        return capturedVertexCount;
+    }
 };
 class MockQuery : public BackendQuery {
 public:

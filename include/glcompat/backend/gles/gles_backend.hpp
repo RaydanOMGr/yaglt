@@ -190,6 +190,19 @@ public:
     void drawElementsIndirect(uint32_t mode, uint32_t type,
                               const void* indirect) override;
 
+    // Transform-feedback draws (SPEC §13.3.3). The driver uses the captured vertex
+    // count of the given object, so `count`/`primcount` are forwarded only for
+    // backends that track size on the CPU (the mock); the GLES driver ignores them.
+    void drawTransformFeedback(uint32_t mode, uint32_t tfId,
+                              int32_t count) override;
+    void drawTransformFeedbackInstanced(uint32_t mode, uint32_t tfId,
+                                        int32_t count, int32_t primcount) override;
+    void drawTransformFeedbackStream(uint32_t mode, uint32_t tfId,
+                                    uint32_t stream, int32_t count) override;
+    void drawTransformFeedbackStreamInstanced(uint32_t mode, uint32_t tfId,
+                                              uint32_t stream, int32_t count,
+                                              int32_t primcount) override;
+
     // Compute dispatch (SPEC §7.4, ES 3.1+; forwarded when the driver supports it).
     void dispatchCompute(uint32_t x, uint32_t y, uint32_t z) override;
     void dispatchComputeIndirect(uintptr_t offset) override;

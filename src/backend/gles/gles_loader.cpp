@@ -262,6 +262,11 @@ bool GLESLib::load() {
     // Indirect draw (SPEC §10, ES 3.1+); resolved optionally.
     resolve(gles, glDrawArraysIndirect, "glDrawArraysIndirect");
     resolve(gles, glDrawElementsIndirect, "glDrawElementsIndirect");
+    // Transform-feedback draws (SPEC §13.3.3, ES 3.2+); resolved optionally.
+    resolve(gles, glDrawTransformFeedback, "glDrawTransformFeedback");
+    resolve(gles, glDrawTransformFeedbackInstanced, "glDrawTransformFeedbackInstanced");
+    resolve(gles, glDrawTransformFeedbackStream, "glDrawTransformFeedbackStream");
+    resolve(gles, glDrawTransformFeedbackStreamInstanced, "glDrawTransformFeedbackStreamInstanced");
 
     // Transform feedback (ES 3.0+); resolved optionally.
     resolve(gles, glGenTransformFeedbacks, "glGenTransformFeedbacks");

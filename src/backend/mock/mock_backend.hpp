@@ -692,6 +692,46 @@ public:
         lastDrawPrimcount = primcount;
     }
 
+    // --- Transform-feedback draw recording (SPEC §13.3.3) ---
+    int drawTransformFeedbackCalls = 0;
+    int drawTransformFeedbackInstancedCalls = 0;
+    int drawTransformFeedbackStreamCalls = 0;
+    int drawTransformFeedbackStreamInstancedCalls = 0;
+    uint32_t lastDrawTfId = 0;
+    uint32_t lastDrawStream = 0;
+    void drawTransformFeedback(uint32_t mode, uint32_t tfId, int32_t count) override {
+        ++drawTransformFeedbackCalls;
+        lastDrawMode = mode;
+        lastDrawTfId = tfId;
+        lastDrawCount = count;
+    }
+    void drawTransformFeedbackInstanced(uint32_t mode, uint32_t tfId, int32_t count,
+                                       int32_t primcount) override {
+        ++drawTransformFeedbackInstancedCalls;
+        lastDrawMode = mode;
+        lastDrawTfId = tfId;
+        lastDrawCount = count;
+        lastDrawPrimcount = primcount;
+    }
+    void drawTransformFeedbackStream(uint32_t mode, uint32_t tfId, uint32_t stream,
+                                    int32_t count) override {
+        ++drawTransformFeedbackStreamCalls;
+        lastDrawMode = mode;
+        lastDrawTfId = tfId;
+        lastDrawStream = stream;
+        lastDrawCount = count;
+    }
+    void drawTransformFeedbackStreamInstanced(uint32_t mode, uint32_t tfId,
+                                             uint32_t stream, int32_t count,
+                                             int32_t primcount) override {
+        ++drawTransformFeedbackStreamInstancedCalls;
+        lastDrawMode = mode;
+        lastDrawTfId = tfId;
+        lastDrawStream = stream;
+        lastDrawCount = count;
+        lastDrawPrimcount = primcount;
+    }
+
     // --- Draw expansion (SPEC §10) ---
     int multiDrawArraysCalls = 0;
     int multiDrawElementsCalls = 0;

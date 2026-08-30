@@ -1262,6 +1262,19 @@ public:
     void drawArraysIndirect(uint32_t mode, const void* offset);
     void drawElementsIndirect(uint32_t mode, uint32_t type, const void* offset);
 
+    // Transform-feedback draws (SPEC §13.3.3). Draw `id`'s captured vertex count
+    // (resolved from the object's backend via getCapturedVertexCount). Requires an
+    // active program (else GL_INVALID_OPERATION). `id` must name a transform-feedback
+    // object (else GL_INVALID_OPERATION); drawing while feedback is active and not
+    // paused is a feedback loop (GL_INVALID_OPERATION). The stream variants draw the
+    // captured count of a specific feedback `stream`.
+    void drawTransformFeedback(uint32_t mode, GLObjectName id);
+    void drawTransformFeedbackInstanced(uint32_t mode, GLObjectName id,
+                                       int32_t primcount);
+    void drawTransformFeedbackStream(uint32_t mode, GLObjectName id, uint32_t stream);
+    void drawTransformFeedbackStreamInstanced(uint32_t mode, GLObjectName id,
+                                             uint32_t stream, int32_t primcount);
+
     // Compute dispatch (SPEC §7.4). Requires Feature::ComputeShaders (else
     // GL_INVALID_OPERATION) and an active program (else GL_INVALID_OPERATION).
     // `dispatchComputeIndirect` additionally requires a buffer bound to

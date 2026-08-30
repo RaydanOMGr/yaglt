@@ -2821,3 +2821,23 @@ crashed agent, this session)
    depth + empty-stack `STACK_UNDERFLOW` + group messages, and the public-dispatch
    path. Coverage regenerated: 448/1052 (~42.6%) full, 408/570 (~71.6%) core.
    Validation: `build` 760/760, `build_san` 760/760, `build_tx` (GLES e2e) 772/772.
+
+- **glDrawTransformFeedback* (SPEC §13.3.3)** — transform-feedback draws issue
+   `count` vertices captured into a transform-feedback object. Added four backend
+   draw virtuals to `Backend` (`drawTransformFeedback`,
+   `drawTransformFeedbackInstanced`, `drawTransformFeedbackStream`,
+   `drawTransformFeedbackStreamInstanced`) taking the native TF handle + captured
+   count; the GLES backend forwards them to `glDrawTransformFeedback*` (ES 3.2,
+   resolved optionally in `gles_loader`). `BackendTransformFeedback` gains
+   `getCapturedVertexCount(stream)` (default 0) and `nativeHandle()` so the
+   frontend resolves the draw size and native id; `MockTransformFeedback` records
+   an injected `capturedVertexCount` and `GLESBackendTransformFeedback` returns its
+   native `handle`. `Context` validates an active program, a valid TF object
+   (`id == 0` resolves to the bound object), and rejects drawing while feedback is
+   active and not paused (feedback loop); then flushState + backend draw. `gl_api`
+   exposes all four entry points (C shim regenerated at build). New
+   `tests/unit/draw_transform_feedback_test.cpp` (5 cases) covering captured-count
+   resolution, program requirement, unknown-object rejection, active-loop rejection
+   (with paused allowed), and instanced/stream variants. Coverage regenerated:
+   452/1052 (~43.0%) full, 412/570 (~72.3%) core. Validation: `build` 765/765,
+   `build_san` 765/765, `build_tx` (GLES e2e) 777/777.

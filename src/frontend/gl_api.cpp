@@ -2698,12 +2698,33 @@ void glDrawRangeElements(GLenum mode, GLuint start, GLuint end, GLsizei count,
      g_current->drawArraysIndirect(mode, indirect);
  }
 
-  void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
-      if (g_current == nullptr) return;
-      g_current->drawElementsIndirect(mode, type, indirect);
-  }
+   void glDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect) {
+       if (g_current == nullptr) return;
+       g_current->drawElementsIndirect(mode, type, indirect);
+   }
 
-  void glDispatchCompute(GLuint x, GLuint y, GLuint z) {
+   void glDrawTransformFeedback(GLenum mode, GLuint id) {
+       if (g_current == nullptr) return;
+       g_current->drawTransformFeedback(mode, id);
+   }
+
+   void glDrawTransformFeedbackInstanced(GLenum mode, GLuint id, GLsizei primcount) {
+       if (g_current == nullptr) return;
+       g_current->drawTransformFeedbackInstanced(mode, id, primcount);
+   }
+
+   void glDrawTransformFeedbackStream(GLenum mode, GLuint id, GLuint stream) {
+       if (g_current == nullptr) return;
+       g_current->drawTransformFeedbackStream(mode, id, stream);
+   }
+
+   void glDrawTransformFeedbackStreamInstanced(GLenum mode, GLuint id, GLuint stream,
+                                              GLsizei primcount) {
+       if (g_current == nullptr) return;
+       g_current->drawTransformFeedbackStreamInstanced(mode, id, stream, primcount);
+   }
+
+   void glDispatchCompute(GLuint x, GLuint y, GLuint z) {
       if (g_current == nullptr) return;
       g_current->dispatchCompute(x, y, z);
   }
