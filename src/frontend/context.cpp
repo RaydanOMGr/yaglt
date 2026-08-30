@@ -1270,6 +1270,12 @@ bool isSamplerFloatParam(uint32_t pname) {
 bool isSamplerFloatVecParam(uint32_t pname) {
     return pname == GL_TEXTURE_BORDER_COLOR; // vec4
 }
+bool isSamplerIntVecParam(uint32_t pname) {
+    // Int-vector sampler params (SPEC §8.2). GL_TEXTURE_BORDER_COLOR and
+    // GL_TEXTURE_SWIZZLE_RGBA are the integer-array forms; the float array form
+    // of BORDER_COLOR is handled by isSamplerFloatVecParam.
+    return pname == GL_TEXTURE_BORDER_COLOR || pname == GL_TEXTURE_SWIZZLE_RGBA;
+}
 } // namespace
 
 GLError Context::checkIndexedBufferTarget(uint32_t target) const {
@@ -5291,12 +5297,21 @@ void Context::getSamplerParameteriv(GLObjectName sampler, uint32_t pname,
         setError(GLError::InvalidValue);
         return;
     }
-    if (!isSamplerIntParam(pname)) {
+    if (!isSamplerIntParam(pname) && !isSamplerIntVecParam(pname)) {
         setError(GLError::InvalidEnum);
         return;
     }
     auto it = s->params.find(pname);
-    *params = (it != s->params.end()) ? it->second : 0;
+    if (it != s->params.end()) {
+        *params = it->second;
+        return;
+    }
+    auto iv = s->paramsiv.find(pname);
+    if (iv != s->paramsiv.end() && !iv->second.empty()) {
+        *params = iv->second[0];
+        return;
+    }
+    *params = 0;
 }
 
 void Context::samplerParameterf(GLObjectName sampler, uint32_t pname, float param) {
@@ -5330,6 +5345,25 @@ void Context::samplerParameterfv(GLObjectName sampler, uint32_t pname,
     }
     s->paramsfv[pname].assign(params, params + count);
     if (s->backend) s->backend->samplerParameterfv(pname, params, count);
+}
+
+void Context::samplerParameteriv(GLObjectName sampler, uint32_t pname,
+                                 const int32_t* params, int count) {
+    SamplerObject* s = getSampler(sampler);
+    if (s == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!isSamplerIntVecParam(pname)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (params == nullptr || count <= 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    s->paramsiv[pname].assign(params, params + count);
+    if (s->backend) s->backend->samplerParameteriv(pname, params, count);
 }
 
 void Context::samplerParameterIiv(GLObjectName sampler, uint32_t pname,

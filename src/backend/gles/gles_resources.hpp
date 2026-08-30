@@ -601,6 +601,10 @@ struct GLESBackendSampler : BackendSampler {
         if (lib && lib->driverLive() && lib->glSamplerParameterfv && handle && params && count > 0)
             lib->glSamplerParameterfv(handle, pname, params);
     }
+    void samplerParameteriv(uint32_t pname, const int32_t* params, int count) override {
+        if (lib && lib->driverLive() && lib->glSamplerParameteriv && handle && params && count > 0)
+            lib->glSamplerParameteriv(handle, pname, params);
+    }
     void samplerParameterIiv(uint32_t pname, const int32_t* params) override {
         if (lib && lib->driverLive() && lib->glSamplerParameterIiv && handle && params)
             lib->glSamplerParameterIiv(handle, pname, params);

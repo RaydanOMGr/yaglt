@@ -244,6 +244,7 @@ struct GLESLib {
     void (*glSamplerParameteri)(GLuint, GLenum, GLint) = nullptr;
     void (*glSamplerParameterf)(GLuint, GLenum, GLfloat) = nullptr;
     void (*glSamplerParameterfv)(GLuint, GLenum, const GLfloat*) = nullptr;
+    void (*glSamplerParameteriv)(GLuint, GLenum, const GLint*) = nullptr;
     void (*glSamplerParameterIiv)(GLuint, GLenum, const GLint*) = nullptr;
     void (*glSamplerParameterIuiv)(GLuint, GLenum, const GLuint*) = nullptr;
     GLboolean (*glIsSampler)(GLuint) = nullptr;

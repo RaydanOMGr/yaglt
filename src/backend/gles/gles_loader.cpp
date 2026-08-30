@@ -327,6 +327,7 @@ bool GLESLib::load() {
     resolve(gles, glSamplerParameteri, "glSamplerParameteri");
     resolve(gles, glSamplerParameterf, "glSamplerParameterf");
     resolve(gles, glSamplerParameterfv, "glSamplerParameterfv");
+    resolve(gles, glSamplerParameteriv, "glSamplerParameteriv");
     resolve(gles, glSamplerParameterIiv, "glSamplerParameterIiv");
     resolve(gles, glSamplerParameterIuiv, "glSamplerParameterIuiv");
     resolve(gles, glIsSampler, "glIsSampler");

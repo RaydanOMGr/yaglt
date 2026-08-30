@@ -1672,6 +1672,11 @@ void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* params) {
     g_current->samplerParameterfv(sampler, pname, params, params ? 4 : 0);
 }
 
+void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->samplerParameteriv(sampler, pname, params, params ? 4 : 0);
+}
+
 void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint* params) {
     if (g_current == nullptr) return;
     g_current->samplerParameterIiv(sampler, pname, params);

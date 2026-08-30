@@ -3,6 +3,31 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glSamplerParameteriv (SPEC §8.2), this session)
+
+- Closed the missing integer-vector sampler-parameter gap: added `glSamplerParameteriv`
+  (SPEC §8.2), the `int*` counterpart of the already-present `glSamplerParameterfv`.
+  `Context::samplerParameteriv` validates the pname against `isSamplerIntVecParam`
+  (`GL_TEXTURE_BORDER_COLOR`, `GL_TEXTURE_SWIZZLE_RGBA`; else `GL_INVALID_ENUM`),
+  rejects null params / non-positive count (`GL_INVALID_VALUE`), records the vector
+  on `SamplerObject::paramsiv`, and forwards to the new backend
+  `BackendSampler::samplerParameteriv`. The GLES backend now also resolves/drives
+  `glSamplerParameteriv` (added to the `GLESLib` loader struct + resolve list).
+  Enhanced `Context::getSamplerParameteriv` to also accept and read the int-vector
+  pnames (returns the first component) so the getter is symmetric with the setter.
+  Wired through `context.hpp`/`context.cpp`, `gl_api.hpp`/`gl_api.cpp` (null-context
+  guard; the `gl*` shim regenerates `glSamplerParameteriv` from `gl_api.hpp`), and
+  the backend interface (`backend_resources.hpp` virtual + `MockSampler` override
+  recording `samplerParameterivCalls`/`lastParamiv` + `GLESBackendSampler`). 4 new
+  cases in `tests/unit/sampler_test.cpp` (records + getter round-trip; invalid
+  pname → `GL_INVALID_ENUM`; null params → `GL_INVALID_VALUE`; public `gl` surface).
+  One pre-existing `sampler_test` assertion used `GL_TEXTURE_BORDER_COLOR` to assert
+  `getSamplerParameteriv` returned `GL_INVALID_ENUM`; updated to a bogus pname since
+  BORDER_COLOR is now a valid `iv` query. Default **879/879** → **883/883**, sanitizer
+  (ASan/UBSan) **883/883** green, `build_tx` (GLES e2e under Mesa softpipe)
+  **891/891** → **895/895**. `docs/feature-matrix.md` §8.2 row extended; coverage
+  regenerated.
+
 ## Recent Work (2026-08-31 — non-DSA framebuffer texture 1D/3D §9.2.1, this session)
 
 - Closed the non-DSA 1D/3D texture-attachment gaps: added `glFramebufferTexture1D`

@@ -97,7 +97,7 @@ TEST_CASE("sampler_parameter_valid_and_invalid_pname") {
     EXPECT_EQ(val, static_cast<int>(GL_NEAREST_MIPMAP_LINEAR));
 
     // Query of invalid pname also reports INVALID_ENUM.
-    ctx.getSamplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, &val);
+    ctx.getSamplerParameteriv(s, 0xDEAD, &val);
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
 }
 
@@ -265,5 +265,58 @@ TEST_CASE("sampler_parameter_public_gl_api_surface") {
     float b0 = -1.0f;
     glGetSamplerParameterfv(s, GL_TEXTURE_BORDER_COLOR, &b0);
     EXPECT_EQ(b0, 1.0f);
+    setCurrentContext(nullptr);
+}
+
+TEST_CASE("sampler_parameteriv_border_color_records") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+
+    const int32_t bc[4] = {11, 22, 33, 44};
+    ctx.samplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, bc, 4);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    auto* ms = dynamic_cast<MockSampler*>(ctx.getSampler(s)->backend.get());
+    EXPECT_EQ(ms->samplerParameterivCalls, 1);
+    EXPECT_EQ(ms->lastParamPname, static_cast<uint32_t>(GL_TEXTURE_BORDER_COLOR));
+    EXPECT_EQ(ms->lastParamiv.size(), 4u);
+    EXPECT_EQ(ms->lastParamiv[3], 44);
+
+    int32_t val = -1;
+    ctx.getSamplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, &val);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(val, 11);
+}
+
+TEST_CASE("sampler_parameteriv_invalid_pname_is_invalid_enum") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    const int32_t bc[4] = {0, 0, 0, 0};
+    ctx.samplerParameteriv(s, GL_TEXTURE_MIN_LOD, bc, 4); // float-scalar pname
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+}
+
+TEST_CASE("sampler_parameteriv_null_params_is_invalid_value") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    GLObjectName s = ctx.genSampler();
+    ctx.samplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, nullptr, 4);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}
+
+TEST_CASE("sampler_parameteriv_public_gl_api_surface") {
+    auto backend = makeBackend();
+    Context ctx(*backend);
+    setCurrentContext(&ctx);
+    GLObjectName s = ctx.genSampler();
+
+    const int32_t bc[4] = {1, 2, 3, 4};
+    glSamplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, bc);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+
+    int32_t v = -1;
+    glGetSamplerParameteriv(s, GL_TEXTURE_BORDER_COLOR, &v);
+    EXPECT_EQ(v, 1);
     setCurrentContext(nullptr);
 }

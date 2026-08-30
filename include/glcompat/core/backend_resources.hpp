@@ -332,6 +332,7 @@ public:
     virtual void samplerParameteri(uint32_t pname, int param) {}
     virtual void samplerParameterf(uint32_t pname, float param) {}
     virtual void samplerParameterfv(uint32_t pname, const float* params, int count) {}
+    virtual void samplerParameteriv(uint32_t pname, const int32_t* params, int count) {}
     virtual void samplerParameterIiv(uint32_t pname, const int32_t* params) {}
     virtual void samplerParameterIuiv(uint32_t pname, const uint32_t* params) {}
     // Native backend sampler id (e.g. driver GLuint). 0 when not applicable.

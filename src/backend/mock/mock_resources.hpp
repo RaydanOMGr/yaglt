@@ -716,6 +716,13 @@ public:
         lastParamPname = pname;
         if (params && count > 0) lastParamfv.assign(params, params + count);
     }
+    int samplerParameterivCalls = 0;
+    std::vector<int32_t> lastParamiv;
+    void samplerParameteriv(uint32_t pname, const int32_t* params, int count) override {
+        ++samplerParameterivCalls;
+        lastParamPname = pname;
+        if (params && count > 0) lastParamiv.assign(params, params + count);
+    }
     int samplerParameterIivCalls = 0;
     std::vector<int32_t> lastParamIiv;
     void samplerParameterIiv(uint32_t pname, const int32_t* params) override {

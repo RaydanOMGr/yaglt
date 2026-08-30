@@ -239,6 +239,7 @@ public:
     std::unordered_map<uint32_t, int> params;       // scalar int pname -> param
     std::unordered_map<uint32_t, float> paramsf;     // scalar float pname -> param
     std::unordered_map<uint32_t, std::vector<float>> paramsfv; // float vector (BORDER_COLOR)
+    std::unordered_map<uint32_t, std::vector<int>> paramsiv;  // int vector (BORDER_COLOR / SWIZZLE_RGBA)
     std::unique_ptr<BackendSampler> backend;
 };
 

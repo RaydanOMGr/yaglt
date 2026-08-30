@@ -573,6 +573,7 @@ GLboolean glIsSampler(GLuint sampler);
 void glSamplerParameteri(GLuint sampler, GLenum pname, GLint param);
 void glSamplerParameterf(GLuint sampler, GLenum pname, GLfloat param);
 void glSamplerParameterfv(GLuint sampler, GLenum pname, const GLfloat* params);
+void glSamplerParameteriv(GLuint sampler, GLenum pname, const GLint* params);
 void glSamplerParameterIiv(GLuint sampler, GLenum pname, const GLint* params);
 void glSamplerParameterIuiv(GLuint sampler, GLenum pname, const GLuint* params);
 void glGetSamplerParameteriv(GLuint sampler, GLenum pname, GLint* params);

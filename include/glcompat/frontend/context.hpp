@@ -1049,6 +1049,8 @@ public:
     void samplerParameterf(GLObjectName sampler, uint32_t pname, float param);
     void samplerParameterfv(GLObjectName sampler, uint32_t pname,
                             const float* params, int count);
+    void samplerParameteriv(GLObjectName sampler, uint32_t pname,
+                            const int32_t* params, int count);
     void samplerParameterIiv(GLObjectName sampler, uint32_t pname,
                              const int32_t* params);
     void samplerParameterIuiv(GLObjectName sampler, uint32_t pname,
