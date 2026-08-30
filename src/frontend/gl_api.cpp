@@ -122,6 +122,14 @@ void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
                                  writeOffset, size);
 }
 
+void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer,
+                              GLintptr readOffset, GLintptr writeOffset,
+                              GLsizeiptr size) {
+    if (g_current == nullptr) return;
+    g_current->copyNamedBufferSubData(readBuffer, writeBuffer, readOffset,
+                                      writeOffset, size);
+}
+
 void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getBufferParameteriv(target, pname, params);

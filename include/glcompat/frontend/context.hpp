@@ -92,6 +92,14 @@ public:
     void copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,
                            intptr_t readOffset, intptr_t writeOffset,
                            intptr_t size);
+    // DSA buffer copy (SPEC §6 glCopyNamedBufferSubData). Copies a region between
+    // two named buffers by object name (no bind required). An ungenerated read or
+    // write name reports GL_INVALID_OPERATION; an out-of-bounds region reports
+    // GL_INVALID_VALUE. The frontend memcpy's its CPU mirror then pushes the
+    // written region to the destination backend.
+    void copyNamedBufferSubData(GLObjectName readBuffer, GLObjectName writeBuffer,
+                                intptr_t readOffset, intptr_t writeOffset,
+                                intptr_t size);
     // Query buffer parameters (SPEC §6 / §22 glGetBufferParameteriv). Reads the
     // frontend-owned state (size/usage/flags/mapped). A null `params` reports
     // GL_INVALID_VALUE; an unknown pname reports GL_INVALID_ENUM.

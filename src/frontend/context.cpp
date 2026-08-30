@@ -330,6 +330,33 @@ void Context::copyBufferSubData(uint32_t readTarget, uint32_t writeTarget,
     }
 }
 
+void Context::copyNamedBufferSubData(GLObjectName readBuffer, GLObjectName writeBuffer,
+                                     intptr_t readOffset, intptr_t writeOffset,
+                                     intptr_t size) {
+    BufferObject* src = getBuffer(readBuffer);
+    BufferObject* dst = getBuffer(writeBuffer);
+    if (src == nullptr || dst == nullptr) {
+        setError(GLError::InvalidOperation); // read or write name not generated
+        return;
+    }
+    if (readOffset < 0 || size < 0 || readOffset + size > src->size ||
+        writeOffset < 0 || writeOffset + size > dst->size) {
+        setError(GLError::InvalidValue); // copy region out of bounds
+        return;
+    }
+    if (size > 0) {
+        std::memcpy(dst->store.data() + static_cast<size_t>(writeOffset),
+                    src->store.data() + static_cast<size_t>(readOffset),
+                    static_cast<size_t>(size));
+    }
+    if (dst->backend) {
+        // Keep the destination's native copy in sync with the mirrored region.
+        dst->backend->namedBufferSubData(writeOffset, size,
+                                         src->store.data() +
+                                             static_cast<size_t>(readOffset));
+    }
+}
+
 void Context::getBufferParameteriv(uint32_t target, uint32_t pname,
                                    int32_t* params) {
     GLObjectName bound = boundBuffer(target);

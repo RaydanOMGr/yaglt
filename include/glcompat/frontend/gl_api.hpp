@@ -62,6 +62,10 @@ void glNamedBufferStorage(GLuint buffer, GLsizeiptr size, const GLvoid* data,
 void glCopyBufferSubData(GLenum readTarget, GLenum writeTarget,
                          GLintptr readOffset, GLintptr writeOffset,
                          GLsizeiptr size);
+// DSA buffer copy (SPEC §6). Copies a region between two named buffers.
+void glCopyNamedBufferSubData(GLuint readBuffer, GLuint writeBuffer,
+                              GLintptr readOffset, GLintptr writeOffset,
+                              GLsizeiptr size);
 
 // Buffer parameter queries (SPEC §6 / §22). Reads frontend-owned buffer state.
 void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);

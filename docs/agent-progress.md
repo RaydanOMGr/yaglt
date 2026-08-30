@@ -3,6 +3,21 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-30 — DSA buffer copy §6, this session)
+
+- Added `glCopyNamedBufferSubData` (SPEC §6), the DSA counterpart of the
+  target-based `glCopyBufferSubData`. `Context::copyNamedBufferSubData` copies a
+  region between two named buffers by object name (no bind): an ungenerated read
+  or write name reports `GL_INVALID_OPERATION`, an out-of-bounds region reports
+  `GL_INVALID_VALUE`, the frontend memcpy's its authoritative CPU data store, then
+  pushes the written region to the destination backend via `namedBufferSubData`
+  (GLES forwards to `glNamedBufferSubData`, ES 3.1+). Public `gl_api` declares and
+  dispatches the entry point; the `gl*` shim regenerates from `gl_api.hpp`. New
+  `tests/unit/named_buffer_copy_test.cpp` (3 cases: copy + backend push,
+  out-of-bounds / ungenerated-name validation, public dispatch surface). Default
+  **830/830**, sanitizer **830/830**, translate (Mesa) **842/842** green. Coverage
+  regenerated: core 86.0% → 86.1% (491/570), full 50.5% → 50.6% (532/1052).
+
 ## Recent Work (2026-08-30 — DSA + target-based buffer mapping §6/§6.1, this session)
 
 - Added the buffer-mapping surface (SPEC §6 / §6.1), completing the SPEC §6
