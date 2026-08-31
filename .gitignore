@@ -7,3 +7,15 @@ __pycache__/
 cmake-build-*/
 .DS_Store
 .kilo/
+
+# CTS run artifacts and debug dumps
+*.qpa
+*.log
+KHR-GL*-cases.txt
+yaglt_*_in_*.glsl
+yaglt_*_prepared_*.glsl
+yaglt_*_es_out_*.glsl
+yaglt_FAIL_*.glsl
+tests/translate_fail_test.cpp
+tools/segv_bt.so
+
