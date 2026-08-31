@@ -325,6 +325,18 @@ public:
     // Driver-level string query, bypassing the frontend synthetic strings.
     const char* getBackingGlString(uint32_t name) override;
 
+    // Indexed driver string query (glGetStringi). Delegates to the host GLES
+    // driver so the frontend reports the real extension list (SPEC §22.2).
+    const GLubyte* getStringi(uint32_t name, uint32_t index) override;
+
+    // Generic GL state queries forwarded to the native GLES driver for pnames
+    // the frontend does not model (e.g. GL_NUM_EXTENSIONS, driver limits).
+    void getIntegerv(uint32_t pname, int32_t* params) override;
+    void getBooleanv(uint32_t pname, unsigned char* params) override;
+    void getFloatv(uint32_t pname, float* params) override;
+    void getDoublev(uint32_t pname, double* params) override;
+    void getInteger64v(uint32_t pname, int64_t* params) override;
+
  private:
     GLESLibPtr lib_;
     LinuxCapabilities platform_;
@@ -360,6 +372,9 @@ public:
         adopt_ = true;
         adoptDisplay_ = dpy;
         adoptContext_ = ctx;
+        // The context is owned by an external libEGL; resolve GL entry points via
+        // its eglGetProcAddress so we call into the live driver mapping.
+        lib_->resolveGLViaProcAddr = true;
     }
     bool isAdopted() const { return adopt_; }
 };

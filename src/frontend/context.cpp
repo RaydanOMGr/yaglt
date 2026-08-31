@@ -57,15 +57,17 @@ const GLubyte* Context::getString(GLenum name) {
 }
 
 const GLubyte* Context::getStringi(GLenum name, uint32_t index) {
-    // Only GL_EXTENSIONS is indexable (SPEC §22.2). This frontend exposes no
-    // extensions, so the valid index range is empty and every index is out of
-    // range.
+    // Only GL_EXTENSIONS is indexable (SPEC §22.2). Delegate to the backend so
+    // the frontend reports the real driver capability set rather than a
+    // hard-coded empty list. The backend (and thus the driver) sets the
+    // appropriate GL error for an out-of-range index.
     if (name != GL_EXTENSIONS) {
         setError(GLError::InvalidEnum);
         return nullptr;
     }
-    setError(GLError::InvalidValue);
-    return nullptr;
+    const GLubyte* s = backend_.getStringi(static_cast<uint32_t>(name), index);
+    if (!s) setError(GLError::InvalidValue);
+    return s;
 }
 
 GLObjectName Context::genBuffer() {
@@ -7346,7 +7348,10 @@ void Context::getIntegerv(uint32_t pname, int32_t* params) {
     int32_t buf[4] = {0, 0, 0, 0};
     int n = state_.getInteger(static_cast<GLenum>(pname), buf);
     if (n == 0) {
-        setError(GLError::InvalidEnum);
+        // Not modeled in the frontend state tracker; forward to the backend so
+        // driver-owned state (GL_NUM_EXTENSIONS, limits, strings-as-enums, etc.)
+        // is reported honestly instead of a spurious INVALID_ENUM.
+        backend_.getIntegerv(pname, params);
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = buf[i];
@@ -7360,7 +7365,7 @@ void Context::getBooleanv(uint32_t pname, unsigned char* params) {
     unsigned char buf[4] = {0, 0, 0, 0};
     int n = state_.getBoolean(static_cast<GLenum>(pname), buf);
     if (n == 0) {
-        setError(GLError::InvalidEnum);
+        backend_.getBooleanv(pname, params);
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = buf[i];
@@ -7374,7 +7379,7 @@ void Context::getFloatv(uint32_t pname, float* params) {
     float buf[4] = {0.0f, 0.0f, 0.0f, 0.0f};
     int n = state_.getFloat(static_cast<GLenum>(pname), buf);
     if (n == 0) {
-        setError(GLError::InvalidEnum);
+        backend_.getFloatv(pname, params);
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = buf[i];
@@ -7388,7 +7393,7 @@ void Context::getDoublev(uint32_t pname, double* params) {
     double buf[4] = {0.0, 0.0, 0.0, 0.0};
     int n = state_.getDouble(static_cast<GLenum>(pname), buf);
     if (n == 0) {
-        setError(GLError::InvalidEnum);
+        backend_.getDoublev(pname, params);
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = buf[i];
@@ -7404,7 +7409,7 @@ void Context::getInteger64v(uint32_t pname, int64_t* params) {
     int32_t buf[4] = {0, 0, 0, 0};
     int n = state_.getInteger(static_cast<GLenum>(pname), buf);
     if (n == 0) {
-        setError(GLError::InvalidEnum);
+        backend_.getInteger64v(pname, params);
         return;
     }
     for (int i = 0; i < n; ++i) params[i] = static_cast<int64_t>(buf[i]);

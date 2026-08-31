@@ -40,6 +40,15 @@ public:
     // for backends that do not need the translation (e.g. the mock backend).
     virtual void bindNativeObject(uint32_t /*name*/, uint32_t /*nativeId*/) {}
 
+    // Indexed string query (SPEC §22.2, glGetStringi). Returns the backend's
+    // real value for `name` at `index` (e.g. the index-th extension). The
+    // default returns nullptr with no side effects; backends that own a native
+    // context (GLES) delegate to the driver so the frontend reports the real
+    // capability set rather than a hard-coded empty one.
+    virtual const unsigned char* getStringi(uint32_t /*name*/, uint32_t /*index*/) {
+        return nullptr;
+    }
+
     // Bind a framebuffer object on the driver (SPEC §9.4 / §15). `framebuffer` is
     // the native id; backends resolve the frontend name through the native map.
     // The frontend only records the bound framebuffer, so it must push the bind
@@ -298,6 +307,18 @@ public:
     // bypassing any frontend synthetic value. Returns nullptr when the backend
     // has no native context or the name is unsupported by the driver.
     virtual const char* getBackingGlString(uint32_t name) = 0;
+
+    // Generic GL state queries (glGetIntegerv / glGetBooleanv / glGetFloatv /
+    // glGetDoublev / glGetInteger64v). The frontend answers tracked state from
+    // its own state tracker; backends implement these to forward any pname the
+    // frontend does not model to the native driver (e.g. GL_NUM_EXTENSIONS,
+    // driver limits, GL_VENDOR/RENDERER/SHADING_LANGUAGE_VERSION). `pname` is
+    // the raw GL enum and `params` the caller-owned output buffer.
+    virtual void getIntegerv(uint32_t pname, int32_t* params) = 0;
+    virtual void getBooleanv(uint32_t pname, unsigned char* params) = 0;
+    virtual void getFloatv(uint32_t pname, float* params) = 0;
+    virtual void getDoublev(uint32_t pname, double* params) = 0;
+    virtual void getInteger64v(uint32_t pname, int64_t* params) = 0;
 };
 
 } // namespace glcompat

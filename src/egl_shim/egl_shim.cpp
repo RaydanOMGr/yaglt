@@ -39,6 +39,7 @@
 #include <dlfcn.h>
 #include <mutex>
 #include <unordered_map>
+#include <vector>
 
 namespace {
 
@@ -84,9 +85,86 @@ void activateContext(EGLContext ctx) {
     glcompat::setCurrentContext(sc->ctx);
 }
 
+// Translate a desktop-GL context request into a GLES context request on the
+// host. The host (e.g. Mesa softpipe) may only expose GLES; YAGLT implements
+// desktop GL on top of a GLES backend, so we must obtain a GLES context and
+// present it as desktop GL to the application.
+static const EGLint* translateContextAttribs(const EGLint* in) {
+    std::vector<EGLint> out;
+    bool sawMajor = false, sawMinor = false;
+    for (const EGLint* p = in; p && *p != EGL_NONE; p += 2) {
+        const EGLint key = p[0];
+        const EGLint val = p[1];
+        switch (key) {
+            case EGL_CONTEXT_MAJOR_VERSION_KHR:
+                out.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);
+                out.push_back(3);
+                sawMajor = true;
+                break;
+            case EGL_CONTEXT_MINOR_VERSION_KHR:
+                out.push_back(EGL_CONTEXT_MINOR_VERSION_KHR);
+                out.push_back(0);
+                sawMinor = true;
+                break;
+            case EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR:
+                // Not valid for a GLES context; drop it.
+                break;
+            default:
+                out.push_back(key);
+                out.push_back(val);
+                break;
+        }
+    }
+    if (!sawMajor) {
+        out.push_back(EGL_CONTEXT_MAJOR_VERSION_KHR);
+        out.push_back(3);
+    }
+    if (!sawMinor) {
+        out.push_back(EGL_CONTEXT_MINOR_VERSION_KHR);
+        out.push_back(0);
+    }
+    out.push_back(EGL_NONE);
+    // Persist for the duration of the createContext call.
+    static std::vector<EGLint> storage;
+    storage = std::move(out);
+    return storage.data();
+}
+
 } // namespace
 
 extern "C" {
+
+// The CTS (and any desktop-GL app) chooses a config with an OpenGL (or ES1)
+// renderable type, but the host only exposes GLES. Remap the renderable type so
+// a usable GLES config is returned.
+EGLAPIENTRY EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list,
+                                       EGLConfig* configs, EGLint config_size,
+                                       EGLint* num_config) {
+    if (!g_host.eglChooseConfig) return EGL_FALSE;
+    static std::vector<EGLint> storage;
+    const EGLint* list = attrib_list;
+    if (attrib_list) {
+        std::vector<EGLint> out;
+        for (const EGLint* p = attrib_list; *p != EGL_NONE; p += 2) {
+            EGLint key = p[0], val = p[1];
+            if (key == EGL_RENDERABLE_TYPE) {
+                EGLint mapped = val;
+                if (val & EGL_OPENGL_BIT) mapped = (mapped & ~EGL_OPENGL_BIT) | EGL_OPENGL_ES3_BIT;
+                if (val & EGL_OPENGL_ES_BIT) mapped = (mapped & ~EGL_OPENGL_ES_BIT) | EGL_OPENGL_ES3_BIT;
+                if (mapped == 0) mapped = EGL_OPENGL_ES3_BIT;
+                out.push_back(EGL_RENDERABLE_TYPE);
+                out.push_back(mapped);
+            } else {
+                out.push_back(key);
+                out.push_back(val);
+            }
+        }
+        out.push_back(EGL_NONE);
+        storage = std::move(out);
+        list = storage.data();
+    }
+    return g_host.eglChooseConfig(dpy, list, configs, config_size, num_config);
+}
 
 // --- Auto-forwarded EGL entry points -----------------------------------------
 // FWD==1 emits a forwarding wrapper; FWD==0 is implemented manually below.
@@ -105,12 +183,25 @@ extern "C" {
 
 // --- Manual EGL entry points ------------------------------------------------
 
+// The CTS (and any desktop-GL app) binds EGL_OPENGL_API, but the host only
+// exposes GLES. Translate the bind so the host creates a GLES context that
+// YAGLT drives as desktop GL.
+EGLAPIENTRY EGLBoolean eglBindAPI(EGLenum api) {
+    if (!g_host.eglBindAPI) return EGL_FALSE;
+    if (api == EGL_OPENGL_API) api = EGL_OPENGL_ES_API;
+    return g_host.eglBindAPI(api);
+}
+
 EGLAPIENTRY EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
                                         EGLContext share_context,
                                         const EGLint* attrib_list) {
     if (!g_host.eglCreateContext) return EGL_NO_CONTEXT;
+    // The application asked for a desktop-GL context (EGL_OPENGL_API, possibly
+    // with a CORE/COMPAT profile mask). The host only provides GLES, so rewrite
+    // the request into a GLES3 context that YAGLT will drive as desktop GL.
+    const EGLint* hostAttribs = translateContextAttribs(attrib_list);
     EGLContext realCtx =
-        g_host.eglCreateContext(dpy, config, share_context, attrib_list);
+        g_host.eglCreateContext(dpy, config, share_context, hostAttribs);
     if (realCtx == EGL_NO_CONTEXT) return realCtx;
 
     std::lock_guard<std::mutex> lock(g_mapMutex);

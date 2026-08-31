@@ -43,7 +43,14 @@ struct GLESLib {
     GLenum (*glGetError)(void) = nullptr;
     const GLubyte* (*glGetString)(GLenum) = nullptr;
     void (*glGetIntegerv)(GLenum, GLint*) = nullptr;
-    void (*glGetStringi)(GLenum, GLuint, const GLubyte**) = nullptr;
+    void (*glGetBooleanv)(GLenum, GLboolean*) = nullptr;
+    void (*glGetFloatv)(GLenum, GLfloat*) = nullptr;
+    // GLES has no native glGetDoublev; the backend implements getDoublev by
+    // widening glGetFloatv. Declared with double* to avoid the platform GLdouble
+    // (often int) typedef mismatch.
+    void (*glGetDoublev)(GLenum, double*) = nullptr;
+    void (*glGetInteger64v)(GLenum, GLint64*) = nullptr;
+    const GLubyte* (*glGetStringi)(GLenum, GLuint) = nullptr;
 
     void (*glGenBuffers)(GLsizei, GLuint*) = nullptr;
     void (*glDeleteBuffers)(GLsizei, const GLuint*) = nullptr;
@@ -493,6 +500,19 @@ struct GLESLib {
 
     // Safe to issue driver calls: symbols resolved AND a live context exists.
     bool driverLive() const { return loaded && contextAlive; }
+
+    // Handle returned by dlopen of libGLESv2 (kept so GL symbols can be resolved
+    // via dlsym when eglGetProcAddress is unavailable).
+    void* glesHandle = nullptr;
+
+    // When true, GL entry points are resolved through the host EGL's
+    // eglGetProcAddress instead of (or as a fallback after) dlsym on the
+    // dlopen'd libGLESv2. This is required when the GLES context is owned by an
+    // external libEGL (e.g. the YAGLT libEGL drop-in shim): the context's real
+    // dispatch lives in the host driver's libGLESv2 mapping, which is not the
+    // one our own dlopen produced. eglGetProcAddress returns pointers into the
+    // live driver mapping and therefore stay valid for that context.
+    bool resolveGLViaProcAddr = false;
 
     // Opens libEGL / libGLESv2 (trying a few common sonames) and resolves all
     // of the above. Returns false (and leaves loaded=false) if unavailable.

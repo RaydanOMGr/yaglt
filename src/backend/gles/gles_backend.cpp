@@ -144,8 +144,7 @@ void GLESBackend::queryVersion() {
         GLint n = 0;
         lib_->glGetIntegerv(GL_NUM_EXTENSIONS, &n);
         for (GLint i = 0; i < n; ++i) {
-            const GLubyte* e = nullptr;
-            lib_->glGetStringi(GL_EXTENSIONS, static_cast<GLuint>(i), &e);
+            const GLubyte* e = lib_->glGetStringi(GL_EXTENSIONS, static_cast<GLuint>(i));
             if (e) {
                 if (!lib_->extensionsString.empty()) lib_->extensionsString += " ";
                 lib_->extensionsString += reinterpret_cast<const char*>(e);
@@ -161,6 +160,42 @@ const char* GLESBackend::getBackingGlString(uint32_t name) {
     if (!lib_ || !lib_->glGetString) return nullptr;
     const GLubyte* s = lib_->glGetString(static_cast<GLenum>(name));
     return s ? reinterpret_cast<const char*>(s) : nullptr;
+}
+
+const GLubyte* GLESBackend::getStringi(uint32_t name, uint32_t index) {
+    if (!lib_ || !lib_->glGetStringi) return nullptr;
+    return lib_->glGetStringi(static_cast<GLenum>(name), static_cast<GLuint>(index));
+}
+
+void GLESBackend::getIntegerv(uint32_t pname, int32_t* params) {
+    if (lib_ && lib_->glGetIntegerv) lib_->glGetIntegerv(static_cast<GLenum>(pname), params);
+}
+
+void GLESBackend::getBooleanv(uint32_t pname, unsigned char* params) {
+    if (lib_ && lib_->glGetBooleanv)
+        lib_->glGetBooleanv(static_cast<GLenum>(pname),
+                            reinterpret_cast<GLboolean*>(params));
+}
+
+void GLESBackend::getFloatv(uint32_t pname, float* params) {
+    if (lib_ && lib_->glGetFloatv) lib_->glGetFloatv(static_cast<GLenum>(pname), params);
+}
+void GLESBackend::getDoublev(uint32_t pname, double* params) {
+    if (lib_ && lib_->glGetDoublev) {
+        lib_->glGetDoublev(static_cast<GLenum>(pname), params);
+        return;
+    }
+    // GLES has no native glGetDoublev; widen the float query.
+    if (lib_ && lib_->glGetFloatv) {
+        float tmp[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+        lib_->glGetFloatv(static_cast<GLenum>(pname), tmp);
+        for (int i = 0; i < 4; ++i) params[i] = static_cast<double>(tmp[i]);
+    }
+}
+
+void GLESBackend::getInteger64v(uint32_t pname, int64_t* params) {
+    if (lib_ && lib_->glGetInteger64v)
+        lib_->glGetInteger64v(static_cast<GLenum>(pname), params);
 }
 
 bool GLESBackend::initialize() {
