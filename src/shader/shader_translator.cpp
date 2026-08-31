@@ -18,18 +18,17 @@
 namespace glcompat {
 
 namespace {
-// Desktop GLSL omits explicit `layout(binding=...)` for uniform/storage blocks
-// and for bare (non-block) uniform declarations, but glslang requires a binding
-// when emitting SPIR-V. Inject a default binding for every uniform/storage
-// block and bare uniform that lacks one so desktop shaders translate without
-// manual edits (SPEC §7: shader pipeline transformation).
+// Desktop GLSL omits explicit `layout(binding=...)` for uniform/storage blocks,
+// but glslang requires one when emitting SPIR-V. Inject a default binding for
+// every uniform/storage block that lacks one so desktop shaders translate
+// without manual edits. Bare (non-block) uniform declarations are NOT handled
+// here — they need `layout(location=...)` (handled by assignDefaultLocations),
+// not `layout(binding=...)`; glslang rejects `layout(binding=...)` on bare
+// non-opaque uniforms with "'binding' requires block, or sampler/image, or
+// atomic-counter type" (SPEC §7: shader pipeline transformation).
 std::string assignDefaultBindings(const std::string& src) {
     static const std::regex re(
-        // block form:  uniform|buffer NAME [instance] {
-        // bare form:   uniform|buffer TYPE NAME [array] ;
-        R"((layout\s*\([^)]*\)\s*)?(uniform|buffer)\s+)"
-        R"((?:([A-Za-z_]\w*)(?:\s+([A-Za-z_]\w*))?\s*\{)"
-        R"(|([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;))");
+        R"((layout\s*\([^)]*\)\s*)?(uniform|buffer)\s+([A-Za-z_]\w*)(\s+[A-Za-z_]\w*)?\s*\{)");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int binding = 0;
@@ -38,41 +37,19 @@ std::string assignDefaultBindings(const std::string& src) {
         out.append(pos, m[0].first);
         const std::string kind = m[2].str();
         const std::string layout = m[1].str();
-        if (m[3].matched) {
-            // Block declaration: NAME [instance] {.
-            const std::string blockName = m[3].str();
-            const std::string instName = m[4].str();
-            if (layout.empty()) {
-                out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
-                       " " + blockName;
-                if (!instName.empty()) out += " " + instName;
-                out += " {";
-            } else if (layout.find("binding") == std::string::npos) {
-                const std::string afterOpen =
-                    layout.substr(std::string("layout(").size());
-                out += "layout(binding=" + std::to_string(binding++) + ", " +
-                       afterOpen + kind + " " + blockName;
-                if (!instName.empty()) out += " " + instName;
-                out += " {";
-            } else {
-                out += m[0].str(); // already has a binding
-            }
+        if (layout.empty()) {
+            out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
+                   " " + m[3].str();
+            if (m[4].matched) out += m[4].str();
+            out += " {";
+        } else if (layout.find("binding") == std::string::npos) {
+            const std::string afterOpen = layout.substr(std::string("layout(").size());
+            out += "layout(binding=" + std::to_string(binding++) + ", " + afterOpen +
+                   kind + " " + m[3].str();
+            if (m[4].matched) out += m[4].str();
+            out += " {";
         } else {
-            // Bare uniform: TYPE NAME [array] ;.
-            const std::string type = m[5].str();
-            const std::string name = m[6].str();
-            const std::string arr = m[7].str();
-            if (layout.empty()) {
-                out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
-                       " " + type + " " + name + arr + ";";
-            } else if (layout.find("binding") == std::string::npos) {
-                const std::string afterOpen =
-                    layout.substr(std::string("layout(").size());
-                out += "layout(binding=" + std::to_string(binding++) + ", " +
-                       afterOpen + kind + " " + type + " " + name + arr + ";";
-            } else {
-                out += m[0].str(); // already has a binding
-            }
+            out += m[0].str(); // already has a binding
         }
         pos = m[0].second;
     }
@@ -80,14 +57,15 @@ std::string assignDefaultBindings(const std::string& src) {
     return out;
 }
 
-// User-defined `in`/`out` interface variables need an explicit location when
-// targeting SPIR-V (glslang rejects unlocated user I/O). `uniform` declarations
-// get a *binding* instead (see assignDefaultBindings) — never a location, which
-// SPIR-V rejects. Inject a default location for any `in`/`out` that lacks one so
-// desktop GLSL translates without manual edits (SPEC §7).
+// User-defined `in`/`out` interface variables and bare `uniform` declarations
+// need an explicit location when targeting SPIR-V (glslang rejects unlocated
+// user I/O and non-block uniforms with "'u_foo' : non-opaque uniform
+// variables need a layout(location=L)"). Inject a default location for any
+// such declaration that lacks one so desktop GLSL translates without manual
+// edits (SPEC §7).
 std::string assignDefaultLocations(const std::string& src) {
     static const std::regex re(
-        R"((layout\s*\([^)]*\)\s*)?(in|out)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
+        R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int location = 0;

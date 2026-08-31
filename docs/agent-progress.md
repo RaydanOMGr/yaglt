@@ -3,6 +3,50 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — fix WIP regressions in shader translator + DSA capability, this session)
+
+- Resumed on the previous model's WIP (commit ac4237e). It compiled and the
+  default + sanitizer builds were green (919/919, 0 failed) but the GLES e2e
+  build (`build_tx`) had two regressions vs SPEC-conformant behavior:
+
+  **1. Bare-uniform shader translation broken.** `ShaderTranslator::
+  assignDefaultBindings` had been widened to match both block-form and bare
+  uniforms. For bare uniforms (`uniform float u_alpha;`) it injected
+  `layout(binding=N)`; glslang then rejected the result with "'u_alpha' :
+  non-opaque uniform variables need a layout(location=L)" and "'binding' :
+  requires block, or sampler/image, or atomic-counter type", so every e2e
+  test that compiled a desktop fragment shader (e.g.
+  `gles_e2e_get_active_uniform`, `gles_e2e_framebuffer_complete_and_full_draw`,
+  `gles_e2e_program_resource_reflection`) failed `GL_COMPILE_STATUS` /
+  `GL_LINK_STATUS` assertions. Reverted `assignDefaultBindings` to only match
+  the block form (NAME [instance] `{...}`) and added `uniform` back to the
+  `assignDefaultLocations` regex so bare non-block uniforms get a
+  `layout(location=N)` as glslang actually requires. SPEC §7 shader pipeline
+  transformation.
+
+  **2. GLES backend lost `DirectStateAccess = Emulated`.** `populateGLESCapabilities`
+  was missing the `table.set(F::DirectStateAccess, S::Emulated)` line — the
+  surrounding comment block still describes the policy ("YAGLT emulates it
+  for every backend by operating on the named object's backend resource
+  ...") but the assignment itself was dropped, so DSA-gated entry points
+  (e.g. `gles_e2e_1d_texture_emulated_as_2d`'s
+  `getTextureLevelParameteriv`) returned `GL_INVALID_OPERATION` from
+  `dsaTexture()`. Restored the assignment.
+
+- After both fixes: default build **919/919, 0 failed**; sanitizer
+  (ASan/UBSan) build **919/919, 0 failed**; GLES e2e build (`build_tx`) all 7
+  `gles_e2e_*` tests pass (previously 2 were broken — `gles_e2e_1d_texture_*`
+  + every `gles_e2e_*_program_*` test that compiled a fragment shader). The
+  GLES build still has the pre-existing intermittent Mesa "invalid stdio
+  handle" crash on a random later test (~1 in 3 runs) — reproducible on
+  master, not introduced by this fix.
+
+- Note on test status semantics: the yaglt test framework prints
+  "X/X tests passed, 0 failed" at the end; "passed" is incremented when the
+  test body completes (not on `EXPECT_EQ` success), so the headline count is
+  not a coverage signal — the `FAIL ...` lines on stderr are the ground
+  truth.
+
 ## Recent Work (2026-08-31 — GL CTS (VK-GL-CTS) init crash fixed, this session)
 
 - Reproduced and root-caused the GL CTS (`../VK-GL-CTS`, `glcts`) crash that
