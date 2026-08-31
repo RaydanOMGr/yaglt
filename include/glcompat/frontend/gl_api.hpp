@@ -72,6 +72,12 @@ void glGetBufferParameteriv(GLenum target, GLenum pname, GLint* params);
 void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64* params);
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params);
 void glGetNamedBufferParameteriv(GLuint buffer, GLenum pname, GLint* params);
+// Robust buffer parameter queries (SPEC §6.1.2 / ARB_robustness). Identical to
+// glGetBufferParameteriv / glGetBufferParameteri64v except `bufSize` bounds the
+// destination; writing would overflow `bufSize` (here always 1 element) ->
+// GL_INVALID_OPERATION, a negative `bufSize` -> GL_INVALID_VALUE.
+void glGetnBufferParameteriv(GLenum target, GLenum pname, GLsizei bufSize, GLint* params);
+void glGetnBufferParameteri64v(GLenum target, GLenum pname, GLsizei bufSize, GLint64* params);
 // Mapped-buffer pointer queries (SPEC §6.1.1 glGetBufferPointerv /
 // glGetNamedBufferPointerv). pname must be GL_BUFFER_MAP_POINTER.
 void glGetBufferPointerv(GLenum target, GLenum pname, void** params);

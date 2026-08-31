@@ -117,6 +117,14 @@ public:
     // Ungenerated name -> GL_INVALID_OPERATION.
     void getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
                                    int32_t* params);
+    // Robust buffer parameter queries (SPEC §6.1.2 / ARB_robustness). Equivalent
+    // to getBufferParameteriv / getBufferParameteri64v but `bufSize` bounds the
+    // single written element: a negative `bufSize` -> GL_INVALID_VALUE, a
+    // `bufSize` too small for the one element written -> GL_INVALID_OPERATION.
+    void getnBufferParameteriv(uint32_t target, uint32_t pname, int32_t bufSize,
+                               int32_t* params);
+    void getnBufferParameteri64v(uint32_t target, uint32_t pname, int32_t bufSize,
+                                 int64_t* params);
     // Mapped-buffer pointer query (SPEC §6.1.1, glGetBufferPointerv /
     // glGetNamedBufferPointerv). pname must be BUFFER_MAP_POINTER (GL_INVALID_ENUM
     // otherwise); null params -> GL_INVALID_VALUE; the returned pointer is the

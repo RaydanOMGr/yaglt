@@ -432,6 +432,36 @@ void Context::getBufferParameteri64v(uint32_t target, uint32_t pname,
     }
 }
 
+void Context::getnBufferParameteriv(uint32_t target, uint32_t pname,
+                                    int32_t bufSize, int32_t* params) {
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    // Exactly one int element is written; if there is no room the robust query
+    // must reject rather than overflow the caller's array (ARB_robustness).
+    if (bufSize < 1) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    // Delegate to the non-robust query, which validates the bound buffer, the
+    // pname, and the (already checked non-null) params, then writes params[0].
+    getBufferParameteriv(target, pname, params);
+}
+
+void Context::getnBufferParameteri64v(uint32_t target, uint32_t pname,
+                                      int32_t bufSize, int64_t* params) {
+    if (bufSize < 0) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (bufSize < 1) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    getBufferParameteri64v(target, pname, params);
+}
+
 void Context::getNamedBufferParameteriv(GLObjectName buffer, uint32_t pname,
                                         int32_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {

@@ -140,6 +140,16 @@ void glGetBufferParameteri64v(GLenum target, GLenum pname, GLint64* params) {
     g_current->getBufferParameteri64v(target, pname, params);
 }
 
+void glGetnBufferParameteriv(GLenum target, GLenum pname, GLsizei bufSize, GLint* params) {
+    if (g_current == nullptr) return;
+    g_current->getnBufferParameteriv(target, pname, bufSize, params);
+}
+
+void glGetnBufferParameteri64v(GLenum target, GLenum pname, GLsizei bufSize, GLint64* params) {
+    if (g_current == nullptr) return;
+    g_current->getnBufferParameteri64v(target, pname, bufSize, params);
+}
+
 void glGetNamedBufferParameteri64v(GLuint buffer, GLenum pname, GLint64* params) {
     if (g_current == nullptr) return;
     g_current->getNamedBufferParameteri64v(buffer, pname, params);

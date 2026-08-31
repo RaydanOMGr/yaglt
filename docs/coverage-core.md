@@ -63,11 +63,11 @@ for, so a match means an exact command name is exposed by the frontend.
 ## Implemented surface
 
 <!-- coverage:surface:begin -->
-606 `gl*` entry points; 595 map to a spec command.
+608 `gl*` entry points; 595 map to a spec command.
 
 Genuinely extra (helpers / non-spec convenience spellings): `glDeleteQuery`, `glDeleteSampler`, `glDeleteTransformFeedback`, `glFlushState`, `glGenQuery`, `glGenSampler`, `glGenTransformFeedback`, `glMultiDrawArraysBaseInstance`, `glMultiDrawElementsBaseInstance`.
 
-Valid GL but absent from this spec's prototype index: `glGetnCompressedTextureImage`, `glGetnTextureImage`.
+Valid GL but absent from this spec's prototype index: `glGetnBufferParameteri64v`, `glGetnBufferParameteriv`, `glGetnCompressedTextureImage`, `glGetnTextureImage`.
 
 All implemented entry points, listed alphabetically:
 
@@ -150,8 +150,9 @@ glGetUniformBlockIndex, glGetUniformIndices, glGetUniformLocation, glGetUniformS
 glGetUniformdv, glGetUniformfv, glGetUniformiv, glGetUniformuiv, glGetVertexArrayIndexed64iv,
 glGetVertexArrayIndexediv, glGetVertexArrayiv, glGetVertexAttribIiv, glGetVertexAttribIuiv,
 glGetVertexAttribLdv, glGetVertexAttribPointerv, glGetVertexAttribdv, glGetVertexAttribfv,
-glGetVertexAttribiv, glGetnCompressedTexImage, glGetnCompressedTextureImage, glGetnTexImage,
-glGetnTextureImage, glGetnUniformdv, glGetnUniformfv, glGetnUniformiv, glGetnUniformuiv, glHint,
+glGetVertexAttribiv, glGetnBufferParameteri64v, glGetnBufferParameteriv,
+glGetnCompressedTexImage, glGetnCompressedTextureImage, glGetnTexImage, glGetnTextureImage,
+glGetnUniformdv, glGetnUniformfv, glGetnUniformiv, glGetnUniformuiv, glHint,
 glInvalidateBufferData, glInvalidateBufferSubData, glInvalidateFramebuffer,
 glInvalidateNamedFramebufferData, glInvalidateNamedFramebufferSubData,
 glInvalidateSubFramebuffer, glInvalidateTexImage, glInvalidateTexSubImage, glIsBuffer,

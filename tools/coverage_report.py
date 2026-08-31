@@ -146,6 +146,8 @@ def is_compat_only(name):
 KNOWN_VALID = {
     "glGetnTextureImage",            # GL 4.5 DSA robust (spec only lists GetnTexImage)
     "glGetnCompressedTextureImage",  # GL 4.5 DSA robust (spec only lists GetnCompressedTexImage)
+    "glGetnBufferParameteriv",       # GL 4.5 ARB_robustness (spec omits robust prototype)
+    "glGetnBufferParameteri64v",     # GL 4.5 ARB_robustness (spec omits robust prototype)
 }
 
 

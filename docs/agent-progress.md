@@ -3,6 +3,36 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — robust buffer parameter query §6.1.2 / ARB_robustness, this session)
+
+- Added `glGetnBufferParameteriv` / `glGetnBufferParameteri64v` (SPEC §6.1.2 /
+  ARB_robustness), closing the last genuinely-missing core entry points spotted
+  in a manual scan of the public surface (`glGetnUniform*` / `glGetnTexImage*` /
+  `glReadnPixels` already existed; these two buffer-param variants did not). They
+  are the bounds-checked counterparts of `glGetBufferParameteriv` /
+  `glGetBufferParameteri64v`: a `bufSize` smaller than the one element written →
+  `GL_INVALID_OPERATION`, a negative `bufSize` → `GL_INVALID_VALUE`. Otherwise they
+  delegate to the existing non-robust query and inherit its validation (unbound
+  target → `GL_INVALID_OPERATION`, null `params` → `GL_INVALID_VALUE`, unknown
+  `pname` → `GL_INVALID_ENUM`). Frontend-owned — no new backend virtual was needed.
+- Declared in `include/glcompat/frontend/gl_api.hpp`, dispatched in
+  `src/frontend/gl_api.cpp` (null-context guard), implemented in `Context::
+  getnBufferParameteriv` / `getnBufferParameteri64v` (delegate bodies in
+  `src/frontend/context.cpp`); the `gl*` shim regenerates both from `gl_api.hpp`
+  via `tools/gen_gl_exports.py`. `tools/coverage_report.py` now lists both in
+  `KNOWN_VALID` (they are real GL 4.5 commands but absent from this spec's
+  prototype index), keeping the unmatched list honest.
+- New `tests/unit/getn_buffer_parameter_test.cpp` (5 cases): 32-bit + 64-bit
+  reads of size/usage/mapped, `bufSize` 0 → `INVALID_OPERATION` and `-1` →
+  `INVALID_VALUE`, inherited base validation (unbound target / null params /
+  unknown pname), and the public `gl*` dispatch surface. Default **914/914** →
+  **919/919**, sanitizer (ASan/UBSan, `MALLOC_ARENA_MAX=1`) **919/919** green
+  (zero sanitizer errors), `build_tx` (GLES e2e under Mesa softpipe) **919/919**
+  green. `docs/feature-matrix.md` gains the "Robust buffer parameter query
+  (SPEC §6.1.2 / ARB_robustness)" row. Headline coverage unchanged (the two new
+  commands are not in the spec's prototype index): core **97.5% (554/568)**,
+  full ~55.7% (595/1068).
+
 ## Recent Work (2026-08-31 — coverage tooling: classify compat-only getters, this session)
 
 - `tools/coverage_report.py` `COMPAT_PREFIXES` now also recognizes the GL_ARB_imaging

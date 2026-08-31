@@ -56,6 +56,7 @@ add_executable(yaglt_tests
     unit/query_sync_test.cpp
     unit/buffer_completeness_test.cpp
     unit/buffer_parameter_i64_test.cpp
+    unit/getn_buffer_parameter_test.cpp
     unit/named_buffer_test.cpp
     unit/named_buffer_map_test.cpp
     unit/named_buffer_copy_test.cpp
