@@ -3210,6 +3210,11 @@ void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params) {
     g_current->getVertexAttribdv(index, pname, params);
 }
 
+void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble* params) {
+    if (g_current == nullptr) return;
+    g_current->getVertexAttribLdv(index, pname, params);
+}
+
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;
     g_current->getVertexAttribiv(index, pname, params);

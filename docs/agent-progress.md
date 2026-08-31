@@ -3,6 +3,21 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glGetVertexAttribLdv (SPEC §10.3), this session)
+
+- Added `glGetVertexAttribLdv` (SPEC §10.3), the long-double current-attribute
+  getter. `Context::getVertexAttribLdv` simply forwards to the already-present
+  `getVertexAttribdv` (the value type is `GLdouble`), reusing its validation
+  (bound VAO → `GL_INVALID_OPERATION`; index ≥ max → `GL_INVALID_VALUE`; null
+  params → `GL_INVALID_VALUE`; non-CURRENT_VERTEX_ATTRIB pname → `GL_INVALID_ENUM`).
+  Wired through `context.hpp`/`context.cpp` and `gl_api.hpp`/`gl_api.cpp`
+  (null-context guard; the `gl*` shim regenerates the entry from `gl_api.hpp`).
+  1 new case in `tests/unit/vertex_attrib_generic_test.cpp`
+  (`getVertexAttribLdv_matches_current_value`) confirms it matches `dv` and that
+  the same error contract applies. Default **887/887** → **888/888**, sanitizer
+  **888/888** green, `build_tx` (GLES e2e under Mesa softpipe) **899/899** →
+  **900/900**. `docs/feature-matrix.md` §10.3 row extended; coverage regenerated.
+
 ## Recent Work (2026-08-31 — glGetShaderPrecisionFormat (SPEC §7.1), this session)
 
 - Added `glGetShaderPrecisionFormat` (SPEC §7.1). `Context::getShaderPrecisionFormat`

@@ -330,3 +330,40 @@ TEST_CASE("getVertexAttrib_without_bound_vao_is_invalid_operation") {
     glGetVertexAttribPointerv(0, GL_VERTEX_ATTRIB_ARRAY_POINTER, &pv);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
+
+// glGetVertexAttribLdv (SPEC §10.3) reads the same double-precision current
+// attribute value as glGetVertexAttribdv (GLdouble) for CURRENT_VERTEX_ATTRIB.
+TEST_CASE("getVertexAttribLdv_matches_current_value") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLObjectName vao = ctx.genVertexArray();
+    ctx.bindVertexArray(vao);
+
+    glVertexAttrib4f(1, 0.25f, -1.75f, 2.0f, 9.0f);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    double dv[4] = {0, 0, 0, 0};
+    glGetVertexAttribLdv(1, GL_CURRENT_VERTEX_ATTRIB, dv);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(dv[0], 0.25);
+    EXPECT_EQ(dv[1], -1.75);
+    EXPECT_EQ(dv[2], 2.0);
+    EXPECT_EQ(dv[3], 9.0);
+
+    // The dv and Ldv variants agree on the recorded double value.
+    double dv2[4] = {0, 0, 0, 0};
+    glGetVertexAttribdv(1, GL_CURRENT_VERTEX_ATTRIB, dv2);
+    EXPECT_EQ(dv2[0], dv[0]);
+    EXPECT_EQ(dv2[1], dv[1]);
+    EXPECT_EQ(dv2[2], dv[2]);
+    EXPECT_EQ(dv2[3], dv[3]);
+
+    // A non-current-attribute pname is GL_INVALID_ENUM.
+    glGetVertexAttribLdv(1, GL_VERTEX_ATTRIB_ARRAY_SIZE, dv);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
+    // Null params -> GL_INVALID_VALUE.
+    glGetVertexAttribLdv(1, GL_CURRENT_VERTEX_ATTRIB, nullptr);
+    EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
+}

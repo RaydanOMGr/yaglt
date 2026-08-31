@@ -1373,6 +1373,7 @@ public:
     void getVertexAttribfv(uint32_t index, GLenum pname, float* params);
     void getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params);
     void getVertexAttribdv(uint32_t index, GLenum pname, double* params);
+    void getVertexAttribLdv(uint32_t index, GLenum pname, double* params);
     void getVertexAttribIiv(uint32_t index, GLenum pname, int32_t* params);
     void getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params);
     void getVertexAttribPointerv(uint32_t index, GLenum pname, void** params);

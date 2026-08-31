@@ -8465,6 +8465,12 @@ void Context::getVertexAttribdv(uint32_t index, GLenum pname, double* params) {
     for (int i = 0; i < 4; ++i) params[i] = a.currentValue[i];
 }
 
+void Context::getVertexAttribLdv(uint32_t index, GLenum pname, double* params) {
+    // SPEC §10.3: the long-double variant reads the same double-precision current
+    // attribute value as glGetVertexAttribdv (GLdouble == the value type here).
+    getVertexAttribdv(index, pname, params);
+}
+
 void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
     if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }

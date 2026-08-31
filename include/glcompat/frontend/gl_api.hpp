@@ -1117,6 +1117,7 @@ void glVertexAttribI4uiv(GLuint index, const GLuint* v);
 void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params);
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params);
 void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params);
+void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble* params);
 void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint* params);
 void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params);
 void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params);
