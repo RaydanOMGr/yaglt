@@ -1399,6 +1399,16 @@ public:
     void getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params);
     void getVertexAttribPointerv(uint32_t index, GLenum pname, void** params);
 
+    // Pointer queries (SPEC §22.2, glGetPointerv). Returns a single `void*` for the
+    // given pname: the installed debug callback (DEBUG_CALLBACK_FUNCTION) or its
+    // user parameter (DEBUG_CALLBACK_USER_PARAM) from frontend state, the client
+    // pointer of the currently bound VAO's legacy fixed-function array for the
+    // VERTEX/NORMAL/COLOR/SECONDARY_COLOR/INDEX/FOG_COORD/TEXTURE_COORD/EDGE_FLAG
+    // array pnames, or 0 for SELECTION_BUFFER_POINTER / FEEDBACK_BUFFER_POINTER
+    // (YAGLT does not implement selection/feedback buffers). An unknown pname is
+    // GL_INVALID_ENUM; a null `params` is GL_INVALID_VALUE.
+    void getPointerv(uint32_t pname, void** params);
+
     // DSA vertex-array queries (SPEC §10.3.1), operate on an explicit VAO name.
     // getVertexArrayiv reads VAO-level state (ELEMENT_ARRAY_BUFFER_BINDING).
     // getVertexArrayIndexediv reads per-attribute int state (ENABLED/SIZE/STRIDE/

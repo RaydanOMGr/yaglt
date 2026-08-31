@@ -324,6 +324,21 @@ constexpr GLenum GL_DONT_CARE = 0x1100;
 // Debug message namespaces (SPEC §20.4 / §20.5, KHR_debug).
 constexpr GLenum GL_DEBUG_OUTPUT = 0x92E0;
 constexpr GLenum GL_DEBUG_OUTPUT_SYNCHRONOUS = 0x8242;
+constexpr GLenum GL_DEBUG_CALLBACK_FUNCTION = 0x8244;
+constexpr GLenum GL_DEBUG_CALLBACK_USER_PARAM = 0x8245;
+// glGetPointerv (SPEC §22.2) pointer-query pnames. The DEBUG_CALLBACK_* pnames
+// are core; the remaining are compatibility-profile (legacy client vertex
+// arrays, selection/feedback buffers) and accepted for SPEC completeness.
+constexpr GLenum GL_VERTEX_ARRAY_POINTER = 0x808E;
+constexpr GLenum GL_NORMAL_ARRAY_POINTER = 0x808F;
+constexpr GLenum GL_COLOR_ARRAY_POINTER = 0x8090;
+constexpr GLenum GL_INDEX_ARRAY_POINTER = 0x8091;
+constexpr GLenum GL_TEXTURE_COORD_ARRAY_POINTER = 0x8092;
+constexpr GLenum GL_EDGE_FLAG_ARRAY_POINTER = 0x8093;
+constexpr GLenum GL_SECONDARY_COLOR_ARRAY_POINTER = 0x845D;
+constexpr GLenum GL_FOG_COORD_ARRAY_POINTER = 0x8456;
+constexpr GLenum GL_SELECTION_BUFFER_POINTER = 0x0DF0;
+constexpr GLenum GL_FEEDBACK_BUFFER_POINTER = 0x0DF3;
 constexpr GLenum GL_DEBUG_SOURCE_API = 0x8246;
 constexpr GLenum GL_DEBUG_SOURCE_WINDOW_SYSTEM = 0x8247;
 constexpr GLenum GL_DEBUG_SOURCE_SHADER_COMPILER = 0x8248;

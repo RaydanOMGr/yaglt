@@ -1175,7 +1175,12 @@ void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params);
 void glGetVertexAttribLdv(GLuint index, GLenum pname, GLdouble* params);
 void glGetVertexAttribIiv(GLuint index, GLenum pname, GLint* params);
 void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params);
-void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params);
+ void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params);
+ // Pointer queries (SPEC §22.2). Returns the single `void*` for `pname`: the debug
+ // callback / user param, a legacy fixed-function array client pointer from the
+ // bound VAO, or null for selection/feedback (unimplemented). Unknown pname is
+ // GL_INVALID_ENUM; null `params` is GL_INVALID_VALUE.
+ void glGetPointerv(GLenum pname, GLvoid** params);
 void glGetVertexArrayiv(GLuint vao, GLenum pname, GLint* params);
 void glGetVertexArrayIndexediv(GLuint vao, GLuint index, GLenum pname, GLint* params);
 void glGetVertexArrayIndexed64iv(GLuint vao, GLuint index, GLenum pname, GLint64* params);

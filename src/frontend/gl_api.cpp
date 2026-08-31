@@ -3372,10 +3372,15 @@ void glGetVertexAttribIuiv(GLuint index, GLenum pname, GLuint* params) {
     g_current->getVertexAttribIuiv(index, pname, params);
 }
 
-void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params) {
-    if (g_current == nullptr) return;
-    g_current->getVertexAttribPointerv(index, pname, reinterpret_cast<void**>(params));
-}
+ void glGetVertexAttribPointerv(GLuint index, GLenum pname, GLvoid** params) {
+     if (g_current == nullptr) return;
+     g_current->getVertexAttribPointerv(index, pname, reinterpret_cast<void**>(params));
+ }
+
+ void glGetPointerv(GLenum pname, GLvoid** params) {
+     if (g_current == nullptr) return;
+     g_current->getPointerv(pname, reinterpret_cast<void**>(params));
+ }
 
 void glGetVertexArrayiv(GLuint vao, GLenum pname, GLint* params) {
     if (g_current == nullptr) return;

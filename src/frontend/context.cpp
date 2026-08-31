@@ -8760,6 +8760,60 @@ void Context::getVertexAttribPointerv(uint32_t index, GLenum pname, void** param
     *params = reinterpret_cast<void*>(a.offset);
 }
 
+void Context::getPointerv(uint32_t pname, void** params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    switch (pname) {
+    case GL_DEBUG_CALLBACK_FUNCTION:
+        *params = reinterpret_cast<void*>(debugCallback_);
+        return;
+    case GL_DEBUG_CALLBACK_USER_PARAM:
+        *params = const_cast<void*>(debugUserParam_);
+        return;
+    case GL_SELECTION_BUFFER_POINTER:
+    case GL_FEEDBACK_BUFFER_POINTER:
+        // YAGLT does not implement selection/feedback buffers (SPEC §22.2): the
+        // pointers set by SelectBuffer/FeedbackBuffer are unimplemented, so the
+        // query honestly returns null.
+        *params = nullptr;
+        return;
+    default:
+        break;
+    }
+    // Legacy fixed-function array pointers (SPEC §22.2) resolve to the client
+    // pointer stored on the currently bound VAO for the corresponding generic
+    // attribute. Compatibility-only arrays without a generic equivalent
+    // (INDEX / EDGE_FLAG) are not tracked and return null.
+    int32_t legacyAttrib = -1;
+    switch (pname) {
+    case GL_VERTEX_ARRAY_POINTER:        legacyAttrib = 0; break;
+    case GL_NORMAL_ARRAY_POINTER:        legacyAttrib = 2; break;
+    case GL_COLOR_ARRAY_POINTER:        legacyAttrib = 3; break;
+    case GL_SECONDARY_COLOR_ARRAY_POINTER: legacyAttrib = 4; break;
+    case GL_FOG_COORD_ARRAY_POINTER:    legacyAttrib = 5; break;
+    case GL_TEXTURE_COORD_ARRAY_POINTER:
+        legacyAttrib = 8 + static_cast<int32_t>(state_.activeTextureUnit());
+        break;
+    case GL_INDEX_ARRAY_POINTER:
+    case GL_EDGE_FLAG_ARRAY_POINTER:
+        *params = nullptr;
+        return;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (boundVertexArray_ == 0 || legacyAttrib < 0 ||
+        legacyAttrib >= static_cast<int32_t>(kMaxVertexAttribs)) {
+        *params = nullptr;
+        return;
+    }
+    const auto& a = getVertexArray(boundVertexArray_)->attrib(
+        static_cast<uint32_t>(legacyAttrib));
+    *params = reinterpret_cast<void*>(a.offset);
+}
+
 void Context::getVertexArrayiv(GLObjectName vao, uint32_t pname, int32_t* params) {
     if (!backend_.capabilities().isSupported(Feature::DirectStateAccess)) {
         setError(GLError::InvalidOperation);

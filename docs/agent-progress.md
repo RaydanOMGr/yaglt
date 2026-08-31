@@ -3,6 +3,26 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glGetPointerv (SPEC §22.2), this session)
+
+- Added `glGetPointerv(pname, params)` (SPEC §22.2). It returns a single `void*`:
+  `DEBUG_CALLBACK_FUNCTION` / `DEBUG_CALLBACK_USER_PARAM` come from the frontend's
+  installed debug callback state; `SELECTION_BUFFER_POINTER` /
+  `FEEDBACK_BUFFER_POINTER` return null (selection/feedback buffers are
+  unimplemented). The legacy fixed-function array pnames resolve to the currently
+  bound VAO's attribute client pointer using the standard generic-attribute map
+  (VERTEX→0, NORMAL→2, COLOR→3, SECONDARY_COLOR→4, FOG_COORD→5,
+  TEXTURE_COORD→8+activeUnit); INDEX/EDGE_FLAG have no generic equivalent and
+  return null. A null `params` is `GL_INVALID_VALUE`, an unknown pname is
+  `GL_INVALID_ENUM`. No backend virtual was needed (all state is frontend-owned).
+- `gl_types.hpp` gained the `GL_DEBUG_CALLBACK_*` / `*_ARRAY_POINTER` /
+  `SELECTION_BUFFER_POINTER` / `FEEDBACK_BUFFER_POINTER` constants. New
+  `tests/unit/get_pointerv_test.cpp` (7 cases). ASan build **914/914**, GLES e2e
+  **926/926**, default build **914/914** (run under `MALLOC_ARENA_MAX=1`, which
+  avoids the pre-existing layout-sensitive heap crash documented earlier).
+  Coverage: core **94.5% (554/586)**, full ~55.7% (595/1068). `docs/feature-matrix.md`
+  gained a `Pointer queries` row.
+
 ## Recent Work (2026-08-31 — glGetActiveAtomicCounterBufferiv (SPEC §7.7), this session)
 
 - Added `glGetActiveAtomicCounterBufferiv` (SPEC §7.7), the active atomic-counter
@@ -855,7 +875,7 @@ is the ASan build + GLES e2e build, both green.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7, incl. atomic-counter buffer reflection §7.7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10, incl. multi-draw indirect counts §10.4); core coverage 94.4% (553/586)
+Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7, incl. atomic-counter buffer reflection §7.7), pointer/state queries (§22, glGetPointerv), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10, incl. multi-draw indirect counts §10.4); core coverage 94.5% (554/586)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §7/§8/§6/§10 surface)
 Last updated: 2026-08-31
 Known major blockers:
