@@ -72,9 +72,16 @@ COMPAT_PREFIXES = (
     "PopClientAttrib", "PopMatrix", "PopName", "PrioritizeTextures", "PushAttrib",
     "PushClientAttrib", "PushMatrix", "PushName", "Rasterpos", "RasterPos", "Rect",
     "RenderMode", "ResetHistogram", "ResetMinmax", "Rotate", "Scale", "SecondaryColor",
-    "SelectBuffer", "SeparableFilter2D", "ShadeModel", "TexCoord", "TexEnv", "TexGen",
+    "SelectBuffer", "SeparableFilter2D", "ShadeModel", "TexCoord",     "TexEnv", "TexGen",
     "Translate", "Vertex", "EndList", "ClearAccum", "ClearIndex", "IndexMask",
     "ClientAttribDefault", "PushDebugGroup", "PopDebugGroup",
+    # GL_ARB_imaging / compatibility-only getters & window-position commands
+    # (no core-profile equivalent) recognized by prefix so they are excluded
+    # from the core-profile coverage subset.
+    "WindowPos", "GetColorTableParameter", "GetConvolutionParameter",
+    "GetHistogramParameter", "GetMinmaxParameter", "GetSeparableFilterParameter",
+    "GetPixelMap", "GetTexEnv", "GetTexGen", "GetMaterial", "GetLight",
+    "GetClipPlane", "GetMap", "GetPolygonStipple",
 )
 
 

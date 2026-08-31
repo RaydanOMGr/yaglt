@@ -3,6 +3,20 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — coverage tooling: classify compat-only getters, this session)
+
+- `tools/coverage_report.py` `COMPAT_PREFIXES` now also recognizes the GL_ARB_imaging
+  / compatibility-only getters and the `WindowPos*` window-position commands by
+  prefix (`WindowPos`, `GetColorTableParameter`, `GetConvolutionParameter`,
+  `GetHistogramParameter`, `GetMinmaxParameter`, `GetSeparableFilterParameter`,
+  `GetPixelMap`, `GetTexEnv`, `GetTexGen`, `GetMaterial`, `GetLight`, `GetClipPlane`,
+  `GetMap`, `GetPolygonStipple`). These have no core-profile equivalent, so they must
+  be excluded from the core-profile coverage subset rather than deflating it.
+- Effect: `WindowPos*` (16 commands) moved out of the core universe, lifting core
+  coverage from **94.5% (554/586)** to **97.5% (554/568)**. Verified that no real
+  core command is wrongly excluded by the new prefixes (0 false exclusions).
+  `docs/coverage-core.md` regenerated (full spec 595/1068 ≈ 55.7%).
+
 ## Recent Work (2026-08-31 — glGetPointerv (SPEC §22.2), this session)
 
 - Added `glGetPointerv(pname, params)` (SPEC §22.2). It returns a single `void*`:
