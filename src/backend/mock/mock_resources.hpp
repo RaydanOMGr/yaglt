@@ -926,6 +926,22 @@ public:
     }
     std::vector<std::string> tfRequestedVaryings;
     uint32_t tfRequestedBufferMode = 0;
+    // Active atomic-counter buffer reflection (SPEC §7.7) for test observability.
+    struct AtomicCounterBufferInfo {
+        int32_t binding = 0;
+        int32_t dataSize = 0;
+        std::vector<int32_t> indices;
+        int32_t referencedByVertex = 0;
+        int32_t referencedByTessControl = 0;
+        int32_t referencedByTessEval = 0;
+        int32_t referencedByGeometry = 0;
+        int32_t referencedByFragment = 0;
+        int32_t referencedByCompute = 0;
+    };
+    std::vector<AtomicCounterBufferInfo> atomicCounterBuffers;
+    uint32_t atomicCounterBufferCount() const {
+        return static_cast<uint32_t>(atomicCounterBuffers.size());
+    }
     void getProgramResourceiv(uint32_t programInterface, uint32_t index,
                               int32_t propCount, const uint32_t* props,
                               int32_t bufSize, int32_t* length,
@@ -937,9 +953,43 @@ public:
                             ? static_cast<int32_t>(it->second)
                             : 0;
             if (length) *length = 1;
+            return;
+        }
+        if (programInterface == GL_ATOMIC_COUNTER_BUFFER) {
+            if (index >= atomicCounterBuffers.size() || params == nullptr) return;
+            const AtomicCounterBufferInfo& acb = atomicCounterBuffers[index];
+            for (int32_t p = 0; p < propCount; ++p) {
+                uint32_t prop = props[p];
+                int32_t val = 0;
+                if (prop == GL_BUFFER_BINDING) val = acb.binding;
+                else if (prop == GL_BUFFER_DATA_SIZE) val = acb.dataSize;
+                else if (prop == GL_NUM_ACTIVE_VARIABLES)
+                    val = static_cast<int32_t>(acb.indices.size());
+                else if (prop == GL_ACTIVE_VARIABLES) {
+                    int32_t n = static_cast<int32_t>(acb.indices.size());
+                    int32_t out = (bufSize < n) ? bufSize : n;
+                    if (length) *length = n;
+                    for (int32_t i = 0; i < out; ++i) params[i] = acb.indices[i];
+                    continue;
+                } else if (prop == GL_REFERENCED_BY_VERTEX_SHADER)
+                    val = acb.referencedByVertex;
+                else if (prop == GL_REFERENCED_BY_TESS_CONTROL_SHADER)
+                    val = acb.referencedByTessControl;
+                else if (prop == GL_REFERENCED_BY_TESS_EVALUATION_SHADER)
+                    val = acb.referencedByTessEval;
+                else if (prop == GL_REFERENCED_BY_GEOMETRY_SHADER)
+                    val = acb.referencedByGeometry;
+                else if (prop == GL_REFERENCED_BY_FRAGMENT_SHADER)
+                    val = acb.referencedByFragment;
+                else if (prop == GL_REFERENCED_BY_COMPUTE_SHADER)
+                    val = acb.referencedByCompute;
+                if (bufSize > p) params[p] = val;
+            }
+            return;
         }
     }
     uint32_t nativeId() const override { return static_cast<uint32_t>(id); }
+
 
     // glGetProgramInterfaceiv recording (SPEC §7.3.1). ACTIVE_RESOURCES is taken
     // from the configurable count below; MAX_* sizing pnames fall back to 0 unless
@@ -952,6 +1002,8 @@ public:
     std::map<uint32_t, int32_t> interfaceCounts;
     uint32_t programResourceCount(uint32_t programInterface) const override {
         if (programInterface == GL_UNIFORM_BLOCK) return activeUniformBlocks;
+        if (programInterface == GL_ATOMIC_COUNTER_BUFFER)
+            return atomicCounterBufferCount();
         return interfaceActiveResources;
     }
     void getProgramInterfaceiv(uint32_t programInterface, uint32_t pname,

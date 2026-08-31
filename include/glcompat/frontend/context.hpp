@@ -1188,6 +1188,12 @@ public:
     uint32_t getUniformBlockIndex(GLObjectName program, const std::string& name);
     void getActiveUniformBlockiv(GLObjectName program, uint32_t index, uint32_t pname,
                                  int32_t* params);
+    // Active atomic-counter buffer reflection (SPEC §7.7). Equivalent to
+    // getProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, ...) with the
+    // pname mapped to its GetProgramResourceiv property (table 7.8); the
+    // ACTIVE_ATOMIC_COUNTER_INDICES pname writes the full array of counter indices.
+    void getActiveAtomicCounterBufferiv(GLObjectName program, uint32_t index,
+                                       uint32_t pname, int32_t* params);
     void getActiveUniformName(GLObjectName program, uint32_t uniformIndex,
                                int32_t bufSize, int32_t* length, char* name);
     void getActiveUniformsiv(GLObjectName program, int32_t uniformCount,

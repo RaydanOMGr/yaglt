@@ -109,6 +109,7 @@ add_executable(yaglt_tests
     unit/texture_sub_image_test.cpp
     unit/conditional_render_test.cpp
     unit/uniform_block_binding_test.cpp
+    unit/atomic_counter_buffer_test.cpp
     unit/transform_feedback_buffer_test.cpp
     unit/get_transform_feedback_test.cpp
     unit/create_object_test.cpp

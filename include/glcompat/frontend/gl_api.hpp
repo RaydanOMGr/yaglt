@@ -668,9 +668,14 @@ void glGetActiveUniform(GLuint program, GLuint index, GLsizei bufSize,
 void glGetActiveAttrib(GLuint program, GLuint index, GLsizei bufSize,
                        GLsizei* length, GLint* size, GLenum* type, GLchar* name);
 GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName);
-void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
-                              GLenum pname, GLint* params);
- void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize,
+ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
+                               GLenum pname, GLint* params);
+  // Active atomic-counter buffer reflection (SPEC §7.7). `pname` is one of the
+  // ATOMIC_COUNTER_BUFFER_* enums; ACTIVE_ATOMIC_COUNTER_INDICES writes a
+  // variable-length array of counter indices into `params`.
+  void glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex,
+                                       GLenum pname, GLint* params);
+  void glGetActiveUniformName(GLuint program, GLuint uniformIndex, GLsizei bufSize,
                               GLsizei* length, GLchar* uniformName);
  void glGetActiveUniformsiv(GLuint program, GLsizei uniformCount,
                             const GLuint* uniformIndices, GLenum pname,

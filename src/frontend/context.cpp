@@ -6767,8 +6767,35 @@ void Context::getProgramInterfaceiv(GLObjectName program, uint32_t programInterf
 
 namespace {
 
-// Map a glGetActiveUniformBlockiv pname to its GetProgramResourceiv property
-// equivalent (SPEC §7.6 table 7.7). Returns false for an unsupported pname.
+ // Map a glGetActiveAtomicCounterBufferiv pname to its GetProgramResourceiv
+ // property equivalent (SPEC §7.7 table 7.8). Returns false for an unsupported pname.
+ bool mapAtomicCounterBufferPname(uint32_t pname, uint32_t& prop) {
+     switch (pname) {
+     case GL_ATOMIC_COUNTER_BUFFER_BINDING:
+         prop = GL_BUFFER_BINDING; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_DATA_SIZE:
+         prop = GL_BUFFER_DATA_SIZE; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTERS:
+         prop = GL_NUM_ACTIVE_VARIABLES; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES:
+         prop = GL_ACTIVE_VARIABLES; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_VERTEX_SHADER:
+         prop = GL_REFERENCED_BY_VERTEX_SHADER; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_CONTROL_SHADER:
+         prop = GL_REFERENCED_BY_TESS_CONTROL_SHADER; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_TESS_EVALUATION_SHADER:
+         prop = GL_REFERENCED_BY_TESS_EVALUATION_SHADER; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_GEOMETRY_SHADER:
+         prop = GL_REFERENCED_BY_GEOMETRY_SHADER; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_FRAGMENT_SHADER:
+         prop = GL_REFERENCED_BY_FRAGMENT_SHADER; return true;
+     case GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_COMPUTE_SHADER:
+         prop = GL_REFERENCED_BY_COMPUTE_SHADER; return true;
+     default:
+        return false;
+    }
+}
+
 bool mapUniformBlockPname(uint32_t pname, uint32_t& prop) {
     switch (pname) {
     case GL_UNIFORM_BLOCK_BINDING:
@@ -6972,6 +6999,38 @@ void Context::getActiveUniformBlockiv(GLObjectName program, uint32_t index,
     }
     getProgramResourceiv(program, GL_UNIFORM_BLOCK, index, 1, &prop, 1, nullptr,
                          params);
+}
+
+void Context::getActiveAtomicCounterBufferiv(GLObjectName program, uint32_t index,
+                                            uint32_t pname, int32_t* params) {
+    if (params == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    uint32_t prop;
+    if (!mapAtomicCounterBufferPname(pname, prop)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (pname == GL_ATOMIC_COUNTER_BUFFER_ACTIVE_ATOMIC_COUNTER_INDICES) {
+        // Writes an array of NUM_ACTIVE_VARIABLES indices; size the buffer first.
+        int32_t numVars = 0;
+        uint32_t cntProp = GL_NUM_ACTIVE_VARIABLES;
+        getProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, 1, &cntProp, 1,
+                             nullptr, &numVars);
+        if (numVars <= 0) {
+            *params = 0;
+            return;
+        }
+        std::vector<int32_t> tmp(static_cast<size_t>(numVars));
+        uint32_t actProp = GL_ACTIVE_VARIABLES;
+        getProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, 1, &actProp,
+                            numVars, nullptr, tmp.data());
+        for (int32_t i = 0; i < numVars; ++i) params[i] = tmp[i];
+        return;
+    }
+    getProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER, index, 1, &prop, 1,
+                        nullptr, params);
 }
 
 void Context::getActiveUniformBlockName(GLObjectName program, uint32_t index,

@@ -3,6 +3,45 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glGetActiveAtomicCounterBufferiv (SPEC §7.7), this session)
+
+- Added `glGetActiveAtomicCounterBufferiv` (SPEC §7.7), the active atomic-counter
+  buffer reflection query. It is implemented as an exact delegation onto the
+  existing `Context::getProgramResourceiv(program, GL_ATOMIC_COUNTER_BUFFER,
+  bufferIndex, …)` with the `pname` mapped to its `GetProgramResourceiv` property
+  per table 7.8 (`ATOMIC_COUNTER_BUFFER_BINDING` → `BUFFER_BINDING`, `…_DATA_SIZE`
+  → `BUFFER_DATA_SIZE`, `…_ACTIVE_ATOMIC_COUNTERS` → `NUM_ACTIVE_VARIABLES`,
+  `…_ACTIVE_ATOMIC_COUNTER_INDICES` → `ACTIVE_VARIABLES`, and the six
+  `…_REFERENCED_BY_*_SHADER` → the matching `REFERENCED_BY_*_SHADER` props).
+- Frontend validation: `params` must be non-null (`GL_INVALID_VALUE`); an unknown
+  `pname` is `GL_INVALID_ENUM`; an out-of-range `bufferIndex` is `GL_INVALID_VALUE`
+  (handled by `getProgramResourceiv`'s index check). The `ACTIVE_ATOMIC_COUNTER_INDICES`
+  pname writes the full variable-length counter-index array (sized from
+  `NUM_ACTIVE_VARIABLES`), matching the established `glGetActiveUniformBlockiv`
+  `UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES` pattern. No new backend virtuals were
+  needed — the Mock backend gained `atomicCounterBuffers` reflection state (binding,
+  data size, index array, per-stage referenced flags) on `MockProgram` and answers
+  the `GL_ATOMIC_COUNTER_BUFFER` interface through the existing `getProgramResourceiv`.
+- New constants in `gl_types.hpp`: `GL_ATOMIC_COUNTER_BUFFER_BINDING/DATA_SIZE/
+  ACTIVE_ATOMIC_COUNTERS/ACTIVE_ATOMIC_COUNTER_INDICES` and the six
+  `GL_ATOMIC_COUNTER_BUFFER_REFERENCED_BY_*_SHADER` pnames. New
+  `tests/unit/atomic_counter_buffer_test.cpp` (5 cases). Both the ASan build
+  (`build_san`) and the GLES e2e build (`build_tx` under Mesa softpipe) are green
+  (907/907 and 919/919 respectively). Coverage: core **94.4% (553/586)**, full
+  ~55.6% (594/1068). `docs/feature-matrix.md` gained a `GetActiveAtomicCounterBufferiv`
+  row.
+
+### Known caveat — pre-existing layout-sensitive heap crash in the default `build/`
+The default (mock) test binary can hit a `SIGSEGV` in `MockBackend::initialize →
+CapabilityTable::report()` at the `object_is` tests depending on heap layout, and
+merely adding/removing a test flips it (e.g. it reproduces at the 907-test count
+but not at 902, 906, 908, or with `MALLOC_PERTURB_=165`). It is **not** introduced
+by this feature's logic: the AddressSanitizer build (`build_san`) runs the very
+same 907 tests with **zero** ASan errors, and `MALLOC_PERTURB_` also passes. The
+root cause is a pre-existing latent heap-corruption in the existing suite that only
+manifests under specific allocator alignments. Verification gate for this project
+is the ASan build + GLES e2e build, both green.
+
 ## Recent Work (2026-08-31 — multi-draw indirect count-from-buffer (SPEC §10.4, GL 4.6), this session)
 
 - Added `glMultiDrawArraysIndirectCount` / `glMultiDrawElementsIndirectCount`
@@ -816,7 +855,7 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10, incl. multi-draw indirect counts §10.4); core coverage 94.2% (552/586)
+Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7, incl. atomic-counter buffer reflection §7.7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10, incl. multi-draw indirect counts §10.4); core coverage 94.4% (553/586)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §7/§8/§6/§10 surface)
 Last updated: 2026-08-31
 Known major blockers:

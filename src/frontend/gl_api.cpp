@@ -1986,13 +1986,19 @@ GLuint glGetUniformBlockIndex(GLuint program, const GLchar* uniformBlockName) {
                                            uniformBlockName ? uniformBlockName : "");
 }
 
-void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
-                               GLenum pname, GLint* params) {
-    if (g_current == nullptr) return;
-    g_current->getActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
-}
+ void glGetActiveUniformBlockiv(GLuint program, GLuint uniformBlockIndex,
+                                GLenum pname, GLint* params) {
+     if (g_current == nullptr) return;
+     g_current->getActiveUniformBlockiv(program, uniformBlockIndex, pname, params);
+ }
 
-void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
+ void glGetActiveAtomicCounterBufferiv(GLuint program, GLuint bufferIndex,
+                                      GLenum pname, GLint* params) {
+     if (g_current == nullptr) return;
+     g_current->getActiveAtomicCounterBufferiv(program, bufferIndex, pname, params);
+ }
+
+ void glGetActiveUniformBlockName(GLuint program, GLuint uniformBlockIndex,
                                   GLsizei bufSize, GLsizei* length,
                                   GLchar* uniformBlockName) {
     if (g_current == nullptr) return;
