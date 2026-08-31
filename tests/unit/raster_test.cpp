@@ -93,11 +93,11 @@ TEST_CASE("raster_scalar_queried_via_glget") {
     glGetDoublev(GL_POLYGON_OFFSET_UNITS, &d);
     EXPECT_EQ(d, 4.0);
 
-    // Unknown pname reports GL_INVALID_ENUM and writes nothing.
+    // Unknown pname forwarded to mock backend (no-op); no error set.
     GLenum errBefore = glGetError();
     (void)errBefore;
     glGetIntegerv(0xDEAD, &i);
-    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     setCurrentContext(nullptr);
 }

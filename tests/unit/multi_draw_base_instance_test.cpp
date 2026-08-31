@@ -19,7 +19,8 @@ TEST_CASE("multi_draw_arrays_base_instance_records") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t firsts[2] = {0, 3};
     int32_t counts[2] = {3, 4};
     int32_t instances[2] = {1, 2};
@@ -41,7 +42,8 @@ TEST_CASE("multi_draw_elements_base_instance_records") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t counts[2] = {6, 6};
     intptr_t indices[2] = {0, 12};
     uint32_t bases[2] = {3, 5};
@@ -64,7 +66,8 @@ TEST_CASE("multi_draw_arrays_base_instance_null_instances_ok") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t firsts[1] = {0};
     int32_t counts[1] = {3};
     uint32_t bases[1] = {2};
@@ -85,7 +88,8 @@ TEST_CASE("multi_draw_base_instance_validation") {
     int32_t firsts[1] = {0};
     int32_t counts[1] = {3};
     uint32_t bases[1] = {0};
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glMultiDrawArraysBaseInstance(GL_TRIANGLES, firsts, counts, nullptr, bases, -1);
     EXPECT_EQ(backend.multiDrawArraysBaseInstanceCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
@@ -106,7 +110,8 @@ TEST_CASE("multi_draw_base_instance_requires_base_instance_capability") {
     setCurrentContext(&ctx);
 
     backend.setCapability(Feature::BaseInstance, FeatureSupport::Unsupported);
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t firsts[1] = {0};
     int32_t counts[1] = {3};
     uint32_t bases[1] = {0};

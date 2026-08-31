@@ -351,6 +351,10 @@ struct GLESLib {
     // optionally. Used to report the bound framebuffer's SAMPLES for
     // glGetMultisamplefv index validation.
     void (*glGetFramebufferParameteriv)(GLenum, GLenum, GLint*) = nullptr;
+    // Framebuffer attachment read-back (SPEC §9.2.3). GLES 3.0+; resolved
+    // optionally so load() still succeeds on a driver that lacks it.
+    void (*glGetFramebufferAttachmentParameteriv)(GLenum, GLenum, GLenum, GLint*) =
+        nullptr;
     GLenum (*glCheckFramebufferStatus)(GLenum) = nullptr;
 
     // Color logic op + framebuffer copy/invalidate (SPEC §15 / §16 / §17.3.4).

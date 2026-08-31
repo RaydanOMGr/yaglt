@@ -1263,17 +1263,51 @@ namespace {
 // Caps whose on/off state the tracker owns. Other capabilities (e.g. DITHER)
 // are not tracked and are reported as unsupported pnames by the getters.
 bool isTrackedCap(GLenum cap) {
-    return cap == 0x0BE2 /* GL_BLEND */ || cap == 0x0B44 /* GL_CULL_FACE */ ||
-           cap == 0x0B71 /* GL_DEPTH_TEST */ ||
-           cap == 0x0B90 /* GL_STENCIL_TEST */ ||
-           cap == 0x0BD0 /* GL_DITHER */ ||
-           cap == 0x0BDA /* GL_FRAMEBUFFER_SRGB */ ||
-           cap == 0x809E /* GL_SAMPLE_ALPHA_TO_COVERAGE */ ||
-           cap == 0x0C11 /* GL_SCISSOR_TEST */ ||
-           cap == 0x8037 /* GL_POLYGON_OFFSET_FILL */ ||
-            cap == 0x0BF2 /* GL_COLOR_LOGIC_OP */ ||
-            cap == 0x8F9D /* GL_PRIMITIVE_RESTART */ ||
-            cap == 0x8FDE /* GL_PRIMITIVE_RESTART_FIXED_INDEX */;
+    switch (cap) {
+    case 0x0B10: // GL_POINT_SMOOTH
+    case 0x0B20: // GL_LINE_SMOOTH
+    case 0x0B24: // GL_LINE_STIPPLE
+    case 0x0B41: // GL_POLYGON_SMOOTH
+    case 0x0B42: // GL_POLYGON_STIPPLE
+    case 0x0B44: // GL_CULL_FACE
+    case 0x0B57: // GL_COLOR_MATERIAL
+    case 0x0B60: // GL_FOG
+    case 0x0B71: // GL_DEPTH_TEST
+    case 0x0B90: // GL_STENCIL_TEST
+    case 0x0BC0: // GL_ALPHA_TEST
+    case 0x0BD0: // GL_DITHER
+    case 0x0BE2: // GL_BLEND
+    case 0x0BF1: // GL_INDEX_LOGIC_OP
+    case 0x0BF2: // GL_COLOR_LOGIC_OP
+    case 0x0C11: // GL_SCISSOR_TEST
+    case 0x0D1D: // GL_NORMALIZE
+    case 0x0D80: // GL_AUTO_NORMAL
+    case 0x8037: // GL_POLYGON_OFFSET_FILL
+    case 0x2A01: // GL_POLYGON_OFFSET_POINT
+    case 0x2A02: // GL_POLYGON_OFFSET_LINE
+    case 0x803A: // GL_RESCALE_NORMAL
+    case 0x809D: // GL_MULTISAMPLE
+    case 0x809E: // GL_SAMPLE_ALPHA_TO_COVERAGE
+    case 0x809F: // GL_SAMPLE_ALPHA_TO_ONE
+    case 0x80A0: // GL_SAMPLE_COVERAGE
+    case 0x8642: // GL_PROGRAM_POINT_SIZE
+    case 0x864F: // GL_DEPTH_CLAMP
+    case 0x884F: // GL_TEXTURE_CUBE_MAP_SEAMLESS
+    case 0x8861: // GL_POINT_SPRITE
+    case 0x8C36: // GL_SAMPLE_SHADING
+    case 0x8C89: // GL_RASTERIZER_DISCARD
+    case 0x8DB9: // GL_FRAMEBUFFER_SRGB
+    case 0x8F9D: // GL_PRIMITIVE_RESTART
+    case 0x8FDE: // GL_PRIMITIVE_RESTART_FIXED_INDEX
+    case 0x9242: // GL_DEBUG_OUTPUT_SYNCHRONOUS
+    case 0x92E0: // GL_DEBUG_OUTPUT
+    // GL_CLIP_DISTANCE0..7
+    case 0x3000: case 0x3001: case 0x3002: case 0x3003:
+    case 0x3004: case 0x3005: case 0x3006: case 0x3007:
+        return true;
+    default:
+        return false;
+    }
 }
 
 GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
@@ -1286,7 +1320,7 @@ GLint capValue(const std::unordered_map<GLenum, bool>& caps, GLenum cap) {
 int GLStateTracker::getInteger(GLenum p, GLint* out) const {
     switch (p) {
     case 0x0BE2: case 0x0B44: case 0x0B71: case 0x0B90: case 0x0C11: // caps
-    case 0x0BD0: case 0x0BDA: case 0x809E: // GL_DITHER / GL_FRAMEBUFFER_SRGB / GL_SAMPLE_ALPHA_TO_COVERAGE
+    case 0x0BD0: case 0x8DB9: case 0x809E: // GL_DITHER / GL_FRAMEBUFFER_SRGB / GL_SAMPLE_ALPHA_TO_COVERAGE
         if (!isTrackedCap(p)) return 0;
         out[0] = capValue(capsCurrent_, p);
         return 1;

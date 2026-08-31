@@ -378,16 +378,15 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
     g_current->texParameterf(target, pname, param);
 }
 
-void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params,
-                      GLsizei count) {
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params) {
     if (g_current == nullptr) return;
-    g_current->texParameterfv(target, pname, params, static_cast<int>(count));
+    // Desktop GL passes no count; derive it from the pname (SPEC §8).
+    g_current->texParameterfv(target, pname, params, texParamElementCount(pname));
 }
 
-void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
-                      GLsizei count) {
+void glTexParameteriv(GLenum target, GLenum pname, const GLint* params) {
     if (g_current == nullptr) return;
-    g_current->texParameteriv(target, pname, params, static_cast<int>(count));
+    g_current->texParameteriv(target, pname, params, texParamElementCount(pname));
 }
 
 void glTexParameterIiv(GLenum target, GLenum pname, const GLint* params) {
@@ -2723,6 +2722,15 @@ void glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha) {
 
 void glUseProgram(GLuint prog) {
     if (g_current == nullptr) return;
+    // SPEC §2.15.4: using a non-generated or unlinked program object is
+    // GL_INVALID_OPERATION (the current program is left unchanged).
+    if (prog != 0) {
+        const ProgramObject* p = g_current->getProgram(prog);
+        if (p == nullptr || !p->linked) {
+            g_current->setError(GLError::InvalidOperation);
+            return;
+        }
+    }
     g_current->state().useProgram(prog);
 }
 
@@ -3350,6 +3358,188 @@ void glVertexAttribI4iv(GLuint index, const GLint* v) {
 void glVertexAttribI4uiv(GLuint index, const GLuint* v) {
     if (g_current == nullptr) return;
     g_current->vertexAttribI4uiv(index, v);
+}
+
+// Full generic vertex-attribute value setters (SPEC §10.2).
+void glVertexAttrib1d(GLuint index, GLdouble x) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1d(index, x);
+}
+void glVertexAttrib1dv(GLuint index, const GLdouble* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1dv(index, v);
+}
+void glVertexAttrib1s(GLuint index, GLshort x) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1s(index, x);
+}
+void glVertexAttrib1sv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib1sv(index, v);
+}
+void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2d(index, x, y);
+}
+void glVertexAttrib2dv(GLuint index, const GLdouble* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2dv(index, v);
+}
+void glVertexAttrib2s(GLuint index, GLshort x, GLshort y) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2s(index, x, y);
+}
+void glVertexAttrib2sv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib2sv(index, v);
+}
+void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3d(index, x, y, z);
+}
+void glVertexAttrib3dv(GLuint index, const GLdouble* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3dv(index, v);
+}
+void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3s(index, x, y, z);
+}
+void glVertexAttrib3sv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib3sv(index, v);
+}
+void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4d(index, x, y, z, w);
+}
+void glVertexAttrib4dv(GLuint index, const GLdouble* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4dv(index, v);
+}
+void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4s(index, x, y, z, w);
+}
+void glVertexAttrib4sv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4sv(index, v);
+}
+void glVertexAttrib4iv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4iv(index, v);
+}
+void glVertexAttrib4bv(GLuint index, const GLbyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4bv(index, v);
+}
+void glVertexAttrib4ubv(GLuint index, const GLubyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4ubv(index, v);
+}
+void glVertexAttrib4uiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4uiv(index, v);
+}
+void glVertexAttrib4usv(GLuint index, const GLushort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4usv(index, v);
+}
+void glVertexAttrib4Nbv(GLuint index, const GLbyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nbv(index, v);
+}
+void glVertexAttrib4Niv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Niv(index, v);
+}
+void glVertexAttrib4Nsv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nsv(index, v);
+}
+void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nub(index, x, y, z, w);
+}
+void glVertexAttrib4Nubv(GLuint index, const GLubyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nubv(index, v);
+}
+void glVertexAttrib4Nuiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nuiv(index, v);
+}
+void glVertexAttrib4Nusv(GLuint index, const GLushort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttrib4Nusv(index, v);
+}
+void glVertexAttribI1i(GLuint index, GLint x) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI1i(index, x);
+}
+void glVertexAttribI1iv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI1iv(index, v);
+}
+void glVertexAttribI1ui(GLuint index, GLuint x) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI1ui(index, x);
+}
+void glVertexAttribI1uiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI1uiv(index, v);
+}
+void glVertexAttribI2i(GLuint index, GLint x, GLint y) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI2i(index, x, y);
+}
+void glVertexAttribI2iv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI2iv(index, v);
+}
+void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI2ui(index, x, y);
+}
+void glVertexAttribI2uiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI2uiv(index, v);
+}
+void glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI3i(index, x, y, z);
+}
+void glVertexAttribI3iv(GLuint index, const GLint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI3iv(index, v);
+}
+void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI3ui(index, x, y, z);
+}
+void glVertexAttribI3uiv(GLuint index, const GLuint* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI3uiv(index, v);
+}
+void glVertexAttribI4bv(GLuint index, const GLbyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4bv(index, v);
+}
+void glVertexAttribI4sv(GLuint index, const GLshort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4sv(index, v);
+}
+void glVertexAttribI4ubv(GLuint index, const GLubyte* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4ubv(index, v);
+}
+void glVertexAttribI4usv(GLuint index, const GLushort* v) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribI4usv(index, v);
+}
+void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer) {
+    if (g_current == nullptr) return;
+    g_current->vertexAttribIPointer(index, size, type, normalized != 0, stride, reinterpret_cast<intptr_t>(pointer));
 }
 
 void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params) {

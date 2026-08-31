@@ -21,6 +21,11 @@ public:
         lib_->glGenTextures(1, &h);
         return std::make_unique<GLESBackendTexture>(lib_, h);
     }
+    std::unique_ptr<BackendTexture> createDefaultTexture() override {
+        // Handle 0 is the driver-native default texture; backend calls bind and
+        // modify it directly (glDeleteTextures(0) is a silent no-op).
+        return std::make_unique<GLESBackendTexture>(lib_, 0u);
+    }
     std::unique_ptr<BackendRenderbuffer> createRenderbuffer() override {
         GLuint h = 0;
         lib_->glGenRenderbuffers(1, &h);

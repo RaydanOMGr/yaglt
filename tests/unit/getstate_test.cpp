@@ -120,9 +120,11 @@ TEST_CASE("glget: unknown pname and null buffer error") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
+    // Unknown pname is forwarded to the mock backend (no-op); no error is set
+    // because the mock does not model driver-owned state.
     GLint v = 0;
     glGetIntegerv(0xDEAD, &v);
-    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     glGetIntegerv(GL_BLEND, nullptr);
     EXPECT_EQ(glGetError(), GL_INVALID_VALUE);

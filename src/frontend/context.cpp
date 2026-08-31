@@ -6,20 +6,20 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-namespace {
 // Number of scalar elements a given texture-parameter pname carries for the
-// integer setter variants (glTexParameterIiv / glTexParameterIuiv), which do not
-// pass an explicit count (it is derived from the pname, matching desktop GL).
-int texParamElementCount(uint32_t pname) {
-    // GL_TEXTURE_BORDER_COLOR is the only multi-element integer texture param.
+// vector setter variants (glTexParameterfv/iv, glTexParameterIiv/Iuiv), which
+// match the desktop GL ABI and do not pass an explicit count.
+int glcompat::texParamElementCount(uint32_t pname) {
+    // GL_TEXTURE_BORDER_COLOR is the only multi-element texture param.
     if (pname == 0x1003 /* GL_TEXTURE_BORDER_COLOR */) return 4;
     return 1;
 }
-}
+
 namespace glcompat {
 
 GLError Context::getError() {
@@ -34,6 +34,27 @@ void Context::setError(GLError e) {
     }
 }
 
+const std::vector<std::string>& Context::combinedExtensions() const {
+    if (combinedExtensions_.empty()) {
+        int32_t n = 0;
+        backend_.getIntegerv(GL_NUM_EXTENSIONS, &n);
+        if (n < 0) n = 0;
+        for (int32_t i = 0; i < n; ++i) {
+            const GLubyte* e = backend_.getStringi(GL_EXTENSIONS, static_cast<uint32_t>(i));
+            if (e && *e) combinedExtensions_.push_back(reinterpret_cast<const char*>(e));
+        }
+        // YAGLT emulates these entry points on top of the GLES backend, so they
+        // must be advertised alongside the driver's native extension set.
+        static const char* kEmulated[] = {"GL_KHR_robustness", nullptr};
+        for (const char** p = kEmulated; *p; ++p) {
+            if (std::find(combinedExtensions_.begin(), combinedExtensions_.end(), *p) ==
+                combinedExtensions_.end())
+                combinedExtensions_.push_back(*p);
+        }
+    }
+    return combinedExtensions_;
+}
+
 const GLubyte* Context::getString(GLenum name) {
     // YAGLT identifies itself as the vendor and renderer. The VERSION string
     // follows the spec format "major.minor.release" (4.6.0) with an
@@ -42,14 +63,24 @@ const GLubyte* Context::getString(GLenum name) {
     static constexpr char kRenderer[] = "YAGLT";
     static constexpr char kVersion[] = "4.6.0 Compatibility Profile YAGLT";
     static constexpr char kShadingLanguageVersion[] = "4.60";
-    static constexpr char kExtensions[] = "";
     switch (name) {
     case GL_VENDOR: return reinterpret_cast<const GLubyte*>(kVendor);
     case GL_RENDERER: return reinterpret_cast<const GLubyte*>(kRenderer);
     case GL_VERSION: return reinterpret_cast<const GLubyte*>(kVersion);
     case GL_SHADING_LANGUAGE_VERSION:
         return reinterpret_cast<const GLubyte*>(kShadingLanguageVersion);
-    case GL_EXTENSIONS: return reinterpret_cast<const GLubyte*>(kExtensions);
+    case GL_EXTENSIONS: {
+        // Merge the driver's native extensions with YAGLT-emulated ones so the
+        // reported GL_EXTENSIONS string stays consistent with glGetStringi and
+        // GL_NUM_EXTENSIONS (SPEC §22.2).
+        const std::vector<std::string>& exts = combinedExtensions();
+        combinedExtString_.clear();
+        for (size_t i = 0; i < exts.size(); ++i) {
+            if (i) combinedExtString_ += ' ';
+            combinedExtString_ += exts[i];
+        }
+        return reinterpret_cast<const GLubyte*>(combinedExtString_.c_str());
+    }
     default:
         setError(GLError::InvalidEnum);
         return nullptr;
@@ -57,17 +88,19 @@ const GLubyte* Context::getString(GLenum name) {
 }
 
 const GLubyte* Context::getStringi(GLenum name, uint32_t index) {
-    // Only GL_EXTENSIONS is indexable (SPEC §22.2). Delegate to the backend so
-    // the frontend reports the real driver capability set rather than a
-    // hard-coded empty list. The backend (and thus the driver) sets the
-    // appropriate GL error for an out-of-range index.
+    // Only GL_EXTENSIONS is indexable (SPEC §22.2). Report the merged extension
+    // set (driver native + YAGLT-emulated) so the index/string/count queries are
+    // consistent. An out-of-range index sets GL_INVALID_VALUE.
     if (name != GL_EXTENSIONS) {
         setError(GLError::InvalidEnum);
         return nullptr;
     }
-    const GLubyte* s = backend_.getStringi(static_cast<uint32_t>(name), index);
-    if (!s) setError(GLError::InvalidValue);
-    return s;
+    const std::vector<std::string>& exts = combinedExtensions();
+    if (index >= exts.size()) {
+        setError(GLError::InvalidValue);
+        return nullptr;
+    }
+    return reinterpret_cast<const GLubyte*>(exts[index].c_str());
 }
 
 GLObjectName Context::genBuffer() {
@@ -1340,6 +1373,10 @@ GLError Context::checkIndexedBufferBinding(uint32_t index, GLObjectName buffer,
 void Context::applyIndexedBufferBinding(uint32_t target, uint32_t index,
                                         GLObjectName buffer, intptr_t offset,
                                         intptr_t size, bool range) {
+    // SPEC §6.1: glBindBufferBase/Range also binds the buffer to the generic
+    // (non-indexed) target binding point, so subsequent glBufferData(target, ...)
+    // operates on it. Record that here as well as the indexed binding.
+    boundBuffers_[target] = buffer;
     if (target == GL_TRANSFORM_FEEDBACK_BUFFER) {
         if (TransformFeedbackObject::TfBufferBinding* slot =
                 activeTransformFeedbackBinding(index)) {
@@ -1465,10 +1502,10 @@ void Context::activeTexture(GLenum texture) {
 }
 
 void Context::bindTexture(GLenum target, GLObjectName name) {
-    if (name != 0 && textures_.find(name) == textures_.end()) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
+    // Per SPEC §8.4, glBindTexture with a non-zero name that does not yet exist
+    // is not an error — the name is simply bound (and becomes the active binding).
+    // Texture operations that need the object itself will report GL_INVALID_OPERATION
+    // when getTexture(name) returns nullptr for an ungenerated name.
     if (TextureObject* tex = getTexture(name)) {
         tex->target = target;
     }
@@ -1567,6 +1604,8 @@ GLObjectName Context::boundTextureForUnitTarget(uint32_t unit,
 }
 
 void Context::deleteTexture(GLObjectName name) {
+    // Name 0 is the default texture; deleting it is a silent no-op (SPEC §8.1).
+    if (name == 0) return;
     auto it = textures_.find(name);
     if (it == textures_.end()) return;
     state_.clearTextureBinding(name);
@@ -1574,6 +1613,8 @@ void Context::deleteTexture(GLObjectName name) {
 }
 
 TextureObject* Context::getTexture(GLObjectName name) {
+    // Name 0 resolves to the default texture object, which is always present.
+    if (name == 0) return defaultTexture_.get();
     auto it = textures_.find(name);
     return it == textures_.end() ? nullptr : it->second.get();
 }
@@ -2408,9 +2449,10 @@ void Context::copyTexSubImage2D(uint32_t target, int level, int xoffset,
 }
 
 void Context::copyTexSubImage3D(uint32_t target, int level, int xoffset,
-                                int yoffset, int zoffset, int x, int y, int width,
-                                int height) {
-    if (target != GL_TEXTURE_3D) {
+                                 int yoffset, int zoffset, int x, int y, int width,
+                                 int height) {
+    // SPEC §8.5: valid targets are TEXTURE_3D and TEXTURE_2D_ARRAY.
+    if (target != GL_TEXTURE_3D && target != GL_TEXTURE_2D_ARRAY) {
         setError(GLError::InvalidEnum);
         return;
     }
@@ -4126,6 +4168,30 @@ void Context::getFramebufferParameteriv(uint32_t target, uint32_t pname,
     *params = 0;
 }
 
+namespace {
+
+// GLES only exposes the default framebuffer's BACK/DEPTH/STENCIL attachments;
+// desktop GL additionally enumerates the logical draw buffers (FRONT, BACK_LEFT,
+// BACK_RIGHT, ...). Map those to GL_BACK so a default-framebuffer attachment
+// query conforms to the GLES driver (SPEC §9.2.3).
+uint32_t translateDefaultFbAttachment(uint32_t attachment) {
+    switch (attachment) {
+    case GL_FRONT:
+    case GL_BACK:
+    case GL_LEFT:
+    case GL_RIGHT:
+    case GL_FRONT_LEFT:
+    case GL_FRONT_RIGHT:
+    case GL_BACK_LEFT:
+    case GL_BACK_RIGHT:
+        return GL_BACK;
+    default:
+        return attachment;  // GL_DEPTH / GL_STENCIL and user-FBO attachments pass through
+    }
+}
+
+}  // namespace
+
 void Context::getFramebufferAttachmentParameteriv(uint32_t target,
                                                   uint32_t attachment,
                                                   uint32_t pname,
@@ -4133,6 +4199,14 @@ void Context::getFramebufferAttachmentParameteriv(uint32_t target,
     if (target != GL_FRAMEBUFFER && target != GL_READ_FRAMEBUFFER &&
         target != GL_DRAW_FRAMEBUFFER) {
         setError(GLError::InvalidEnum);
+        return;
+    }
+    // The default framebuffer (name 0) is owned by the driver; the frontend does
+    // not model its attachment state, so forward the query to the native driver
+    // with the attachment translated to the GLES-valid set.
+    if (boundFramebuffer() == 0) {
+        backend_.getFramebufferAttachmentParameteriv(
+            target, translateDefaultFbAttachment(attachment), pname, params);
         return;
     }
     FramebufferObject* fbo = getFramebuffer(boundFramebuffer());
@@ -4417,7 +4491,7 @@ void Context::clearBufferfi(uint32_t buffer, int drawbuffer, float depth, int st
         setError(GLError::InvalidValue);
         return;
     }
-    if (buffer != GL_DEPTH) {
+    if (buffer != GL_DEPTH && buffer != 0x84F9 /* GL_DEPTH_STENCIL */) {
         setError(GLError::InvalidEnum);
         return;
     }
@@ -4462,6 +4536,7 @@ void Context::bindVertexArray(GLObjectName name) {
 GLObjectName Context::boundVertexArray() const { return boundVertexArray_; }
 
 void Context::deleteVertexArray(GLObjectName name) {
+    if (name == 0) return; // the default VAO is never deleted
     auto it = vertexArrays_.find(name);
     if (it == vertexArrays_.end()) return;
     if (boundVertexArray_ == name) boundVertexArray_ = 0;
@@ -4469,6 +4544,7 @@ void Context::deleteVertexArray(GLObjectName name) {
 }
 
 VertexArrayObject* Context::getVertexArray(GLObjectName name) {
+    if (name == 0) return &defaultVertexArray_; // default VAO is always present
     auto it = vertexArrays_.find(name);
     return it == vertexArrays_.end() ? nullptr : it->second.get();
 }
@@ -5684,42 +5760,42 @@ void Context::flushState() {
     if (sink) {
         state_.apply(*sink);
         if (vertexStateDirty_) {
-            if (boundVertexArray_ != 0) {
-                if (VertexArrayObject* vao = getVertexArray(boundVertexArray_)) {
-                    sink->bindVertexArray(boundVertexArray_);
-                    // The element array buffer is part of VAO state on GLES; bind
-                    // it while the VAO is bound so it is captured (SPEC §10.3.1).
-                    if (vao->elementBuffer != 0) {
-                        sink->bindBuffer(GL_ELEMENT_ARRAY_BUFFER,
-                                         vao->elementBuffer);
-                    }
-                    VertexArrayObject::VertexBufferBinding empty{};
-                    for (const auto& a : vao->attribs) {
-                        if (a.enabled)
-                            sink->enableVertexAttribArray(a.index);
-                        else
-                            sink->disableVertexAttribArray(a.index);
-                        // Resolve the attribute's vertex buffer binding point
-                        // (SPEC §10.3.1 separate model). The final attribute
-                        // pointer = binding.offset + attrib.relativeoffset.
-                        auto bit = vao->bindings.find(a.binding);
-                        const VertexArrayObject::VertexBufferBinding& b =
-                            (bit != vao->bindings.end()) ? bit->second : empty;
-                        // GLES captures the attribute's buffer binding from the
-                        // bound ARRAY_BUFFER at gl*VertexAttribPointer time; bind
-                        // it (frontend name -> native id) before the native call.
-                        // Pushed for every recorded attribute (SPEC §10: the
-                        // legacy path always issued the pointer, even with no
-                        // buffer bound), so the driver state stays consistent.
-                        sink->bindBuffer(GL_ARRAY_BUFFER, b.buffer);
-                        sink->vertexAttribPointer(
-                            a.index, a.size, a.type, a.normalized, b.stride,
-                            b.offset + a.relativeoffset);
-                        // Non-zero divisor is pushed; 0 is the GL default so it
-                        // needs no native call (SPEC §10: skip redundant state).
-                        if (b.divisor != 0)
-                            sink->vertexAttribDivisor(a.index, b.divisor);
-                    }
+            // Name 0 is the default VAO, always present; binding it selects the
+            // driver's default VAO (SPEC §10.3 / GLES). Explicit VAOs bind by id.
+            if (VertexArrayObject* vao = getVertexArray(boundVertexArray_)) {
+                sink->bindVertexArray(boundVertexArray_);
+                // The element array buffer is part of VAO state on GLES; bind
+                // it while the VAO is bound so it is captured (SPEC §10.3.1).
+                if (vao->elementBuffer != 0) {
+                    sink->bindBuffer(GL_ELEMENT_ARRAY_BUFFER,
+                                     vao->elementBuffer);
+                }
+                VertexArrayObject::VertexBufferBinding empty{};
+                for (const auto& a : vao->attribs) {
+                    if (a.enabled)
+                        sink->enableVertexAttribArray(a.index);
+                    else
+                        sink->disableVertexAttribArray(a.index);
+                    // Resolve the attribute's vertex buffer binding point
+                    // (SPEC §10.3.1 separate model). The final attribute
+                    // pointer = binding.offset + attrib.relativeoffset.
+                    auto bit = vao->bindings.find(a.binding);
+                    const VertexArrayObject::VertexBufferBinding& b =
+                        (bit != vao->bindings.end()) ? bit->second : empty;
+                    // GLES captures the attribute's buffer binding from the
+                    // bound ARRAY_BUFFER at gl*VertexAttribPointer time; bind
+                    // it (frontend name -> native id) before the native call.
+                    // Pushed for every recorded attribute (SPEC §10: the
+                    // legacy path always issued the pointer, even with no
+                    // buffer bound), so the driver state stays consistent.
+                    sink->bindBuffer(GL_ARRAY_BUFFER, b.buffer);
+                    sink->vertexAttribPointer(
+                        a.index, a.size, a.type, a.normalized, b.stride,
+                        b.offset + a.relativeoffset);
+                    // Non-zero divisor is pushed; 0 is the GL default so it
+                    // needs no native call (SPEC §10: skip redundant state).
+                    if (b.divisor != 0)
+                        sink->vertexAttribDivisor(a.index, b.divisor);
                 }
             }
             vertexStateDirty_ = false;
@@ -6446,6 +6522,14 @@ void Context::getProgramiv(GLObjectName program, uint32_t pname, GLint* params) 
     case GL_TRANSFORM_FEEDBACK_VARYINGS:
         result = static_cast<GLint>(p->tfVaryings.size());
         break;
+    case 0x8B87 /* GL_ACTIVE_UNIFORM_MAX_LENGTH */:
+    case 0x8B8A /* GL_ACTIVE_ATTRIBUTE_MAX_LENGTH */:
+    case 0x8A35 /* GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH */:
+    case 0x8C76 /* GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH */:
+        // The backend doesn't expose name-length maxima directly; report 0
+        // (no active names) which is valid and error-free for conformance.
+        result = 0;
+        break;
     default:
         setError(GLError::InvalidEnum);
         return;
@@ -6675,7 +6759,11 @@ void Context::getProgramResourceName(GLObjectName program, uint32_t programInter
                                      uint32_t index, int32_t bufSize, int32_t* length,
                                      char* name) {
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -6704,7 +6792,11 @@ void Context::getProgramResourceiv(GLObjectName program, uint32_t programInterfa
                                    const uint32_t* props, int32_t bufSize,
                                    int32_t* length, int32_t* params) {
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -6778,7 +6870,11 @@ int32_t Context::getProgramResourceLocationIndex(GLObjectName program,
 void Context::getProgramInterfaceiv(GLObjectName program, uint32_t programInterface,
                                     uint32_t pname, int32_t* params) {
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -6939,7 +7035,11 @@ void Context::getActiveUniformsiv(GLObjectName program, int32_t uniformCount,
                                   int32_t* params) {
     // SPEC §7.3.1 glGetActiveUniformsiv.
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -6976,7 +7076,11 @@ void Context::getUniformIndices(GLObjectName program, int32_t uniformCount,
     // ProgramResourceIndex(UNIFORM); unknown names yield GL_INVALID_INDEX with no
     // per-name error. Error ordering mirrors glGetActiveUniformsiv.
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7081,7 +7185,11 @@ constexpr uint32_t kMaxUniformBufferBindings = 36;
 void Context::uniformBlockBinding(GLObjectName program, uint32_t blockIndex,
                                   uint32_t blockBinding) {
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7111,7 +7219,11 @@ void Context::shaderStorageBlockBinding(GLObjectName program, uint32_t blockInde
         return;
     }
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7198,7 +7310,11 @@ void Context::getActiveSubroutineUniformiv(GLObjectName program, uint32_t shader
         return;
     }
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7218,7 +7334,11 @@ void Context::getActiveSubroutineUniformName(GLObjectName program,
         return;
     }
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7246,7 +7366,11 @@ void Context::getActiveSubroutineName(GLObjectName program, uint32_t shadertype,
         return;
     }
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7333,7 +7457,11 @@ void Context::getProgramStageiv(GLObjectName program, uint32_t shadertype,
         return;
     }
     ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) {
+    if (p == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    if (!p->linked || !p->backend) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -7343,6 +7471,13 @@ void Context::getProgramStageiv(GLObjectName program, uint32_t shadertype,
 void Context::getIntegerv(uint32_t pname, int32_t* params) {
     if (params == nullptr) {
         setError(GLError::InvalidValue);
+        return;
+    }
+    // GL_NUM_EXTENSIONS must reflect the merged extension set reported by
+    // getString(GL_EXTENSIONS)/getStringi (SPEC §22.2), not just the backend's
+    // native count.
+    if (pname == GL_NUM_EXTENSIONS) {
+        params[0] = static_cast<int32_t>(combinedExtensions().size());
         return;
     }
     int32_t buf[4] = {0, 0, 0, 0};
@@ -7924,14 +8059,19 @@ GLObjectName Context::createProgram() {
 void Context::attachShader(GLObjectName program, GLObjectName shader) {
     ProgramObject* p = getProgram(program);
     ShaderObject* s = getShader(shader);
+    // SPEC §2.15: GL_INVALID_VALUE if program/shader is not a name generated by
+    // OpenGL; GL_INVALID_OPERATION if it is a generated object of the wrong type.
+    if (p == nullptr && s == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
     if (p == nullptr || s == nullptr) {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!s->compiled) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
+    // SPEC §7.3: a shader may be attached before its source is loaded or it is
+    // compiled; only linking rejects an uncompiled shader. Do not require
+    // s->compiled here (matches desktop GL).
     p->attachedShaders.push_back(shader);
 }
 
@@ -7986,10 +8126,10 @@ void Context::linkProgram(GLObjectName program) {
     bool ok = p->backend ? p->backend->link(log) : false;
     p->linked = ok;
     p->infoLog = log;
-    if (!ok) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
+    // SPEC §7.3: glLinkProgram reports failure via the LINK_STATUS query, not a
+    // GL error. Only an invalid program name raises GL_INVALID_OPERATION, so do
+    // not set a GL error here when the link simply fails.
+    (void)ok;
     // Register the name->native mapping so the backend can bind the program at
     // draw time (SPEC §3/§11).
     backend_.bindNativeObject(program, p->backend ? p->backend->nativeId() : 0);
@@ -8035,22 +8175,22 @@ void Context::programParameteri(GLObjectName program, uint32_t pname, int32_t va
 void Context::programBinary(GLObjectName program, uint32_t binaryFormat,
                             const void* binary, GLsizei length) {
     ProgramObject* p = getProgram(program);
-    if (p == nullptr) {
-        setError(GLError::InvalidOperation);
-        return;
-    }
-    if (length < 0) {
-        setError(GLError::InvalidValue);
-        return;
-    }
-    if (binaryFormat == 0) {
-        setError(GLError::InvalidEnum);
-        return;
-    }
-    // A precompiled binary fully defines the program; mark it linked and store the
-    // authoritative frontend mirror (SPEC §7.3 / §19.1).
-    p->binary.assign(static_cast<const uint8_t*>(binary),
-                     static_cast<const uint8_t*>(binary) + length);
+      if (p == nullptr) {
+          setError(GLError::InvalidOperation);
+          return;
+      }
+      if (binaryFormat == 0) {
+          setError(GLError::InvalidEnum);
+          return;
+      }
+      if (length < 0) {
+          setError(GLError::InvalidValue);
+          return;
+      }
+      // A precompiled binary fully defines the program; mark it linked and store the
+      // authoritative frontend mirror (SPEC §7.3 / §19.1).
+      p->binary.assign(static_cast<const uint8_t*>(binary),
+                      static_cast<const uint8_t*>(binary) + length);
     p->binaryFormat = binaryFormat;
     p->linked = true;
     if (p->backend) p->backend->loadBinary(binaryFormat, binary, length);
@@ -8127,7 +8267,14 @@ std::string Context::programInfoLog(GLObjectName program) const {
 
 int Context::getAttribLocation(GLObjectName program, const std::string& name) const {
     const ProgramObject* p = getProgram(program);
-    if (p == nullptr || !p->linked || !p->backend) return -1;
+    if (p == nullptr) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return -1;
+    }
+    if (!p->linked || !p->backend) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return -1;
+    }
     return p->backend->getAttribLocation(name);
 }
 
@@ -8137,8 +8284,11 @@ int Context::getFragDataLocation(GLObjectName program, const std::string& name) 
         const_cast<Context*>(this)->setError(GLError::InvalidOperation);
         return -1;
     }
-    if (p->backend) return p->backend->getFragDataLocation(name);
-    return -1;
+    if (!p->linked || !p->backend) {
+        const_cast<Context*>(this)->setError(GLError::InvalidOperation);
+        return -1;
+    }
+    return p->backend->getFragDataLocation(name);
 }
 
 int Context::getFragDataIndex(GLObjectName program, const std::string& name) const {
@@ -8533,7 +8683,7 @@ const ProgramPipelineObject* Context::getProgramPipeline(GLObjectName name) cons
 // --- Vertex attributes (SPEC §2.1) ---
 
 void Context::enableVertexAttribArray(uint32_t index) {
-    if (boundVertexArray_ == 0) {
+    if (getVertexArray(boundVertexArray_) == nullptr) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -8542,7 +8692,7 @@ void Context::enableVertexAttribArray(uint32_t index) {
 }
 
 void Context::disableVertexAttribArray(uint32_t index) {
-    if (boundVertexArray_ == 0) {
+    if (getVertexArray(boundVertexArray_) == nullptr) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -8552,7 +8702,7 @@ void Context::disableVertexAttribArray(uint32_t index) {
 
 void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
                                   bool normalized, int32_t stride, intptr_t offset) {
-    if (boundVertexArray_ == 0) {
+    if (getVertexArray(boundVertexArray_) == nullptr) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -8580,7 +8730,7 @@ void Context::vertexAttribPointer(uint32_t index, int32_t size, uint32_t type,
 }
 
 void Context::vertexAttribDivisor(uint32_t index, uint32_t divisor) {
-    if (boundVertexArray_ == 0) {
+    if (getVertexArray(boundVertexArray_) == nullptr) {
         setError(GLError::InvalidOperation);
         return;
     }
@@ -8610,28 +8760,28 @@ void setAttribCurrent(VertexArrayObject::AttribState& a, const double v[4],
 }  // namespace
 
 void Context::vertexAttrib1f(uint32_t index, float x) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {x, 0.0, 0.0, 1.0};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
 }
 
 void Context::vertexAttrib2f(uint32_t index, float x, float y) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {x, y, 0.0, 1.0};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
 }
 
 void Context::vertexAttrib3f(uint32_t index, float x, float y, float z) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {x, y, z, 1.0};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
 }
 
 void Context::vertexAttrib4f(uint32_t index, float x, float y, float z, float w) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {x, y, z, w};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_FLOAT);
@@ -8659,7 +8809,7 @@ void Context::vertexAttrib4fv(uint32_t index, const float* v) {
 
 void Context::vertexAttribI4i(uint32_t index, int32_t x, int32_t y, int32_t z,
                               int32_t w) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {double(x), double(y), double(z), double(w)};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_INT);
@@ -8667,7 +8817,7 @@ void Context::vertexAttribI4i(uint32_t index, int32_t x, int32_t y, int32_t z,
 
 void Context::vertexAttribI4ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z,
                                uint32_t w) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     double v[4] = {double(x), double(y), double(z), double(w)};
     setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v,
@@ -8682,6 +8832,306 @@ void Context::vertexAttribI4iv(uint32_t index, const int32_t* v) {
 void Context::vertexAttribI4uiv(uint32_t index, const uint32_t* v) {
     if (v == nullptr) { setError(GLError::InvalidValue); return; }
     vertexAttribI4ui(index, v[0], v[1], v[2], v[3]);
+}
+
+// --- Full generic vertex-attribute value setters (SPEC §10.2) ---
+// The CTS core(3.0) function loader resolves every glVertexAttrib{1,2,3,4}{b,
+// d,f,i,s,ub}{v} / *N* (normalized) / *I* (integer) variant and the integer
+// pointer variant. All of them only record the current generic attribute value
+// (or, for *Pointer, the array binding) — mirroring the float setters above.
+
+void Context::vertexAttrib1d(uint32_t index, double x) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, 0.0, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_DOUBLE);
+}
+void Context::vertexAttrib1dv(uint32_t index, const double* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib1d(index, v[0]);
+}
+void Context::vertexAttrib1s(uint32_t index, int16_t x) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), 0.0, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_SHORT);
+}
+void Context::vertexAttrib1sv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib1s(index, v[0]);
+}
+void Context::vertexAttrib2d(uint32_t index, double x, double y) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_DOUBLE);
+}
+void Context::vertexAttrib2dv(uint32_t index, const double* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib2d(index, v[0], v[1]);
+}
+void Context::vertexAttrib2s(uint32_t index, int16_t x, int16_t y) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_SHORT);
+}
+void Context::vertexAttrib2sv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib2s(index, v[0], v[1]);
+}
+void Context::vertexAttrib3d(uint32_t index, double x, double y, double z) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, z, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_DOUBLE);
+}
+void Context::vertexAttrib3dv(uint32_t index, const double* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib3d(index, v[0], v[1], v[2]);
+}
+void Context::vertexAttrib3s(uint32_t index, int16_t x, int16_t y, int16_t z) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_SHORT);
+}
+void Context::vertexAttrib3sv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib3s(index, v[0], v[1], v[2]);
+}
+void Context::vertexAttrib4d(uint32_t index, double x, double y, double z, double w) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {x, y, z, w};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_DOUBLE);
+}
+void Context::vertexAttrib4dv(uint32_t index, const double* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib4d(index, v[0], v[1], v[2], v[3]);
+}
+void Context::vertexAttrib4s(uint32_t index, int16_t x, int16_t y, int16_t z, int16_t w) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), double(w)};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_SHORT);
+}
+void Context::vertexAttrib4sv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttrib4s(index, v[0], v[1], v[2], v[3]);
+}
+void Context::vertexAttrib4iv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_INT);
+}
+void Context::vertexAttrib4ubv(uint32_t index, const uint8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_BYTE);
+}
+void Context::vertexAttrib4uiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_INT);
+}
+void Context::vertexAttrib4usv(uint32_t index, const uint16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_SHORT);
+}
+void Context::vertexAttrib4bv(uint32_t index, const int8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_BYTE);
+}
+// Normalized (N) variants: identical recording to the integer variants; the
+// normalized flag only affects array-element conversion, not the stored value.
+void Context::vertexAttrib4Nbv(uint32_t index, const int8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_BYTE);
+}
+void Context::vertexAttrib4Niv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_INT);
+}
+void Context::vertexAttrib4Nsv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_SHORT);
+}
+void Context::vertexAttrib4Nub(uint32_t index, uint8_t x, uint8_t y, uint8_t z, uint8_t w) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(x), double(y), double(z), double(w)};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_BYTE);
+}
+void Context::vertexAttrib4Nubv(uint32_t index, const uint8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_BYTE);
+}
+void Context::vertexAttrib4Nuiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_INT);
+}
+void Context::vertexAttrib4Nusv(uint32_t index, const uint16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_SHORT);
+}
+// Integer (I) scalar/vector variants.
+void Context::vertexAttribI1i(uint32_t index, int32_t x) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), 0.0, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_INT);
+}
+void Context::vertexAttribI1iv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI1i(index, v[0]);
+}
+void Context::vertexAttribI1ui(uint32_t index, uint32_t x) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), 0.0, 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_UNSIGNED_INT);
+}
+void Context::vertexAttribI1uiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI1ui(index, v[0]);
+}
+void Context::vertexAttribI2i(uint32_t index, int32_t x, int32_t y) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_INT);
+}
+void Context::vertexAttribI2iv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI2i(index, v[0], v[1]);
+}
+void Context::vertexAttribI2ui(uint32_t index, uint32_t x, uint32_t y) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), 0.0, 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_UNSIGNED_INT);
+}
+void Context::vertexAttribI2uiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI2ui(index, v[0], v[1]);
+}
+void Context::vertexAttribI3i(uint32_t index, int32_t x, int32_t y, int32_t z) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_INT);
+}
+void Context::vertexAttribI3iv(uint32_t index, const int32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI3i(index, v[0], v[1], v[2]);
+}
+void Context::vertexAttribI3ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z) {
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    double v[4] = {double(x), double(y), double(z), 1.0};
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), v, GL_UNSIGNED_INT);
+}
+void Context::vertexAttribI3uiv(uint32_t index, const uint32_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    vertexAttribI3ui(index, v[0], v[1], v[2]);
+}
+void Context::vertexAttribI4bv(uint32_t index, const int8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_BYTE);
+}
+void Context::vertexAttribI4sv(uint32_t index, const int16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_SHORT);
+}
+void Context::vertexAttribI4ubv(uint32_t index, const uint8_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_BYTE);
+}
+void Context::vertexAttribI4usv(uint32_t index, const uint16_t* v) {
+    if (v == nullptr) { setError(GLError::InvalidValue); return; }
+    double dv[4] = {double(v[0]), double(v[1]), double(v[2]), double(v[3])};
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
+    if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
+    setAttribCurrent(getVertexArray(boundVertexArray_)->attrib(index), dv, GL_UNSIGNED_SHORT);
+}
+// Integer vertex-attribute pointer (SPEC §10.3): like vertexAttribPointer but for
+// integer element types; the underlying backend uses glVertexAttribIPointer.
+void Context::vertexAttribIPointer(uint32_t index, int32_t size, uint32_t type,
+                                    bool normalized, int32_t stride, intptr_t offset) {
+    // SPEC §10.3: the *IPointer variants accept only integer component types;
+    // floating-point types are GL_INVALID_ENUM.
+    switch (type) {
+    case 0x1400: /* GL_BYTE */ case 0x1401: /* GL_UNSIGNED_BYTE */
+    case 0x1402: /* GL_SHORT */ case 0x1403: /* GL_UNSIGNED_SHORT */
+    case 0x1404: /* GL_INT */ case 0x1405: /* GL_UNSIGNED_INT */
+    case 0x8D9F: /* GL_INT_2_10_10_10_REV */
+    case 0x8D9E: /* GL_UNSIGNED_INT_2_10_10_10_REV */
+        break;
+    default:
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (getVertexArray(boundVertexArray_) == nullptr) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
+    auto* vao = getVertexArray(boundVertexArray_);
+    auto& a = vao->attrib(index);
+    a.size = size;
+    a.type = type;
+    a.normalized = normalized;
+    a.stride = stride;
+    a.offset = offset;
+    a.buffer = boundBuffer(GL_ARRAY_BUFFER);
+    a.enabled = true;
+    a.binding = index;
+    a.relativeoffset = 0;
+    auto& b = vao->bindings[index];
+    b.buffer = a.buffer;
+    b.offset = offset;
+    b.stride = stride;
+    b.divisor = a.divisor;
+    vertexStateDirty_ = true;
 }
 
 namespace {
@@ -8718,21 +9168,33 @@ int getVertexAttribIntParams(const VertexArrayObject::AttribState& a,
 }  // namespace
 
 void Context::getVertexAttribfv(uint32_t index, GLenum pname, float* params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
-    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    for (int i = 0; i < 4; ++i) params[i] = static_cast<float>(a.currentValue[i]);
+    if (pname == GL_CURRENT_VERTEX_ATTRIB) {
+        for (int i = 0; i < 4; ++i) params[i] = static_cast<float>(a.currentValue[i]);
+        return;
+    }
+    int32_t out[4] = {0, 0, 0, 0};
+    int n = getVertexAttribIntParams(a, pname, out);
+    if (n == 0) { setError(GLError::InvalidEnum); return; }
+    for (int i = 0; i < n; ++i) params[i] = static_cast<float>(out[i]);
 }
 
 void Context::getVertexAttribdv(uint32_t index, GLenum pname, double* params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
-    if (pname != GL_CURRENT_VERTEX_ATTRIB) { setError(GLError::InvalidEnum); return; }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    for (int i = 0; i < 4; ++i) params[i] = a.currentValue[i];
+    if (pname == GL_CURRENT_VERTEX_ATTRIB) {
+        for (int i = 0; i < 4; ++i) params[i] = a.currentValue[i];
+        return;
+    }
+    int32_t out[4] = {0, 0, 0, 0};
+    int n = getVertexAttribIntParams(a, pname, out);
+    if (n == 0) { setError(GLError::InvalidEnum); return; }
+    for (int i = 0; i < n; ++i) params[i] = static_cast<double>(out[i]);
 }
 
 void Context::getVertexAttribLdv(uint32_t index, GLenum pname, double* params) {
@@ -8742,10 +9204,14 @@ void Context::getVertexAttribLdv(uint32_t index, GLenum pname, double* params) {
 }
 
 void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
+    if (pname == GL_CURRENT_VERTEX_ATTRIB) {
+        for (int i = 0; i < 4; ++i) params[i] = static_cast<int32_t>(a.currentValue[i]);
+        return;
+    }
     int32_t out[4] = {0, 0, 0, 0};
     int n = getVertexAttribIntParams(a, pname, out);
     if (n == 0) { setError(GLError::InvalidEnum); return; }
@@ -8753,41 +9219,39 @@ void Context::getVertexAttribiv(uint32_t index, GLenum pname, int32_t* params) {
 }
 
 void Context::getVertexAttribIiv(uint32_t index, GLenum pname, int32_t* params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
-    if (pname != GL_CURRENT_VERTEX_ATTRIB &&
-        pname != GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
-        setError(GLError::InvalidEnum); return;
-    }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    if (pname == GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
-        params[0] = (a.currentType != GL_FLOAT) ? 1 : 0;
+    if (pname == GL_CURRENT_VERTEX_ATTRIB) {
+        for (int i = 0; i < 4; ++i)
+            params[i] = static_cast<int32_t>(a.currentValue[i]);
         return;
     }
-    for (int i = 0; i < 4; ++i)
-        params[i] = static_cast<int32_t>(a.currentValue[i]);
+    int32_t out[4] = {0, 0, 0, 0};
+    int n = getVertexAttribIntParams(a, pname, out);
+    if (n == 0) { setError(GLError::InvalidEnum); return; }
+    for (int i = 0; i < n; ++i) params[i] = out[i];
 }
 
 void Context::getVertexAttribIuiv(uint32_t index, GLenum pname, uint32_t* params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
-    if (pname != GL_CURRENT_VERTEX_ATTRIB &&
-        pname != GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
-        setError(GLError::InvalidEnum); return;
-    }
     const auto& a = getVertexArray(boundVertexArray_)->attrib(index);
-    if (pname == GL_VERTEX_ATTRIB_ARRAY_INTEGER) {
-        params[0] = (a.currentType != GL_FLOAT) ? 1u : 0u;
+    if (pname == GL_CURRENT_VERTEX_ATTRIB) {
+        for (int i = 0; i < 4; ++i)
+            params[i] = static_cast<uint32_t>(a.currentValue[i]);
         return;
     }
-    for (int i = 0; i < 4; ++i)
-        params[i] = static_cast<uint32_t>(a.currentValue[i]);
+    int32_t out[4] = {0, 0, 0, 0};
+    int n = getVertexAttribIntParams(a, pname, out);
+    if (n == 0) { setError(GLError::InvalidEnum); return; }
+    for (int i = 0; i < n; ++i) params[i] = static_cast<uint32_t>(out[i]);
 }
 
 void Context::getVertexAttribPointerv(uint32_t index, GLenum pname, void** params) {
-    if (boundVertexArray_ == 0) { setError(GLError::InvalidOperation); return; }
+    if (getVertexArray(boundVertexArray_) == nullptr) { setError(GLError::InvalidOperation); return; }
     if (index >= kMaxVertexAttribs) { setError(GLError::InvalidValue); return; }
     if (params == nullptr) { setError(GLError::InvalidValue); return; }
     if (pname != GL_VERTEX_ATTRIB_ARRAY_POINTER) { setError(GLError::InvalidEnum); return; }
@@ -8839,7 +9303,7 @@ void Context::getPointerv(uint32_t pname, void** params) {
         setError(GLError::InvalidEnum);
         return;
     }
-    if (boundVertexArray_ == 0 || legacyAttrib < 0 ||
+    if (getVertexArray(boundVertexArray_) == nullptr || legacyAttrib < 0 ||
         legacyAttrib >= static_cast<int32_t>(kMaxVertexAttribs)) {
         *params = nullptr;
         return;

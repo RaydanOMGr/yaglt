@@ -67,6 +67,7 @@ TEST_CASE("texture_texParameteri_records_and_pushes") {
 TEST_CASE("texture_texImage2D_without_bound_texture_is_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.texImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 4, 4, GL_RGBA, GL_UNSIGNED_BYTE,
                    nullptr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);

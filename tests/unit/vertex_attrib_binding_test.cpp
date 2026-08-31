@@ -33,13 +33,13 @@ TEST_CASE("bind_vertex_buffer_records_binding_on_bound_vao") {
     EXPECT_EQ(b.stride, 32);
 }
 
-TEST_CASE("bind_vertex_buffer_without_bound_vao_is_invalid_operation") {
+TEST_CASE("bind_vertex_buffer_with_default_vao_succeeds") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLObjectName buf = ctx.genBuffer();
-    // SPEC §10.3.2: the non-DSA form needs a vertex array object.
+    // Default VAO (name 0) is always present in the compat profile (SPEC §10.3.2).
     ctx.bindVertexBuffer(0, buf, 0, 12);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
 }
 
 TEST_CASE("bind_vertex_buffer_zero_detaches_buffer") {
@@ -209,11 +209,12 @@ TEST_CASE("vertex_attrib_format_validates_index_and_size") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidValue);
 }
 
-TEST_CASE("vertex_attrib_format_without_bound_vao_is_invalid_operation") {
+TEST_CASE("vertex_attrib_format_with_default_vao_succeeds") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    // Default VAO (name 0) is always present in the compat profile.
     ctx.vertexAttribFormat(0, 4, GL_FLOAT, false, 0);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
 }
 
 TEST_CASE("vertex_attrib_binding_maps_attribute_to_binding_point") {

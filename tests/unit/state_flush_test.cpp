@@ -54,8 +54,11 @@ TEST_CASE("state_flush_pushes_other_state_only_on_change") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
+    GLuint prog;
+    MAKE_VALID_PROGRAM(prog);
+
     glBlendFunc(0x0302 /*GL_SRC_ALPHA*/, 0x0303 /*GL_ONE_MINUS_SRC_ALPHA*/);
-    glUseProgram(5);
+    glUseProgram(prog);
     glDepthFunc(0x0203 /*GL_LEQUAL*/);
     glCullFace(0x0404 /*GL_FRONT*/);
     glFrontFace(0x0900 /*GL_CW*/);
@@ -64,7 +67,7 @@ TEST_CASE("state_flush_pushes_other_state_only_on_change") {
     EXPECT_EQ(backend.blendFuncCalls, 1);
     EXPECT_EQ(backend.blendEquationCalls, 1);
     EXPECT_EQ(backend.useProgramCalls, 1);
-    EXPECT_EQ(backend.lastProgram, 5u);
+    EXPECT_EQ(backend.lastProgram, prog);
     EXPECT_EQ(backend.depthFuncCalls, 1);
     EXPECT_EQ(backend.cullFaceCalls, 1);
     EXPECT_EQ(backend.frontFaceCalls, 1);

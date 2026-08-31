@@ -177,10 +177,10 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param);
 // Texture parameter setters (SPEC §8). glTexParameterf sets a float scalar;
 // glTexParameterfv/iv set vector parameters (e.g. GL_TEXTURE_BORDER_COLOR).
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param);
-void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params,
-                      GLsizei count);
-void glTexParameteriv(GLenum target, GLenum pname, const GLint* params,
-                      GLsizei count);
+// glTexParameterfv/iv match the desktop GL ABI (no explicit count; the element
+// count is derived from pname, e.g. GL_TEXTURE_BORDER_COLOR -> 4).
+void glTexParameterfv(GLenum target, GLenum pname, const GLfloat* params);
+void glTexParameteriv(GLenum target, GLenum pname, const GLint* params);
 // Integer (signed / unsigned) texture parameter setters + queries (SPEC §8.1).
 void glTexParameterIiv(GLenum target, GLenum pname, const GLint* params);
 void glTexParameterIuiv(GLenum target, GLenum pname, const GLuint* params);
@@ -1175,6 +1175,52 @@ void glVertexAttribI4i(GLuint index, GLint x, GLint y, GLint z, GLint w);
 void glVertexAttribI4ui(GLuint index, GLuint x, GLuint y, GLuint z, GLuint w);
 void glVertexAttribI4iv(GLuint index, const GLint* v);
 void glVertexAttribI4uiv(GLuint index, const GLuint* v);
+// Full generic vertex-attribute value setters (SPEC §10.2).
+void glVertexAttrib1d(GLuint index, GLdouble x);
+void glVertexAttrib1dv(GLuint index, const GLdouble* v);
+void glVertexAttrib1s(GLuint index, GLshort x);
+void glVertexAttrib1sv(GLuint index, const GLshort* v);
+void glVertexAttrib2d(GLuint index, GLdouble x, GLdouble y);
+void glVertexAttrib2dv(GLuint index, const GLdouble* v);
+void glVertexAttrib2s(GLuint index, GLshort x, GLshort y);
+void glVertexAttrib2sv(GLuint index, const GLshort* v);
+void glVertexAttrib3d(GLuint index, GLdouble x, GLdouble y, GLdouble z);
+void glVertexAttrib3dv(GLuint index, const GLdouble* v);
+void glVertexAttrib3s(GLuint index, GLshort x, GLshort y, GLshort z);
+void glVertexAttrib3sv(GLuint index, const GLshort* v);
+void glVertexAttrib4d(GLuint index, GLdouble x, GLdouble y, GLdouble z, GLdouble w);
+void glVertexAttrib4dv(GLuint index, const GLdouble* v);
+void glVertexAttrib4s(GLuint index, GLshort x, GLshort y, GLshort z, GLshort w);
+void glVertexAttrib4sv(GLuint index, const GLshort* v);
+void glVertexAttrib4iv(GLuint index, const GLint* v);
+void glVertexAttrib4bv(GLuint index, const GLbyte* v);
+void glVertexAttrib4ubv(GLuint index, const GLubyte* v);
+void glVertexAttrib4uiv(GLuint index, const GLuint* v);
+void glVertexAttrib4usv(GLuint index, const GLushort* v);
+void glVertexAttrib4Nbv(GLuint index, const GLbyte* v);
+void glVertexAttrib4Niv(GLuint index, const GLint* v);
+void glVertexAttrib4Nsv(GLuint index, const GLshort* v);
+void glVertexAttrib4Nub(GLuint index, GLubyte x, GLubyte y, GLubyte z, GLubyte w);
+void glVertexAttrib4Nubv(GLuint index, const GLubyte* v);
+void glVertexAttrib4Nuiv(GLuint index, const GLuint* v);
+void glVertexAttrib4Nusv(GLuint index, const GLushort* v);
+void glVertexAttribI1i(GLuint index, GLint x);
+void glVertexAttribI1iv(GLuint index, const GLint* v);
+void glVertexAttribI1ui(GLuint index, GLuint x);
+void glVertexAttribI1uiv(GLuint index, const GLuint* v);
+void glVertexAttribI2i(GLuint index, GLint x, GLint y);
+void glVertexAttribI2iv(GLuint index, const GLint* v);
+void glVertexAttribI2ui(GLuint index, GLuint x, GLuint y);
+void glVertexAttribI2uiv(GLuint index, const GLuint* v);
+void glVertexAttribI3i(GLuint index, GLint x, GLint y, GLint z);
+void glVertexAttribI3iv(GLuint index, const GLint* v);
+void glVertexAttribI3ui(GLuint index, GLuint x, GLuint y, GLuint z);
+void glVertexAttribI3uiv(GLuint index, const GLuint* v);
+void glVertexAttribI4bv(GLuint index, const GLbyte* v);
+void glVertexAttribI4sv(GLuint index, const GLshort* v);
+void glVertexAttribI4ubv(GLuint index, const GLubyte* v);
+void glVertexAttribI4usv(GLuint index, const GLushort* v);
+void glVertexAttribIPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid* pointer);
 void glGetVertexAttribfv(GLuint index, GLenum pname, GLfloat* params);
 void glGetVertexAttribiv(GLuint index, GLenum pname, GLint* params);
 void glGetVertexAttribdv(GLuint index, GLenum pname, GLdouble* params);

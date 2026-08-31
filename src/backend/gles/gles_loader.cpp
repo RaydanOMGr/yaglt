@@ -40,6 +40,7 @@ bool GLESLib::load() {
     void* egl = openLib({"libEGL.so.1", "libEGL.so", "libEGL.so.2"});
     void* gles = openLib(
         {"libGLESv2.so.2", "libGLESv2.so", "libGLESv2.so.1", "libGLESv3.so"});
+    fprintf(stderr, "[YAGLT-DEBUG] load: egl=%p gles=%p\n", egl, gles);
     glesHandle = gles;
     if (!egl || !gles) {
         if (egl) dlclose(egl);
@@ -63,18 +64,18 @@ bool GLESLib::load() {
     ok &= resolve(egl, eglGetProcAddress, "eglGetProcAddress");
 
     // GLES core
-    ok &= resolveGl(*this, glGetError, "glGetError");
-    ok &= resolveGl(*this, glGetString, "glGetString");
-    ok &= resolveGl(*this, glGetIntegerv, "glGetIntegerv");
-    ok &= resolveGl(*this, glGetBooleanv, "glGetBooleanv");
-    ok &= resolveGl(*this, glGetFloatv, "glGetFloatv");
-    ok &= resolveGl(*this, glGetDoublev, "glGetDoublev");
-    ok &= resolveGl(*this, glGetInteger64v, "glGetInteger64v");
-    ok &= resolveGl(*this, glGetStringi, "glGetStringi");
-    ok &= resolveGl(*this, glGenBuffers, "glGenBuffers");
-    ok &= resolveGl(*this, glDeleteBuffers, "glDeleteBuffers");
-    ok &= resolveGl(*this, glBindBuffer, "glBindBuffer");
-    ok &= resolveGl(*this, glBufferData, "glBufferData");
+    resolveGl(*this, glGetError, "glGetError");
+    resolveGl(*this, glGetString, "glGetString");
+    resolveGl(*this, glGetIntegerv, "glGetIntegerv");
+    resolveGl(*this, glGetBooleanv, "glGetBooleanv");
+    resolveGl(*this, glGetFloatv, "glGetFloatv");
+    resolveGl(*this, glGetDoublev, "glGetDoublev");
+    resolveGl(*this, glGetInteger64v, "glGetInteger64v");
+    resolveGl(*this, glGetStringi, "glGetStringi");
+    resolveGl(*this, glGenBuffers, "glGenBuffers");
+    resolveGl(*this, glDeleteBuffers, "glDeleteBuffers");
+    resolveGl(*this, glBindBuffer, "glBindBuffer");
+    resolveGl(*this, glBufferData, "glBufferData");
     // Buffer sub-data / immutable storage / copy are ES 3.1+; resolved optionally
     // so load() still succeeds on a driver that lacks them (capability reports
     // unsupported / the frontend emulates via its CPU mirror).
@@ -95,35 +96,35 @@ bool GLESLib::load() {
     resolveGl(*this, glFlushMappedBufferRange, "glFlushMappedBufferRange");
     resolveGl(*this, glInvalidateBufferData, "glInvalidateBufferData");
     resolveGl(*this, glInvalidateBufferSubData, "glInvalidateBufferSubData");
-    ok &= resolveGl(*this, glGenTextures, "glGenTextures");
-    ok &= resolveGl(*this, glDeleteTextures, "glDeleteTextures");
-    ok &= resolveGl(*this, glBindTexture, "glBindTexture");
+    resolveGl(*this, glGenTextures, "glGenTextures");
+    resolveGl(*this, glDeleteTextures, "glDeleteTextures");
+    resolveGl(*this, glBindTexture, "glBindTexture");
     resolveGl(*this, glActiveTexture, "glActiveTexture");
-    ok &= resolveGl(*this, glGenRenderbuffers, "glGenRenderbuffers");
-    ok &= resolveGl(*this, glDeleteRenderbuffers, "glDeleteRenderbuffers");
-    ok &= resolveGl(*this, glBindRenderbuffer, "glBindRenderbuffer");
-    ok &= resolveGl(*this, glRenderbufferStorage, "glRenderbufferStorage");
-    ok &= resolveGl(*this, glRenderbufferStorageMultisample,
+    resolveGl(*this, glGenRenderbuffers, "glGenRenderbuffers");
+    resolveGl(*this, glDeleteRenderbuffers, "glDeleteRenderbuffers");
+    resolveGl(*this, glBindRenderbuffer, "glBindRenderbuffer");
+    resolveGl(*this, glRenderbufferStorage, "glRenderbufferStorage");
+    resolveGl(*this, glRenderbufferStorageMultisample,
                   "glRenderbufferStorageMultisample");
-    ok &= resolveGl(*this, glGenFramebuffers, "glGenFramebuffers");
-    ok &= resolveGl(*this, glDeleteFramebuffers, "glDeleteFramebuffers");
-    ok &= resolveGl(*this, glBindFramebuffer, "glBindFramebuffer");
-    ok &= resolveGl(*this, glGenVertexArrays, "glGenVertexArrays");
-    ok &= resolveGl(*this, glDeleteVertexArrays, "glDeleteVertexArrays");
-    ok &= resolveGl(*this, glBindVertexArray, "glBindVertexArray");
-    ok &= resolveGl(*this, glCreateShader, "glCreateShader");
-    ok &= resolveGl(*this, glShaderSource, "glShaderSource");
-    ok &= resolveGl(*this, glCompileShader, "glCompileShader");
-    ok &= resolveGl(*this, glGetShaderiv, "glGetShaderiv");
-    ok &= resolveGl(*this, glGetShaderInfoLog, "glGetShaderInfoLog");
-    ok &= resolveGl(*this, glDeleteShader, "glDeleteShader");
-    ok &= resolveGl(*this, glCreateProgram, "glCreateProgram");
-    ok &= resolveGl(*this, glAttachShader, "glAttachShader");
-    ok &= resolveGl(*this, glDetachShader, "glDetachShader");
-    ok &= resolveGl(*this, glLinkProgram, "glLinkProgram");
-    ok &= resolveGl(*this, glGetProgramiv, "glGetProgramiv");
-    ok &= resolveGl(*this, glGetProgramInfoLog, "glGetProgramInfoLog");
-    ok &= resolveGl(*this, glDeleteProgram, "glDeleteProgram");
+    resolveGl(*this, glGenFramebuffers, "glGenFramebuffers");
+    resolveGl(*this, glDeleteFramebuffers, "glDeleteFramebuffers");
+    resolveGl(*this, glBindFramebuffer, "glBindFramebuffer");
+    resolveGl(*this, glGenVertexArrays, "glGenVertexArrays");
+    resolveGl(*this, glDeleteVertexArrays, "glDeleteVertexArrays");
+    resolveGl(*this, glBindVertexArray, "glBindVertexArray");
+    resolveGl(*this, glCreateShader, "glCreateShader");
+    resolveGl(*this, glShaderSource, "glShaderSource");
+    resolveGl(*this, glCompileShader, "glCompileShader");
+    resolveGl(*this, glGetShaderiv, "glGetShaderiv");
+    resolveGl(*this, glGetShaderInfoLog, "glGetShaderInfoLog");
+    resolveGl(*this, glDeleteShader, "glDeleteShader");
+    resolveGl(*this, glCreateProgram, "glCreateProgram");
+    resolveGl(*this, glAttachShader, "glAttachShader");
+    resolveGl(*this, glDetachShader, "glDetachShader");
+    resolveGl(*this, glLinkProgram, "glLinkProgram");
+    resolveGl(*this, glGetProgramiv, "glGetProgramiv");
+    resolveGl(*this, glGetProgramInfoLog, "glGetProgramInfoLog");
+    resolveGl(*this, glDeleteProgram, "glDeleteProgram");
     // Program-interface reflection (ES 3.0+); resolved optionally so load()
     // still succeeds on stricter/driver-limited EGL stacks.
     resolveGl(*this, glGetProgramInterfaceiv, "glGetProgramInterfaceiv");
@@ -142,13 +143,13 @@ bool GLESLib::load() {
     resolveGl(*this, glUniformSubroutinesuiv, "glUniformSubroutinesuiv");
     resolveGl(*this, glGetUniformSubroutineuiv, "glGetUniformSubroutineuiv");
     resolveGl(*this, glGetProgramStageiv, "glGetProgramStageiv");
-    ok &= resolveGl(*this, glEnable, "glEnable");
-    ok &= resolveGl(*this, glDisable, "glDisable");
+    resolveGl(*this, glEnable, "glEnable");
+    resolveGl(*this, glDisable, "glDisable");
     resolveGl(*this, glEnablei, "glEnablei");
     resolveGl(*this, glDisablei, "glDisablei");
-    ok &= resolveGl(*this, glUseProgram, "glUseProgram");
-    ok &= resolveGl(*this, glBlendFunc, "glBlendFunc");
-    ok &= resolveGl(*this, glBlendEquation, "glBlendEquation");
+    resolveGl(*this, glUseProgram, "glUseProgram");
+    resolveGl(*this, glBlendFunc, "glBlendFunc");
+    resolveGl(*this, glBlendEquation, "glBlendEquation");
     // Optional (core in ES 2.0/3.x but resolved defensively): separate blend and
     // constant blend color. The backend falls back to glBlendFunc/glBlendEquation
     // when these are unavailable.
@@ -161,29 +162,29 @@ bool GLESLib::load() {
     resolveGl(*this, glBlendFuncSeparatei, "glBlendFuncSeparatei");
     resolveGl(*this, glBlendEquationi, "glBlendEquationi");
     resolveGl(*this, glBlendEquationSeparatei, "glBlendEquationSeparatei");
-    ok &= resolveGl(*this, glDepthFunc, "glDepthFunc");
-    ok &= resolveGl(*this, glDepthMask, "glDepthMask");
-    ok &= resolveGl(*this, glDepthRangef, "glDepthRangef");
-    ok &= resolveGl(*this, glDepthRangefIndexed, "glDepthRangefIndexed");
-    ok &= resolveGl(*this, glStencilFunc, "glStencilFunc");
-    ok &= resolveGl(*this, glStencilOp, "glStencilOp");
-    ok &= resolveGl(*this, glStencilMask, "glStencilMask");
-    ok &= resolveGl(*this, glStencilFuncSeparate, "glStencilFuncSeparate");
-    ok &= resolveGl(*this, glStencilOpSeparate, "glStencilOpSeparate");
-    ok &= resolveGl(*this, glStencilMaskSeparate, "glStencilMaskSeparate");
-    ok &= resolveGl(*this, glColorMask, "glColorMask");
-    ok &= resolveGl(*this, glColorMaski, "glColorMaski");
+    resolveGl(*this, glDepthFunc, "glDepthFunc");
+    resolveGl(*this, glDepthMask, "glDepthMask");
+    resolveGl(*this, glDepthRangef, "glDepthRangef");
+    resolveGl(*this, glDepthRangefIndexed, "glDepthRangefIndexed");
+    resolveGl(*this, glStencilFunc, "glStencilFunc");
+    resolveGl(*this, glStencilOp, "glStencilOp");
+    resolveGl(*this, glStencilMask, "glStencilMask");
+    resolveGl(*this, glStencilFuncSeparate, "glStencilFuncSeparate");
+    resolveGl(*this, glStencilOpSeparate, "glStencilOpSeparate");
+    resolveGl(*this, glStencilMaskSeparate, "glStencilMaskSeparate");
+    resolveGl(*this, glColorMask, "glColorMask");
+    resolveGl(*this, glColorMaski, "glColorMaski");
     resolveGl(*this, glDispatchCompute, "glDispatchCompute");
     resolveGl(*this, glDispatchComputeIndirect, "glDispatchComputeIndirect");
-    ok &= resolveGl(*this, glSampleCoverage, "glSampleCoverage");
+    resolveGl(*this, glSampleCoverage, "glSampleCoverage");
     // glPrimitiveRestartIndex is core in GLES 3.0 but some implementations expose
     // it conditionally; resolve it optionally so load() still succeeds without it.
     resolveGl(*this, glPrimitiveRestartIndex, "glPrimitiveRestartIndex");
     // glPatchParameteri is core in GLES 3.2; resolve it optionally so load()
     // still succeeds on ES 3.0/3.1 drivers that omit it.
     resolveGl(*this, glPatchParameteri, "glPatchParameteri");
-    ok &= resolveGl(*this, glCullFace, "glCullFace");
-    ok &= resolveGl(*this, glFrontFace, "glFrontFace");
+    resolveGl(*this, glCullFace, "glCullFace");
+    resolveGl(*this, glFrontFace, "glFrontFace");
     // glPointSize was removed from the OpenGL ES 3.0 API (point size is set via
     // the gl_PointSize vertex-shader builtin). Resolve it optionally so load()
     // still succeeds on ES 3.0+ drivers that omit it; the frontend keeps tracking
@@ -192,24 +193,24 @@ bool GLESLib::load() {
     // glHint is core in GLES but a no-op on most drivers; resolved optionally so
     // load() still succeeds where the symbol is absent.
     resolveGl(*this, glHint, "glHint");
-    ok &= resolveGl(*this, glLineWidth, "glLineWidth");
-    ok &= resolveGl(*this, glPolygonOffset, "glPolygonOffset");
-    ok &= resolveGl(*this, glPolygonOffsetClamp, "glPolygonOffsetClamp");
-    ok &= resolveGl(*this, glPixelStorei, "glPixelStorei");
-    ok &= resolveGl(*this, glViewport, "glViewport");
-    ok &= resolveGl(*this, glScissor, "glScissor");
-    ok &= resolveGl(*this, glViewportIndexedf, "glViewportIndexedf");
-    ok &= resolveGl(*this, glScissorIndexed, "glScissorIndexed");
-    ok &= resolveGl(*this, glClearColor, "glClearColor");
-    ok &= resolveGl(*this, glClearDepthf, "glClearDepthf");
-    ok &= resolveGl(*this, glClearStencil, "glClearStencil");
-    ok &= resolveGl(*this, glClear, "glClear");
+    resolveGl(*this, glLineWidth, "glLineWidth");
+    resolveGl(*this, glPolygonOffset, "glPolygonOffset");
+    resolveGl(*this, glPolygonOffsetClamp, "glPolygonOffsetClamp");
+    resolveGl(*this, glPixelStorei, "glPixelStorei");
+    resolveGl(*this, glViewport, "glViewport");
+    resolveGl(*this, glScissor, "glScissor");
+    resolveGl(*this, glViewportIndexedf, "glViewportIndexedf");
+    resolveGl(*this, glScissorIndexed, "glScissorIndexed");
+    resolveGl(*this, glClearColor, "glClearColor");
+    resolveGl(*this, glClearDepthf, "glClearDepthf");
+    resolveGl(*this, glClearStencil, "glClearStencil");
+    resolveGl(*this, glClear, "glClear");
     resolveGl(*this, glClearTexImage, "glClearTexImage");
     resolveGl(*this, glClearTexSubImage, "glClearTexSubImage");
     resolveGl(*this, glCopyImageSubData, "glCopyImageSubData");
-    ok &= resolveGl(*this, glFlush, "glFlush");
-    ok &= resolveGl(*this, glFinish, "glFinish");
-    ok &= resolveGl(*this, glReadPixels, "glReadPixels");
+    resolveGl(*this, glFlush, "glFlush");
+    resolveGl(*this, glFinish, "glFinish");
+    resolveGl(*this, glReadPixels, "glReadPixels");
     // glReadnPixels is core in GL 4.5 (ARB_robustness) but not a standard ES entry
     // point; resolve it optionally so load() still succeeds on ES drivers that
     // omit it, and GLESBackend::readnPixels falls back to glReadPixels.
@@ -217,16 +218,16 @@ bool GLESLib::load() {
     // glTextureBarrierNV (GL_NV_texture_barrier) is the ES spelling of
     // glTextureBarrier; resolve optionally.
     resolveGl(*this, glTextureBarrierNV, "glTextureBarrierNV");
-    ok &= resolveGl(*this, glBindBufferBase, "glBindBufferBase");
-    ok &= resolveGl(*this, glBindBufferRange, "glBindBufferRange");
-    ok &= resolveGl(*this, glUniformBlockBinding, "glUniformBlockBinding");
+    resolveGl(*this, glBindBufferBase, "glBindBufferBase");
+    resolveGl(*this, glBindBufferRange, "glBindBufferRange");
+    resolveGl(*this, glUniformBlockBinding, "glUniformBlockBinding");
     resolveGl(*this, glShaderStorageBlockBinding, "glShaderStorageBlockBinding");
     // Transform-feedback varying capture setup (SPEC §13.3.1). ES 3.0+; resolved
     // optionally so load() still succeeds without it.
     resolveGl(*this, glTransformFeedbackVaryings, "glTransformFeedbackVaryings");
-    ok &= resolveGl(*this, glTexImage2D, "glTexImage2D");
-    ok &= resolveGl(*this, glTexImage3D, "glTexImage3D");
-    ok &= resolveGl(*this, glTexParameteri, "glTexParameteri");
+    resolveGl(*this, glTexImage2D, "glTexImage2D");
+    resolveGl(*this, glTexImage3D, "glTexImage3D");
+    resolveGl(*this, glTexParameteri, "glTexParameteri");
     // Parameter setters (float / vector) are core in GLES but resolved defensively.
     resolveGl(*this, glTexParameterf, "glTexParameterf");
     resolveGl(*this, glTexParameterfv, "glTexParameterfv");
@@ -281,20 +282,22 @@ bool GLESLib::load() {
     resolveGl(*this, glTexParameterIuiv, "glTexParameterIuiv");
     resolveGl(*this, glInvalidateTexImage, "glInvalidateTexImage");
     resolveGl(*this, glInvalidateTexSubImage, "glInvalidateTexSubImage");
-    ok &= resolveGl(*this, glFramebufferTexture2D, "glFramebufferTexture2D");
-    ok &= resolveGl(*this, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
+    resolveGl(*this, glFramebufferTexture2D, "glFramebufferTexture2D");
+    resolveGl(*this, glFramebufferRenderbuffer, "glFramebufferRenderbuffer");
     resolveGl(*this, glFramebufferTextureLayer, "glFramebufferTextureLayer");
     resolveGl(*this, glFramebufferParameteri, "glFramebufferParameteri");
     // Framebuffer parameter read-back (SPEC §9.2.3). GLES 3.0+; resolved
     // optionally. Used to read the bound framebuffer's SAMPLES for
     // glGetMultisamplefv index validation.
     resolveGl(*this, glGetFramebufferParameteriv, "glGetFramebufferParameteriv");
-    ok &= resolveGl(*this, glCheckFramebufferStatus, "glCheckFramebufferStatus");
+    resolveGl(*this, glCheckFramebufferStatus, "glCheckFramebufferStatus");
+    resolveGl(*this, glGetFramebufferAttachmentParameteriv,
+              "glGetFramebufferAttachmentParameteriv");
     // Whole-framebuffer buffer selection (core in GLES but resolved defensively).
     resolveGl(*this, glDrawBuffers, "glDrawBuffers");
     resolveGl(*this, glReadBuffer, "glReadBuffer");
-    ok &= resolveGl(*this, glDrawArrays, "glDrawArrays");
-    ok &= resolveGl(*this, glDrawElements, "glDrawElements");
+    resolveGl(*this, glDrawArrays, "glDrawArrays");
+    resolveGl(*this, glDrawElements, "glDrawElements");
     // Instanced draws are ES 3.0+; resolve optionally so load() still succeeds
     // on a driver that lacks them (the capability system reports them
     // unsupported instead of failing the whole backend init).
@@ -431,6 +434,18 @@ bool GLESLib::load() {
     resolveGl(*this, glGetUniformiv, "glGetUniformiv");
     resolveGl(*this, glGetUniformuiv, "glGetUniformuiv");
 
+    fprintf(stderr, "[YAGLT-DEBUG] load ok=%d\n"
+            "  egl: init=%p err=%p disp=%p choose=%p ctx=%p mc=%p dc=%p term=%p qstr=%p eglPA=%p\n"
+            "  gl: GetError=%p GetString=%p GetIntegerv=%p GetBooleanv=%p GetFloatv=%p GetDoublev=%p GetInteger64v=%p GetStringi=%p\n"
+            "      GenBuffers=%p DeleteBuffers=%p BindBuffer=%p BufferData=%p GenTextures=%p DeleteTextures=%p BindTexture=%p\n",
+            (int)ok,
+            (void*)eglInitialize, (void*)eglGetError, (void*)eglGetDisplay, (void*)eglChooseConfig,
+            (void*)eglCreateContext, (void*)eglMakeCurrent, (void*)eglDestroyContext, (void*)eglTerminate, (void*)eglQueryString, (void*)eglGetProcAddress,
+            (void*)glGetError, (void*)glGetString, (void*)glGetIntegerv, (void*)glGetBooleanv, (void*)glGetFloatv, (void*)glGetDoublev, (void*)glGetInteger64v, (void*)glGetStringi,
+            (void*)glGenBuffers, (void*)glDeleteBuffers, (void*)glBindBuffer, (void*)glBufferData, (void*)glGenTextures, (void*)glDeleteTextures, (void*)glBindTexture);
+    fprintf(stderr, "[YAGLT-DEBUG] suspects: POC=%p DRfi=%p CMi=%p VIi=%p SIi=%p Tex2D=%p DrawA=%p Enable=%p CFS=%p FbT2D=%p CreateShader=%p BindVAO=%p\n",
+            (void*)glPolygonOffsetClamp, (void*)glDepthRangefIndexed, (void*)glColorMaski, (void*)glViewportIndexedf, (void*)glScissorIndexed,
+            (void*)glTexImage2D, (void*)glDrawArrays, (void*)glEnable, (void*)glCheckFramebufferStatus, (void*)glFramebufferTexture2D, (void*)glCreateShader, (void*)glBindVertexArray);
     if (!ok) {
         dlclose(egl);
         dlclose(gles);

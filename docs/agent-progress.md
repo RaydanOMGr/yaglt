@@ -3,6 +3,40 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — GL CTS (VK-GL-CTS) init crash fixed, this session)
+
+- Reproduced and root-caused the GL CTS (`../VK-GL-CTS`, `glcts`) crash that
+  aborted during GL init when driven through the `libEGL.so` drop-in shim.
+  Backtrace (via gdb) pointed at `GLESBackend::getIntegerv` calling an
+  **unmapped** `lib_->glGetIntegerv` pointer.
+- **Root cause 1 — adopt-mode dispatch mismatch:** the GLES backend `dlopen`s
+  its own `libGLESv2`, but under the shim the EGL context is created by the
+  *host* `libEGL`; that context's real dispatch lives in the host driver's
+  `libGLESv2` mapping, a different (and by crash-time, unmapped) mapping from
+  the backend's own `dlopen`. Fixed by resolving GL entry points through the
+  host `eglGetProcAddress` in adopt mode (`GLESLib::resolveGLViaProcAddr`, set
+  in `GLESBackend::setAdopt`; `resolveGl` prefers `eglGetProcAddress`, falls
+  back to `dlsym`). Non-adopt behavior unchanged.
+- **Root cause 2 — `glGetStringi` wrong signature:** declared
+  `void(*)(GLenum, GLuint, const GLubyte**)` (out-param) but the real GLES
+  signature is `const GLubyte*(GLenum, GLuint)`. The return value was
+  discarded, so every indexed extension query returned NULL → `GL_INVALID_VALUE`
+  and blocked deqp's extension init. Fixed the signature and both call sites
+  (`queryVersion`, `GLESBackend::getStringi`).
+- `Context::getStringi` now delegates to `IGraphicsBackend::getStringi` (new
+  virtual with a no-op default; `GLESBackend` overrides it to call the host
+  `glGetStringi`) so the frontend reports the real driver extension list
+  instead of a hard-coded empty one.
+- Result: `glcts` no longer segfaults during init and now **runs real tests
+  through YAGLT** (e.g. `KHR-GL30.api.*`). Remaining `KHR-GL30.api.coverage`
+  failure is expected incomplete desktop-GL coverage, not a crash.
+- Also fixed a pre-existing stray `}` in `src/backend/mock/mock_backend.hpp`
+  that prematurely closed the class and broke the default build compile.
+- Committed: CTS harness + crash fix; mock-backend build fix. `build_tx` (GLES
+  e2e) green; `build` compiles (one pre-existing frontend validation gap in
+  `raster_test` — `glGetIntegerv(0xDEAD)` expects `GL_INVALID_ENUM` but the
+  Mock backend forwards and sets no error; out of scope for this fix).
+
 ## Recent Work (2026-08-31 — core coverage reaches 100% of measurable universe, this session)
 
 - `tools/coverage_report.py` now treats the core-profile coverage subset
@@ -3624,6 +3658,32 @@ crashed agent, this session)
    - `tests/unit/texture_fbo_test.cpp`: 4 new cases (allocates + records samples,
      requires bound renderbuffer, rejects negative samples/size, public gl* surface)
      + registered (same TU).
-   - `docs/feature-matrix.md` §9.2.4 gains a row. Coverage regenerated.
-   - Validation: `build` 871/871, `build_san` (ASan/UBSan clean) 871/871,
-     `build_tx` (GLES e2e under Mesa softpipe) 883/883.
+    - `docs/feature-matrix.md` §9.2.4 gains a row. Coverage regenerated.
+    - Validation: `build` 871/871, `build_san` (ASan/UBSan clean) 871/871,
+      `build_tx` (GLES e2e under Mesa softpipe) 883/883.
+
+## Recent Work (2026-08-31 — test failure fixes, this session)
+
+- **Stack-buffer-overflow in `texParameterIiv` (ASan):** `bindTexture(9999)`
+  rejected the synthetic name upfront (`GL_INVALID_OPERATION`) without updating
+  the binding state, so the binding remained 0 (default texture). Subsequent
+  `texParameterIiv` with `GL_TEXTURE_BORDER_COLOR` then operated on the default
+  texture and read 4 ints from a 1-element caller buffer via `vector::assign`
+  (overflowing the stack). Fixed by making `Context::bindTexture` allow binding
+  non-existent texture names per SPEC §8.4 (`glBindTexture` does not error on
+  ungenerated names; the error surfaces at texture-object access time). Now
+  `getTexture(9999)` returns nullptr and the operation returns
+  `GL_INVALID_OPERATION` before touching the params array.
+- **Incorrect error code for non-program objects in `getFragDataLocation`**
+  (SPEC §7.3): returned `GL_INVALID_VALUE` instead of
+  `GL_INVALID_OPERATION` when the program name is not a program object.
+  `getFragDataIndex` was already correct — aligned `getFragDataLocation`
+  (and `getAttribLocation` which had the same bug) to use
+  `GLError::InvalidOperation`.
+- **`programBinary` missing validation** caused a crash when passing
+  `length < 0` (vector::assign with a wrapped size) or `binaryFormat == 0`.
+  Added `binaryFormat == 0 → GL_INVALID_ENUM` and `length < 0 →
+  GL_INVALID_VALUE` checks before the binary assignment, mirroring
+  `shaderBinary` (SPEC §19.1).
+- Validation: `build` 919/919, `build_san` (ASan/UBSan clean) 919/919,
+  `build_tx` (GLES e2e under Mesa softpipe) 934/934.

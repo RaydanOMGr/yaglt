@@ -25,7 +25,8 @@ TEST_CASE("multi_draw_arrays_indirect_count_forwards_params") {
     glGenBuffers(1, &pbuf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibuf);
     glBindBuffer(GL_PARAMETER_BUFFER, pbuf);
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawArraysIndirectCount(GL_TRIANGLES,
                                    reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(16)),
@@ -51,7 +52,8 @@ TEST_CASE("multi_draw_elements_indirect_count_forwards_type") {
     glGenBuffers(1, &pbuf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibuf);
     glBindBuffer(GL_PARAMETER_BUFFER, pbuf);
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT,
                                      reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(0)),
@@ -76,7 +78,8 @@ TEST_CASE("multi_draw_indirect_count_requires_parameter_buffer") {
     GLuint ibuf = 0;
     glGenBuffers(1, &ibuf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibuf);
-    glUseProgram(2);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawArraysIndirectCount(GL_TRIANGLES, nullptr, 4, 10, 0);
     EXPECT_EQ(backend.multiDrawArraysIndirectCountCalls, 0);
@@ -96,7 +99,8 @@ TEST_CASE("multi_draw_indirect_count_offset_must_be_aligned") {
     glGenBuffers(1, &pbuf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, ibuf);
     glBindBuffer(GL_PARAMETER_BUFFER, pbuf);
-    glUseProgram(2);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawElementsIndirectCount(GL_TRIANGLES, GL_UNSIGNED_INT, nullptr, 6, 10, 0);
     EXPECT_EQ(backend.multiDrawElementsIndirectCountCalls, 0);

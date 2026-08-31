@@ -22,7 +22,7 @@ TEST_CASE("gl_getstring_vendor_renderer_version") {
               std::string("4.6.0 Compatibility Profile YAGLT"));
     EXPECT_EQ(std::string(str(glGetString(GL_SHADING_LANGUAGE_VERSION))),
               std::string("4.60"));
-    EXPECT_EQ(std::string(str(glGetString(GL_EXTENSIONS))), std::string(""));
+    EXPECT_EQ(std::string(str(glGetString(GL_EXTENSIONS))), std::string("GL_KHR_robustness"));
 
     // A valid query must not leave an error pending.
     EXPECT_EQ(glGetError(), GL_NO_ERROR);

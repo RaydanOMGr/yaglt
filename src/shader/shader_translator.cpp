@@ -1,24 +1,35 @@
 #include "src/shader/shader_translator.hpp"
 
+#include "src/core/debug.hpp"
+
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/Public/ResourceLimits.h>
 #include <SPIRV/GlslangToSpv.h>
 #include <spirv_cross.hpp>
 #include <spirv_glsl.hpp>
 
+#include <cstdio>
+#include <cstdlib>
 #include <regex>
+#include <set>
+#include <string>
 #include <vector>
 
 namespace glcompat {
 
 namespace {
-// Desktop GLSL omits explicit `layout(binding=...)` for uniform/storage blocks,
-// but glslang requires one when emitting SPIR-V. Inject a default binding for
-// every uniform/storage block that lacks one so desktop shaders translate
-// without manual edits (SPEC §7: shader pipeline transformation).
+// Desktop GLSL omits explicit `layout(binding=...)` for uniform/storage blocks
+// and for bare (non-block) uniform declarations, but glslang requires a binding
+// when emitting SPIR-V. Inject a default binding for every uniform/storage
+// block and bare uniform that lacks one so desktop shaders translate without
+// manual edits (SPEC §7: shader pipeline transformation).
 std::string assignDefaultBindings(const std::string& src) {
     static const std::regex re(
-        R"((layout\s*\([^)]*\)\s*)?(uniform|buffer)\s+([A-Za-z_]\w*)(\s+[A-Za-z_]\w*)?\s*\{)");
+        // block form:  uniform|buffer NAME [instance] {
+        // bare form:   uniform|buffer TYPE NAME [array] ;
+        R"((layout\s*\([^)]*\)\s*)?(uniform|buffer)\s+)"
+        R"((?:([A-Za-z_]\w*)(?:\s+([A-Za-z_]\w*))?\s*\{)"
+        R"(|([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;))");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int binding = 0;
@@ -27,19 +38,41 @@ std::string assignDefaultBindings(const std::string& src) {
         out.append(pos, m[0].first);
         const std::string kind = m[2].str();
         const std::string layout = m[1].str();
-        if (layout.empty()) {
-            out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
-                   " " + m[3].str();
-            if (m[4].matched) out += m[4].str();
-            out += " {";
-        } else if (layout.find("binding") == std::string::npos) {
-            const std::string afterOpen = layout.substr(std::string("layout(").size());
-            out += "layout(binding=" + std::to_string(binding++) + ", " + afterOpen +
-                   kind + " " + m[3].str();
-            if (m[4].matched) out += m[4].str();
-            out += " {";
+        if (m[3].matched) {
+            // Block declaration: NAME [instance] {.
+            const std::string blockName = m[3].str();
+            const std::string instName = m[4].str();
+            if (layout.empty()) {
+                out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
+                       " " + blockName;
+                if (!instName.empty()) out += " " + instName;
+                out += " {";
+            } else if (layout.find("binding") == std::string::npos) {
+                const std::string afterOpen =
+                    layout.substr(std::string("layout(").size());
+                out += "layout(binding=" + std::to_string(binding++) + ", " +
+                       afterOpen + kind + " " + blockName;
+                if (!instName.empty()) out += " " + instName;
+                out += " {";
+            } else {
+                out += m[0].str(); // already has a binding
+            }
         } else {
-            out += m[0].str(); // already has a binding
+            // Bare uniform: TYPE NAME [array] ;.
+            const std::string type = m[5].str();
+            const std::string name = m[6].str();
+            const std::string arr = m[7].str();
+            if (layout.empty()) {
+                out += "layout(binding=" + std::to_string(binding++) + ") " + kind +
+                       " " + type + " " + name + arr + ";";
+            } else if (layout.find("binding") == std::string::npos) {
+                const std::string afterOpen =
+                    layout.substr(std::string("layout(").size());
+                out += "layout(binding=" + std::to_string(binding++) + ", " +
+                       afterOpen + kind + " " + type + " " + name + arr + ";";
+            } else {
+                out += m[0].str(); // already has a binding
+            }
         }
         pos = m[0].second;
     }
@@ -47,14 +80,14 @@ std::string assignDefaultBindings(const std::string& src) {
     return out;
 }
 
-// User-defined `in`/`out` interface variables and bare `uniform` declarations
-// need an explicit location when targeting SPIR-V (glslang rejects unlocated
-// user I/O and non-block uniforms). Inject a default location for any such
-// declaration that lacks one so desktop GLSL translates without manual edits
-// (SPEC §7).
+// User-defined `in`/`out` interface variables need an explicit location when
+// targeting SPIR-V (glslang rejects unlocated user I/O). `uniform` declarations
+// get a *binding* instead (see assignDefaultBindings) — never a location, which
+// SPIR-V rejects. Inject a default location for any `in`/`out` that lacks one so
+// desktop GLSL translates without manual edits (SPEC §7).
 std::string assignDefaultLocations(const std::string& src) {
     static const std::regex re(
-        R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
+        R"((layout\s*\([^)]*\)\s*)?(in|out)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int location = 0;
@@ -73,7 +106,7 @@ std::string assignDefaultLocations(const std::string& src) {
             const std::string afterOpen =
                 layout.substr(std::string("layout(").size());
             out += "layout(location=" + std::to_string(location++) + ", " +
-                   afterOpen + qual + " " + type + " " + name + arr + ";";
+                    afterOpen + qual + " " + type + " " + name + arr + ";";
         } else {
             out += m[0].str();
         }
@@ -115,6 +148,91 @@ std::string replaceEmulated1D(std::string src) {
 } // namespace
 
 namespace {
+// Legacy (pre-GLSL-330) desktop GLSL uses texture/fragment-output built-ins
+// that glslang's OpenGL-SPIR-V path rejects, and that no longer exist once a
+// shader is bumped to a modern #version. Rewrite them to their modern forms:
+//   texture2D/texture3D/textureCube/shadow2D   -> texture
+//   *Lod / *Proj variants                        -> textureLod / textureProj
+//   gl_FragColor                                 -> out vec4 yaglt_FragColor
+//   gl_FragData[i]                               -> out vec4 yaglt_FragData_i
+// `outDecls` collects the global `out` declarations the output rewrites need,
+// which the caller inserts just after the #version line (SPEC §7).
+std::string modernizeLegacyBuiltins(const std::string& src, std::string& outDecls) {
+    outDecls.clear();
+    std::string out = src;
+
+    // Texture lookups: longest names first so shorter prefixes don't clobber
+    // them (e.g. texture2DLod before texture2D).
+    out = std::regex_replace(out, std::regex(R"(\btexture2DLod\s*\()"), "textureLod(");
+    out = std::regex_replace(out, std::regex(R"(\btexture3DLod\s*\()"), "textureLod(");
+    out = std::regex_replace(out, std::regex(R"(\btextureCubeLod\s*\()"), "textureLod(");
+    out = std::regex_replace(out, std::regex(R"(\btexture2DProj\s*\()"), "textureProj(");
+    out = std::regex_replace(out, std::regex(R"(\btexture3DProj\s*\()"), "textureProj(");
+    out = std::regex_replace(out, std::regex(R"(\bshadow2DProj\s*\()"), "textureProj(");
+    out = std::regex_replace(out, std::regex(R"(\btexture2D\s*\()"), "texture(");
+    out = std::regex_replace(out, std::regex(R"(\btexture3D\s*\()"), "texture(");
+    out = std::regex_replace(out, std::regex(R"(\btextureCube\s*\()"), "texture(");
+    out = std::regex_replace(out, std::regex(R"(\bshadow2D\s*\()"), "texture(");
+
+    if (out.find("gl_FragColor") != std::string::npos) {
+        out = std::regex_replace(out, std::regex(R"(\bgl_FragColor\b)"),
+                                 "yaglt_FragColor");
+        // Fragment outputs are user I/O in SPIR-V and require an explicit
+        // location, just like any other `out` variable.
+        outDecls += "layout(location=0) out vec4 yaglt_FragColor;\n";
+    }
+
+    std::regex fdRe(R"(\bgl_FragData\s*\[\s*(\d+)\s*\])");
+    std::set<int> fdIndices;
+    std::string::const_iterator pos = out.cbegin();
+    std::smatch m;
+    while (std::regex_search(pos, out.cend(), m, fdRe)) {
+        fdIndices.insert(std::atoi(m[1].str().c_str()));
+        pos = m[0].second;
+    }
+    for (int i : fdIndices) {
+        char buf[64];
+        std::snprintf(buf, sizeof(buf),
+                      "layout(location=%d) out vec4 yaglt_FragData_%d;\n", i, i);
+        outDecls += buf;
+        std::regex repl("gl_FragData\\s*\\[\\s*" + std::to_string(i) +
+                        "\\s*\\]");
+        out = std::regex_replace(out, repl, "yaglt_FragData_" + std::to_string(i));
+    }
+    return out;
+}
+
+// glslang's OpenGL-SPIR-V path requires desktop GLSL >= 330. OpenGL 3.0/3.1/3.2
+// shaders use #version 130/140/150, which would be rejected. Bump such legacy
+// desktop shaders to #version 450 (matching EShTargetOpenGL_450, where
+// layout(binding=)/layout(location=) are core). GLSL ES inputs are passed
+// through untouched. `outDecls` (from modernizeLegacyBuiltins) is inserted just
+// after the #version line.
+std::string bumpDesktopVersion(std::string src, const std::string& outDecls) {
+    static const std::regex verRe(R"(#version[ \t]+(\d+)(?:[ \t]+([a-zA-Z]+))?)");
+    std::smatch m;
+    if (!std::regex_search(src, m, verRe)) {
+        std::string injected = "#version 450\n" + outDecls;
+        return injected + src;
+    }
+    const int ver = std::atoi(m[1].str().c_str());
+    const std::string profile = m[2].str();
+    if (profile == "es") return src; // already GLSL ES
+
+    std::string result = src;
+    if (ver < 450) {
+        result = std::regex_replace(result, verRe, "#version 450");
+    }
+    if (!outDecls.empty()) {
+        const size_t vpos = result.find("#version 450");
+        const size_t nl = result.find('\n', vpos);
+        if (nl != std::string::npos) result.insert(nl + 1, outDecls);
+    }
+    return result;
+}
+} // namespace
+
+namespace {
 EShLanguage mapStage(uint32_t stage) {
     switch (stage) {
     case 0x8B31: return EShLangVertex;       // GL_VERTEX_SHADER
@@ -145,34 +263,60 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
         return false;
     }
 
+    {
+        std::string _p = "/tmp/yaglt_desktop_in_" + std::to_string(stage) + ".glsl";
+        FILE* _f = std::fopen(_p.c_str(), "wb");
+        if (_f) { std::fwrite(desktopGlsl.data(), 1, desktopGlsl.size(), _f); std::fclose(_f); }
+    }
+    YAGLT_DEBUG_DUMP(("desktop_in_" + std::to_string(stage) + ".glsl").c_str(),
+                      desktopGlsl);
+
     EShLanguage lang = mapStage(stage);
     glslang::TShader shader(lang);
     std::string prepared = assignDefaultBindings(desktopGlsl);
     prepared = assignDefaultLocations(prepared);
+    // Rewrite legacy desktop built-ins (texture2D/texture3D/textureCube,
+    // gl_FragColor/gl_FragData) into their modern equivalents. glslang rejects
+    // these for SPIR-V output, and they no longer exist in the core GLSL
+    // versions we bump shaders to (SPEC §7: shader pipeline transformation).
+    std::string fragDecls;
+    prepared = modernizeLegacyBuiltins(prepared, fragDecls);
     // Rewrite 1D textures to 2D before parsing: ES has no 1D and modern core
     // GLSL rejects sampler1D / texture1D. This must run on the desktop source.
     prepared = replaceEmulated1D(prepared);
-    // Desktop GLSL < 4.20 rejects layout(binding=...) on uniform/storage blocks
-    // and layout(location=...) on bare uniforms; these ARB extensions enable them
-    // for SPIR-V translation.
-    const size_t vpos = prepared.find("#version");
-    if (vpos != std::string::npos) {
-        const size_t nl = prepared.find('\n', vpos);
-        if (nl != std::string::npos) {
-            prepared.insert(nl + 1,
-                "#extension GL_ARB_shading_language_420pack : enable\n"
-                "#extension GL_ARB_explicit_uniform_location : enable\n");
-        }
+    // glslang requires desktop GLSL >= 330 to emit SPIR-V. OpenGL 3.0/3.1/3.2
+    // shaders use #version 130/140/150 and would be rejected; bump them to 450
+    // (matching EShTargetOpenGL_450, where layout(binding=)/layout(location=)
+    // are core) and inject any collected fragment-output declarations.
+    prepared = bumpDesktopVersion(prepared, fragDecls);
+
+    {
+        std::string _p = "/tmp/yaglt_prepared_" + std::to_string(stage) + ".glsl";
+        FILE* _f = std::fopen(_p.c_str(), "wb");
+        if (_f) { std::fwrite(prepared.data(), 1, prepared.size(), _f); std::fclose(_f); }
     }
+    YAGLT_DEBUG_DUMP(("prepared_" + std::to_string(stage) + ".glsl").c_str(),
+                      prepared);
+
     const char* src = prepared.c_str();
     shader.setStrings(&src, 1);
-    shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientOpenGL, 110);
+    shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientOpenGL, 450);
     shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
     shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
 
     EShMessages msgs = EShMsgDefault;
-    if (!shader.parse(GetDefaultResources(), 110, false, msgs)) {
+    if (!shader.parse(GetDefaultResources(), 450, false, msgs)) {
         error = shader.getInfoLog();
+        YAGLT_DEBUG("translate: parse failed (stage=0x%x): %s", stage,
+                    error.c_str());
+        {
+            static int n = 0;
+            std::string p = "/tmp/yaglt_FAIL_parse_" + std::to_string(stage) +
+                            "_" + std::to_string(n++) + ".glsl";
+            FILE* f = std::fopen(p.c_str(), "wb");
+            if (f) { std::fwrite(desktopGlsl.data(), 1, desktopGlsl.size(), f);
+                     std::fclose(f); }
+        }
         return false;
     }
 
@@ -180,6 +324,12 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     program.addShader(&shader);
     if (!program.link(msgs)) {
         error = program.getInfoLog();
+        static int n = 0;
+        std::string p = "/tmp/yaglt_FAIL_link_" + std::to_string(stage) +
+                        "_" + std::to_string(n++) + ".glsl";
+        FILE* f = std::fopen(p.c_str(), "wb");
+        if (f) { std::fwrite(desktopGlsl.data(), 1, desktopGlsl.size(), f);
+                 std::fclose(f); }
         return false;
     }
 
@@ -204,6 +354,13 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     glsl.set_common_options(opts);
 
     esSource = glsl.compile();
+    {
+        std::string _p = "/tmp/yaglt_es_out_" + std::to_string(stage) + ".glsl";
+        FILE* _f = std::fopen(_p.c_str(), "wb");
+        if (_f) { std::fwrite(esSource.data(), 1, esSource.size(), _f); std::fclose(_f); }
+    }
+    YAGLT_DEBUG_DUMP(("es_out_" + std::to_string(stage) + ".glsl").c_str(),
+                      esSource);
     return true;
 }
 

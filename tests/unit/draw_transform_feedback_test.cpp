@@ -27,7 +27,8 @@ TEST_CASE("draw_transform_feedback_uses_captured_count") {
     EXPECT_NE(mtf, nullptr);
     mtf->capturedVertexCount = 17;
 
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawTransformFeedback(GL_TRIANGLES, tf);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     EXPECT_EQ(backend.drawTransformFeedbackCalls, 1);
@@ -59,7 +60,8 @@ TEST_CASE("draw_transform_feedback_unknown_object_invalid_operation") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawTransformFeedback(GL_TRIANGLES, 12345u);
     EXPECT_EQ(backend.drawTransformFeedbackCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
@@ -77,7 +79,8 @@ TEST_CASE("draw_transform_feedback_active_loop_invalid_operation") {
     auto* mtf = dynamic_cast<MockTransformFeedback*>(ctx.getTransformFeedback(tf)->backend.get());
     mtf->capturedVertexCount = 4;
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     ctx.beginTransformFeedback(GL_TRIANGLES);
     glDrawTransformFeedback(GL_TRIANGLES, tf);
     EXPECT_EQ(backend.drawTransformFeedbackCalls, 0);
@@ -104,7 +107,8 @@ TEST_CASE("draw_transform_feedback_instanced_and_stream") {
     auto* mtf = dynamic_cast<MockTransformFeedback*>(ctx.getTransformFeedback(tf)->backend.get());
     mtf->capturedVertexCount = 9;
 
-    glUseProgram(2);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawTransformFeedbackInstanced(GL_TRIANGLES, tf, 5);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     EXPECT_EQ(backend.drawTransformFeedbackInstancedCalls, 1);

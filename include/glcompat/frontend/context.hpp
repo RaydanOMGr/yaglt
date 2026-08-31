@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glcompat/core/backend.hpp"
+#include "glcompat/core/factory.hpp"
 #include "glcompat/frontend/error.hpp"
 #include "glcompat/frontend/objects.hpp"
 #include "glcompat/state/gl_state.hpp"
@@ -13,6 +14,11 @@
 
 namespace glcompat {
 
+// Number of scalar elements a given texture-parameter pname carries for the
+// vector setter variants (glTexParameterfv/iv, which match the desktop GL ABI
+// and do not pass an explicit count).
+int texParamElementCount(uint32_t pname);
+
 // Frontend OpenGL context. Owns object identity, name allocation, binding
 // state, and validation. Talks to the backend only through IGraphicsBackend,
 // never to a native API. This is the foundation the OpenGL 4.6 API entry
@@ -23,6 +29,12 @@ public:
         for (auto& src : debugEnabled_)
             for (auto& ty : src)
                 for (auto& sev : ty) sev = true;
+        // The default texture (GL name 0) is always present and supports the
+        // usual texImage/texParameter operations (SPEC §8.1). Kept separate from
+        // `textures_` so name 0 never reports as a generated texture and
+        // glDeleteTextures(0) stays a no-op.
+        defaultTexture_ = std::make_unique<TextureObject>(0);
+        defaultTexture_->backend = backend_.resourceFactory().createDefaultTexture();
     }
 
     IGraphicsBackend& backend() { return backend_; }
@@ -47,9 +59,9 @@ public:
     // Returns VENDOR/RENDERER/VERSION/EXTENSIONS/SHADING_LANGUAGE_VERSION for the
     // current GL context. An unknown name sets GL_INVALID_ENUM and returns nullptr.
     const GLubyte* getString(GLenum name);
-    // Indexed string query (SPEC §22.2). Only GL_EXTENSIONS is indexable; this
-    // frontend exposes no extensions, so any index is out of range and yields
-    // GL_INVALID_VALUE. Other names set GL_INVALID_ENUM.
+    // Indexed string query (SPEC §22.2). Only GL_EXTENSIONS is indexable; it
+    // reports the merged extension set (driver native + YAGLT-emulated), so an
+    // out-of-range index yields GL_INVALID_VALUE. Other names set GL_INVALID_ENUM.
     const GLubyte* getStringi(GLenum name, uint32_t index);
 
     // --- Buffers ---
@@ -1391,6 +1403,53 @@ public:
     void vertexAttribI4ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z, uint32_t w);
     void vertexAttribI4iv(uint32_t index, const int32_t* v);
     void vertexAttribI4uiv(uint32_t index, const uint32_t* v);
+    // Full generic vertex-attribute value setters (SPEC §10.2): double/short/int
+    // scalar+vector variants, normalized (N) variants, and integer (I) variants.
+    void vertexAttrib1d(uint32_t index, double x);
+    void vertexAttrib1dv(uint32_t index, const double* v);
+    void vertexAttrib1s(uint32_t index, int16_t x);
+    void vertexAttrib1sv(uint32_t index, const int16_t* v);
+    void vertexAttrib2d(uint32_t index, double x, double y);
+    void vertexAttrib2dv(uint32_t index, const double* v);
+    void vertexAttrib2s(uint32_t index, int16_t x, int16_t y);
+    void vertexAttrib2sv(uint32_t index, const int16_t* v);
+    void vertexAttrib3d(uint32_t index, double x, double y, double z);
+    void vertexAttrib3dv(uint32_t index, const double* v);
+    void vertexAttrib3s(uint32_t index, int16_t x, int16_t y, int16_t z);
+    void vertexAttrib3sv(uint32_t index, const int16_t* v);
+    void vertexAttrib4d(uint32_t index, double x, double y, double z, double w);
+    void vertexAttrib4dv(uint32_t index, const double* v);
+    void vertexAttrib4s(uint32_t index, int16_t x, int16_t y, int16_t z, int16_t w);
+    void vertexAttrib4sv(uint32_t index, const int16_t* v);
+    void vertexAttrib4iv(uint32_t index, const int32_t* v);
+    void vertexAttrib4bv(uint32_t index, const int8_t* v);
+    void vertexAttrib4ubv(uint32_t index, const uint8_t* v);
+    void vertexAttrib4uiv(uint32_t index, const uint32_t* v);
+    void vertexAttrib4usv(uint32_t index, const uint16_t* v);
+    void vertexAttrib4Nbv(uint32_t index, const int8_t* v);
+    void vertexAttrib4Niv(uint32_t index, const int32_t* v);
+    void vertexAttrib4Nsv(uint32_t index, const int16_t* v);
+    void vertexAttrib4Nub(uint32_t index, uint8_t x, uint8_t y, uint8_t z, uint8_t w);
+    void vertexAttrib4Nubv(uint32_t index, const uint8_t* v);
+    void vertexAttrib4Nuiv(uint32_t index, const uint32_t* v);
+    void vertexAttrib4Nusv(uint32_t index, const uint16_t* v);
+    void vertexAttribI1i(uint32_t index, int32_t x);
+    void vertexAttribI1iv(uint32_t index, const int32_t* v);
+    void vertexAttribI1ui(uint32_t index, uint32_t x);
+    void vertexAttribI1uiv(uint32_t index, const uint32_t* v);
+    void vertexAttribI2i(uint32_t index, int32_t x, int32_t y);
+    void vertexAttribI2iv(uint32_t index, const int32_t* v);
+    void vertexAttribI2ui(uint32_t index, uint32_t x, uint32_t y);
+    void vertexAttribI2uiv(uint32_t index, const uint32_t* v);
+    void vertexAttribI3i(uint32_t index, int32_t x, int32_t y, int32_t z);
+    void vertexAttribI3iv(uint32_t index, const int32_t* v);
+    void vertexAttribI3ui(uint32_t index, uint32_t x, uint32_t y, uint32_t z);
+    void vertexAttribI3uiv(uint32_t index, const uint32_t* v);
+    void vertexAttribI4bv(uint32_t index, const int8_t* v);
+    void vertexAttribI4sv(uint32_t index, const int16_t* v);
+    void vertexAttribI4ubv(uint32_t index, const uint8_t* v);
+    void vertexAttribI4usv(uint32_t index, const uint16_t* v);
+    void vertexAttribIPointer(uint32_t index, int32_t size, uint32_t type, bool normalized, int32_t stride, intptr_t offset);
     // Query per-attribute state (SPEC §10.4), read from the bound VAO.
     // fv returns CURRENT_VERTEX_ATTRIB as float[4]; dv as double[4].
     // iv answers the integer/bool array pnames (ENABLED/SIZE/STRIDE/TYPE/
@@ -1849,15 +1908,31 @@ private:
                                                  uint32_t pname, int32_t* params);
     GLObjectName nextName_ = 1;
 
+    // Merged extension set reported to the application: the backend's native
+    // extensions plus the robustness entry points YAGLT emulates on top of GLES
+    // (SPEC §22.2). Built lazily so the count/index/string queries stay mutually
+    // consistent.
+    const std::vector<std::string>& combinedExtensions() const;
+
     IGraphicsBackend& backend_;
     GLError error_ = GLError::NoError;
+
+    // Cached merged extension list (combinedExtensions()) and its joined form,
+    // returned by reference from getString(GL_EXTENSIONS).
+    mutable std::vector<std::string> combinedExtensions_;
+    mutable std::string combinedExtString_;
     GLStateTracker state_;
 
     std::unordered_map<GLObjectName, std::unique_ptr<BufferObject>> buffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<TextureObject>> textures_;
+    // Default texture (name 0), always present (SPEC §8.1).
+    std::unique_ptr<TextureObject> defaultTexture_;
     std::unordered_map<GLObjectName, std::unique_ptr<RenderbufferObject>> renderbuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<FramebufferObject>> framebuffers_;
     std::unordered_map<GLObjectName, std::unique_ptr<VertexArrayObject>> vertexArrays_;
+    // The default vertex array object (name 0), always present and current until
+    // an explicit VAO is bound (SPEC §10.3 / GLES: VAO 0 is the default).
+    VertexArrayObject defaultVertexArray_{0};
     std::unordered_map<GLObjectName, std::unique_ptr<SamplerObject>> samplers_;
     std::unordered_map<GLObjectName, std::unique_ptr<ShaderObject>> shaders_;
     std::unordered_map<GLObjectName, std::unique_ptr<ProgramObject>> programs_;

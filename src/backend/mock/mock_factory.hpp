@@ -19,6 +19,13 @@ public:
         r->id = ++counter_;
         return r;
     }
+    std::unique_ptr<BackendTexture> createDefaultTexture() override {
+        // Default texture (name 0): a MockTexture with id 0, distinct from any
+        // generated texture so unit tests can still distinguish default ops.
+        auto r = std::make_unique<MockTexture>();
+        r->id = 0;
+        return r;
+    }
     std::unique_ptr<BackendRenderbuffer> createRenderbuffer() override {
         auto r = std::make_unique<MockRenderbuffer>();
         r->id = ++counter_;

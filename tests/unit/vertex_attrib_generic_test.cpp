@@ -123,17 +123,21 @@ TEST_CASE("vertexAttribI4uiv_stores_unsigned_current_value") {
     EXPECT_EQ(iv[3], 4);
 }
 
-TEST_CASE("vertexAttrib_without_bound_vao_is_invalid_operation") {
+TEST_CASE("vertexAttrib_with_default_vao_succeeds") {
     MockBackend backend;
     Context ctx(backend);
     setCurrentContext(&ctx);
 
     glVertexAttrib4f(0, 1.0f, 2.0f, 3.0f, 4.0f);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
 
     float fv[4] = {0, 0, 0, 0};
     glGetVertexAttribfv(0, GL_CURRENT_VERTEX_ATTRIB, fv);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(fv[0], 1.0f);
+    EXPECT_EQ(fv[1], 2.0f);
+    EXPECT_EQ(fv[2], 3.0f);
+    EXPECT_EQ(fv[3], 4.0f);
 }
 
 TEST_CASE("vertexAttrib_out_of_range_index_is_invalid_value") {
@@ -318,17 +322,17 @@ TEST_CASE("getVertexAttrib_validation_errors") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
 }
 
-TEST_CASE("getVertexAttrib_without_bound_vao_is_invalid_operation") {
+TEST_CASE("getVertexAttrib_with_default_vao_succeeds") {
     MockBackend backend;
     Context ctx(backend);
     setCurrentContext(&ctx);
 
     int32_t iv = 0;
     glGetVertexAttribiv(0, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &iv);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
     void* pv = nullptr;
     glGetVertexAttribPointerv(0, GL_VERTEX_ATTRIB_ARRAY_POINTER, &pv);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
 }
 
 // glGetVertexAttribLdv (SPEC §10.3) reads the same double-precision current
@@ -360,8 +364,8 @@ TEST_CASE("getVertexAttribLdv_matches_current_value") {
     EXPECT_EQ(dv2[2], dv[2]);
     EXPECT_EQ(dv2[3], dv[3]);
 
-    // A non-current-attribute pname is GL_INVALID_ENUM.
-    glGetVertexAttribLdv(1, GL_VERTEX_ATTRIB_ARRAY_SIZE, dv);
+    // A truly invalid pname is GL_INVALID_ENUM.
+    glGetVertexAttribLdv(1, 0xDEAD, dv);
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
     // Null params -> GL_INVALID_VALUE.
     glGetVertexAttribLdv(1, GL_CURRENT_VERTEX_ATTRIB, nullptr);

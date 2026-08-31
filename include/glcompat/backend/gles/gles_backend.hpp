@@ -336,6 +336,9 @@ public:
     void getFloatv(uint32_t pname, float* params) override;
     void getDoublev(uint32_t pname, double* params) override;
     void getInteger64v(uint32_t pname, int64_t* params) override;
+    void getFramebufferAttachmentParameteriv(uint32_t target, uint32_t attachment,
+                                             uint32_t pname,
+                                             int32_t* params) override;
 
  private:
     GLESLibPtr lib_;

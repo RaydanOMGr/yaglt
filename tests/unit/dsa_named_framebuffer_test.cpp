@@ -308,14 +308,17 @@ TEST_CASE("get_framebuffer_attachment_parameter_invalid_target") {
     EXPECT_EQ(ctx.getError(), GLError::InvalidEnum);
 }
 
-TEST_CASE("get_framebuffer_attachment_parameter_no_bound_invalid_operation") {
+TEST_CASE("get_framebuffer_attachment_parameter_default_fb_forwards_to_backend") {
     auto backend = makeBackend();
     Context ctx(*backend);
     int32_t v = 0;
+    // Default framebuffer (name 0) is valid in the compat profile; the frontend
+    // forwards the query to the backend rather than generating INVALID_OPERATION.
     ctx.getFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                                             GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE,
                                             &v);
-    EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+    EXPECT_EQ(v, 0);
 }
 
 TEST_CASE("get_named_framebuffer_parameter_null_invalid") {

@@ -48,7 +48,8 @@ TEST_CASE("hint_pushed_to_backend_on_flush") {
     glHint(GL_TEXTURE_COMPRESSION_HINT, GL_NICEST);
     EXPECT_EQ(backend.hintCalls, 0); // not yet flushed
 
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     EXPECT_EQ(backend.hintCalls, 1);
     EXPECT_EQ(backend.lastHintTarget, GL_TEXTURE_COMPRESSION_HINT);

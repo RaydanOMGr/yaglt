@@ -128,6 +128,7 @@ TEST_CASE("copyTexSubImage2D_rejects_no_bound_texture") {
     auto backend = makeBackend();
     Context ctx(*backend);
     setCurrentContext(&ctx);
+    glBindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, 4, 4);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
     setCurrentContext(nullptr);

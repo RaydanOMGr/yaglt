@@ -319,6 +319,16 @@ public:
     virtual void getFloatv(uint32_t pname, float* params) = 0;
     virtual void getDoublev(uint32_t pname, double* params) = 0;
     virtual void getInteger64v(uint32_t pname, int64_t* params) = 0;
+
+    // Framebuffer attachment parameter query (glGetFramebufferAttachmentParameteriv).
+    // The frontend answers tracked state for user FBOs; this forwards the query to
+    // the native driver for the default framebuffer (name 0), whose attachment
+    // state the frontend does not model. `target`/`attachment`/`pname` are raw GL
+    // enums and `params` the caller-owned output buffer.
+    virtual void getFramebufferAttachmentParameteriv(uint32_t target,
+                                                     uint32_t attachment,
+                                                     uint32_t pname,
+                                                     int32_t* params) = 0;
 };
 
 } // namespace glcompat

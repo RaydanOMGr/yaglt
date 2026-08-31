@@ -106,7 +106,8 @@ TEST_CASE("viewport_and_scissor_pushed_together_at_draw") {
 
     // A draw flushes tracked state to the backend. An active program is required
     // for the draw to proceed, which exercises the flush path.
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArrays(GL_TRIANGLES, 0, 3);
 
     EXPECT_EQ(backend.viewportCalls, 1);

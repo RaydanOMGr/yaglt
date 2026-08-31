@@ -40,7 +40,8 @@ TEST_CASE("srgb_and_alpha_to_coverage_push_on_change") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     int enableAtStart = backend.enableCalls;
     int disableAtStart = backend.disableCalls;

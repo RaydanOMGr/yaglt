@@ -23,7 +23,8 @@ TEST_CASE("multi_draw_arrays_indirect_forwards_count_stride_offset") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawArraysIndirect(GL_TRIANGLES,
                               reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(32)),
@@ -48,7 +49,8 @@ TEST_CASE("multi_draw_elements_indirect_forwards_all_params") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
                                 reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(0)),
@@ -69,7 +71,8 @@ TEST_CASE("multi_draw_indirect_requires_indirect_buffer") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(2);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
     EXPECT_EQ(backend.multiDrawArraysIndirectCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
@@ -103,7 +106,8 @@ TEST_CASE("multi_draw_indirect_zero_stride_is_valid") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-    glUseProgram(4);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 5, 0);
     EXPECT_EQ(backend.multiDrawArraysIndirectCalls, 1);
     EXPECT_EQ(backend.lastDrawIndirectCount, 5);

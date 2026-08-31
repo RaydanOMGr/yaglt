@@ -212,6 +212,7 @@ TEST_CASE("get_tex_image_no_bound_texture") {
     auto backend = makeBackend();
     Context ctx(*backend);
     unsigned char buf[64] = {0};
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.getTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, buf);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
@@ -292,6 +293,7 @@ TEST_CASE("get_tex_level_parameter_no_bound_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
     GLint v = 0;
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.getTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &v);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }

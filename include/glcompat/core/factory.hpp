@@ -14,6 +14,11 @@ public:
 
     virtual std::unique_ptr<BackendBuffer> createBuffer() = 0;
     virtual std::unique_ptr<BackendTexture> createTexture() = 0;
+    // The default texture (GL name 0). Operates on the backend-native default
+    // texture object; the returned wrapper carries handle 0 so backend calls
+    // bind/modify the driver's default texture (SPEC §8.1: name 0 is always the
+    // default texture and supports texImage/texParameter like any other).
+    virtual std::unique_ptr<BackendTexture> createDefaultTexture() = 0;
     virtual std::unique_ptr<BackendRenderbuffer> createRenderbuffer() = 0;
     virtual std::unique_ptr<BackendFramebuffer> createFramebuffer() = 0;
     virtual std::unique_ptr<BackendVertexArray> createVertexArray() = 0;

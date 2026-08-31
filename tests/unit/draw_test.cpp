@@ -18,7 +18,9 @@ TEST_CASE("draw_arrays_flushes_state_then_records") {
     setCurrentContext(&ctx);
 
     glEnable(GL_BLEND);
-    glUseProgram(7);
+    GLuint prog;
+    MAKE_VALID_PROGRAM(prog);
+    glUseProgram(prog);
 
     // Draw with no program -> INVALID_OPERATION, no native draw.
     glUseProgram(0);
@@ -27,7 +29,7 @@ TEST_CASE("draw_arrays_flushes_state_then_records") {
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 
     // Bind a program; draw flushes pending state and records the draw.
-    glUseProgram(7);
+    glUseProgram(prog);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     EXPECT_EQ(backend.enableCalls, 1); // flushed before draw
     EXPECT_EQ(backend.useProgramCalls, 1); // flushed (program) before draw
@@ -44,7 +46,9 @@ TEST_CASE("draw_elements_records_mode_count_type_indices") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint prog;
+    MAKE_VALID_PROGRAM(prog);
+    glUseProgram(prog);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT,
                    reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(24)));
     EXPECT_EQ(backend.drawElementsCalls, 1);
@@ -69,7 +73,9 @@ TEST_CASE("draw_instanced_requires_capability_and_program") {
     EXPECT_EQ(backend.drawArraysInstancedCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 
-    glUseProgram(2);
+    GLuint prog;
+    MAKE_VALID_PROGRAM(prog);
+    glUseProgram(prog);
     glDrawArraysInstanced(GL_TRIANGLES, 0, 3, 4);
     EXPECT_EQ(backend.drawArraysInstancedCalls, 1);
     EXPECT_EQ(backend.lastDrawPrimcount, 4);

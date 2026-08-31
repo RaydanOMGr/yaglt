@@ -82,6 +82,7 @@ TEST_CASE("texStorage3D_allocates_immutable_3d") {
 TEST_CASE("texStorage2D_without_bound_texture_is_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.texStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, 4, 4);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
@@ -148,6 +149,7 @@ TEST_CASE("texBuffer_without_bound_texture_is_invalid_operation") {
     GLObjectName buf = ctx.genBuffer();
     ctx.bindBuffer(GL_ARRAY_BUFFER, buf);
     ctx.bufferData(GL_ARRAY_BUFFER, 16, GL_STATIC_DRAW, nullptr);
+    ctx.bindTexture(GL_TEXTURE_BUFFER, 9999); // synthetic name, no texture object
     ctx.texBuffer(GL_TEXTURE_BUFFER, GL_RGBA8, buf);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }

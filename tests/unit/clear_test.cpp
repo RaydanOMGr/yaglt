@@ -114,7 +114,8 @@ TEST_CASE("glClear_pushes_color_then_clears_at_draw_time") {
     setCurrentContext(&ctx);
 
     glClearColor(0.2f, 0.4f, 0.6f, 1.0f);
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArrays(0x0004 /* GL_TRIANGLES */, 0, 3);
 
     // The draw flushed tracked state, which pushed the clear color.

@@ -9,8 +9,15 @@ namespace glcompat {
 
 // OpenGL ES has no 1D textures. Map GL_TEXTURE_1D to GL_TEXTURE_2D so the
 // emulated 1D surface is stored as a 2D texture with height=1 on real backends.
+// GL_TEXTURE_1D_ARRAY maps to GL_TEXTURE_2D_ARRAY (an array of 1D layers is an
+// array of 1xW layers); GL_TEXTURE_RECTANGLE maps to GL_TEXTURE_2D.
 inline uint32_t glesActualTarget(uint32_t target) {
-    return (target == 0x0DE0u) ? GL_TEXTURE_2D : target;
+    switch (target) {
+    case 0x0DE0u: return GL_TEXTURE_2D;       // GL_TEXTURE_1D
+    case 0x8C18u: return GL_TEXTURE_2D_ARRAY;  // GL_TEXTURE_1D_ARRAY
+    case 0x84F5u: return GL_TEXTURE_2D;        // GL_TEXTURE_RECTANGLE
+    default:      return target;
+    }
 }
 
 // GLES 3.x requires a *sized* internal format for texture/renderbuffer storage to
@@ -159,9 +166,23 @@ struct GLESBackendTexture : BackendTexture {
     void texImage2D(uint32_t target, int level, uint32_t internalFormat,
                      int width, int height, uint32_t format, uint32_t type,
                      const void* data) override {
+        // GL_TEXTURE_1D_ARRAY has no GLES equivalent; emulate it as a 2D array
+        // where each 1D layer is a 1xW slice (the height argument is the layer
+        // count). The driver allocates it through the 3D entry point.
+        if (target == 0x8C18u) { // GL_TEXTURE_1D_ARRAY
+            if (!lib || !lib->driverLive() || !lib->glTexImage3D) return;
+            if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D_ARRAY, handle);
+            lib->glTexImage3D(GL_TEXTURE_2D_ARRAY, level,
+                              static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
+                              static_cast<GLsizei>(width), 1,
+                              static_cast<GLsizei>(height), 0,
+                              format, type, data);
+            return;
+        }
         if (!lib || !lib->driverLive() || !lib->glTexImage2D) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexImage2D(target, level,
+        const uint32_t t = glesActualTarget(target);
+        if (lib->glBindTexture) lib->glBindTexture(t, handle);
+        lib->glTexImage2D(t, level,
                           static_cast<GLint>(glesSizedInternalFormat(internalFormat)),
                           static_cast<GLsizei>(width),
                           static_cast<GLsizei>(height), 0,
@@ -243,11 +264,21 @@ struct GLESBackendTexture : BackendTexture {
                              format, type, data);
     }
     void texSubImage2D(uint32_t target, int level, int xoffset, int yoffset,
-                       int width, int height, uint32_t format, uint32_t type,
-                       const void* data) override {
+                        int width, int height, uint32_t format, uint32_t type,
+                        const void* data) override {
+        // GL_TEXTURE_1D_ARRAY sub-uploads emulate as 2D-array sub-uploads; the
+        // height argument is the layer count and the y offset stays 0.
+        if (target == 0x8C18u) { // GL_TEXTURE_1D_ARRAY
+            if (!lib || !lib->driverLive() || !lib->glTexSubImage3D) return;
+            if (lib->glBindTexture) lib->glBindTexture(GL_TEXTURE_2D_ARRAY, handle);
+            lib->glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, xoffset, 0, 0,
+                                 width, 1, height, format, type, data);
+            return;
+        }
         if (!lib || !lib->driverLive() || !lib->glTexSubImage2D) return;
-        if (lib->glBindTexture) lib->glBindTexture(target, handle);
-        lib->glTexSubImage2D(target, level, xoffset, yoffset, width, height,
+        const uint32_t t = glesActualTarget(target);
+        if (lib->glBindTexture) lib->glBindTexture(t, handle);
+        lib->glTexSubImage2D(t, level, xoffset, yoffset, width, height,
                              format, type, data);
     }
     void texSubImage3D(uint32_t target, int level, int xoffset, int yoffset,

@@ -88,7 +88,7 @@ TEST_CASE("getprograminfolog_copies_log") {
     GLuint prog = glCreateProgram();
     // Linking a program with no attached shaders fails on the mock backend.
     glLinkProgram(prog);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION); // link failure is reported
+    EXPECT_EQ(glGetError(), GL_NO_ERROR); // link failure is reported via LINK_STATUS, not a GL error
     EXPECT_EQ(glGetProgramiv(prog, GL_LINK_STATUS), GL_FALSE);
     EXPECT_TRUE(glGetProgramiv(prog, GL_INFO_LOG_LENGTH) >= 1);
 

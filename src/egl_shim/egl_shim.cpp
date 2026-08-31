@@ -74,8 +74,11 @@ void activateContext(EGLContext ctx) {
         return;
     }
     if (!sc->initialized) {
+        fprintf(stderr, "[YAGLT-DEBUG] activateContext: adopting + initialize()\n");
         sc->backend->setAdopt(sc->dpy, ctx);
-        if (!sc->backend->initialize()) {
+        bool ok = sc->backend->initialize();
+        fprintf(stderr, "[YAGLT-DEBUG] activateContext: initialize() returned %d\n", (int)ok);
+        if (!ok) {
             // No driver -> honest failure. GL calls will report no context.
             sc->initialized = false;
         } else {
@@ -250,9 +253,20 @@ EGLAPIENTRY __eglMustCastToProperFunctionPointerType eglGetProcAddress(const cha
         if (fn) return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(fn);
     }
     // EGL extensions and GLES-only entry points fall through to the host.
-    if (g_host.eglGetProcAddress)
-        return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(
-            g_host.eglGetProcAddress(procname));
+    {
+        FILE* _pf = std::fopen("/tmp/yaglt_proc.log", "a");
+        if (_pf) { std::fprintf(_pf, "eglGetProcAddress(%s)\n", procname); std::fclose(_pf); }
+    }
+    if (g_host.eglGetProcAddress) {
+        void* hf = g_host.eglGetProcAddress(procname);
+        if (hf) {
+            if (strcmp(procname, "glClear") == 0 || strcmp(procname, "glClearColor") == 0)
+                fprintf(stderr, "[YAGLT-PROC] %s -> host %p\n", procname, hf);
+            return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(hf);
+        }
+    }
+    if (strncmp(procname, "gl", 2) == 0)
+        fprintf(stderr, "[YAGLT-NULLPROC] eglGetProcAddress(%s) -> NULL\n", procname);
     return nullptr;
 }
 

@@ -34,6 +34,7 @@ TEST_CASE("generate_mipmap_forwards_to_backend") {
 TEST_CASE("generate_mipmap_no_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.generateMipmap(GL_TEXTURE_2D);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
@@ -101,6 +102,7 @@ TEST_CASE("tex_parameter_iiv_no_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
     int32_t v = 0;
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.texParameterIiv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &v);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
@@ -206,6 +208,7 @@ TEST_CASE("invalidate_tex_image_negative_level_invalid_value") {
 TEST_CASE("invalidate_tex_image_no_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.invalidateTexImage(GL_TEXTURE_2D, 0);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }

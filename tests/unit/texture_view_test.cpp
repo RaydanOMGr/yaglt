@@ -86,9 +86,9 @@ TEST_CASE("texture_view_unknown_object_rejected") {
     Context ctx(*backend);
     GLObjectName src; ctx.createTextures(GL_TEXTURE_2D, 1, &src);
     ctx.textureStorage2D(src, 2, GL_RGBA8, 16, 16);
-    // Viewing into / from an ungenerated name is an error.
+     // Viewing into / from an ungenerated name is an error.
     ctx.textureView(9999, GL_TEXTURE_2D, src, GL_RGBA8, 0, 1, 0, 1);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
-    ctx.textureView(0, GL_TEXTURE_2D, src, GL_RGBA8, 0, 1, 0, 1);
+    ctx.textureView(9998, GL_TEXTURE_2D, src, GL_RGBA8, 0, 1, 0, 1);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }

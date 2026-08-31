@@ -37,7 +37,8 @@ TEST_CASE("compute_dispatch_requires_feature_and_program") {
     EXPECT_EQ(backend.dispatchComputeCalls, 0);
 
     // With a program in use, the dispatch is issued and recorded.
-    glUseProgram(7);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDispatchCompute(4, 2, 1);
     EXPECT_EQ(glGetError(), static_cast<GLenum>(GL_NO_ERROR));
     EXPECT_EQ(backend.dispatchComputeCalls, 1);
@@ -53,7 +54,8 @@ TEST_CASE("compute_dispatch_indirect_requires_indirect_buffer") {
     Context ctx(backend);
     setCurrentContext(&ctx);
     backend.setCapability(Feature::ComputeShaders, FeatureSupport::Emulated);
-    glUseProgram(7);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     // No GL_DISPATCH_INDIRECT_BUFFER bound → INVALID_OPERATION.
     glDispatchComputeIndirect(reinterpret_cast<const void*>(0));

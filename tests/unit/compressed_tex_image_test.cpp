@@ -115,6 +115,7 @@ TEST_CASE("compressedTexImage_rejects_no_bound_texture") {
     auto backend = makeBackend();
     Context ctx(*backend);
     setCurrentContext(&ctx);
+    glBindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGBA_S3TC_DXT1_EXT, 8, 8, 0,
                           32, nullptr);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);

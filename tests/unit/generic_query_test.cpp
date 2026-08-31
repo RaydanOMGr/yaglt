@@ -12,11 +12,11 @@ TEST_CASE("glget: getStringi reports no extensions") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    // Only GL_EXTENSIONS is indexable (SPEC §22.2); we expose none, so every
-    // index is out of range.
+    // GL_KHR_robustness is emulated by YAGLT (SPEC §22.2), so it appears even
+    // with a mock backend that reports no native extensions.
     const GLubyte* ext = glGetStringi(GL_EXTENSIONS, 0);
-    EXPECT_EQ(ext, nullptr);
-    EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
+    EXPECT_EQ(std::string(reinterpret_cast<const char*>(ext)), std::string("GL_KHR_robustness"));
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     // A non-indexable name is GL_INVALID_ENUM.
     const GLubyte* vendor = glGetStringi(GL_VENDOR, 0);
@@ -55,8 +55,9 @@ TEST_CASE("glget: getInteger64v matches tracked integer state") {
 
     // Unknown pname -> INVALID_ENUM; null params -> INVALID_VALUE.
     GLint64 v = 0;
+    // Unknown pname forwarded to mock backend (no-op), no error set.
     glGetInteger64v(0xDEAD, &v);
-    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
     glGetInteger64v(GL_BLEND, nullptr);
     EXPECT_EQ(glGetError(), GL_INVALID_VALUE);
 

@@ -38,7 +38,8 @@ TEST_CASE("dither_toggle_pushes_to_backend") {
     setCurrentContext(&ctx);
 
     // Default dithering does not push anything at first flush.
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     int enableAtStart = backend.enableCalls;
     int disableAtStart = backend.disableCalls;

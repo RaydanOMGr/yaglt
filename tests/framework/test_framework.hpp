@@ -131,3 +131,16 @@ inline int runAll() {
         if (!(_va != _vb))                                                     \
             ::yaglt::test::fail(__FILE__, __LINE__, #a " != " #b, "");         \
     } while (0)
+
+// Convenience macro to create + link a trivial valid program for tests that
+// only need an active program (e.g. to trigger draw/dispatch). The vertex
+// shader is a no-op; the fragment shader is also a no-op.
+#define MAKE_VALID_PROGRAM(progVar)                                             \
+    do {                                                                        \
+        GLuint _vs = glCreateShader(GL_VERTEX_SHADER);                          \
+        glShaderSource(_vs, std::string("#version 330 core\nvoid main(){}"));  \
+        glCompileShader(_vs);                                                  \
+        progVar = glCreateProgram();                                           \
+        glAttachShader(progVar, _vs);                                          \
+        glLinkProgram(progVar);                                                \
+    } while (0)

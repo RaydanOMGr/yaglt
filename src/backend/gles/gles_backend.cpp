@@ -198,6 +198,17 @@ void GLESBackend::getInteger64v(uint32_t pname, int64_t* params) {
         lib_->glGetInteger64v(static_cast<GLenum>(pname), params);
 }
 
+void GLESBackend::getFramebufferAttachmentParameteriv(uint32_t target,
+                                                     uint32_t attachment,
+                                                     uint32_t pname,
+                                                     int32_t* params) {
+    if (lib_ && lib_->glGetFramebufferAttachmentParameteriv)
+        lib_->glGetFramebufferAttachmentParameteriv(static_cast<GLenum>(target),
+                                                    static_cast<GLenum>(attachment),
+                                                    static_cast<GLenum>(pname),
+                                                    params);
+}
+
 bool GLESBackend::initialize() {
     if (initialized_) return true;
     if (!lib_->load()) return false;
@@ -206,6 +217,8 @@ bool GLESBackend::initialize() {
         return false;
     }
     queryVersion();
+    fprintf(stderr, "[YAGLT-DEBUG] GLESBackend::initialize glesMajor=%d glesMinor=%d version='%s' renderer='%s'\n",
+            lib_->glesMajor, lib_->glesMinor, lib_->versionString.c_str(), lib_->rendererString.c_str());
     populateGLESCapabilities(caps_, *lib_);
     log(LogCategory::Backend, LogLevel::Info) << "selected backend: GLES (ES "
         << lib_->glesMajor << "." << lib_->glesMinor
@@ -544,7 +557,21 @@ void GLESBackend::patchParameterfv(uint32_t, const float*) {}
 void GLESBackend::clipControl(GLenum, GLenum) {}
 
 void GLESBackend::pixelStorei(GLenum pname, GLint param) {
-    if (lib_->glPixelStorei) lib_->glPixelStorei(pname, param);
+    if (!lib_->glPixelStorei) return;
+    // Desktop-GL-only byte/bit ordering controls have no GLES equivalent. The
+    // frontend records them for GL-conformant glGetPixelStorei queries, so here
+    // we simply do not forward them to the driver (dropping avoids
+    // INVALID_ENUM). A full mapping would emulate the swap in the pixel
+    // transfer path; state conformance only needs the drop.
+    switch (pname) {
+    case 0x0D00:  // GL_PACK_SWAP_BYTES
+    case 0x0D01:  // GL_PACK_LSB_FIRST
+    case 0x0CF0:  // GL_UNPACK_SWAP_BYTES
+    case 0x0CF1:  // GL_UNPACK_LSB_FIRST
+        return;
+    default:
+        lib_->glPixelStorei(pname, param);
+    }
 }
 
 void GLESBackend::setViewport(int32_t x, int32_t y, int32_t w, int32_t h) {

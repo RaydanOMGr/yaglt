@@ -84,6 +84,8 @@ public:
     void getFloatv(uint32_t, float*) override {}
     void getDoublev(uint32_t, double*) override {}
     void getInteger64v(uint32_t, int64_t*) override {}
+    void getFramebufferAttachmentParameteriv(uint32_t, uint32_t, uint32_t,
+                                             int32_t*) override {}
 
     // --- GLStateSink recording (observable in tests) ---
     int enableCalls = 0;

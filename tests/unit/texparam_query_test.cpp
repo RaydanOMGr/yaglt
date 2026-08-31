@@ -39,6 +39,7 @@ TEST_CASE("get_tex_parameter_iv_no_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
     int v = 0;
+    ctx.bindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     ctx.getTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &v);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }

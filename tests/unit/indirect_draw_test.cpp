@@ -22,7 +22,8 @@ TEST_CASE("draw_arrays_indirect_requires_program_and_indirect_buffer") {
     EXPECT_TRUE(backend.capabilities().isSupported(Feature::IndirectDrawing));
 
     // No indirect buffer bound -> INVALID_OPERATION (SPEC §10).
-    glUseProgram(3);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArraysIndirect(GL_TRIANGLES, nullptr);
     EXPECT_EQ(backend.drawArraysIndirectCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
@@ -39,7 +40,7 @@ TEST_CASE("draw_arrays_indirect_requires_program_and_indirect_buffer") {
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 
     // Both satisfied -> native indirect draw is issued with the byte offset.
-    glUseProgram(3);
+    glUseProgram(_pg);
     glDrawArraysIndirect(GL_TRIANGLES,
                          reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(8)));
     EXPECT_EQ(backend.drawArraysIndirectCalls, 1);
@@ -57,7 +58,8 @@ TEST_CASE("draw_elements_indirect_records_mode_type_and_offset") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-    glUseProgram(5);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     glDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT,
                            reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(16)));
@@ -78,7 +80,8 @@ TEST_CASE("draw_indirect_unbinds_buffer_blocks_draw") {
     GLuint buf = 0;
     glGenBuffers(1, &buf);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, buf);
-    glUseProgram(9);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArraysIndirect(GL_TRIANGLES, nullptr);
     EXPECT_EQ(backend.drawArraysIndirectCalls, 1);
 

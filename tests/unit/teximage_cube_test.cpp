@@ -56,6 +56,9 @@ TEST_CASE("cube_face_texImage2D_without_bound_cubemap_is_invalid_operation") {
     GLObjectName tex = ctx.genTexture();
     // Bind as 2D only; no GL_TEXTURE_CUBE_MAP binding exists.
     ctx.bindTexture(GL_TEXTURE_2D, tex);
+    // Bind a synthetic name to the cube map binding so no valid texture is bound
+    // for cube map face targets (SPEC §8.1).
+    ctx.bindTexture(GL_TEXTURE_CUBE_MAP, 9999);
 
     ctx.texImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, GL_RGBA, 16, 16, GL_RGBA,
                    GL_UNSIGNED_BYTE, nullptr);

@@ -26,7 +26,8 @@ TEST_CASE("draw_elements_instanced_base_vertex_requires_program_and_capability")
     EXPECT_EQ(backend.drawElementsInstancedBaseVertexCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawElementsInstancedBaseVertex(
         GL_TRIANGLES, 3, GL_UNSIGNED_INT,
         reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(0)), 2, 5);
@@ -43,7 +44,8 @@ TEST_CASE("draw_range_elements_base_vertex_validates_range_and_records") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
 
     // end < start -> INVALID_VALUE, no native call.
     glDrawRangeElementsBaseVertex(
@@ -71,7 +73,8 @@ TEST_CASE("multi_draw_elements_base_vertex_records_drawcount_and_basevertex") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     GLsizei counts[2] = {6, 6};
     intptr_t indices[2] = {0, 12};
     glMultiDrawElementsBaseVertex(

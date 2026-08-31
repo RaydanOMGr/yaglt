@@ -74,6 +74,7 @@ TEST_CASE("getnteximage_no_bound_texture_invalid_operation") {
     setCurrentContext(&ctx);
 
     uint8_t buf[16] = {0};
+    glBindTexture(GL_TEXTURE_2D, 9999); // synthetic name, no texture object
     glGetnTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, sizeof(buf), buf);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 

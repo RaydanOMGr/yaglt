@@ -43,10 +43,11 @@ TEST_CASE("vertex_attrib_divisor_pushed_only_when_nonzero") {
     EXPECT_EQ(backend.lastAttribDivisorIndex, 0u);
     EXPECT_EQ(backend.lastAttribDivisor, 2u);
 
-    // No VAO bound -> INVALID_OPERATION.
+    // Default VAO (name 0) is always present in the compat profile; the call
+    // succeeds and is forwarded to the backend.
     glBindVertexArray(0);
     glVertexAttribDivisor(1, 1);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     setCurrentContext(nullptr);
 }
@@ -56,7 +57,8 @@ TEST_CASE("multi_draw_arrays_records_drawcount") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t firsts[2] = {0, 3};
     int32_t counts[2] = {3, 3};
     glMultiDrawArrays(GL_TRIANGLES, firsts, counts, 2);
@@ -83,7 +85,8 @@ TEST_CASE("multi_draw_elements_records_drawcount") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     int32_t counts[2] = {6, 6};
     intptr_t indices[2] = {0, 12};
     glMultiDrawElements(GL_TRIANGLES, counts, GL_UNSIGNED_INT,
@@ -101,7 +104,8 @@ TEST_CASE("draw_range_elements_validates_range_and_records") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     // end < start -> INVALID_VALUE, no native call.
     glDrawRangeElements(GL_TRIANGLES, 10, 4, 3, GL_UNSIGNED_INT,
                         reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(0)));
@@ -134,7 +138,8 @@ TEST_CASE("draw_elements_base_vertex_requires_program_and_capability") {
     EXPECT_EQ(backend.drawElementsBaseVertexCalls, 0);
     EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawElementsBaseVertex(GL_TRIANGLES, 3, GL_UNSIGNED_INT,
                             reinterpret_cast<const GLvoid*>(static_cast<intptr_t>(0)), 5);
     EXPECT_EQ(backend.drawElementsBaseVertexCalls, 1);

@@ -33,9 +33,10 @@ TEST_CASE("create_compile_link_program_end_to_end") {
     glLinkProgram(prog);
     EXPECT_EQ(glGetProgramiv(prog, GL_LINK_STATUS), GL_TRUE);
 
-    // Attaching an uncompiled shader must report an error honestly.
+    // Attaching an uncompiled shader is permitted by SPEC §7.3; only linking
+    // rejects an uncompiled shader.
     glAttachShader(prog, fs);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     // Attrib location is stable and assigned per name.
     int locA = ctx.getAttribLocation(prog, "a_position");
@@ -59,9 +60,9 @@ TEST_CASE("use_program_binds_native_id_at_draw") {
     glLinkProgram(prog);
 
     glUseProgram(prog);
-    glBindVertexArray(0); // no VAO bound: attrib calls must error
+    glBindVertexArray(0); // default VAO (name 0) is always present in compat profile
     glEnableVertexAttribArray(0);
-    EXPECT_EQ(glGetError(), GL_INVALID_OPERATION);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);

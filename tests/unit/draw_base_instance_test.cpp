@@ -19,7 +19,8 @@ TEST_CASE("draw_arrays_instanced_base_instance_forwards_base_instance") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(4);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawArraysInstancedBaseInstance(GL_TRIANGLES, 2, 12, 7, 5u);
     EXPECT_EQ(ctx.getError(), GLError::NoError);
     EXPECT_EQ(backend.drawArraysInstancedBaseInstanceCalls, 1);
@@ -38,7 +39,8 @@ TEST_CASE("draw_elements_instanced_base_instance_forwards_base_instance") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawElementsInstancedBaseInstance(GL_TRIANGLES, 6, GL_UNSIGNED_INT,
                                          reinterpret_cast<const GLvoid*>(
                                              static_cast<intptr_t>(24)),
@@ -61,7 +63,8 @@ TEST_CASE("draw_elements_instanced_base_vertex_base_instance_forwards_both") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(1);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawElementsInstancedBaseVertexBaseInstance(GL_TRIANGLES, 6, GL_UNSIGNED_INT,
                                                   reinterpret_cast<const GLvoid*>(
                                                       static_cast<intptr_t>(8)),
@@ -97,7 +100,8 @@ TEST_CASE("draw_elements_instanced_base_instance_zero_is_valid") {
     Context ctx(backend);
     setCurrentContext(&ctx);
 
-    glUseProgram(2);
+    GLuint _pg; MAKE_VALID_PROGRAM(_pg);
+    glUseProgram(_pg);
     glDrawElementsInstancedBaseInstance(GL_TRIANGLES, 4, GL_UNSIGNED_INT,
                                         reinterpret_cast<const GLvoid*>(
                                             static_cast<intptr_t>(0)),

@@ -177,6 +177,7 @@ TEST_CASE("teximage1d_negative_width_invalid_value") {
 TEST_CASE("teximage1d_no_bound_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_1D, 9999); // synthetic name, no texture object
     ctx.texImage1D(GL_TEXTURE_1D, 0, GL_RGBA, 32, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
 }
@@ -209,6 +210,7 @@ TEST_CASE("teximage3d_negative_dimension_invalid_value") {
 TEST_CASE("teximage3d_no_bound_texture_invalid_operation") {
     auto backend = makeBackend();
     Context ctx(*backend);
+    ctx.bindTexture(GL_TEXTURE_3D, 9999); // synthetic name, no texture object
     ctx.texImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 16, 16, 4, GL_RGBA, GL_UNSIGNED_BYTE,
                    nullptr);
     EXPECT_EQ(ctx.getError(), GLError::InvalidOperation);
