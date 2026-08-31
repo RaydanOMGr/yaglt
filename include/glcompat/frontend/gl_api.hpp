@@ -589,6 +589,7 @@ void glShaderSource(GLuint shader, GLsizei count, const GLchar* const* strings,
                     const GLint* lengths);
 void glShaderSource(GLuint shader, const std::string& source);
 void glCompileShader(GLuint shader);
+void glReleaseShaderCompiler(void);
 void glSpecializeShader(GLuint shader, const GLchar* entryPoint,
                         GLuint numSpecializationConstants, const GLuint* pConstantIndex,
                         const GLuint* pConstantValue);

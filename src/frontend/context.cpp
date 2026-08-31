@@ -6126,6 +6126,12 @@ void Context::compileShader(GLObjectName shader) {
     }
 }
 
+void Context::releaseShaderCompiler() {
+    // SPEC §7.1: a hint to release compiler resources; never an error and the
+    // compiler remains usable. The frontend keeps no releasable per-context
+    // compiler state of its own, so this is intentionally a no-op.
+}
+
 void Context::specializeShader(GLObjectName shader, const std::string& entryPoint,
                                uint32_t numConstants, const uint32_t* constantIndex,
                                const uint32_t* constantValue) {

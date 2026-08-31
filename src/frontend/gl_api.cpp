@@ -1745,6 +1745,11 @@ void glCompileShader(GLuint shader) {
     g_current->compileShader(shader);
 }
 
+void glReleaseShaderCompiler(void) {
+    if (g_current == nullptr) return;
+    g_current->releaseShaderCompiler();
+}
+
 void glSpecializeShader(GLuint shader, const GLchar* entryPoint,
                         GLuint numSpecializationConstants, const GLuint* pConstantIndex,
                         const GLuint* pConstantValue) {

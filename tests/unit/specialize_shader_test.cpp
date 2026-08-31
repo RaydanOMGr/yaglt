@@ -76,3 +76,29 @@ TEST_CASE("specialize_shader_via_public_dispatch") {
 
     glcompat::setCurrentContext(nullptr);
 }
+
+// glReleaseShaderCompiler (SPEC §7.1) is a no-op hint: it never produces a GL
+// error and leaves the context usable (a shader can still be compiled after it).
+TEST_CASE("release_shader_compiler_is_noop_and_keeps_context_usable") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    glReleaseShaderCompiler();
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+
+    // The (Context) method form also never errors.
+    ctx.releaseShaderCompiler();
+    EXPECT_EQ(ctx.getError(), GLError::NoError);
+
+    // Compiler remains usable: a fresh shader can still be created and compiled.
+    GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+    EXPECT_NE(vs, 0u);
+    const char* src = "#version 110\nvoid main() { gl_Position = vec4(0.0); }";
+    glShaderSource(vs, 1, &src, nullptr);
+    glCompileShader(vs);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(glGetShaderiv(vs, GL_COMPILE_STATUS), 1);
+
+    setCurrentContext(nullptr);
+}

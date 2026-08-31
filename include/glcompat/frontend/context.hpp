@@ -1077,6 +1077,10 @@ public:
     GLObjectName createShader(uint32_t stage);
     void shaderSource(GLObjectName shader, const std::string& src);
     void compileShader(GLObjectName shader);
+    // Release shader-compiler internal resources (SPEC §7.1 glReleaseShaderCompiler).
+    // A no-op hint: the compiler may be used again later, so this only clears any
+    // frontend-side cached compiler state. Never produces a GL error.
+    void releaseShaderCompiler();
     void specializeShader(GLObjectName shader, const std::string& entryPoint,
                           uint32_t numConstants, const uint32_t* constantIndex,
                           const uint32_t* constantValue);
