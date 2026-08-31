@@ -6404,7 +6404,10 @@ void Context::compileShader(GLObjectName shader) {
     s->compiled = ok;
     s->infoLog = blog;
     if (!ok) {
-        setError(GLError::InvalidOperation);
+        // SPEC §7.2: glCompileShader reports failure via GL_COMPILE_STATUS
+        // (queried via glGetShaderiv), not via glGetError. Only an invalid
+        // shader name raises GL_INVALID_OPERATION; a compilation failure
+        // (including empty source) is reported exclusively through the status.
         glcompat::log(LogCategory::Shader, LogLevel::Error)
             << "shader compile failed (stage=" << s->stage << "): " << blog;
     }

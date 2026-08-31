@@ -1,7 +1,9 @@
 #include "glcompat/core/log.hpp"
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <unistd.h>
 
 namespace glcompat {
 
@@ -101,8 +103,26 @@ void Logger::log(LogCategory c, LogLevel l, const std::string& msg) {
     std::string line = std::string("[YAGLT ") + logLevelName(l) + " " +
                        logCategoryName(c) + "] " + msg + "\n";
     lastLine_ = line;
-    std::fputs(line.c_str(), stream_);
-    std::fflush(stream_);
+    // Guard against a stale stderr FILE*: Mesa/EGL has been observed to dup2
+    // the stderr FD under some configurations, leaving the global FILE*'s
+    // vtable pointing at recycled state — glibc then SIGSEGVs inside fputs
+    // with "invalid stdio handle". Bypass glibc and write straight to the
+    // underlying FD with write(2); if the FD has been recycled the write
+    // returns -1/EBADF and we drop the line, but the process keeps running.
+    // open_memstream-backed FILE*s (used by unit tests) have fileno == -1
+    // and go through the normal fputs path.
+    const int fd = fileno(stream_);
+    if (fd >= 0) {
+        if (::write(fd, line.data(), line.size()) < 0) {
+            stream_ = nullptr; // disable further writes
+        }
+        return;
+    }
+    if (std::fputs(line.c_str(), stream_) == EOF) {
+        stream_ = nullptr;
+    } else {
+        std::fflush(stream_);
+    }
 }
 
 } // namespace glcompat

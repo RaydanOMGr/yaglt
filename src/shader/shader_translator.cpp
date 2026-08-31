@@ -59,10 +59,16 @@ std::string assignDefaultBindings(const std::string& src) {
 
 // User-defined `in`/`out` interface variables and bare `uniform` declarations
 // need an explicit location when targeting SPIR-V (glslang rejects unlocated
-// user I/O and non-block uniforms with "'u_foo' : non-opaque uniform
+// user I/O and non-opaque uniforms with "'u_foo' : non-opaque uniform
 // variables need a layout(location=L)"). Inject a default location for any
 // such declaration that lacks one so desktop GLSL translates without manual
 // edits (SPEC §7).
+//
+// For `in`/`out` varyings, the location is derived from a hash of the variable
+// name so that the same varying gets the same location across vertex and
+// fragment stages (SPIRV-Cross preserves explicit locations, and the driver
+// links by location, not by name). Uniforms get sequential locations since
+// they are stage-local.
 std::string assignDefaultLocations(const std::string& src) {
     static const std::regex re(
         R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
@@ -238,6 +244,10 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     error.clear();
     if (!initialized_) {
         error = "glslang not initialized";
+        return false;
+    }
+    if (desktopGlsl.empty()) {
+        error = "empty shader source";
         return false;
     }
 

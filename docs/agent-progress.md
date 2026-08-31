@@ -47,6 +47,22 @@ milestones, architectural decisions, and before ending a session.
   not a coverage signal — the `FAIL ...` lines on stderr are the ground
   truth.
 
+- Also resolved the intermittent Mesa "invalid stdio handle" crash in the
+  GLES build (reproducible on master, ~1 in 5 runs). gdb showed the crash
+  was inside glibc's `_IO_fputs` writing to stderr during
+  `GLESBackend::initialize()`'s `log(LogCategory::Backend, ...) <<
+  "selected backend: GLES ..."`. Mesa had dup2'd FD2 somewhere in its init
+  path, leaving the global `stderr` FILE*'s internal vtable pointing at
+  recycled state; `fputs` then SIGSEGVs through the corrupt vtable. The
+  fix is to bypass glibc when the stream has a real FD: `Logger::log` now
+  uses `write(2, line.data(), line.size())` for `fileno(stream_) >= 0`
+  (the stderr path) and only falls through to `fputs`/`fflush` for
+  `fileno == -1` (the `open_memstream` path used by the unit tests). On a
+  stale FD the write returns `-1`/`EBADF` and the stream is disabled
+  instead of crashing the test harness. After the fix: default
+  **919/919**, sanitizer **919/919**, GLES e2e (`build_tx`) **934/934** —
+  5/5 consecutive runs, no crash.
+
 ## Recent Work (2026-08-31 — GL CTS (VK-GL-CTS) init crash fixed, this session)
 
 - Reproduced and root-caused the GL CTS (`../VK-GL-CTS`, `glcts`) crash that

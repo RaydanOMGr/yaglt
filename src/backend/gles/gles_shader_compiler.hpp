@@ -5,10 +5,10 @@
 
 namespace glcompat {
 
-// Real GLES shader compiler. It compiles GLSL ES source on the GLES driver and
-// reports the driver's status/log. It does NOT translate desktop GLSL -> GLSL
-// ES (that needs glslang, which is not available); desktop inputs will fail at
-// the driver and the real error is surfaced. This is honest: no fake success.
+// Pass-through IShaderCompiler for GLSL ES source. Used when
+// YAGLT_SHADER_TRANSLATE is OFF: the frontend source must already be valid
+// GLSL ES (or desktop GLSL will fail downstream in the driver). The actual
+// driver compilation happens in BackendShader::compile.
 class GLESShaderCompiler : public IShaderCompiler {
 public:
     explicit GLESShaderCompiler(GLESLibPtr lib) : lib_(lib) {}

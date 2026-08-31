@@ -7,13 +7,16 @@ namespace glcompat {
 bool TranslatingGLESShaderCompiler::compile(const std::string& source,
                                            uint32_t stage, std::string& output,
                                            std::string& error) {
-    // Already GLSL ES: compile directly on the driver.
+    // Already GLSL ES: pass through directly (actual compilation happens in
+    // BackendShader::compile on the driver-owned shader object with the correct
+    // stage).
     if (source.find("#version 300 es") != std::string::npos ||
         source.find("#version 310 es") != std::string::npos ||
         source.find("#version 320 es") != std::string::npos) {
         YAGLT_DEBUG("translating_compiler: ES passthrough (stage=0x%x, %zu bytes)",
                     stage, source.size());
-        return es_.compile(source, stage, output, error);
+        output = source;
+        return true;
     }
 
     YAGLT_DEBUG("translating_compiler: desktop translate (stage=0x%x, %zu bytes)",
@@ -22,7 +25,8 @@ bool TranslatingGLESShaderCompiler::compile(const std::string& source,
     if (!translator_.translate(source, stage, es, error)) {
         return false;
     }
-    return es_.compile(es, stage, output, error);
+    output = std::move(es);
+    return true;
 }
 
 } // namespace glcompat
