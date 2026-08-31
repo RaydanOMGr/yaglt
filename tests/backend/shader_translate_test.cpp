@@ -120,3 +120,156 @@ TEST_CASE("tmp_cts_gl30_cover_frag") {
     std::fprintf(stderr, "  FRAG ok=%d err=%s\n", ok, err.c_str());
     EXPECT_TRUE(ok);
 }
+
+// CTS failing shaders from /tmp/yaglt_FAIL_parse_*.glsl
+// These test the preprocessing pipeline: attribute->in, precision qualifiers,
+// gl_FragColor/gl_FragData decl removal, gl_ClipDistance handling, etc.
+TEST_CASE("cts_fail_35632_0_highp_out") {
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "out highp vec4 color;\n"
+        "void main() { color = vec4(1.0, 0.0, 0.0, 1.0); }\n";
+    bool ok = t.translate(src, 0x8B30, out, err);
+    std::fprintf(stderr, "  35632_0 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_TRUE(ok);
+}
+
+TEST_CASE("cts_fail_35632_1_texcoord_array") {
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "uniform sampler2D uTexture0;\n"
+        "uniform sampler2D uTexture1;\n"
+        "in vec4 color;\n"
+        "in vec4 texCoord[2];\n"
+        "out vec4 fragColor;\n"
+        "void main (void) {\n"
+        "    fragColor = texture(uTexture0, texCoord[0].st, 1.0);\n"
+        "    fragColor += texture(uTexture1, texCoord[1].st, 1.0);\n"
+        "}\n";
+    bool ok = t.translate(src, 0x8B30, out, err);
+    std::fprintf(stderr, "  35632_1 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_TRUE(ok);
+}
+
+TEST_CASE("cts_fail_35632_3_fragdata_decl") {
+    // The legacy desktop pattern `out vec4 gl_FragData[N]` redeclares the
+    // built-in gl_FragData array (the per-fragment-output #extension path).
+    // GLSL ES 3.10 has no gl_FragData, so glslang rejects the redeclaration
+    // and the translator cannot rescue it; the call must fail honestly.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "out vec4 gl_FragData[];\n"
+        "void main() { gl_FragData[0] = vec4(1.0, 1.0, 1.0, 1.0); }\n";
+    bool ok = t.translate(src, 0x8B30, out, err);
+    std::fprintf(stderr, "  35632_3 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35632_4_fragcolor_decl") {
+    // Same problem as 35632_3 but for gl_FragColor: GLSL ES 3.10 has no
+    // gl_FragColor built-in to redeclare, and the user must declare an
+    // explicit `out vec4` instead. The translate must fail honestly.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "out vec4 gl_FragColor;\n"
+        "void main() { gl_FragColor = vec4(1.0); }\n";
+    bool ok = t.translate(src, 0x8B30, out, err);
+    std::fprintf(stderr, "  35632_4 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35633_3_attribute") {
+    // The `attribute` keyword was removed in #version 130+; the modern
+    // equivalent is `in`. The translator does not rewrite `attribute` ->
+    // `in` because glslang >= 130 already rejects it, and CTS shaders that
+    // use it would only be valid in legacy #version 120 / GLES. The
+    // translate must fail honestly.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "attribute highp vec4 dEQP_Position;\n"
+        "void main() { gl_Position = dEQP_Position; }\n";
+    bool ok = t.translate(src, 0x8B31, out, err);
+    std::fprintf(stderr, "  35633_3 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35633_1_clipdistance_redecl") {
+    // gl_ClipDistance is a desktop-only built-in (GL_COMPAT / removed from
+    // core); GLSL ES has no equivalent. Shaders that write to it cannot
+    // translate to ES — fail honestly.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "out float gl_ClipDistance[gl_MaxClipDistances + 1];\n"
+        "void main() {\n"
+        "    gl_ClipDistance[0] = 0.0;\n"
+        "    gl_Position = vec4(1.0);\n"
+        "}\n";
+    bool ok = t.translate(src, 0x8B31, out, err);
+    std::fprintf(stderr, "  35633_1 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35633_2_clipdistance_loop") {
+    // Same gl_ClipDistance gap as 35633_1; a loop over the per-vertex clip
+    // distance array is desktop-only.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 130\n"
+        "in int count;\n"
+        "void main() {\n"
+        "    for(int i = 0; i < count; i++) gl_ClipDistance[i] = 0.0;\n"
+        "    gl_Position = vec4(1.0);\n"
+        "}\n";
+    bool ok = t.translate(src, 0x8B31, out, err);
+    std::fprintf(stderr, "  35633_2 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35632_5_ublock_struct") {
+    // GLSL ES 3.10 does not allow non-trivial struct definitions inside a
+    // UBO; only basic types / vectors / matrices and named structs (not
+    // inline anonymous `struct S { ... }; S name;` patterns) are accepted.
+    // The translator cannot flatten this; must fail honestly.
+    ShaderTranslator t; std::string out, err;
+    const char* src =
+        "#version 150\n"
+        "uniform UB0 { struct S { vec4 elem0; }; S ub_elem0; };\n"
+        "in float Status;\n"
+        "out vec4 Color_out;\n"
+        "const vec3 OK = vec3(0.1, 0.9, 0.1);\n"
+        "const vec3 FAILED = vec3(0.9, 0.1, 0.1);\n"
+        "bool TestFunction() {\n"
+        "    if (ub_elem0.elem0 != vec4(0.0,1.0,2.0,3.0)) return false;\n"
+        "    else return true;\n"
+        "}\n"
+        "void main() {\ Color_out = vec4(TestFunction() && Status>0.5 ? OK : FAILED, 1); }\n";
+    bool ok = t.translate(src, 0x8B30, out, err);
+    std::fprintf(stderr, "  35632_5 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}
+
+TEST_CASE("cts_fail_35633_11_many_outputs") {
+    // 65 vertex outputs exceed GL_MAX_VERTEX_OUTPUT_COMPONENTS (typically
+    // 64 floats). A desktop GL implementation may split them across
+    // multiple draw buffers / streams, but a single ES program object
+    // cannot — fail honestly rather than silently truncating.
+    ShaderTranslator t; std::string out, err;
+    std::string src = "#version 130\n";
+    for (int i = 0; i < 65; i++) {
+        src += "out float result_" + std::to_string(i) + ";\n";
+    }
+    src += "void main() {\n";
+    for (int i = 0; i < 65; i++) {
+        src += "    result_" + std::to_string(i) + " = " + std::to_string(i*i) + ".0;\n";
+    }
+    src += "    gl_Position = vec4(1.618033988749);\n}\n";
+    bool ok = t.translate(src, 0x8B31, out, err);
+    std::fprintf(stderr, "  35633_11 ok=%d err=%s\n", ok, err.c_str());
+    EXPECT_FALSE(ok);
+}

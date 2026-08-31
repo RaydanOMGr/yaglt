@@ -62,16 +62,14 @@ std::string assignDefaultBindings(const std::string& src) {
 // user I/O and non-opaque uniforms with "'u_foo' : non-opaque uniform
 // variables need a layout(location=L)"). Inject a default location for any
 // such declaration that lacks one so desktop GLSL translates without manual
-// edits (SPEC §7).
-//
-// For `in`/`out` varyings, the location is derived from a hash of the variable
-// name so that the same varying gets the same location across vertex and
-// fragment stages (SPIRV-Cross preserves explicit locations, and the driver
-// links by location, not by name). Uniforms get sequential locations since
-// they are stage-local.
+// edits (SPEC §7). The qualifier list between the storage qualifier
+// (`in`/`out`/`uniform`) and the type may include a precision qualifier
+// (`highp`/`mediump`/`lowp`) and interpolation qualifiers (`smooth`/`flat`/
+// `noperspective`); both are common in legacy GLSL and are accepted unchanged
+// by GLSL ES 3.10.
 std::string assignDefaultLocations(const std::string& src) {
     static const std::regex re(
-        R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
+        R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+((?:(?:highp|mediump|lowp|smooth|flat|noperspective|centroid|sample|patch)\s+)*)([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
     std::string out;
     std::string::const_iterator pos = src.begin();
     int location = 0;
@@ -80,17 +78,18 @@ std::string assignDefaultLocations(const std::string& src) {
         out.append(pos, m[0].first);
         const std::string layout = m[1].str();
         const std::string qual = m[2].str();
-        const std::string type = m[3].str();
-        const std::string name = m[4].str();
-        const std::string arr = m[5].str();
+        const std::string quals = m[3].str();
+        const std::string type = m[4].str();
+        const std::string name = m[5].str();
+        const std::string arr = m[6].str();
         if (layout.empty()) {
             out += "layout(location=" + std::to_string(location++) + ") " + qual +
-                   " " + type + " " + name + arr + ";";
+                   " " + quals + type + " " + name + arr + ";";
         } else if (layout.find("location") == std::string::npos) {
             const std::string afterOpen =
                 layout.substr(std::string("layout(").size());
             out += "layout(location=" + std::to_string(location++) + ", " +
-                    afterOpen + qual + " " + type + " " + name + arr + ";";
+                    afterOpen + qual + " " + quals + type + " " + name + arr + ";";
         } else {
             out += m[0].str();
         }
@@ -340,6 +339,34 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     opts.fragment.default_float_precision = spirv_cross::CompilerGLSL::Options::Highp;
     opts.fragment.default_int_precision = spirv_cross::CompilerGLSL::Options::Highp;
     glsl.set_common_options(opts);
+
+    // GLSL ES 3.10 requires GL_MAX_VERTEX_OUTPUT_COMPONENTS >= 64. glslang's
+    // default TBuiltInResource sets maxVertexOutput=0 (unlimited), so it will not
+    // reject oversized vertex shaders. Count user-defined output components via
+    // SPIRV-Cross reflection and reject before emitting ES source, so the caller
+    // gets an honest failure instead of GLSL ES that will not link on any
+    // conformant driver (SPEC §7: fail honestly rather than silently producing
+    // unusable output).
+    if (stage == 0x8B31 /* GL_VERTEX_SHADER */) {
+        spirv_cross::ShaderResources res = glsl.get_shader_resources();
+        uint32_t components = 0;
+        for (const auto& out : res.stage_outputs) {
+            const spirv_cross::SPIRType& type = glsl.get_type(out.type_id);
+            uint32_t comps = type.vecsize * type.columns;
+            for (auto dim : type.array) comps *= dim;
+            components += comps;
+        }
+        const uint32_t kMaxVertexOutputComponents = 64;
+        if (components > kMaxVertexOutputComponents) {
+            error = "vertex output components (" + std::to_string(components) +
+                    ") exceed GL_MAX_VERTEX_OUTPUT_COMPONENTS minimum (" +
+                    std::to_string(kMaxVertexOutputComponents) +
+                    ") for GLSL ES 3.10";
+            YAGLT_DEBUG("translate: vertex output limit exceeded "
+                        "(components=%u, stage=0x%x)", components, stage);
+            return false;
+        }
+    }
 
     esSource = glsl.compile();
     {
