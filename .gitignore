@@ -19,3 +19,4 @@ yaglt_FAIL_*.glsl
 tests/translate_fail_test.cpp
 tools/segv_bt.so
 
+tools/segv_bt.c
