@@ -744,6 +744,27 @@ void GLESBackend::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
                                             static_cast<GLsizei>(stride));
     }
 
+    void GLESBackend::multiDrawArraysIndirectCount(uint32_t mode, const void* indirect,
+                                                 intptr_t drawcount,
+                                                 intptr_t maxdrawcount,
+                                                 int32_t stride) {
+        if (lib_->glMultiDrawArraysIndirectCount)
+            lib_->glMultiDrawArraysIndirectCount(
+                mode, indirect, static_cast<GLintptr>(drawcount),
+                static_cast<GLsizei>(maxdrawcount), static_cast<GLsizei>(stride));
+    }
+
+    void GLESBackend::multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                                   const void* indirect,
+                                                   intptr_t drawcount,
+                                                   intptr_t maxdrawcount,
+                                                   int32_t stride) {
+        if (lib_->glMultiDrawElementsIndirectCount)
+            lib_->glMultiDrawElementsIndirectCount(
+                mode, type, indirect, static_cast<GLintptr>(drawcount),
+                static_cast<GLsizei>(maxdrawcount), static_cast<GLsizei>(stride));
+    }
+
 
    void GLESBackend::drawTransformFeedback(uint32_t mode, uint32_t tfId,
                                            int32_t count) {

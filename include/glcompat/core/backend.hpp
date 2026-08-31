@@ -136,6 +136,21 @@ public:
     virtual void multiDrawElementsIndirect(uint32_t mode, uint32_t type,
                                            const void* indirect, int32_t drawcount,
                                            int32_t stride) = 0;
+    // Multi-draw indirect, count sourced from a buffer (SPEC §10.4, GL 4.6). Like
+    // the non-count variants, but `drawcount` is a byte offset into the buffer bound
+    // to GL_PARAMETER_BUFFER at which a single GLsizei draw count is stored, and
+    // `maxdrawcount` caps the number of draws the implementation will process. The
+    // frontend validates Feature::IndirectDrawing, an active program, a
+    // GL_DRAW_INDIRECT_BUFFER, a bound GL_PARAMETER_BUFFER, and that `drawcount` is a
+    // multiple of four before calling. Native GLES has no *IndirectCount command, so
+    // backends forward only when an optional loader entry is present.
+    virtual void multiDrawArraysIndirectCount(uint32_t mode, const void* indirect,
+                                             intptr_t drawcount, intptr_t maxdrawcount,
+                                             int32_t stride) = 0;
+    virtual void multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                                const void* indirect, intptr_t drawcount,
+                                                intptr_t maxdrawcount,
+                                                int32_t stride) = 0;
     // Transform-feedback draws (SPEC §13.3.3). `tfId` is the native transform-
     // feedback object handle (0 when none); `count` is the captured vertex count
     // resolved by the frontend via BackendTransformFeedback::getCapturedVertexCount.

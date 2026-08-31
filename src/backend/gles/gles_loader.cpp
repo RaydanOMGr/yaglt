@@ -302,6 +302,11 @@ bool GLESLib::load() {
     // Multi-draw indirect (SPEC §10, ES 3.1+); resolved optionally.
     resolve(gles, glMultiDrawArraysIndirect, "glMultiDrawArraysIndirect");
     resolve(gles, glMultiDrawElementsIndirect, "glMultiDrawElementsIndirect");
+    // Multi-draw indirect count (SPEC §10.4, GL 4.6); resolved optionally (never
+    // present in GLES). Not folded into `ok` so it cannot fail backend load().
+    resolve(gles, glMultiDrawArraysIndirectCount, "glMultiDrawArraysIndirectCount");
+    resolve(gles, glMultiDrawElementsIndirectCount,
+            "glMultiDrawElementsIndirectCount");
     // Transform-feedback draws (SPEC §13.3.3, ES 3.2+); resolved optionally.
     resolve(gles, glDrawTransformFeedback, "glDrawTransformFeedback");
     resolve(gles, glDrawTransformFeedbackInstanced, "glDrawTransformFeedbackInstanced");

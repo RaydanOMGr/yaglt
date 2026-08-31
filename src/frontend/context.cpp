@@ -6040,6 +6040,64 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
         backend_.multiDrawElementsIndirect(mode, type, offset, drawcount, stride);
     }
 
+    void Context::multiDrawArraysIndirectCount(uint32_t mode, const void* offset,
+                                              intptr_t drawcount, intptr_t maxdrawcount,
+                                              int32_t stride) {
+        if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        // SPEC §10.4: draw count is read from a buffer bound to PARAMETER_BUFFER.
+        if (boundBuffer(GL_PARAMETER_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (drawcount % 4 != 0) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        flushState();
+        backend_.multiDrawArraysIndirectCount(mode, offset, drawcount, maxdrawcount,
+                                             stride);
+    }
+
+    void Context::multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                                const void* offset, intptr_t drawcount,
+                                                intptr_t maxdrawcount,
+                                                int32_t stride) {
+        if (!backend_.capabilities().isSupported(Feature::IndirectDrawing)) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (state_.activeProgram() == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (boundBuffer(GL_DRAW_INDIRECT_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (boundBuffer(GL_PARAMETER_BUFFER) == 0) {
+            setError(GLError::InvalidOperation);
+            return;
+        }
+        if (drawcount % 4 != 0) {
+            setError(GLError::InvalidValue);
+            return;
+        }
+        flushState();
+        backend_.multiDrawElementsIndirectCount(mode, type, offset, drawcount,
+                                               maxdrawcount, stride);
+    }
+
     // Resolve the transform-feedback object referenced by a draw call. `id == 0`
     // denotes the currently bound object; any other `id` must name an existing
     // transform-feedback object. Returns nullptr (and leaves no error) when there

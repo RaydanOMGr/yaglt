@@ -3,6 +3,37 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — multi-draw indirect count-from-buffer (SPEC §10.4, GL 4.6), this session)
+
+- Added `glMultiDrawArraysIndirectCount` / `glMultiDrawElementsIndirectCount`
+  (SPEC §10.4), the GL 4.6 count-from-buffer multi-draw commands. They extend
+  the existing `glMultiDrawArraysIndirect` / `glMultiDrawElementsIndirect`
+  (SPEC §10, ARB_multi_draw_indirect) with a draw count read from a
+  `GL_PARAMETER_BUFFER`-bound buffer: `drawcount` is a byte offset into that
+  buffer where a `GLsizei` count lives, and `maxdrawcount` caps processed draws.
+- Frontend validation (Context + `IGraphicsBackend` virtuals
+  `multiDrawArraysIndirectCount` / `multiDrawElementsIndirectCount`): gated by
+  `Feature::IndirectDrawing`, requires an active program and a
+  `GL_DRAW_INDIRECT_BUFFER` (same as the non-count variants), plus now a
+  `GL_PARAMETER_BUFFER` bound (`GL_INVALID_OPERATION` if absent) and `drawcount`
+  a multiple of four (`GL_INVALID_VALUE`). The actual count is *not* resolved
+  from GPU memory by the frontend, so the spec's out-of-bounds-parameter-read
+  error is delegated to the backend.
+- `GL_PARAMETER_BUFFER` (0x80EE) / `GL_PARAMETER_BUFFER_BINDING` (0x80EF)
+  constants added to `gl_types.hpp`. No bind-target validation was needed
+  (bindBuffer stores by target key). `GLESBackend` forwards via optional
+  `GLESLib::glMultiDrawArraysIndirectCount` / `...IndirectCount` loader entries
+  (resolved optionally, never present in GLES, so the call is dropped there —
+  GLES has no native equivalent); `MockBackend` records the call, draw mode/type,
+  the parameter offset, max count and stride.
+- New `tests/unit/multi_draw_indirect_count_test.cpp` (4 cases): both variants
+  forward all params with a parameter buffer bound; arrays variant is rejected
+  without a `GL_PARAMETER_BUFFER`; elements variant rejects an unaligned
+  `drawcount` with `GL_INVALID_VALUE`. Default **898/898** → **902/902**,
+  sanitizer (ASan/UBSan) **902/902** green, `build_tx` (GLES e2e under Mesa
+  softpipe) **910/910** → **914/914**. Coverage: core **94.2% (552/586)**, full
+  ~55.5% (593/1068). `docs/feature-matrix.md` IndirectDrawing row extended.
+
 ## Recent Work (2026-08-31 — transform-feedback object state queries (SPEC §22.4), this session)
 
 - Added `glGetTransformFeedbackiv` / `glGetTransformFeedbacki_v` /
@@ -785,7 +816,7 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 93.9% (550/586)
+Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10, incl. multi-draw indirect counts §10.4); core coverage 94.2% (552/586)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §7/§8/§6/§10 surface)
 Last updated: 2026-08-31
 Known major blockers:

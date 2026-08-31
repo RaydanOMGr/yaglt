@@ -223,6 +223,15 @@ public:
                                 int32_t drawcount, int32_t stride) override;
     void multiDrawElementsIndirect(uint32_t mode, uint32_t type, const void* indirect,
                                   int32_t drawcount, int32_t stride) override;
+    // Multi-draw indirect, count from a buffer (SPEC §10.4, GL 4.6). GLES has no
+    // native equivalent, so the backend drops the call unless an optional loader
+    // entry is somehow present; the count-by-offset is resolved by the frontend.
+    void multiDrawArraysIndirectCount(uint32_t mode, const void* indirect,
+                                     intptr_t drawcount, intptr_t maxdrawcount,
+                                     int32_t stride) override;
+    void multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                       const void* indirect, intptr_t drawcount,
+                                       intptr_t maxdrawcount, int32_t stride) override;
 
     // Transform-feedback draws (SPEC §13.3.3). The driver uses the captured vertex
     // count of the given object, so `count`/`primcount` are forwarded only for

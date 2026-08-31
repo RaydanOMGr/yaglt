@@ -387,6 +387,9 @@ constexpr GLenum GL_FIXED_ONLY = 0x891D;
 // Indirect draw (glDrawArraysIndirect / glDrawElementsIndirect, SPEC §10).
 constexpr GLenum GL_DRAW_INDIRECT_BUFFER = 0x8F3F;
 constexpr GLenum GL_DRAW_INDIRECT_BUFFER_BINDING = 0x8F43;
+// Parameter buffer (gl*IndirectCount draw count source, SPEC §10.4, GL 4.6).
+constexpr GLenum GL_PARAMETER_BUFFER = 0x80EE;
+constexpr GLenum GL_PARAMETER_BUFFER_BINDING = 0x80EF;
 
 // Compute dispatch (SPEC §7.4).
 constexpr GLenum GL_DISPATCH_INDIRECT_BUFFER = 0x90EE;

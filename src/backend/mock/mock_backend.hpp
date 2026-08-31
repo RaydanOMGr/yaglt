@@ -900,6 +900,10 @@ public:
     int drawElementsIndirectCalls = 0;
     int multiDrawArraysIndirectCalls = 0;
     int multiDrawElementsIndirectCalls = 0;
+    int multiDrawArraysIndirectCountCalls = 0;
+    int multiDrawElementsIndirectCountCalls = 0;
+    intptr_t lastDrawIndirectCountParam = 0;
+    intptr_t lastDrawIndirectMaxCount = 0;
     int32_t lastDrawIndirectCount = 0;
     int32_t lastDrawIndirectStride = 0;
     const void* lastIndirect = nullptr;
@@ -930,6 +934,27 @@ public:
         lastDrawType = type;
         lastIndirect = indirect;
         lastDrawIndirectCount = drawcount;
+        lastDrawIndirectStride = stride;
+    }
+    void multiDrawArraysIndirectCount(uint32_t mode, const void* indirect,
+                                     intptr_t drawcount, intptr_t maxdrawcount,
+                                     int32_t stride) override {
+        ++multiDrawArraysIndirectCountCalls;
+        lastDrawMode = mode;
+        lastIndirect = indirect;
+        lastDrawIndirectCountParam = drawcount;
+        lastDrawIndirectMaxCount = maxdrawcount;
+        lastDrawIndirectStride = stride;
+    }
+    void multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                       const void* indirect, intptr_t drawcount,
+                                       intptr_t maxdrawcount, int32_t stride) override {
+        ++multiDrawElementsIndirectCountCalls;
+        lastDrawMode = mode;
+        lastDrawType = type;
+        lastIndirect = indirect;
+        lastDrawIndirectCountParam = drawcount;
+        lastDrawIndirectMaxCount = maxdrawcount;
         lastDrawIndirectStride = stride;
     }
 

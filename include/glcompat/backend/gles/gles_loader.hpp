@@ -412,6 +412,13 @@ struct GLESLib {
     void (*glMultiDrawArraysIndirect)(GLenum, const void*, GLsizei, GLsizei) = nullptr;
     void (*glMultiDrawElementsIndirect)(GLenum, GLenum, const void*, GLsizei,
                                        GLsizei) = nullptr;
+    // Multi-draw indirect, count from a buffer (SPEC §10.4, GL 4.6, desktop only).
+    // No native GLES equivalent exists, so these are resolved optionally and remain
+    // null on every GLES driver; the backend drops the call when absent.
+    void (*glMultiDrawArraysIndirectCount)(GLenum, const void*, GLintptr, GLsizei,
+                                          GLsizei) = nullptr;
+    void (*glMultiDrawElementsIndirectCount)(GLenum, GLenum, const void*, GLintptr,
+                                           GLsizei, GLsizei) = nullptr;
     // Transform-feedback draws (SPEC §13.3.3, ES 3.2+). Resolved optionally so
     // load() still succeeds on a driver that lacks them.
     void (*glDrawTransformFeedback)(GLenum, GLuint) = nullptr;

@@ -1503,6 +1503,19 @@ public:
                                 int32_t stride);
     void multiDrawElementsIndirect(uint32_t mode, uint32_t type, const void* offset,
                                  int32_t drawcount, int32_t stride);
+    // Multi-draw indirect, count sourced from a buffer (SPEC §10.4, GL 4.6). Like the
+    // non-count variants plus: requires a buffer bound to GL_PARAMETER_BUFFER (else
+    // GL_INVALID_OPERATION) and `drawcount` (the byte offset of the stored GLsizei
+    // count) must be a multiple of four (else GL_INVALID_VALUE). The frontend does not
+    // resolve the count from GPU memory, so the out-of-bounds-parameter-read error is
+    // delegated to the backend; native GLES has no *IndirectCount command, so the GLES
+    // backend drops the call when its optional loader entry is absent.
+    void multiDrawArraysIndirectCount(uint32_t mode, const void* offset,
+                                     intptr_t drawcount, intptr_t maxdrawcount,
+                                     int32_t stride);
+    void multiDrawElementsIndirectCount(uint32_t mode, uint32_t type,
+                                       const void* offset, intptr_t drawcount,
+                                       intptr_t maxdrawcount, int32_t stride);
 
     // Transform-feedback draws (SPEC §13.3.3). Draw `id`'s captured vertex count
     // (resolved from the object's backend via getCapturedVertexCount). Requires an

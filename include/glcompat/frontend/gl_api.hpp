@@ -1234,6 +1234,16 @@ void glMultiDrawElementsBaseVertex(GLenum mode, const GLsizei* counts, GLenum ty
                                   GLsizei drawcount, GLsizei stride);
     void glMultiDrawElementsIndirect(GLenum mode, GLenum type, const GLvoid* indirect,
                                     GLsizei drawcount, GLsizei stride);
+    // Multi-draw indirect, count from a parameter buffer (SPEC §10.4, GL 4.6). `drawcount`
+    // is a byte offset into the GL_PARAMETER_BUFFER-bound buffer holding a GLsizei count;
+    // `maxdrawcount` caps processed draws. Requires GL_PARAMETER_BUFFER bound and `drawcount`
+    // a multiple of four (see Context for the full precondition set).
+    void glMultiDrawArraysIndirectCount(GLenum mode, const GLvoid* indirect,
+                                       GLintptr drawcount, GLsizei maxdrawcount,
+                                       GLsizei stride);
+    void glMultiDrawElementsIndirectCount(GLenum mode, GLenum type,
+                                         const GLvoid* indirect, GLintptr drawcount,
+                                         GLsizei maxdrawcount, GLsizei stride);
 
 
    // Transform-feedback draws (SPEC §13.3.3). Draw the captured vertex count of
