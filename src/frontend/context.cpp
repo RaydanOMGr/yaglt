@@ -4488,6 +4488,13 @@ void Context::bindTransformFeedback(GLObjectName name) {
         setError(GLError::InvalidOperation); // ungenerated name
         return;
     }
+    // SPEC §13.3.1: rebinding is refused while the currently bound object is
+    // capturing and not paused (a paused object may be swapped out and keeps its
+    // ACTIVE/PAUSED state).
+    if (boundTransformFeedbackCapturing()) {
+        setError(GLError::InvalidOperation);
+        return;
+    }
     boundTransformFeedback_ = name;
 }
 
@@ -4520,15 +4527,14 @@ void Context::beginTransformFeedback(uint32_t primitiveMode) {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (transformFeedbackActive_) {
+    if (transformFeedbackActive(boundTransformFeedback_)) {
         setError(GLError::InvalidOperation); // already capturing
         return;
     }
     if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
         if (tf->backend) tf->backend->begin(primitiveMode);
     }
-    transformFeedbackActive_ = true;
-    transformFeedbackPaused_ = false;
+    setBoundTransformFeedbackState(true, false);
 }
 
 void Context::endTransformFeedback() {
@@ -4536,15 +4542,14 @@ void Context::endTransformFeedback() {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!transformFeedbackActive_) {
+    if (!transformFeedbackActive(boundTransformFeedback_)) {
         setError(GLError::InvalidOperation); // not capturing
         return;
     }
     if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
         if (tf->backend) tf->backend->end();
     }
-    transformFeedbackActive_ = false;
-    transformFeedbackPaused_ = false;
+    setBoundTransformFeedbackState(false, false);
 }
 
 void Context::pauseTransformFeedback() {
@@ -4552,14 +4557,15 @@ void Context::pauseTransformFeedback() {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!transformFeedbackActive_ || transformFeedbackPaused_) {
+    if (!transformFeedbackActive(boundTransformFeedback_)
+        || transformFeedbackPaused(boundTransformFeedback_)) {
         setError(GLError::InvalidOperation);
         return;
     }
     if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
         if (tf->backend) tf->backend->pause();
     }
-    transformFeedbackPaused_ = true;
+    setBoundTransformFeedbackState(true, true);
 }
 
 void Context::resumeTransformFeedback() {
@@ -4567,14 +4573,45 @@ void Context::resumeTransformFeedback() {
         setError(GLError::InvalidOperation);
         return;
     }
-    if (!transformFeedbackActive_ || !transformFeedbackPaused_) {
+    if (!transformFeedbackActive(boundTransformFeedback_)
+        || !transformFeedbackPaused(boundTransformFeedback_)) {
         setError(GLError::InvalidOperation);
         return;
     }
     if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
         if (tf->backend) tf->backend->resume();
     }
-    transformFeedbackPaused_ = false;
+    setBoundTransformFeedbackState(true, false);
+}
+
+// Per-object transform-feedback capture state (SPEC §13.2 / §22.4). The default
+// object (name 0) keeps its flags on the context; named objects own theirs, so an
+// active-but-paused object that has been unbound still reports ACTIVE.
+bool Context::transformFeedbackActive(GLObjectName xfb) const {
+    if (xfb == 0) return defaultTransformFeedbackActive_;
+    auto it = transformFeedbacks_.find(xfb);
+    return it == transformFeedbacks_.end() ? false : it->second->active;
+}
+
+bool Context::transformFeedbackPaused(GLObjectName xfb) const {
+    if (xfb == 0) return defaultTransformFeedbackPaused_;
+    auto it = transformFeedbacks_.find(xfb);
+    return it == transformFeedbacks_.end() ? false : it->second->paused;
+}
+
+bool Context::boundTransformFeedbackCapturing() const {
+    return transformFeedbackActive(boundTransformFeedback_)
+           && !transformFeedbackPaused(boundTransformFeedback_);
+}
+
+void Context::setBoundTransformFeedbackState(bool active, bool paused) {
+    if (TransformFeedbackObject* tf = getTransformFeedback(boundTransformFeedback_)) {
+        tf->active = active;
+        tf->paused = paused;
+        return;
+    }
+    defaultTransformFeedbackActive_ = active;
+    defaultTransformFeedbackPaused_ = paused;
 }
 
 TransformFeedbackObject::TfBufferBinding* Context::tfBufferBindingSlot(
@@ -4644,6 +4681,87 @@ void Context::transformFeedbackBufferRange(GLObjectName xfb, uint32_t index,
         sink->bindBufferRange(GL_TRANSFORM_FEEDBACK_BUFFER, index, buffer,
                              offset, size);
     }
+}
+
+namespace {
+// Resolve a transform-feedback object for a state query (SPEC §22.4). Returns
+// false with GL_INVALID_OPERATION already set when `xfb` is neither zero (the
+// default object) nor the name of an existing TF object.
+bool tfQueryTargetExists(Context& ctx, GLObjectName xfb) {
+    if (xfb == 0) return true;
+    if (ctx.getTransformFeedback(xfb) != nullptr) return true;
+    ctx.setError(GLError::InvalidOperation);
+    return false;
+}
+} // namespace
+
+void Context::getTransformFeedbackiv(GLObjectName xfb, uint32_t pname,
+                                    int32_t* param) {
+    if (param == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tfQueryTargetExists(*this, xfb)) return;
+    switch (pname) {
+        case GL_TRANSFORM_FEEDBACK_ACTIVE:
+            *param = transformFeedbackActive(xfb) ? 1 : 0;
+            return;
+        case GL_TRANSFORM_FEEDBACK_PAUSED:
+            *param = transformFeedbackPaused(xfb) ? 1 : 0;
+            return;
+        default:
+            // Only the two capture-state pnames are legal here; the buffer
+            // bindings are indexed state (i_v / i64_v).
+            setError(GLError::InvalidEnum);
+            return;
+    }
+}
+
+void Context::getTransformFeedbacki_v(GLObjectName xfb, uint32_t pname,
+                                     uint32_t index, int32_t* param) {
+    if (param == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tfQueryTargetExists(*this, xfb)) return;
+    if (pname != GL_TRANSFORM_FEEDBACK_BUFFER_BINDING) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxTransformFeedbackBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const TransformFeedbackObject::TfBufferBinding* slot =
+        tfBufferBindingSlot(xfb, index);
+    *param = slot ? static_cast<int32_t>(slot->buffer) : 0;
+}
+
+void Context::getTransformFeedbacki64_v(GLObjectName xfb, uint32_t pname,
+                                       uint32_t index, int64_t* param) {
+    if (param == nullptr) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    if (!tfQueryTargetExists(*this, xfb)) return;
+    if (pname != GL_TRANSFORM_FEEDBACK_BUFFER_START
+        && pname != GL_TRANSFORM_FEEDBACK_BUFFER_SIZE) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (index >= kMaxTransformFeedbackBuffers) {
+        setError(GLError::InvalidValue);
+        return;
+    }
+    const TransformFeedbackObject::TfBufferBinding* slot =
+        tfBufferBindingSlot(xfb, index);
+    if (slot == nullptr) {
+        *param = 0;
+        return;
+    }
+    *param = (pname == GL_TRANSFORM_FEEDBACK_BUFFER_START)
+                 ? static_cast<int64_t>(slot->offset)
+                 : static_cast<int64_t>(slot->size);
 }
 
 // --- Query objects (SPEC §4 / §19) ---
@@ -5941,7 +6059,7 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
             setError(GLError::InvalidOperation);
             return;
         }
-        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+        if (boundTransformFeedbackCapturing()) {
             setError(GLError::InvalidOperation); // feedback loop
             return;
         }
@@ -5962,7 +6080,7 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
             setError(GLError::InvalidOperation);
             return;
         }
-        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+        if (boundTransformFeedbackCapturing()) {
             setError(GLError::InvalidOperation);
             return;
         }
@@ -5984,7 +6102,7 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
             setError(GLError::InvalidOperation);
             return;
         }
-        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+        if (boundTransformFeedbackCapturing()) {
             setError(GLError::InvalidOperation);
             return;
         }
@@ -6007,7 +6125,7 @@ void Context::drawRangeElements(uint32_t mode, uint32_t start, uint32_t end,
             setError(GLError::InvalidOperation);
             return;
         }
-        if (transformFeedbackActive_ && !transformFeedbackPaused_) {
+        if (boundTransformFeedbackCapturing()) {
             setError(GLError::InvalidOperation);
             return;
         }

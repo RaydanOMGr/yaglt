@@ -1461,6 +1461,22 @@ void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer,
                                             static_cast<intptr_t>(size));
 }
 
+void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param) {
+    if (g_current == nullptr) return;
+    g_current->getTransformFeedbackiv(xfb, pname, param);
+}
+
+void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint* param) {
+    if (g_current == nullptr) return;
+    g_current->getTransformFeedbacki_v(xfb, pname, index, param);
+}
+
+void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index,
+                                 GLint64* param) {
+    if (g_current == nullptr) return;
+    g_current->getTransformFeedbacki64_v(xfb, pname, index, param);
+}
+
 // --- Query objects (SPEC §4 / §19) ---
 
 GLuint glGenQuery() {

@@ -369,6 +369,11 @@ constexpr GLenum GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
 constexpr GLenum GL_UNIFORM_BUFFER = 0x8A11;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER = 0x8C8E;
 constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = 0x8C8F;
+// Transform-feedback object state (SPEC §22.4 glGetTransformFeedback*).
+constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_START = 0x8C84;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_BUFFER_SIZE = 0x8C85;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_PAUSED = 0x8E23;
+constexpr GLenum GL_TRANSFORM_FEEDBACK_ACTIVE = 0x8E24;
 constexpr GLenum GL_SHADER_STORAGE_BUFFER = 0x90D2;
 
 // Booleans.

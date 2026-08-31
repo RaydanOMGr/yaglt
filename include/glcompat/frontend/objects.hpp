@@ -260,6 +260,13 @@ public:
         intptr_t size = 0;
     };
     std::vector<TfBufferBinding> bufferBindings{kMaxTransformFeedbackBuffers};
+    // Per-object capture state (SPEC §13.2 / §22.4 TRANSFORM_FEEDBACK_ACTIVE /
+    // TRANSFORM_FEEDBACK_PAUSED). Capture state belongs to the object, not the
+    // context: an active-but-paused object may be unbound and keeps capturing
+    // state until it is bound again and ended, and glGetTransformFeedbackiv can
+    // query any object, bound or not.
+    bool active = false;
+    bool paused = false;
 };
 
 // Frontend query object (SPEC §4 / §19). Owns an opaque backend query resource

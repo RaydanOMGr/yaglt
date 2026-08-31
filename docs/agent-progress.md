@@ -3,6 +3,43 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — transform-feedback object state queries (SPEC §22.4), this session)
+
+- Added `glGetTransformFeedbackiv` / `glGetTransformFeedbacki_v` /
+  `glGetTransformFeedbacki64_v` (SPEC §22.4), the last unimplemented core
+  transform-feedback commands. `xfb == 0` queries the default object; any other
+  name must be a generated TF object (else `GL_INVALID_OPERATION`). Each command
+  accepts only its own pname set (`ACTIVE`/`PAUSED` for the scalar form,
+  `BUFFER_BINDING` for `i_v`, `BUFFER_START`/`BUFFER_SIZE` for `i64_v`; anything
+  else `GL_INVALID_ENUM`), rejects `index >= kMaxTransformFeedbackBuffers` with
+  `GL_INVALID_VALUE`, and rejects a null destination with `GL_INVALID_VALUE`. All
+  values come from frontend state — no backend virtual was needed.
+- Architecture change required by the above: transform-feedback capture state is
+  now **per object**. `TransformFeedbackObject` gained `active`/`paused`; the
+  context keeps the default object's flags (`defaultTransformFeedbackActive_` /
+  `defaultTransformFeedbackPaused_`) and the new private helpers
+  `transformFeedbackActive(xfb)`, `transformFeedbackPaused(xfb)`,
+  `boundTransformFeedbackCapturing()` and `setBoundTransformFeedbackState()`
+  replace the two old context-global flags in begin/end/pause/resume and the four
+  draw paths. This is what makes `TRANSFORM_FEEDBACK_ACTIVE` honest for an object
+  that is active, paused and then unbound.
+- Closed a related validation gap found while doing it: `glBindTransformFeedback`
+  now returns `GL_INVALID_OPERATION` when the currently bound object is capturing
+  and not paused (SPEC §13.3.1). Previously a rebind during capture was silently
+  accepted, which with per-object state would have allowed two simultaneously
+  active objects.
+- New `tests/unit/get_transform_feedback_test.cpp` (5 cases): default-object
+  capture-state transitions through begin/pause/resume/end, per-object state
+  survives unbinding a paused object, bind-while-capturing rejection (and the
+  pause escape hatch), indexed binding/start/size readback incl. the
+  `BufferBase`-resets-the-range case and untouched points, and the full
+  object/pname/index/null validation matrix. Default **893/893** → **898/898**,
+  sanitizer (ASan/UBSan) **898/898** green, `build_tx` (GLES e2e under Mesa
+  softpipe) **905/905** → **910/910**. Coverage: core **93.9% (550/586)**, full
+  ~55.3% (591/1068). `docs/feature-matrix.md` §13.3 row extended; also corrected a
+  stale `context.hpp` comment that claimed `glTransformFeedbackBufferBase(0, …)`
+  targets the bound object (it targets the default object, per SPEC §13.2.1).
+
 ## Recent Work (2026-08-31 — non-square matrix uniforms (SPEC §7.6), this session)
 
 - Completed the matrix-uniform family: added the 24 non-square entry points
@@ -748,7 +785,7 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 93.3% (547/586)
+Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), transform feedback (§13/§22), texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 93.9% (550/586)
 Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §7/§8/§6/§10 surface)
 Last updated: 2026-08-31
 Known major blockers:

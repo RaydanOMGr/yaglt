@@ -525,6 +525,15 @@ void glPauseTransformFeedback();
  void glTransformFeedbackBufferBase(GLuint xfb, GLuint index, GLuint buffer);
  void glTransformFeedbackBufferRange(GLuint xfb, GLuint index, GLuint buffer,
                                      GLintptr offset, GLsizeiptr size);
+// Transform-feedback object state queries (SPEC §22.4). `xfb == 0` queries the
+// default object; any other name must exist (else GL_INVALID_OPERATION). Legal
+// pnames: TRANSFORM_FEEDBACK_ACTIVE/PAUSED for the scalar form,
+// TRANSFORM_FEEDBACK_BUFFER_BINDING for `i_v`, and TRANSFORM_FEEDBACK_BUFFER_-
+// START/SIZE for `i64_v`; `index` must be < the number of TF binding points.
+ void glGetTransformFeedbackiv(GLuint xfb, GLenum pname, GLint* param);
+ void glGetTransformFeedbacki_v(GLuint xfb, GLenum pname, GLuint index, GLint* param);
+ void glGetTransformFeedbacki64_v(GLuint xfb, GLenum pname, GLuint index,
+                                  GLint64* param);
 
 // --- Query objects (SPEC §4 / §19) ---
 GLuint glGenQuery();

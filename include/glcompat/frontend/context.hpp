@@ -934,15 +934,30 @@ public:
     void resumeTransformFeedback();
 
     // Transform-feedback buffer bindings (SPEC §13.2.1 glTransformFeedbackBuffer-
-    // Base/Range). `xfb == 0` operates on the currently bound TF object (the
-    // default object when none is bound); a non-zero `xfb` is the name of a
-    // generated TF object. The binding is recorded on the TF object and also
+    // Base/Range). `xfb == 0` selects the default transform-feedback object; a
+    // non-zero `xfb` is the name of a generated TF object (an ungenerated name is
+    // GL_INVALID_OPERATION). The binding is recorded on that TF object and also
     // pushed to the backend as a GL_TRANSFORM_FEEDBACK_BUFFER base/range binding.
     void transformFeedbackBufferBase(GLObjectName xfb, uint32_t index,
                                     GLObjectName buffer);
     void transformFeedbackBufferRange(GLObjectName xfb, uint32_t index,
                                      GLObjectName buffer, intptr_t offset,
                                      intptr_t size);
+
+    // Transform-feedback object state queries (SPEC §22.4 glGetTransformFeedbackiv
+    // / i_v / i64_v). `xfb == 0` queries the default transform-feedback object;
+    // any other name must be a generated TF object (else GL_INVALID_OPERATION).
+    // Each command accepts its own pname set (GL_INVALID_ENUM otherwise):
+    //   iv     -> TRANSFORM_FEEDBACK_ACTIVE / TRANSFORM_FEEDBACK_PAUSED
+    //   i_v    -> TRANSFORM_FEEDBACK_BUFFER_BINDING
+    //   i64_v  -> TRANSFORM_FEEDBACK_BUFFER_START / TRANSFORM_FEEDBACK_BUFFER_SIZE
+    // The indexed forms reject index >= kMaxTransformFeedbackBuffers with
+    // GL_INVALID_VALUE. All values are frontend-owned (no backend round-trip).
+    void getTransformFeedbackiv(GLObjectName xfb, uint32_t pname, int32_t* param);
+    void getTransformFeedbacki_v(GLObjectName xfb, uint32_t pname, uint32_t index,
+                                int32_t* param);
+    void getTransformFeedbacki64_v(GLObjectName xfb, uint32_t pname, uint32_t index,
+                                  int64_t* param);
 
     // --- Query objects (SPEC §4 / §19) ---
     // Capability-gated by Queries. gen/bind/delete manage the frontend query
@@ -1824,14 +1839,29 @@ private:
     std::vector<std::unique_ptr<SyncObject>> syncs_;
 
     bool vertexStateDirty_ = false;
-    bool transformFeedbackActive_ = false;
-    bool transformFeedbackPaused_ = false;
+    // Capture state of the *default* transform-feedback object (name 0). Named
+    // objects carry their own `active`/`paused` flags (SPEC §13.2), so use
+    // transformFeedbackActive()/transformFeedbackPaused() instead of reading these
+    // directly.
+    bool defaultTransformFeedbackActive_ = false;
+    bool defaultTransformFeedbackPaused_ = false;
     bool conditionalRenderActive_ = false;
     GLObjectName conditionalRenderQuery_ = 0;
 
     // True if `target` is a query type allowed to predicate a conditional-render
     // region (SPEC §10.11).
     bool isConditionalRenderQueryType(uint32_t target) const;
+
+    // Capture state of the transform-feedback object `xfb` (0 = default object).
+    // An unknown name reports "not capturing" rather than erroring; callers that
+    // must reject unknown names validate the name first.
+    bool transformFeedbackActive(GLObjectName xfb) const;
+    bool transformFeedbackPaused(GLObjectName xfb) const;
+    // Capture state of the currently bound TF object (the default object when
+    // none is bound). Used by the draw paths.
+    bool boundTransformFeedbackCapturing() const;
+    // Writes the capture state of the currently bound TF object.
+    void setBoundTransformFeedbackState(bool active, bool paused);
 
     // Returns the indexed buffer-binding slot for a transform-feedback object, or
     // nullptr after setting the appropriate GL error (out-of-range index, or an

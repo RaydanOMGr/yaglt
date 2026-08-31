@@ -110,6 +110,7 @@ add_executable(yaglt_tests
     unit/conditional_render_test.cpp
     unit/uniform_block_binding_test.cpp
     unit/transform_feedback_buffer_test.cpp
+    unit/get_transform_feedback_test.cpp
     unit/create_object_test.cpp
     unit/object_is_test.cpp
     unit/point_parameter_test.cpp
