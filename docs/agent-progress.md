@@ -1038,7 +1038,33 @@ Known major blockers:
 - Geometry/tessellation still honest-Unsupported (no GLES equivalent; compute is
   implemented).
 
-## Recent Work (2026-08-29 — uniform block binding, this session)
+## Recent Work (2026-09-01 — shader translator ES limit enforcement + CTS coverage, this session)
+
+- Enforced `GL_MAX_VERTEX_OUTPUT_COMPONENTS` (minimum 64 in GLSL ES 3.10) in
+  `ShaderTranslator::translate`. glslang's default `TBuiltInResource` sets
+  `maxVertexOutput=0` (unlimited), so oversized vertex shaders translated
+  successfully but produced GLSL ES that every conformant driver rejects — a
+  silent failure at link time. Added a SPIRV-Cross reflection pass
+  (`get_shader_resources().stage_outputs`) that sums output components
+  (`vecsize * columns * arraySize`) for vertex shaders and returns an honest
+  error before emitting unusable ES source (SPEC §7: fail honestly).
+  - `cts_fail_35633_11_many_outputs`: 65 `out float` outputs (65 components > 64)
+    now correctly fails translation.
+- Fixed `assignDefaultLocations` regex to handle precision qualifiers
+  (`highp`/`mediump`/`lowp`) and interpolation qualifiers (`smooth`/`flat`/
+  `noperspective`/`centroid`/`sample`/`patch`) appearing between the storage
+  qualifier (`in`/`out`/`uniform`) and the type. CTS desktop shaders using
+  patterns like `out highp vec4 color;` previously failed to get a
+  `layout(location=N)` injected, causing glslang parse errors.
+- Added 8 CTS-pattern regression tests to `tests/backend/shader_translate_test.cpp`
+  covering: precision qualifiers on output vars (35632_0), texture arrays in
+  varyings (35632_1), `gl_FragData`/`gl_FragColor` redeclaration rejection
+  (35632_3, 35632_4), `attribute` keyword rejection under #version 130 (35633_3),
+  `gl_ClipDistance` desktop-only rejection (35633_1, 35633_2), inline struct-in-UBO
+  rejection (35632_5), and vertex output limit exceed (35633_11).
+- Full test suite: **943/943 passed, 0 failed**.
+
+## Recent Work (2026-08-31 — fix WIP regressions in shader translator + DSA capability, this session)
 - Added `glUniformBlockBinding` (SPEC §7.6.2) to complete the UBO story. New
   `BackendProgram::uniformBlockBinding(blockIndex, blockBinding)` virtual
   (default no-op; GLES forwards to `glUniformBlockBinding` on the native program
