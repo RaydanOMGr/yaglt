@@ -397,6 +397,12 @@ bool GLESLib::load() {
     resolve(gles, glUniformMatrix2fv, "glUniformMatrix2fv");
     resolve(gles, glUniformMatrix3fv, "glUniformMatrix3fv");
     resolve(gles, glUniformMatrix4fv, "glUniformMatrix4fv");
+    resolve(gles, glUniformMatrix2x3fv, "glUniformMatrix2x3fv");
+    resolve(gles, glUniformMatrix2x4fv, "glUniformMatrix2x4fv");
+    resolve(gles, glUniformMatrix3x2fv, "glUniformMatrix3x2fv");
+    resolve(gles, glUniformMatrix3x4fv, "glUniformMatrix3x4fv");
+    resolve(gles, glUniformMatrix4x2fv, "glUniformMatrix4x2fv");
+    resolve(gles, glUniformMatrix4x3fv, "glUniformMatrix4x3fv");
     resolve(gles, glGetUniformfv, "glGetUniformfv");
     resolve(gles, glGetUniformiv, "glGetUniformiv");
     resolve(gles, glGetUniformuiv, "glGetUniformuiv");

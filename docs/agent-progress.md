@@ -3,6 +3,45 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — non-square matrix uniforms (SPEC §7.6), this session)
+
+- Completed the matrix-uniform family: added the 24 non-square entry points
+  `glUniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}fv`/`dv` and
+  `glProgramUniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}fv`/`dv` (SPEC §7.6). The
+  previous session had left only header declarations for the 2x3/2x4 spellings
+  (uncommitted, no definitions) after crashing; those were extended to all six
+  shapes and implemented end to end. `Context::uniformMatrixNxM{fv,dv}` reuses
+  the square-variant contract (a `-1` location / null pointer / non-positive
+  `count` is a silent no-op; no active program → `GL_INVALID_OPERATION`) and
+  `Context::programUniformMatrixNxM{fv,dv}` goes through `backendProgramFor()`
+  (non-program / unlinked name → `GL_INVALID_OPERATION`). 12 new `BackendProgram`
+  virtuals (appended at the end of the interface so existing vtable slots do not
+  shift); `MockProgram` records per-shape call counts and mirrors `count * N * M`
+  components into its uniform store so `glGetUniform{f,d}v` proves the shape that
+  reached the backend; `GLESBackendProgram` drives the driver's ES 3.0
+  `glUniformMatrix{N}x{M}fv` (6 new optional `GLESLib` loader entries — dropped,
+  not faked, on ES 2.0 drivers) and keeps the `dv` spellings as honest no-ops
+  because GLSL ES has no double-precision uniforms. Wired through
+  `context.hpp`/`context.cpp` and `gl_api.hpp`/`gl_api.cpp` (null-context guard);
+  the `gl*` shim regenerated from `gl_api.hpp` grew 575 → 599 wrappers.
+- New `tests/unit/uniform_matrix_nonsquare_test.cpp` (5 cases): all six float
+  shapes record the right component count + transpose flag, all six double
+  shapes with `count == 2`, no-active-program → `GL_INVALID_OPERATION` plus the
+  three silent no-op cases, explicit-program targeting without `glUseProgram`
+  (and progB untouched), unlinked program → `GL_INVALID_OPERATION`. Default
+  **888/888** → **893/893**, sanitizer (ASan/UBSan) **893/893** green,
+  `build_tx` (GLES e2e under Mesa softpipe) **900/900** → **905/905**.
+- Fixed a measurement bug in `tools/coverage_report.py`: the brace expander split
+  spec families on whitespace only, so the comma-separated
+  `UniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}{fd}v` families were shredded per
+  character (`UniformMatrixxfv`, `UniformMatrix,fv`) and 24 real commands were
+  absent from the universe. Comma-separated brace alternatives are now whole
+  options. Headline coverage therefore moves from 1052/564 (~53.6% full, 91.8%
+  core) to 1068/588 (~55.1% full, **93.3% core, 547/586**) — part measurement
+  fix, part the new entry points; `docs/coverage-core.md` states this explicitly
+  and its stale hand-written counts were removed. `docs/feature-matrix.md` gains
+  the "Non-square matrix uniforms (SPEC §7.6)" row.
+
 ## Recent Work (2026-08-31 — glGetVertexAttribLdv (SPEC §10.3), this session)
 
 - Added `glGetVertexAttribLdv` (SPEC §10.3), the long-double current-attribute
@@ -709,9 +748,9 @@ milestones, architectural decisions, and before ending a session.
 
 ## Current Status
 
-Current milestone: Ongoing SPEC command coverage — texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 88.9% (507/570)
-Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §8/§6/§10 surface)
-Last updated: 2026-08-30
+Current milestone: Ongoing SPEC command coverage — shader/program uniforms (§7), texture/pixel ops (§8), buffers (§6), query/draw state (§10); core coverage 93.3% (547/586)
+Overall status: Active implementation (foundation + object model + GL dispatch + GLES backend + shader translate + object/state API + clear + broad §7/§8/§6/§10 surface)
+Last updated: 2026-08-31
 Known major blockers:
 - Geometry/tessellation still honest-Unsupported (no GLES equivalent; compute is
   implemented).

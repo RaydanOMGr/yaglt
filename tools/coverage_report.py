@@ -85,16 +85,25 @@ def expand_braces(name):
     group, space-separated chunks are alternatives; a chunk of digits or of
     single-letter type suffixes contributes one option per character, while a
     multi-character chunk starting with `u` (ui, us, ub, ui64) is one option.
+
+    A brace group written with commas lists whole alternatives verbatim instead
+    (`UniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}{fd}v` -> UniformMatrix2x3f,
+    UniformMatrix2x3d, ...); without this the per-character rule above would
+    shred `2x3` into `2`, `x`, `3`.
     """
     m = re.search(r"\{([^}]*)\}", name)
     if m is None:
         return [name]
+    group = m.group(1)
     options = []
-    for chunk in m.group(1).split():
-        if len(chunk) > 1 and chunk[0] != "u":
-            options.extend(list(chunk))
-        else:
-            options.append(chunk)
+    if "," in group:
+        options = [chunk.strip() for chunk in group.split(",") if chunk.strip()]
+    else:
+        for chunk in group.split():
+            if len(chunk) > 1 and chunk[0] != "u":
+                options.extend(list(chunk))
+            else:
+                options.append(chunk)
     out = []
     for opt in options:
         out.extend(expand_braces(name[: m.start()] + opt + name[m.end():]))

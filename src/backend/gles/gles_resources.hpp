@@ -1106,6 +1106,53 @@ struct GLESBackendProgram : BackendProgram {
     void uniformMatrix2dv(int, const double*, int, bool) override {}
     void uniformMatrix3dv(int, const double*, int, bool) override {}
     void uniformMatrix4dv(int, const double*, int, bool) override {}
+    // Non-square matrix uniform setters (SPEC §7.6). ES 3.0 exposes the float
+    // variants natively; the loader entry is checked because ES 2.0 drivers lack
+    // them (then the call is dropped rather than faked).
+    void uniformMatrix2x3fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix2x3fv) return;
+        bind();
+        lib->glUniformMatrix2x3fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix2x4fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix2x4fv) return;
+        bind();
+        lib->glUniformMatrix2x4fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix3x2fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix3x2fv) return;
+        bind();
+        lib->glUniformMatrix3x2fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix3x4fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix3x4fv) return;
+        bind();
+        lib->glUniformMatrix3x4fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix4x2fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix4x2fv) return;
+        bind();
+        lib->glUniformMatrix4x2fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    void uniformMatrix4x3fv(int loc, const float* m, int count, bool transpose) override {
+        if (loc < 0 || !lib || !lib->loaded || handle == 0 || !m || count <= 0
+            || !lib->glUniformMatrix4x3fv) return;
+        bind();
+        lib->glUniformMatrix4x3fv(loc, count, transpose ? GL_TRUE : GL_FALSE, m);
+    }
+    // GLSL ES has no double-precision uniforms, so the `dv` spellings stay honest
+    // no-ops on this backend (same as uniformMatrix{2,3,4}dv above).
+    void uniformMatrix2x3dv(int, const double*, int, bool) override {}
+    void uniformMatrix2x4dv(int, const double*, int, bool) override {}
+    void uniformMatrix3x2dv(int, const double*, int, bool) override {}
+    void uniformMatrix3x4dv(int, const double*, int, bool) override {}
+    void uniformMatrix4x2dv(int, const double*, int, bool) override {}
+    void uniformMatrix4x3dv(int, const double*, int, bool) override {}
     void getUniformfv(int32_t location, float* params) const override {
         if (location < 0 || !lib || !lib->loaded || handle == 0 || !params) return;
         lib->glGetUniformfv(handle, location, params);

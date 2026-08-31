@@ -1001,6 +1001,13 @@ public:
     int uniform1dCalls = 0, uniform2dCalls = 0, uniform3dCalls = 0, uniform4dCalls = 0;
     int uniform1dvCalls = 0, uniform2dvCalls = 0, uniform3dvCalls = 0, uniform4dvCalls = 0;
     int uniformMatrix2dvCalls = 0, uniformMatrix3dvCalls = 0, uniformMatrix4dvCalls = 0;
+    // Non-square matrix uniform call counters (SPEC §7.6).
+    int uniformMatrix2x3fvCalls = 0, uniformMatrix2x3dvCalls = 0;
+    int uniformMatrix2x4fvCalls = 0, uniformMatrix2x4dvCalls = 0;
+    int uniformMatrix3x2fvCalls = 0, uniformMatrix3x2dvCalls = 0;
+    int uniformMatrix3x4fvCalls = 0, uniformMatrix3x4dvCalls = 0;
+    int uniformMatrix4x2fvCalls = 0, uniformMatrix4x2dvCalls = 0;
+    int uniformMatrix4x3fvCalls = 0, uniformMatrix4x3dvCalls = 0;
     int uniform1uiCalls = 0, uniform2uiCalls = 0, uniform3uiCalls = 0, uniform4uiCalls = 0;
     int uniform1uivCalls = 0, uniform2uivCalls = 0, uniform3uivCalls = 0, uniform4uivCalls = 0;
     mutable int getUniformfvCalls = 0, getUniformivCalls = 0, getUniformuivCalls = 0,
@@ -1154,6 +1161,68 @@ public:
         ++uniformMatrix4dvCalls; lastUniformLoc = loc; lastUniformCount = count;
         lastTranspose = transpose;
         if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 16 * count);
+    }
+    // Non-square matrix uniform setters (SPEC §7.6). A NxM matrix holds N*M
+    // components, so the mirror store keeps count * N * M values for readback.
+    void uniformMatrix2x3fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix2x3fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 6 * count);
+    }
+    void uniformMatrix2x3dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix2x3dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 6 * count);
+    }
+    void uniformMatrix2x4fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix2x4fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 8 * count);
+    }
+    void uniformMatrix2x4dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix2x4dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 8 * count);
+    }
+    void uniformMatrix3x2fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix3x2fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 6 * count);
+    }
+    void uniformMatrix3x2dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix3x2dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 6 * count);
+    }
+    void uniformMatrix3x4fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix3x4fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 12 * count);
+    }
+    void uniformMatrix3x4dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix3x4dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 12 * count);
+    }
+    void uniformMatrix4x2fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix4x2fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 8 * count);
+    }
+    void uniformMatrix4x2dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix4x2dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 8 * count);
+    }
+    void uniformMatrix4x3fv(int loc, const float* m, int count, bool transpose) override {
+        ++uniformMatrix4x3fvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformFloatStore[loc].assign(m, m + 12 * count);
+    }
+    void uniformMatrix4x3dv(int loc, const double* m, int count, bool transpose) override {
+        ++uniformMatrix4x3dvCalls; lastUniformLoc = loc; lastUniformCount = count;
+        lastTranspose = transpose;
+        if (m && count > 0) uniformDoubleStore[loc].assign(m, m + 12 * count);
     }
     void uniform1ui(int loc, uint32_t v0) override {
         ++uniform1uiCalls; lastUniformLoc = loc; lastU0 = v0;

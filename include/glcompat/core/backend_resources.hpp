@@ -692,6 +692,25 @@ public:
 
     virtual void uniformMatrix4fv(int loc, const float* m, int count,
                                  bool transpose) {}
+    // Non-square matrix uniform setters (SPEC §7.6 UniformMatrix{2x3,3x2,2x4,
+    // 4x2,3x4,4x3}{fd}v). The first number is the column count, the second the
+    // row count, so a NxM matrix holds N*M components per matrix. Placed at the
+    // end so adding them does not shift the vtable slots of the reflection /
+    // subroutine virtuals declared above. Backends with native support override;
+    // the default is a no-op (GLSL ES has no double-precision uniforms, so `dv`
+    // stays a no-op on GLES).
+    virtual void uniformMatrix2x3fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix2x3dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix2x4fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix2x4dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix3x2fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix3x2dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix3x4fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix3x4dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix4x2fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix4x2dv(int loc, const double* m, int count, bool transpose) {}
+    virtual void uniformMatrix4x3fv(int loc, const float* m, int count, bool transpose) {}
+    virtual void uniformMatrix4x3dv(int loc, const double* m, int count, bool transpose) {}
 };
 
 } // namespace glcompat

@@ -116,6 +116,7 @@ add_executable(yaglt_tests
     unit/pixel_store_test.cpp
     unit/uniform_get_test.cpp
     unit/uniform_variant_test.cpp
+    unit/uniform_matrix_nonsquare_test.cpp
     unit/clear_buffer_test.cpp
    unit/clear_tex_image_test.cpp
     unit/copy_image_sub_data_test.cpp

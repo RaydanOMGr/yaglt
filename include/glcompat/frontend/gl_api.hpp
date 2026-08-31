@@ -778,6 +778,33 @@ void glUniform4i(GLint location, GLint v0, GLint v1, GLint v2, GLint v3);
                          const GLdouble* value);
  void glUniformMatrix4dv(GLint location, GLsizei count, GLboolean transpose,
                          const GLdouble* value);
+// Non-square matrix uniforms (SPEC §7.6 glUniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}{fd}v).
+// The first number is the column count, the second the row count; `value` holds
+// count * columns * rows components.
+ void glUniformMatrix2x3fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix2x4fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix3x2fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix3x4fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix4x2fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix4x3fv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLfloat* value);
+ void glUniformMatrix2x3dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix2x4dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix3x2dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix3x4dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix4x2dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
+ void glUniformMatrix4x3dv(GLint location, GLsizei count, GLboolean transpose,
+                         const GLdouble* value);
  void glUniform1ui(GLint location, GLuint v0);
  void glUniform2ui(GLint location, GLuint v0, GLuint v1);
  void glUniform3ui(GLint location, GLuint v0, GLuint v1, GLuint v2);
@@ -821,6 +848,20 @@ void glProgramUniform4i(GLuint program, GLint location, GLint v0, GLint v1, GLin
  void glProgramUniformMatrix2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
  void glProgramUniformMatrix3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
  void glProgramUniformMatrix4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+// Non-square matrix program uniforms (SPEC §7.6
+// glProgramUniformMatrix{2x3,3x2,2x4,4x2,3x4,4x3}{fd}v).
+ void glProgramUniformMatrix2x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix2x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix3x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix3x4fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix4x2fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix4x3fv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLfloat* value);
+ void glProgramUniformMatrix2x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix2x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix3x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix3x4dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix4x2dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
+ void glProgramUniformMatrix4x3dv(GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble* value);
  void glProgramUniform1ui(GLuint program, GLint location, GLuint v0);
  void glProgramUniform2ui(GLuint program, GLint location, GLuint v0, GLuint v1);
  void glProgramUniform3ui(GLuint program, GLint location, GLuint v0, GLuint v1, GLuint v2);

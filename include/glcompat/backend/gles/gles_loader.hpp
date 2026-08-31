@@ -459,6 +459,12 @@ struct GLESLib {
     void (*glUniformMatrix2fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
     void (*glUniformMatrix3fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
     void (*glUniformMatrix4fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix2x3fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix2x4fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix3x2fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix3x4fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix4x2fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
+    void (*glUniformMatrix4x3fv)(GLint, GLsizei, GLboolean, const GLfloat*) = nullptr;
     void (*glGetUniformfv)(GLuint, GLint, GLfloat*) = nullptr;
     void (*glGetUniformiv)(GLuint, GLint, GLint*) = nullptr;
     void (*glGetUniformuiv)(GLuint, GLint, GLuint*) = nullptr;

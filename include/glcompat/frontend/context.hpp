@@ -1560,6 +1560,21 @@ public:
     void uniformMatrix2dv(int loc, const double* m, int count, bool transpose);
     void uniformMatrix3dv(int loc, const double* m, int count, bool transpose);
     void uniformMatrix4dv(int loc, const double* m, int count, bool transpose);
+    // Non-square matrix uniforms (SPEC §7.6 UniformMatrix{2x3,3x2,2x4,4x2,3x4,
+    // 4x3}{fd}v). The first number is the column count, the second the row count;
+    // `m` must hold count * columns * rows components.
+    void uniformMatrix2x3fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix2x3dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix2x4fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix2x4dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix3x2fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix3x2dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix3x4fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix3x4dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix4x2fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix4x2dv(int loc, const double* m, int count, bool transpose);
+    void uniformMatrix4x3fv(int loc, const float* m, int count, bool transpose);
+    void uniformMatrix4x3dv(int loc, const double* m, int count, bool transpose);
 
     // --- Program uniform value queries (SPEC §7.9 glGetUniform{f,i,ui,d}v) ---
     // Read back a uniform value from a successfully linked program. The program
@@ -1620,6 +1635,20 @@ public:
     void programUniformMatrix2dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
     void programUniformMatrix3dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
     void programUniformMatrix4dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    // Non-square matrix program uniforms (SPEC §7.6 ProgramUniformMatrix{2x3,
+    // 3x2,2x4,4x2,3x4,4x3}{fd}v).
+    void programUniformMatrix2x3fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix2x3dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix2x4fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix2x4dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix3x2fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix3x2dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix3x4fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix3x4dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix4x2fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix4x2dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
+    void programUniformMatrix4x3fv(GLObjectName program, int loc, const float* m, int count, bool transpose);
+    void programUniformMatrix4x3dv(GLObjectName program, int loc, const double* m, int count, bool transpose);
 
     // --- State queries (SPEC §22) ---
     // Read tracked pipeline state (the frontend owns these values, so glGet
