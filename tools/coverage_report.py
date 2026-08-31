@@ -82,7 +82,22 @@ COMPAT_PREFIXES = (
     "GetHistogramParameter", "GetMinmaxParameter", "GetSeparableFilterParameter",
     "GetPixelMap", "GetTexEnv", "GetTexGen", "GetMaterial", "GetLight",
     "GetClipPlane", "GetMap", "GetPolygonStipple",
+    # Robust (`Getn*`) imaging / compatibility-only getters (no core equivalent).
+    # Appendix E.2.2 removes GL_ARB_imaging from core, so these must not deflate
+    # the core-profile coverage subset.
+    "GetnColorTable", "GetnConvolutionFilter", "GetnHistogram", "GetnMinmax",
+    "GetnSeparableFilter", "GetnMap", "GetnPixelMap", "GetnPolygonStipple",
 )
+
+# Spec pseudo-commands that are never real GL entry points. They appear as
+# `void Name(` prototypes in the spec text only to describe draw behavior
+# (e.g. `DrawArraysOneInstance`/`DrawElementsOneInstance` are the conceptual
+# single-instance draw used to define `glDrawArrays`/`glDrawElements`), so they
+# must be excluded from the command universe entirely, not counted as missing.
+PSEUDO_COMMANDS = {
+    "DrawArraysOneInstance",
+    "DrawElementsOneInstance",
+}
 
 
 def expand_braces(name):
@@ -124,6 +139,8 @@ def spec_commands(text):
         if m.group(2):  # spec writes the vector suffix as a separate token
             name += "_" + m.group(2)
         for expanded in expand_braces(name):
+            if expanded in PSEUDO_COMMANDS:
+                continue
             names.add(expanded)
     return names
 

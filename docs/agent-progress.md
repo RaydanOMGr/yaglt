@@ -3,6 +3,24 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — core coverage reaches 100% of measurable universe, this session)
+
+- `tools/coverage_report.py` now treats the core-profile coverage subset
+  honestly: it excludes two spec **pseudo-commands** that are never real GL
+  entry points — `DrawArraysOneInstance` / `DrawElementsOneInstance` (the spec
+  uses them only to describe draw behavior) — and the robust `Getn*`
+  GL_ARB_imaging getters (`GetnColorTable`, `GetnConvolutionFilter`,
+  `GetnHistogram`, `GetnMinmax`, `GetnSeparableFilter`, `GetnMap*`,
+  `GetnPixelMap*`, `GetnPolygonStipple`), which Appendix E.2.2 removes from the
+  core profile. These were the last 14 commands inflating the "missing core"
+  list; none were genuine gaps. With them removed the core universe is 554
+  commands and all 554 are exposed by the frontend → **100% of the measurable
+  core-profile command universe**. Full-spec (compat + core) universe is 1066
+  commands at ~55.8% (the compatibility-profile surface is intentionally not yet
+  implemented). No frontend code changed; this is a measurement/classification
+  correction only. `docs/coverage-core.md` regenerated (headline + measurement
+  note updated).
+
 ## Recent Work (2026-08-31 — robust buffer parameter query §6.1.2 / ARB_robustness, this session)
 
 - Added `glGetnBufferParameteriv` / `glGetnBufferParameteri64v` (SPEC §6.1.2 /
