@@ -395,6 +395,14 @@ constexpr GLenum GL_TESS_CONTROL_SHADER = 0x8E88;
 constexpr GLenum GL_TESS_EVALUATION_SHADER = 0x8E87;
 constexpr GLenum GL_COMPUTE_SHADER = 0x91B9;
 
+// Shader precision qualifiers (glGetShaderPrecisionFormat, SPEC §7.1).
+constexpr GLenum GL_LOW_FLOAT = 0x8DF0;
+constexpr GLenum GL_MEDIUM_FLOAT = 0x8DF1;
+constexpr GLenum GL_HIGH_FLOAT = 0x8DF2;
+constexpr GLenum GL_LOW_INT = 0x8DF3;
+constexpr GLenum GL_MEDIUM_INT = 0x8DF4;
+constexpr GLenum GL_HIGH_INT = 0x8DF5;
+
 // Shader / program query parameters.
 constexpr GLenum GL_COMPILE_STATUS = 0x8B81;
 constexpr GLenum GL_LINK_STATUS = 0x8B82;

@@ -1764,6 +1764,12 @@ void glGetShaderiv(GLuint shader, GLenum pname, GLint* params) {
     g_current->getShaderiv(shader, pname, params);
 }
 
+void glGetShaderPrecisionFormat(GLenum shaderType, GLenum precisionType, GLint* range,
+                               GLint* precision) {
+    if (g_current == nullptr) return;
+    g_current->getShaderPrecisionFormat(shaderType, precisionType, range, precision);
+}
+
 GLint glGetShaderiv(GLuint shader, GLenum pname) {
     GLint v = 0;
     if (g_current != nullptr) g_current->getShaderiv(shader, pname, &v);

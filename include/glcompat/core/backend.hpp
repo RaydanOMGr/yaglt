@@ -235,8 +235,19 @@ public:
                                      uint32_t pname, int32_t bufSize,
                                      int32_t* params) = 0;
     virtual void getInternalformati64v(uint32_t target, uint32_t internalformat,
-                                       uint32_t pname, int32_t bufSize,
-                                        int64_t* params) = 0;
+                                        uint32_t pname, int32_t bufSize,
+                                         int64_t* params) = 0;
+
+    // Shader precision query (SPEC §7.1 glGetShaderPrecisionFormat). `range` is a
+    // 2-element array [min, max]; `precision` is the mantissa bit count. Either may
+    // be null (the corresponding value is then not written). Backends fill with
+    // their own (driver- or implementation-dependent) precision profile.
+    virtual void getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                          int32_t* range, int32_t* precision) {
+        if (range) { range[0] = 0; range[1] = 0; }
+        if (precision) *precision = 0;
+    }
+
 
     // Multisample sample-position queries (SPEC §14.3.1, glGetMultisamplefv).
     // `getMultisampleSampleCount` returns the number of samples available for

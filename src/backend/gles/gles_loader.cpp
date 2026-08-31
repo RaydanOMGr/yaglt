@@ -344,6 +344,9 @@ bool GLESLib::load() {
     resolve(gles, glGetQueryObjectuiv, "glGetQueryObjectuiv");
     resolve(gles, glGetQueryObjectui64v, "glGetQueryObjectui64v");
 
+    // Shader precision query (SPEC §7.1, core in GLES 2.0+); resolved optionally.
+    resolve(gles, glGetShaderPrecisionFormat, "glGetShaderPrecisionFormat");
+
     // Conditional rendering (SPEC §10.11). NV_conditional_render on GLES;
     // resolved optionally so load() still succeeds without it.
     resolve(gles, glBeginConditionalRenderNV, "glBeginConditionalRenderNV");

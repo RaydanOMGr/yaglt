@@ -3,6 +3,25 @@
 Persistent, version-controlled progress record. Updated after meaningful
 milestones, architectural decisions, and before ending a session.
 
+## Recent Work (2026-08-31 — glGetShaderPrecisionFormat (SPEC §7.1), this session)
+
+- Added `glGetShaderPrecisionFormat` (SPEC §7.1). `Context::getShaderPrecisionFormat`
+  validates `shaderType` (6 stages) and `precisionType` (LOW/MEDIUM/HIGH × FLOAT/INT;
+  else `GL_INVALID_ENUM`) and forwards to the new backend
+  `getShaderPrecisionFormat(shaderType, precisionType, range, precision)` virtual
+  (added to `IGraphicsBackend`). `range`/`precision` may be null (nothing written).
+  The `MockBackend` returns a fixed deterministic per-tier profile (HIGH_FLOAT →
+  range [-62,62], prec 23; MEDIUM_INT → [-15,15], prec 0; etc.); `GLESBackend`
+  resolves/drives the driver's `glGetShaderPrecisionFormat` (added to the `GLESLib`
+  loader struct + resolve list), falling back to zeros when absent. Wired through
+  `context.hpp`/`context.cpp`, `gl_api.hpp`/`gl_api.cpp` (null-context guard; the
+  `gl*` shim regenerates the entry from `gl_api.hpp`), plus new precision enums in
+  `gl_types.hpp`. 1 new case in `tests/unit/specialize_shader_test.cpp`
+  (`get_shader_precision_format_reports_backend_tier_and_validates`). Default
+  **886/886** → **887/887**, sanitizer **887/887** green, `build_tx` (GLES e2e
+  under Mesa softpipe) **898/898** → **899/899**. `docs/feature-matrix.md` §7.1 row
+  extended; coverage regenerated.
+
 ## Recent Work (2026-08-31 — glReleaseShaderCompiler (SPEC §7.1), this session)
 
 - Added `glReleaseShaderCompiler` (SPEC §7.1), a no-op hint. `Context::releaseShaderCompiler` is intentionally empty (the frontend keeps no releasable per-context compiler state); it never raises a GL error and leaves the context usable. Wired through `context.hpp`/`context.cpp` and `gl_api.hpp`/`gl_api.cpp` (public `glReleaseShaderCompiler(void)` dispatch with null-context guard; the `gl*` shim regenerates the entry from `gl_api.hpp`). 1 new case in `tests/unit/specialize_shader_test.cpp` (`release_shader_compiler_is_noop_and_keeps_context_usable`) confirms both the `Context` method and the public dispatch never error and that a shader can still be created/compiled afterward. Default **885/885** → **886/886**, sanitizer **886/886** green, `build_tx` (GLES e2e under Mesa softpipe) **897/897** → **898/898**. `docs/feature-matrix.md` §7.1 row extended; coverage regenerated.

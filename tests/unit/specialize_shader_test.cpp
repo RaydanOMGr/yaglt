@@ -102,3 +102,44 @@ TEST_CASE("release_shader_compiler_is_noop_and_keeps_context_usable") {
 
     setCurrentContext(nullptr);
 }
+
+// glGetShaderPrecisionFormat (SPEC §7.1): validates shaderType/precisionType and
+// forwards the tier to the backend. The mock returns a fixed per-tier profile so
+// the contract is deterministic (see mock_backend.hpp getShaderPrecisionFormat).
+TEST_CASE("get_shader_precision_format_reports_backend_tier_and_validates") {
+    MockBackend backend;
+    Context ctx(backend);
+    setCurrentContext(&ctx);
+
+    GLint range[2] = {0, 0};
+    GLint prec = -1;
+
+    glGetShaderPrecisionFormat(GL_VERTEX_SHADER, GL_HIGH_FLOAT, range, &prec);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(range[0], -62);
+    EXPECT_EQ(range[1], 62);
+    EXPECT_EQ(prec, 23);
+
+    glGetShaderPrecisionFormat(GL_FRAGMENT_SHADER, GL_MEDIUM_INT, range, &prec);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(range[0], -15);
+    EXPECT_EQ(range[1], 15);
+    EXPECT_EQ(prec, 0);
+
+    // Null params are tolerated (nothing written). Use a sentinel to prove it.
+    GLint r[2] = {7, 7};
+    GLint p = 7;
+    glGetShaderPrecisionFormat(GL_COMPUTE_SHADER, GL_LOW_FLOAT, nullptr, nullptr);
+    EXPECT_EQ(glGetError(), GL_NO_ERROR);
+    EXPECT_EQ(r[0], 7);
+    EXPECT_EQ(p, 7);
+
+    // Bad shaderType -> INVALID_ENUM.
+    glGetShaderPrecisionFormat(0xDEAD, GL_HIGH_FLOAT, range, &prec);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+    // Bad precisionType -> INVALID_ENUM.
+    glGetShaderPrecisionFormat(GL_VERTEX_SHADER, 0xDEAD, range, &prec);
+    EXPECT_EQ(glGetError(), GL_INVALID_ENUM);
+
+    setCurrentContext(nullptr);
+}

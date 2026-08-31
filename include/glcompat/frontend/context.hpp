@@ -1081,6 +1081,12 @@ public:
     // A no-op hint: the compiler may be used again later, so this only clears any
     // frontend-side cached compiler state. Never produces a GL error.
     void releaseShaderCompiler();
+    // Shader precision query (SPEC §7.1 glGetShaderPrecisionFormat). `range` is a
+    // 2-element array [min, max]; `precision` is the mantissa bit count. Either may
+    // be null (the corresponding value is then not written). A bad `shaderType` or
+    // `precisionType` yields GL_INVALID_ENUM.
+    void getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                 int32_t* range, int32_t* precision);
     void specializeShader(GLObjectName shader, const std::string& entryPoint,
                           uint32_t numConstants, const uint32_t* constantIndex,
                           const uint32_t* constantValue);

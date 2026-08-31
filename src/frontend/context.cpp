@@ -6179,6 +6179,31 @@ void Context::getShaderiv(GLObjectName shader, uint32_t pname, GLint* params) {
     if (params) *params = result;
 }
 
+namespace {
+bool isValidShaderType(uint32_t t) {
+    return t == GL_VERTEX_SHADER || t == GL_TESS_CONTROL_SHADER ||
+           t == GL_TESS_EVALUATION_SHADER || t == GL_GEOMETRY_SHADER ||
+           t == GL_FRAGMENT_SHADER || t == GL_COMPUTE_SHADER;
+}
+bool isValidPrecisionType(uint32_t p) {
+    return p == GL_LOW_FLOAT || p == GL_MEDIUM_FLOAT || p == GL_HIGH_FLOAT ||
+           p == GL_LOW_INT || p == GL_MEDIUM_INT || p == GL_HIGH_INT;
+}
+} // namespace
+
+void Context::getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                       int32_t* range, int32_t* precision) {
+    if (!isValidShaderType(shaderType)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    if (!isValidPrecisionType(precisionType)) {
+        setError(GLError::InvalidEnum);
+        return;
+    }
+    backend_.getShaderPrecisionFormat(shaderType, precisionType, range, precision);
+}
+
 void Context::getProgramiv(GLObjectName program, uint32_t pname, GLint* params) {
     const ProgramObject* p = getProgram(program);
     if (p == nullptr) {

@@ -1144,6 +1144,25 @@ public:
         default: params[0] = 0; break;
         }
     }
+    // Shader precision query (SPEC §7.1). Values are implementation-defined; the
+    // mock reports a fixed, deterministic tier so the frontend contract is testable.
+    void getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                  int32_t* range, int32_t* precision) override {
+        (void)shaderType;
+        auto apply = [&](int32_t rmin, int32_t rmax, int32_t prec) {
+            if (range) { range[0] = rmin; range[1] = rmax; }
+            if (precision) *precision = prec;
+        };
+        switch (precisionType) {
+        case GL_LOW_FLOAT: apply(-8, 8, 8); break;
+        case GL_MEDIUM_FLOAT: apply(-15, 15, 10); break;
+        case GL_HIGH_FLOAT: apply(-62, 62, 23); break;
+        case GL_LOW_INT: apply(-8, 8, 0); break;
+        case GL_MEDIUM_INT: apply(-15, 15, 0); break;
+        case GL_HIGH_INT: apply(-31, 31, 0); break;
+        default: apply(0, 0, 0); break;
+        }
+    }
     // Multisample sample-position queries (SPEC §14.3.1). Sample positions are
     // implementation-defined; the mock reports a fixed placeholder sample count
     // and a fixed sub-pixel grid so the frontend's index validation and the

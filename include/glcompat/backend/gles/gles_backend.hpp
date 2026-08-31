@@ -301,6 +301,11 @@ public:
                                uint32_t pname, int32_t bufSize,
                                int64_t* params) override;
 
+    // Shader precision query (SPEC §7.1 glGetShaderPrecisionFormat). Forwards to
+    // the GLES driver's glGetShaderPrecisionFormat when available, else zeros out.
+    void getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                  int32_t* range, int32_t* precision) override;
+
     // Multisample sample-position queries (SPEC §14.3.1 glGetMultisamplefv). The
     // sample count is the SAMPLES of the bound draw framebuffer (read via
     // glGetFramebufferParameteriv; 0 if unsupported or no MSAA framebuffer). The

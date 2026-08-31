@@ -594,6 +594,9 @@ void glSpecializeShader(GLuint shader, const GLchar* entryPoint,
                         GLuint numSpecializationConstants, const GLuint* pConstantIndex,
                         const GLuint* pConstantValue);
 void glGetShaderiv(GLuint shader, GLenum pname, GLint* params);
+void glGetShaderPrecisionFormat(GLenum shaderType, GLenum precisionType, GLint* range,
+                                GLint* precision);
+
 // Convenience overload (C++ only, not exported by the C shim): returns the
 // queried value directly for callers that prefer the return-value style.
 GLint glGetShaderiv(GLuint shader, GLenum pname);

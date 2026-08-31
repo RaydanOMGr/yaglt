@@ -228,6 +228,10 @@ struct GLESLib {
     void (*glGetQueryObjectuiv)(GLuint, GLenum, GLuint*) = nullptr;
     void (*glGetQueryObjectui64v)(GLuint, GLenum, GLuint64*) = nullptr;
 
+    // Shader precision query (SPEC §7.1). Core in GLES 2.0+; resolved optionally
+    // so load() still succeeds on a driver that lacks it.
+    void (*glGetShaderPrecisionFormat)(GLenum, GLenum, GLint*, GLint*) = nullptr;
+
     // Conditional rendering (SPEC §10.11). On GLES only available via
     // GL_NV_conditional_render; resolved optionally so load() still succeeds on
     // drivers that lack it (the capability system reports it Unsupported).

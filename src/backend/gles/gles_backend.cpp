@@ -908,6 +908,20 @@ void GLESBackend::getInternalformati64v(uint32_t target, uint32_t internalformat
     for (int32_t i = 0; i < n; ++i) params[i] = static_cast<int64_t>(tmp[i]);
 }
 
+void GLESBackend::getShaderPrecisionFormat(uint32_t shaderType, uint32_t precisionType,
+                                           int32_t* range, int32_t* precision) {
+    if (lib_->glGetShaderPrecisionFormat) {
+        GLint r[2] = {0, 0};
+        GLint p = 0;
+        lib_->glGetShaderPrecisionFormat(shaderType, precisionType, r, &p);
+        if (range) { range[0] = static_cast<int32_t>(r[0]); range[1] = static_cast<int32_t>(r[1]); }
+        if (precision) *precision = static_cast<int32_t>(p);
+        return;
+    }
+    if (range) { range[0] = 0; range[1] = 0; }
+    if (precision) *precision = 0;
+}
+
 uint32_t GLESBackend::getMultisampleSampleCount() {
     if (!lib_->glGetFramebufferParameteriv) return 0;
     GLint samples = 0;
