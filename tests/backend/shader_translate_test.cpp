@@ -2,6 +2,9 @@
 
 #include "src/shader/shader_translator.hpp"
 
+#include <regex>
+#include <string>
+
 using namespace glcompat;
 
 // Only built/linked when YAGLT_SHADER_TRANSLATE=ON (glslang + SPIRV-Cross).
@@ -119,6 +122,56 @@ TEST_CASE("tmp_cts_gl30_cover_frag") {
     bool ok = t.translate(src, 0x8B30, out, err);
     std::fprintf(stderr, "  FRAG ok=%d err=%s\n", ok, err.c_str());
     EXPECT_TRUE(ok);
+}
+
+// Varyings shared between vertex and fragment stages must receive the SAME
+// location in both shaders so GLSL ES can link them. Uniforms use sequential
+// locations (stage-local), but in/out varyings use a deterministic hash of
+// the variable name (SPEC §7: shader pipeline transformation). This test
+// verifies that a varying that appears after uniforms in both shaders gets
+// the same location, which the old sequential counter did not guarantee.
+// Additionally, fragment-output `out` variables use sequential numbering
+// (not hash) because their location must be < GL_MAX_DRAW_BUFFERS, which the
+// hash range (0–15) can exceed on some drivers.
+TEST_CASE("shader_translator_cross_stage_varying_locations_match") {
+    ShaderTranslator t;
+    std::string vertOut, fragOut, err;
+
+    const char* vertSrc =
+        "#version 330 core\n"
+        "in vec4 a_position;\n"
+        "in vec4 a_coords;\n"
+        "out vec4 v_coords;\n"
+        "void main() { v_coords = a_coords; gl_Position = a_position; }\n";
+
+    const char* fragSrc =
+        "#version 330 core\n"
+        "in vec4 v_coords;\n"
+        "out vec4 o_color;\n"
+        "uniform int ui_zero;\n"
+        "uniform int ui_one;\n"
+        "uniform int ui_two;\n"
+        "void main() { o_color = v_coords; }\n";
+
+    bool okV = t.translate(vertSrc, 0x8B31 /* GL_VERTEX_SHADER */, vertOut, err);
+    EXPECT_TRUE(okV);
+    bool okF = t.translate(fragSrc, 0x8B30 /* GL_FRAGMENT_SHADER */, fragOut, err);
+    EXPECT_TRUE(okF);
+
+    if (okV && okF) {
+        auto extractLoc = [](const std::string& src, const std::string& var) -> int {
+            std::regex re("layout\\(\\s*location\\s*=\\s*(\\d+)\\s*\\)\\s+(?:in|out)\\s+[^;]*\\b" + var + "\\b");
+            std::smatch m;
+            if (std::regex_search(src, m, re)) return std::stoi(m[1].str());
+            return -1;
+        };
+        int vLoc = extractLoc(vertOut, "v_coords");
+        int fLoc = extractLoc(fragOut, "v_coords");
+        EXPECT_EQ(vLoc, fLoc);
+        /* Fragment output must use sequential location 0, not hash. */
+        int fOutLoc = extractLoc(fragOut, "o_color");
+        EXPECT_EQ(fOutLoc, 0);
+    }
 }
 
 // CTS failing shaders from /tmp/yaglt_FAIL_parse_*.glsl
