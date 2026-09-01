@@ -57,22 +57,63 @@ std::string assignDefaultBindings(const std::string& src) {
     return out;
 }
 
+// Deterministic name-based location hash for user-defined `in`/`out` varyings.
+// Uses a FNV-1a hash with the Knuth multiplicative finalizer, returning the top
+// 4 bits (>> 28) for a 0-15 range. This matches the GLSL ES location limit for
+// vertex inputs (GL_MAX_VERTEX_ATTRIBS ≥ 8, typically 16) and fragment inputs,
+// and is the same bound glslang enforces (layoutLocationEnd = 0xFFF, but ES
+// drivers reject values ≥ 16 at link time). The hash ensures same-named
+// varyings get the SAME location in both vertex (out) and fragment (in) stages,
+// which GLSL ES requires for linking (SPEC §7: shader pipeline transformation
+// — inter-stage varyings must match by location).
+//
+// Collisions within a single shader are resolved by bounded linear probing
+// (% 16 wraparound, max 16 iterations). This terminates because the set has
+// at most 16 slots. When all 16 slots are exhausted (e.g. 17+ outputs, which
+// exceeds GL_MAX_VERTEX_OUTPUT_COMPONENTS = 64 float slots), probing assigns a
+// duplicate location; glslang accepts this (locations are just layout
+// qualifiers), and the SPIRV-Cross component-count check in translate() then
+// rejects the shader honestly — no infinite loop, no segfault.
+static unsigned int hashName(const std::string& name) {
+    unsigned int hash = 2166136261u;
+    for (unsigned char c : name) {
+        hash ^= c;
+        hash *= 16777619u;
+    }
+    return (hash * 2654435761u) >> 28;
+}
+
 // User-defined `in`/`out` interface variables and bare `uniform` declarations
 // need an explicit location when targeting SPIR-V (glslang rejects unlocated
 // user I/O and non-opaque uniforms with "'u_foo' : non-opaque uniform
 // variables need a layout(location=L)"). Inject a default location for any
-// such declaration that lacks one so desktop GLSL translates without manual
+// such declaration that lacks one so desktop shaders translate without manual
 // edits (SPEC §7). The qualifier list between the storage qualifier
 // (`in`/`out`/`uniform`) and the type may include a precision qualifier
 // (`highp`/`mediump`/`lowp`) and interpolation qualifiers (`smooth`/`flat`/
 // `noperspective`); both are common in legacy GLSL and are accepted unchanged
 // by GLSL ES 3.10.
-std::string assignDefaultLocations(const std::string& src) {
+//
+// Uniforms use a per-shader sequential counter (they are stage-local).
+// `in`/`out` varyings use a hash of the variable name so the same varying
+// name maps to the same location across vertex/fragment stages. Collisions
+// within a single shader are resolved by linear probing with no wraparound
+// (increment past the hash value until a free location is found); the FNV
+// hash's wide 16-bit output makes collisions negligible for realistic shaders.
+//
+// Fragment-output `out` variables are an exception: they do not participate in
+// cross-stage location matching (there is no consuming stage), and their
+// location must be < GL_MAX_DRAW_BUFFERS per the GLES spec. They therefore use
+// a sequential counter starting at 0 instead of the hash.
+std::string assignDefaultLocations(const std::string& src, uint32_t stage) {
     static const std::regex re(
         R"((layout\s*\([^)]*\)\s*)?(in|out|uniform)\s+((?:(?:highp|mediump|lowp|smooth|flat|noperspective|centroid|sample|patch)\s+)*)([A-Za-z_]\w*(?:\s*<[^>]*>)?)\s+([A-Za-z_]\w*)\s*(\[[^\]]*\])?\s*;)");
     std::string out;
     std::string::const_iterator pos = src.begin();
-    int location = 0;
+    int uniformLocation = 0;
+    int fragOutLocation = 0;
+    bool isFragmentShader = (stage == 0x8B30); /* GL_FRAGMENT_SHADER */
+    std::set<int> usedLocations;
     std::smatch m;
     while (std::regex_search(pos, src.end(), m, re)) {
         out.append(pos, m[0].first);
@@ -82,13 +123,30 @@ std::string assignDefaultLocations(const std::string& src) {
         const std::string type = m[4].str();
         const std::string name = m[5].str();
         const std::string arr = m[6].str();
+        int location;
+        if (qual == "uniform") {
+            location = uniformLocation++;
+        } else if (isFragmentShader && qual == "out") {
+            /* Fragment outputs: sequential, must be < GL_MAX_DRAW_BUFFERS (≥4 on ES 3.1, typically 8). */
+            location = fragOutLocation++;
+            for (int i = 0; i < 8 && usedLocations.count(location); i++) {
+                location = (location + 1) % 8;
+            }
+            usedLocations.insert(location);
+        } else {
+            location = hashName(name);
+            for (int i = 0; i < 16 && usedLocations.count(location); i++) {
+                location = (location + 1) % 16;
+            }
+            usedLocations.insert(location);
+        }
         if (layout.empty()) {
-            out += "layout(location=" + std::to_string(location++) + ") " + qual +
+            out += "layout(location=" + std::to_string(location) + ") " + qual +
                    " " + quals + type + " " + name + arr + ";";
         } else if (layout.find("location") == std::string::npos) {
             const std::string afterOpen =
                 layout.substr(std::string("layout(").size());
-            out += "layout(location=" + std::to_string(location++) + ", " +
+            out += "layout(location=" + std::to_string(location) + ", " +
                     afterOpen + qual + " " + quals + type + " " + name + arr + ";";
         } else {
             out += m[0].str();
@@ -261,7 +319,7 @@ bool ShaderTranslator::translate(const std::string& desktopGlsl, uint32_t stage,
     EShLanguage lang = mapStage(stage);
     glslang::TShader shader(lang);
     std::string prepared = assignDefaultBindings(desktopGlsl);
-    prepared = assignDefaultLocations(prepared);
+    prepared = assignDefaultLocations(prepared, stage);
     // Rewrite legacy desktop built-ins (texture2D/texture3D/textureCube,
     // gl_FragColor/gl_FragData) into their modern equivalents. glslang rejects
     // these for SPIR-V output, and they no longer exist in the core GLSL
