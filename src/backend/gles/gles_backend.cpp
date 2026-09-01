@@ -217,8 +217,6 @@ bool GLESBackend::initialize() {
         return false;
     }
     queryVersion();
-    fprintf(stderr, "[YAGLT-DEBUG] GLESBackend::initialize glesMajor=%d glesMinor=%d version='%s' renderer='%s'\n",
-            lib_->glesMajor, lib_->glesMinor, lib_->versionString.c_str(), lib_->rendererString.c_str());
     populateGLESCapabilities(caps_, *lib_);
     log(LogCategory::Backend, LogLevel::Info) << "selected backend: GLES (ES "
         << lib_->glesMajor << "." << lib_->glesMinor

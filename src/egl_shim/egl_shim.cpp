@@ -74,10 +74,8 @@ void activateContext(EGLContext ctx) {
         return;
     }
     if (!sc->initialized) {
-        fprintf(stderr, "[YAGLT-DEBUG] activateContext: adopting + initialize()\n");
         sc->backend->setAdopt(sc->dpy, ctx);
         bool ok = sc->backend->initialize();
-        fprintf(stderr, "[YAGLT-DEBUG] activateContext: initialize() returned %d\n", (int)ok);
         if (!ok) {
             // No driver -> honest failure. GL calls will report no context.
             sc->initialized = false;
@@ -92,7 +90,7 @@ void activateContext(EGLContext ctx) {
 // host. The host (e.g. Mesa softpipe) may only expose GLES; YAGLT implements
 // desktop GL on top of a GLES backend, so we must obtain a GLES context and
 // present it as desktop GL to the application.
-static const EGLint* translateContextAttribs(const EGLint* in) {
+static std::vector<EGLint> translateContextAttribs(const EGLint* in) {
     std::vector<EGLint> out;
     bool sawMajor = false, sawMinor = false;
     for (const EGLint* p = in; p && *p != EGL_NONE; p += 2) {
@@ -127,10 +125,7 @@ static const EGLint* translateContextAttribs(const EGLint* in) {
         out.push_back(0);
     }
     out.push_back(EGL_NONE);
-    // Persist for the duration of the createContext call.
-    static std::vector<EGLint> storage;
-    storage = std::move(out);
-    return storage.data();
+    return out;
 }
 
 } // namespace
@@ -144,7 +139,7 @@ EGLAPIENTRY EGLBoolean eglChooseConfig(EGLDisplay dpy, const EGLint* attrib_list
                                        EGLConfig* configs, EGLint config_size,
                                        EGLint* num_config) {
     if (!g_host.eglChooseConfig) return EGL_FALSE;
-    static std::vector<EGLint> storage;
+    std::vector<EGLint> storage;
     const EGLint* list = attrib_list;
     if (attrib_list) {
         std::vector<EGLint> out;
@@ -202,9 +197,9 @@ EGLAPIENTRY EGLContext eglCreateContext(EGLDisplay dpy, EGLConfig config,
     // The application asked for a desktop-GL context (EGL_OPENGL_API, possibly
     // with a CORE/COMPAT profile mask). The host only provides GLES, so rewrite
     // the request into a GLES3 context that YAGLT will drive as desktop GL.
-    const EGLint* hostAttribs = translateContextAttribs(attrib_list);
+    std::vector<EGLint> hostAttribs = translateContextAttribs(attrib_list);
     EGLContext realCtx =
-        g_host.eglCreateContext(dpy, config, share_context, hostAttribs);
+        g_host.eglCreateContext(dpy, config, share_context, hostAttribs.data());
     if (realCtx == EGL_NO_CONTEXT) return realCtx;
 
     std::lock_guard<std::mutex> lock(g_mapMutex);
@@ -253,20 +248,12 @@ EGLAPIENTRY __eglMustCastToProperFunctionPointerType eglGetProcAddress(const cha
         if (fn) return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(fn);
     }
     // EGL extensions and GLES-only entry points fall through to the host.
-    {
-        FILE* _pf = std::fopen("/tmp/yaglt_proc.log", "a");
-        if (_pf) { std::fprintf(_pf, "eglGetProcAddress(%s)\n", procname); std::fclose(_pf); }
-    }
     if (g_host.eglGetProcAddress) {
         void* hf = g_host.eglGetProcAddress(procname);
         if (hf) {
-            if (strcmp(procname, "glClear") == 0 || strcmp(procname, "glClearColor") == 0)
-                fprintf(stderr, "[YAGLT-PROC] %s -> host %p\n", procname, hf);
             return reinterpret_cast<__eglMustCastToProperFunctionPointerType>(hf);
         }
     }
-    if (strncmp(procname, "gl", 2) == 0)
-        fprintf(stderr, "[YAGLT-NULLPROC] eglGetProcAddress(%s) -> NULL\n", procname);
     return nullptr;
 }
 

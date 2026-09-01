@@ -31,6 +31,7 @@ bool resolveGl(GLESLib& lib, F& fn, const char* sym) {
         fn = reinterpret_cast<F>(lib.eglGetProcAddress(sym));
         if (fn) return true;
     }
+    if (!lib.glesHandle) return false;
     fn = reinterpret_cast<F>(dlsym(lib.glesHandle, sym));
     return fn != nullptr;
 }
@@ -38,15 +39,20 @@ bool resolveGl(GLESLib& lib, F& fn, const char* sym) {
 
 bool GLESLib::load() {
     void* egl = openLib({"libEGL.so.1", "libEGL.so", "libEGL.so.2"});
-    void* gles = openLib(
-        {"libGLESv2.so.2", "libGLESv2.so", "libGLESv2.so.1", "libGLESv3.so"});
-    fprintf(stderr, "[YAGLT-DEBUG] load: egl=%p gles=%p\n", egl, gles);
-    glesHandle = gles;
-    if (!egl || !gles) {
-        if (egl) dlclose(egl);
-        if (gles) dlclose(gles);
-        return false;
+    if (!egl) return false;
+    // In adopt mode (resolveGLViaProcAddr already set by setAdopt), GL entry points
+    // are resolved through the host's eglGetProcAddress; libGLESv2 need not be
+    // dlopen'd and may be absent in the LD_PRELOAD/shim environment.
+    void* gles = nullptr;
+    if (!resolveGLViaProcAddr) {
+        gles = openLib(
+            {"libGLESv2.so.2", "libGLESv2.so", "libGLESv2.so.1", "libGLESv3.so"});
+        if (!gles) {
+            dlclose(egl);
+            return false;
+        }
     }
+    glesHandle = gles;
 
     bool ok = true;
     // EGL
@@ -434,18 +440,6 @@ bool GLESLib::load() {
     resolveGl(*this, glGetUniformiv, "glGetUniformiv");
     resolveGl(*this, glGetUniformuiv, "glGetUniformuiv");
 
-    fprintf(stderr, "[YAGLT-DEBUG] load ok=%d\n"
-            "  egl: init=%p err=%p disp=%p choose=%p ctx=%p mc=%p dc=%p term=%p qstr=%p eglPA=%p\n"
-            "  gl: GetError=%p GetString=%p GetIntegerv=%p GetBooleanv=%p GetFloatv=%p GetDoublev=%p GetInteger64v=%p GetStringi=%p\n"
-            "      GenBuffers=%p DeleteBuffers=%p BindBuffer=%p BufferData=%p GenTextures=%p DeleteTextures=%p BindTexture=%p\n",
-            (int)ok,
-            (void*)eglInitialize, (void*)eglGetError, (void*)eglGetDisplay, (void*)eglChooseConfig,
-            (void*)eglCreateContext, (void*)eglMakeCurrent, (void*)eglDestroyContext, (void*)eglTerminate, (void*)eglQueryString, (void*)eglGetProcAddress,
-            (void*)glGetError, (void*)glGetString, (void*)glGetIntegerv, (void*)glGetBooleanv, (void*)glGetFloatv, (void*)glGetDoublev, (void*)glGetInteger64v, (void*)glGetStringi,
-            (void*)glGenBuffers, (void*)glDeleteBuffers, (void*)glBindBuffer, (void*)glBufferData, (void*)glGenTextures, (void*)glDeleteTextures, (void*)glBindTexture);
-    fprintf(stderr, "[YAGLT-DEBUG] suspects: POC=%p DRfi=%p CMi=%p VIi=%p SIi=%p Tex2D=%p DrawA=%p Enable=%p CFS=%p FbT2D=%p CreateShader=%p BindVAO=%p\n",
-            (void*)glPolygonOffsetClamp, (void*)glDepthRangefIndexed, (void*)glColorMaski, (void*)glViewportIndexedf, (void*)glScissorIndexed,
-            (void*)glTexImage2D, (void*)glDrawArrays, (void*)glEnable, (void*)glCheckFramebufferStatus, (void*)glFramebufferTexture2D, (void*)glCreateShader, (void*)glBindVertexArray);
     if (!ok) {
         dlclose(egl);
         dlclose(gles);
