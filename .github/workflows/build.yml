@@ -17,7 +17,7 @@ jobs:
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DYAGLT_BUILD_TESTS=ON
 
       - name: Build
-        run: cmake --build build --target yaglt_tests -j
+        run: cmake --build build --target yaglt_tests yaglt_egl_shim --parallel 2
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -26,4 +26,5 @@ jobs:
           path: |
             build/tests/yaglt_tests
             build/src/libyaglt_core.a
+            build/src/egl_shim/libEGL.so
           if-no-files-found: error
